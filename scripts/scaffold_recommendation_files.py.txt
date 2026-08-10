@@ -1,0 +1,40 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/scaffold_recommendation_files.py
+# auto-generated explainer · 2026-06-28T10:00:19Z
+
+## Purpose
+Scaffold 21 HOLY_RECOMMENDATION.md per-dept files from the canonical catalog.
+
+Per §64.22 + docs/RECOMMENDER_FLAVORS_PER_DEPT.md.
+
+For each canonical dept, generates a starter HOLY_RECOMMENDATION.md that:
+- Names the 3 classical flavors with the dept-specific algorithm
+- Maps to existing 23 R-* stub use cases by dept
+- Includes mandatory §90.3 G3/G4/G7/G10/G11/G16 surfaces
+- Is operator-editable · NOT final content · just turns §64.22 audit GREEN
+
+Idempotent. Skip if file exists unless --force.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import argparse
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+- CLI args: --force, --dry-run
+
+## Process
+### Functions
+- `render(did, slug, item_algo, content_algo, hybrid_algo)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- Canonical 21 depts per RECOMMENDER_FLAVORS_PER_DEPT.md
+- (dept_id, slug, item-based algo, content-based algo, hybrid algo)
+- Find or create dept dir
+- Use canonical naming: DD-slug

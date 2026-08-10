@@ -1,0 +1,47 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/generate_use_case_stubs.py
+# auto-generated explainer · 2026-06-28T10:00:08Z
+
+## Purpose
+generate_use_case_stubs.py — drop 48 per-use-case stub directories under docs/use-cases/.
+
+Per global §90 + operator instruction 2026-06-08. Each stub contains:
+- use-case.md (22-subsection template per §90.3)
+- README.md (entry point with composing §-refs)
+- data-quality-checklist.md (G1-G6 subsections)
+- analysis-checklist.md (G7-G9 subsections)
+- responsible-ai-checklist.md (G10-G11 subsections)
+- pipeline-checklist.md (G12 subsections)
+- evaluation-metrics.json (per §75 12-axis matrix)
+- testing-coverage.json (per §88 10 agents × 9 areas)
+
+Output: docs/use-cases/<block>-<id>-<slug>/
+Total: 48 directories × 8 files = 384 files.
+
+Idempotent. --force to overwrite. --dry-run to preview.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import argparse
+- from `_` import json
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+- CLI args: --force, --dry-run, --limit, --only, --list, --summary
+
+## Process
+### Functions
+- `slugify(s)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- 48 use cases from §90.2 (matches the catalog Blocks A-F)
+- Block A · Zero-coverage gaps (5)
+- Block B · Low-coverage gaps (5)
+- Block C · Architecture explicit (5)
+- Block D · Missing scenarios (18)

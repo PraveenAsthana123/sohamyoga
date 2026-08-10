@@ -1,0 +1,38 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_routes_smoke.py
+# auto-generated explainer · 2026-06-28T10:00:12Z
+
+## Purpose
+Route reachability smoke · catches silent route-registration regressions.
+
+Per "fix all" iteration that caught 2 silent bugs the audit triad missed:
+1. Settings.postgres_dsn attribute mismatch
+2. voice_ai_router missing from main.py include_router
+
+Imports main.create_app() via TestClient and verifies a curated set of
+critical routes return non-5xx. Exit 1 if any returns ≥500 (server error).
+4xx is acceptable (e.g. /campaigns/1 returns 404 with empty DB).
+
+Reference: §47.6 (DevSecOps CI gate) + §57.7 (honest test instead of
+trusting that imports worked).
+
+## Imports
+- from `_` import sys
+- from `_` import os
+- from `_` import logging
+- from `pathlib` import Path
+
+## Inputs
+- Env vars: INSUR_SKIP_MIGRATIONS
+
+## Process
+### Functions
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Set up paths · BOTH needed (REPO for `from backend.x`, REPO/backend for `from main`)
+- Routes that MUST be reachable (404/200 OK · only 5xx is failure)
+- marketing campaigns (added 2026-06-08 · §64.13)

@@ -8,9 +8,9 @@ import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
   title: 'Blog - Insights & Articles',
-  description: 'Explore the latest insights on AI, machine learning, IT solutions, and digital transformation from the SLP Systems team.',
+  description: 'Explore the latest insights on AI, machine learning, IT solutions, and digital transformation from the SohamYoga team.',
   openGraph: {
-    title: 'Blog - SLP Systems',
+    title: 'Blog - SohamYoga',
     description: 'Explore the latest insights on AI, machine learning, IT solutions, and digital transformation.',
   },
 };

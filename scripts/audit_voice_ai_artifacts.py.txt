@@ -1,0 +1,36 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_voice_ai_artifacts.py
+# auto-generated explainer · 2026-06-28T10:00:05Z
+
+## Purpose
+Audit voice AI E2E demo artifact completeness · §90 L15 + §92.
+
+Checks:
+- backend/voice_ai/ has 4 mandatory modules
+- backend/migrations/052_voice_ai_end_to_end.sql exists
+- frontend/src/pages/VoiceAIDemoPage.jsx exists + >5 KB
+- docs/use-cases/voice-ai-end-to-end/HOLY_DEMO_STORY.md exists + >10 KB
+- DEMO_STORY contains all 14 mandatory sections
+
+Exit 0 if all pass · 1 otherwise.
+
+## Imports
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Optional frontend files (operator may not always ship FE)
+- Backend files
+- Migration
+- Frontend (3 pages: demo · campaign · e2e)
+- Demo story

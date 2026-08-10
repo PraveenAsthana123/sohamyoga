@@ -1,0 +1,234 @@
+version: "3.9"
+# SohamYoga — Master Platform Compose
+# Starts ALL services with a single command for local development/staging
+# Production: deploy each service independently on dedicated resources
+
+# Usage:
+#   cp .env.master.example .env.master
+#   docker compose -f docker-compose.master.yml --env-file .env.master up -d
+#
+# Service port map:
+#   4000  — SohamYoga Next.js portal (slp-frontend)
+#   8080  — Frappe/ERPNext/Education/CRM UI
+#   3100  — Cal.com booking
+#   5000  — Postiz social media
+#   8010  — Paperless-ngx documents
+#   9000  — Authentik SSO
+#   3001  — Metabase analytics
+#   8020  — Moodle LMS
+#   3200  — Rocket.Chat internal
+#   3300  — Chatwoot support
+#   3400  — Formbricks surveys
+#   8500  — Novu notifications
+#   8000  — PostHog product analytics
+#   5001  — Lago billing
+
+services:
+  # ── 1. SohamYoga Portal (Next.js) ──────────────────────────────
+  portal:
+    build:
+      context: ./slp-frontend
+      dockerfile: Dockerfile
+    container_name: sohamyoga_portal
+    restart: unless-stopped
+    env_file: ./slp-frontend/.env.local
+    ports:
+      - "4000:3000"
+    depends_on:
+      - portal_db
+
+  portal_db:
+    image: postgres:15-alpine
+    container_name: sohamyoga_portal_db
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: "${PORTAL_DB_PASSWORD:-portalpass}"
+      POSTGRES_DB: sohamyoga
+    volumes:
+      - portal_db_data:/var/lib/postgresql/data
+
+  # ── 2. Frappe (ERPNext + Education + CRM + HR) ─────────────────
+  frappe_backend:
+    image: frappe/erpnext:v15
+    container_name: sohamyoga_frappe
+    restart: unless-stopped
+    environment:
+      DB_HOST: frappe_db
+      DB_PORT: "3306"
+      REDIS_CACHE: "redis://frappe_redis_cache:6379"
+      REDIS_QUEUE: "redis://frappe_redis_queue:6379"
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+    depends_on:
+      - frappe_db
+      - frappe_redis_cache
+
+  frappe_frontend:
+    image: frappe/erpnext:v15
+    command: nginx-entrypoint.sh
+    environment:
+      BACKEND: frappe_backend:8000
+      FRAPPE_SITE_NAME_HEADER: "$$host"
+    ports:
+      - "8080:8080"
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+
+  frappe_db:
+    image: mariadb:10.6
+    environment:
+      MARIADB_ROOT_PASSWORD: "${FRAPPE_DB_ROOT_PASSWORD:-CHANGE_ME}"
+      MARIADB_USER: frappe
+      MARIADB_PASSWORD: "${FRAPPE_DB_PASSWORD:-CHANGE_ME}"
+      MARIADB_DATABASE: frappe
+    volumes:
+      - frappe_db_data:/var/lib/mysql
+
+  frappe_redis_cache:
+    image: redis:7-alpine
+  frappe_redis_queue:
+    image: redis:7-alpine
+
+  # ── 3. Cal.com ──────────────────────────────────────────────────
+  calcom:
+    image: calcom/calcom:latest
+    container_name: sohamyoga_calcom
+    environment:
+      DATABASE_URL: "postgresql://calcom:${CALCOM_DB_PASSWORD:-calcompass}@calcom_db:5432/calcom"
+      NEXTAUTH_SECRET: "${CALCOM_NEXTAUTH_SECRET:-CHANGE_ME}"
+      NEXT_PUBLIC_WEBAPP_URL: "http://localhost:3100"
+    ports:
+      - "3100:3000"
+    depends_on:
+      - calcom_db
+
+  calcom_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: calcom
+      POSTGRES_PASSWORD: "${CALCOM_DB_PASSWORD:-calcompass}"
+      POSTGRES_DB: calcom
+    volumes:
+      - calcom_db_data:/var/lib/postgresql/data
+
+  # ── 4. Authentik SSO ────────────────────────────────────────────
+  authentik_server:
+    image: ghcr.io/goauthentik/server:2024.2
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: "${AUTHENTIK_DB_PASSWORD:-authentikpass}"
+      AUTHENTIK_SECRET_KEY: "${AUTHENTIK_SECRET_KEY:-CHANGE_ME}"
+    ports:
+      - "9000:9000"
+    depends_on:
+      - authentik_db
+      - authentik_redis
+
+  authentik_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: "${AUTHENTIK_DB_PASSWORD:-authentikpass}"
+      POSTGRES_DB: authentik
+    volumes:
+      - authentik_pg_data:/var/lib/postgresql/data
+
+  authentik_redis:
+    image: redis:7-alpine
+
+  # ── 5. Metabase ─────────────────────────────────────────────────
+  metabase:
+    image: metabase/metabase:v0.49.0
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_HOST: metabase_db
+      MB_DB_USER: metabase
+      MB_DB_PASS: "${METABASE_DB_PASSWORD:-metabasepass}"
+      MB_ENABLE_EMBEDDING: "true"
+    ports:
+      - "3001:3000"
+    depends_on:
+      - metabase_db
+
+  metabase_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: "${METABASE_DB_PASSWORD:-metabasepass}"
+      POSTGRES_DB: metabase
+    volumes:
+      - metabase_pg_data:/var/lib/postgresql/data
+
+  # ── 6. Paperless-ngx ────────────────────────────────────────────
+  paperless_webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    environment:
+      PAPERLESS_REDIS: redis://paperless_redis:6379
+      PAPERLESS_DBHOST: paperless_db
+      PAPERLESS_SECRET_KEY: "${PAPERLESS_SECRET_KEY:-CHANGE_ME}"
+    ports:
+      - "8010:8000"
+    volumes:
+      - paperless_data:/usr/src/paperless/data
+      - paperless_media:/usr/src/paperless/media
+    depends_on:
+      - paperless_db
+      - paperless_redis
+
+  paperless_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: "${PAPERLESS_DB_PASSWORD:-paperlesspass}"
+      POSTGRES_DB: paperless
+    volumes:
+      - paperless_pg_data:/var/lib/postgresql/data
+
+  paperless_redis:
+    image: redis:7-alpine
+
+  # ── 7. Postiz Social Media ──────────────────────────────────────
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app:latest
+    environment:
+      DATABASE_URL: "postgresql://postiz:${POSTIZ_DB_PASSWORD:-postizpass}@postiz_db:5432/postiz"
+      REDIS_URL: "redis://postiz_redis:6379"
+      JWT_SECRET: "${POSTIZ_JWT_SECRET:-CHANGE_ME}"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postiz_db
+      - postiz_redis
+
+  postiz_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postiz
+      POSTGRES_PASSWORD: "${POSTIZ_DB_PASSWORD:-postizpass}"
+      POSTGRES_DB: postiz
+    volumes:
+      - postiz_pg_data:/var/lib/postgresql/data
+
+  postiz_redis:
+    image: redis:7-alpine
+
+volumes:
+  portal_db_data:
+  frappe_sites:
+  frappe_db_data:
+  calcom_db_data:
+  authentik_pg_data:
+  metabase_pg_data:
+  paperless_data:
+  paperless_media:
+  paperless_pg_data:
+  postiz_pg_data:
+
+# Note: Moodle, Rocket.Chat, Chatwoot, Formbricks, Novu, Lago, PostHog
+# have their own docker-compose.yml in their respective integration folders.
+# Start them separately or extend this file with includes: (Compose v2 feature).

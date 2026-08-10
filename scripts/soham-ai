@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_ROOT="/mnt/deepa/sohamyoga"
+PLATFORM="$PROJECT_ROOT/agentic-ollama-platform"
+PORTS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/sohamyoga/ports.env"
+SECRETS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/sohamyoga/integrations.env"
+
+if [[ -f "$PORTS_FILE" ]]; then set -a; source "$PORTS_FILE"; set +a; fi
+: "${SOHAM_FRONTEND_PORT:=8085}"
+: "${SOHAM_BACKEND_PORT:=15070}"
+: "${SOHAM_PAPERCLIP_PORT:=3200}"
+: "${SOHAM_OPENCLAW_PORT:=18889}"
+: "${SOHAM_OLLAMA_GATEWAY_PORT:=8091}"
+
+url() { printf 'http://127.0.0.1:%s%s\n' "$1" "${2:-}"; }
+open_url() { xdg-open "$1" >/dev/null 2>&1 || printf 'Open: %s\n' "$1"; }
+http_code() { local code; code=$(curl -sS --max-time 8 -o /dev/null -w '%{http_code}' "$1" 2>/dev/null) || true; printf '%s' "${code:-000}"; }
+
+usage() {
+  cat <<'EOF'
+SohamYoga local AI — works globally from any folder
+
+  soham-ai start|stop|restart|status|urls|open|doctor|test-all
+  soham-ai configure-ports FRONTEND BACKEND PAPERCLIP OPENCLAW GATEWAY
+  soham-ai chat [prompt]           interactive/local chat or one prompt
+  soham-ai code "task" [files...] local coding task
+  soham-ai plan "goal"            persist and queue a plan
+  soham-ai job "goal"             plan, execute, monitor and return result
+  soham-ai run                     process queued jobs now
+  soham-ai jobs [request-id]       queue/request status
+  soham-ai models                  installed Ollama models
+  soham-ai warm [fast|code]        reduce cold start
+  soham-ai portal|paperclip|openclaw  open a browser UI
+  soham-ai slack                   run Slack bridge (credentials required)
+  soham-ai mcp-test                test MCP initialize + tools/list
+  soham-ai vscode                  open current folder in VS Code
+  soham-ai aider [args...]         local coding agent in current folder
+
+Port configuration: ~/.config/sohamyoga/ports.env
+Slack secrets:       ~/.config/sohamyoga/integrations.env (chmod 600)
+EOF
+}
+
+case "${1:-help}" in
+  configure-ports)
+    [[ $# -eq 6 ]] || { echo 'Usage: soham-ai configure-ports FRONTEND BACKEND PAPERCLIP OPENCLAW GATEWAY'; exit 2; }
+    shift
+    ports=("$@")
+    declare -A seen=()
+    for port in "${ports[@]}"; do
+      [[ "$port" =~ ^[0-9]+$ ]] && ((port >= 1024 && port <= 65535)) || { echo "Invalid port: $port (use 1024-65535)"; exit 2; }
+      [[ -z "${seen[$port]:-}" ]] || { echo "Duplicate port: $port"; exit 2; }
+      seen[$port]=1
+      if ss -ltnH | awk '{print $4}' | grep -Eq "(^|:)$port$"; then
+        current=false
+        for known in "$SOHAM_FRONTEND_PORT" "$SOHAM_BACKEND_PORT" "$SOHAM_PAPERCLIP_PORT" "$SOHAM_OPENCLAW_PORT" "$SOHAM_OLLAMA_GATEWAY_PORT"; do [[ "$port" = "$known" ]] && current=true; done
+        $current || { echo "Port $port is already in use."; exit 2; }
+      fi
+    done
+    mkdir -p "$(dirname "$PORTS_FILE")"
+    umask 077
+    printf 'SOHAM_FRONTEND_PORT=%s\nSOHAM_BACKEND_PORT=%s\nSOHAM_PAPERCLIP_PORT=%s\nSOHAM_OPENCLAW_PORT=%s\nSOHAM_OLLAMA_GATEWAY_PORT=%s\n' "${ports[@]}" > "$PORTS_FILE"
+    export SOHAM_FRONTEND_PORT=${ports[0]} SOHAM_BACKEND_PORT=${ports[1]} SOHAM_PAPERCLIP_PORT=${ports[2]} SOHAM_OPENCLAW_PORT=${ports[3]} SOHAM_OLLAMA_GATEWAY_PORT=${ports[4]}
+    openclaw config set gateway.port "$SOHAM_OPENCLAW_PORT" --strict-json
+    openclaw gateway install --force --port "$SOHAM_OPENCLAW_PORT"
+    systemctl --user daemon-reload
+    "$0" restart
+    ;;
+  start|restart)
+    systemctl --user "${1}" soham-backend soham-frontend soham-paperclip openclaw-gateway soham-ollama-worker soham-ollama-gateway
+    "$0" status
+    ;;
+  stop) systemctl --user stop soham-frontend soham-backend soham-paperclip openclaw-gateway soham-ollama-worker soham-ollama-gateway ;;
+  status)
+    systemctl --user --no-pager --plain status soham-backend soham-frontend soham-paperclip openclaw-gateway soham-ollama-worker soham-ollama-gateway | grep -E '● |Active:|Loaded:' || true
+    "$0" urls
+    ;;
+  urls)
+    printf 'SohamYoga   %s [%s]\n' "$(url "$SOHAM_FRONTEND_PORT" /admin/operations-center)" "$(http_code "$(url "$SOHAM_FRONTEND_PORT" /admin/operations-center)")"
+    printf 'Backend API %s [%s]\n' "$(url "$SOHAM_BACKEND_PORT" /api/health)" "$(http_code "$(url "$SOHAM_BACKEND_PORT" /api/health)")"
+    printf 'Paperclip   %s [%s]\n' "$(url "$SOHAM_PAPERCLIP_PORT")" "$(http_code "$(url "$SOHAM_PAPERCLIP_PORT")")"
+    printf 'OpenClaw    %s [%s]\n' "$(url "$SOHAM_OPENCLAW_PORT")" "$(http_code "$(url "$SOHAM_OPENCLAW_PORT")")"
+    printf 'Ollama API  %s [%s]\n' "$(url "$SOHAM_OLLAMA_GATEWAY_PORT" /health)" "$(http_code "$(url "$SOHAM_OLLAMA_GATEWAY_PORT" /health)")"
+    ;;
+  open|portal) open_url "$(url "$SOHAM_FRONTEND_PORT" /admin/operations-center)" ;;
+  paperclip) open_url "$(url "$SOHAM_PAPERCLIP_PORT")" ;;
+  openclaw) open_url "$(url "$SOHAM_OPENCLAW_PORT")" ;;
+  chat) shift; if (($#)); then exec oll -q "$*"; else exec oll chat; fi ;;
+  code) shift; [[ $# -gt 0 ]] || { echo 'Usage: soham-ai code "task" [files...]'; exit 2; }; prompt=$1; shift; args=(); for f in "$@"; do args+=( -f "$f" ); done; exec oll -c "${args[@]}" "$prompt" ;;
+  plan) shift; exec oll plan "$*" ;;
+  job) shift; exec oll "$*" ;;
+  run) exec oll run ;;
+  jobs) shift; exec oll status "$@" ;;
+  models) exec oll models ;;
+  warm) shift; exec oll warm "${1:-fast}" ;;
+  doctor) oll doctor; echo; "$0" status; echo; "$0" mcp-test ;;
+  mcp-test)
+    printf '%s\n%s\n' \
+      '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"soham-test","version":"1"}}}' \
+      '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' |
+      python3 "$PLATFORM/mcp_server.py"
+    ;;
+  slack)
+    [[ -f "$SECRETS_FILE" ]] || { printf 'Create %s with SLACK_BOT_TOKEN and SLACK_APP_TOKEN, then chmod 600 it.\n' "$SECRETS_FILE"; exit 2; }
+    set -a; source "$SECRETS_FILE"; set +a
+    export AGENT_API_URL="$(url "$SOHAM_OLLAMA_GATEWAY_PORT")"
+    exec python3 "$PLATFORM/integrations/slack_bot.py"
+    ;;
+  vscode) exec code "${2:-.}" ;;
+  aider) shift; export OLLAMA_API_BASE=http://127.0.0.1:11434; exec aider --model ollama/qwen2.5-coder:14b "$@" ;;
+  test-all)
+    "$0" urls
+    curl -fsS http://127.0.0.1:11434/api/tags >/dev/null
+    reply=$(curl -fsS --max-time 120 http://127.0.0.1:11434/api/generate -H 'Content-Type: application/json' -d '{"model":"gemma3:1b","prompt":"Reply with only OLLAMA_OK","stream":false,"options":{"temperature":0}}' | python3 -c 'import json,sys; print(json.load(sys.stdin).get("response",""))')
+    [[ "$reply" == *OLLAMA_OK* ]] || { echo "Local inference failed: $reply"; exit 1; }
+    oll route 'review and test this code' >/dev/null
+    "$0" mcp-test >/dev/null
+    test "$(http_code "$(url "$SOHAM_FRONTEND_PORT" /admin/operations-center)")" = 200
+    test "$(http_code "$(url "$SOHAM_BACKEND_PORT" /api/health)")" = 200
+    test "$(http_code "$(url "$SOHAM_PAPERCLIP_PORT" /api/health)")" = 200
+    test "$(http_code "$(url "$SOHAM_OPENCLAW_PORT")")" = 200
+    test "$(http_code "$(url "$SOHAM_OLLAMA_GATEWAY_PORT" /health)")" = 200
+    echo 'PASS: local inference, terminal, routing, MCP, portal, Paperclip, OpenClaw and gateway.'
+    ;;
+  help|-h|--help) usage ;;
+  *) echo "Unknown command: $1"; usage; exit 2 ;;
+esac

@@ -1,0 +1,24 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# backend/webllm_cdp_rag_langgraph/web_llm_bridge.py
+# auto-generated explainer · 2026-06-28T10:01:08Z
+
+## Purpose
+WebSocket bridge · backend ↔ browser WebLLM.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import asyncio
+- from `_` import json
+- from `_` import logging
+- from `_` import uuid
+- from `typing` import Optional
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Classes
+- `WebLLMBridge`: Browser WebLLM is the inference target · backend just orchestrates.
+
+## Outputs
+- Return values from functions above

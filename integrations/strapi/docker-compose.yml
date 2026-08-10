@@ -1,0 +1,79 @@
+version: "3.8"
+# Strapi — headless CMS for banner content, blog, and testimonials
+# Port: 1337 (admin + REST API + GraphQL)
+# GitHub: https://github.com/strapi/strapi
+# Docs: https://docs.strapi.io/dev-docs/installation/docker
+
+services:
+  strapi:
+    image: strapi/strapi:latest
+    container_name: sohamyoga-strapi
+    restart: unless-stopped
+    ports:
+      - "1337:1337"
+    environment:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: strapi-db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: strapi
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: ${STRAPI_DB_PASSWORD:-strpisecret}
+      JWT_SECRET: ${STRAPI_JWT_SECRET:-changeme-jwt-secret-32chars}
+      APP_KEYS: ${STRAPI_APP_KEYS:-key1,key2,key3,key4}
+      API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT:-changeme-api-salt}
+      ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:-changeme-admin-jwt}
+      TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT:-changeme-transfer}
+      NODE_ENV: production
+    depends_on:
+      strapi-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - strapi-uploads:/opt/app/public/uploads
+      - strapi-config:/opt/app/config
+
+  strapi-db:
+    image: postgres:15-alpine
+    container_name: sohamyoga-strapi-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: strapi
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: ${STRAPI_DB_PASSWORD:-strpisecret}
+    volumes:
+      - strapi-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U strapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+volumes:
+  strapi-uploads:
+  strapi-config:
+  strapi-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   Admin: http://localhost:1337/admin  (create first admin account)
+#   REST API: http://localhost:1337/api/<collection>
+#   GraphQL: http://localhost:1337/graphql
+#
+# Content types to create in Strapi:
+#   banner        — title, slug, headline, body, cta, mediaUrl, altText, tags, category
+#   banner-category — name, slug, description, sortOrder
+#   campaign      — name, type, startAt, endAt, banners (relation)
+#   blog-post     — title, slug, content, author, coverImage, tags
+#   testimonial   — author, content, rating, classType
+#   faq           — question, answer, category, sortOrder
+#   yoga-service  — name, description, features, price, image
+#
+# Portal integration: next.js fetches banners via Strapi REST API at build/ISR time
+# strapiId field on Banner domain entity maps to Strapi record ID

@@ -65,7 +65,7 @@ export default function CareersPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Open Positions</h2>
-            <p className="text-gray-600">Find your next challenge and grow your career at SLP Systems.</p>
+            <p className="text-gray-600">Find your next challenge and grow your career at SohamYoga.</p>
           </div>
 
           {/* Department Filter */}
@@ -111,7 +111,7 @@ export default function CareersPage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why SLP Systems?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why SohamYoga?</h2>
             <p className="text-gray-600 max-w-xl mx-auto">We invest in our people. Here's what you can expect when you join our team.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">

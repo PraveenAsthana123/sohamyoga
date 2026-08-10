@@ -1,0 +1,83 @@
+version: "3.9"
+# Authentik — SSO / Identity Provider (replaces Keycloak; simpler Python-based, better UX)
+# Port 9000 (HTTP), 9443 (HTTPS)
+# Provides: OIDC/OAuth2 for Yoga Portal + all integrated services
+
+services:
+  authentik_server:
+    image: ghcr.io/goauthentik/server:2024.2
+    container_name: sohamyoga_authentik
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: "${AUTHENTIK_DB_PASSWORD:-authentikpass}"
+      AUTHENTIK_SECRET_KEY: "${AUTHENTIK_SECRET_KEY:-CHANGE_ME_minimum_50chars_secret}"
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      AUTHENTIK_EMAIL__HOST: "${SMTP_HOST}"
+      AUTHENTIK_EMAIL__PORT: "${SMTP_PORT:-587}"
+      AUTHENTIK_EMAIL__USERNAME: "${SMTP_USER}"
+      AUTHENTIK_EMAIL__PASSWORD: "${SMTP_PASSWORD}"
+      AUTHENTIK_EMAIL__FROM: "${SMTP_FROM:-noreply@sohamyoga.com}"
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+    depends_on:
+      - authentik_db
+      - authentik_redis
+
+  authentik_worker:
+    image: ghcr.io/goauthentik/server:2024.2
+    container_name: sohamyoga_authentik_worker
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: "${AUTHENTIK_DB_PASSWORD:-authentikpass}"
+      AUTHENTIK_SECRET_KEY: "${AUTHENTIK_SECRET_KEY:-CHANGE_ME_minimum_50chars_secret}"
+    volumes:
+      - authentik_media:/media
+    depends_on:
+      - authentik_db
+      - authentik_redis
+
+  authentik_db:
+    image: postgres:15-alpine
+    container_name: sohamyoga_authentik_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: "${AUTHENTIK_DB_PASSWORD:-authentikpass}"
+      POSTGRES_DB: authentik
+    volumes:
+      - authentik_pg_data:/var/lib/postgresql/data
+
+  authentik_redis:
+    image: redis:7-alpine
+    container_name: sohamyoga_authentik_redis
+
+volumes:
+  authentik_media:
+  authentik_templates:
+  authentik_pg_data:
+
+# ── OIDC clients to configure in Authentik UI ──────────────────────
+# 1. SohamYoga Portal  (Next.js App)
+# 2. Frappe/ERPNext    (OAuth2 Social Login)
+# 3. Cal.com           (OAuth2 provider)
+# 4. Moodle LMS        (OAuth2/OIDC)
+# 5. Metabase          (OAuth2/OIDC)
+# 6. Chatwoot          (OAuth2/OIDC)
+# 7. Rocket.Chat       (OAuth2/OIDC)
+# 8. PostHog           (OAuth2/OIDC)
+# All services share a single Authentik identity source
+# ────────────────────────────────────────────────────────────────────

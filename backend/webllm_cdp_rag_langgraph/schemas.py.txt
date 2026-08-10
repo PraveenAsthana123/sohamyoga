@@ -1,0 +1,24 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# backend/webllm_cdp_rag_langgraph/schemas.py
+# auto-generated explainer · 2026-06-28T10:01:08Z
+
+## Purpose
+Schemas for WebLLM + CDP + RAG + LangGraph agent.
+
+## Imports
+- from `__future__` import annotations
+- from `typing` import Any, Optional
+- from `pydantic` import BaseModel, Field
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Classes
+- `AgentGoalRequest`: (no docstring)
+- `AgentRunResponse`: (no docstring)
+- `WebLLMPromptIn`: (no docstring)
+- `WebLLMResponseIn`: (no docstring)
+
+## Outputs
+- Return values from functions above

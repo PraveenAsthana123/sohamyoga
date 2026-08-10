@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: IndustryPageProps): Promise<M
     title: `${industry.title} - Industry Solutions`,
     description: industry.shortDescription,
     openGraph: {
-      title: `${industry.title} Solutions - SLP Systems`,
+      title: `${industry.title} Solutions - SohamYoga`,
       description: industry.shortDescription,
     },
   };

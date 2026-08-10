@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Careers at SLP Systems — Join Our Team';
+export const alt = 'Careers at SohamYoga — Join Our Team';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

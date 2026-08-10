@@ -1,0 +1,9 @@
+[Unit]
+Description=Run SohamYoga unified quality checks every 30 minutes
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+RandomizedDelaySec=2min
+Persistent=true
+[Install]
+WantedBy=timers.target

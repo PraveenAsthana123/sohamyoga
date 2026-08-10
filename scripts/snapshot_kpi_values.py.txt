@@ -1,0 +1,33 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/snapshot_kpi_values.py
+# auto-generated explainer · 2026-06-28T10:00:12Z
+
+## Purpose
+KPI values snapshot · T5.8 · hourly cron.
+
+Per docs/PENDING_PLAN.md T5.8. Computes all 15 wired KPIs every hour
+and persists to `kpi_snapshots` (migration 059) for trend analysis.
+
+Cron: `0 * * * * /path/.../python scripts/snapshot_kpi_values.py`
+
+Per §82.7 drift detection · this enables per-KPI trend lines in the
+AdminAuditPage chart equivalent (operator-readable history of every KPI's
+movement over time).
+
+## Imports
+- from `_` import json
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `datetime` import datetime, timezone
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above

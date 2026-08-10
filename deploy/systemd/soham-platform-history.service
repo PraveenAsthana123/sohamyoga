@@ -1,0 +1,7 @@
+[Unit]
+Description=Persist SohamYoga cross-runtime health and circuit history
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /mnt/deepa/sohamyoga/scripts/collect-platform-health.sh

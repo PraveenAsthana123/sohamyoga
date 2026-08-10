@@ -1,0 +1,99 @@
+version: "3.8"
+# Penpot — open-source design & collaboration (Figma alternative)
+# Use for: banner design, UI mockups, social-media templates, brand kit
+# Port: 9001 (web app)
+# GitHub: https://github.com/penpot/penpot
+# Docs: https://help.penpot.app/technical-guide/getting-started/
+
+services:
+  penpot-frontend:
+    image: penpotapp/frontend:latest
+    container_name: sohamyoga-penpot-frontend
+    restart: unless-stopped
+    ports:
+      - "9001:80"
+    environment:
+      PENPOT_FLAGS: "enable-registration enable-login-with-password"
+    depends_on:
+      - penpot-backend
+    networks:
+      - sohamyoga-net
+    volumes:
+      - penpot-assets:/opt/data/assets
+
+  penpot-backend:
+    image: penpotapp/backend:latest
+    container_name: sohamyoga-penpot-backend
+    restart: unless-stopped
+    environment:
+      PENPOT_FLAGS: "enable-registration enable-login-with-password"
+      PENPOT_DATABASE_URI: postgresql://penpot:${PENPOT_DB_PASSWORD:-penpot}@penpot-db/penpot
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+      PENPOT_ASSETS_STORAGE_BACKEND: assets-fs
+      PENPOT_STORAGE_ASSETS_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: "false"
+      PENPOT_SMTP_ENABLED: ${PENPOT_SMTP_ENABLED:-false}
+    depends_on:
+      penpot-db:
+        condition: service_healthy
+      penpot-redis:
+        condition: service_started
+    networks:
+      - sohamyoga-net
+    volumes:
+      - penpot-assets:/opt/data/assets
+
+  penpot-exporter:
+    image: penpotapp/exporter:latest
+    container_name: sohamyoga-penpot-exporter
+    restart: unless-stopped
+    environment:
+      PENPOT_PUBLIC_URI: http://penpot-frontend
+    networks:
+      - sohamyoga-net
+
+  penpot-db:
+    image: postgres:15-alpine
+    container_name: sohamyoga-penpot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: penpot
+      POSTGRES_USER: penpot
+      POSTGRES_PASSWORD: ${PENPOT_DB_PASSWORD:-penpot}
+      POSTGRES_INITDB_ARGS: --data-checksums
+    volumes:
+      - penpot-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penpot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+  penpot-redis:
+    image: redis:7-alpine
+    container_name: sohamyoga-penpot-redis
+    restart: unless-stopped
+    networks:
+      - sohamyoga-net
+
+volumes:
+  penpot-assets:
+  penpot-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   App: http://localhost:9001
+#   Register first user as admin
+#
+# SohamYoga design projects to create:
+#   - Banner Templates (hero, slider, popup)
+#   - Social Media Templates (all 8 aspect ratios)
+#   - Brand Kit (colors, fonts, logos)
+#   - Email Templates
+#   - Seasonal Campaign Assets

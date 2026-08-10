@@ -1,0 +1,53 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/prompt_tracker.py
+# auto-generated explainer · 2026-06-28T10:00:06Z
+
+## Purpose
+prompt_tracker.py — Per §21 prompt tracking system.
+
+Dual write: SQLite (data/prompts.db) + markdown backup (data/prompt-history.md).
+Crash log: data/crash-recovery.md.
+
+Usage:
+    python scripts/prompt_tracker.py --save "prompt text" [--source <source>] [--category <cat>]
+    python scripts/prompt_tracker.py --list [--limit 20]
+    python scripts/prompt_tracker.py --search "term"
+    python scripts/prompt_tracker.py --export <out.csv>
+    python scripts/prompt_tracker.py --stats
+
+## Imports
+- from `__future__` import annotations
+- from `_` import argparse
+- from `_` import csv
+- from `_` import datetime
+- from `_` import json
+- from `_` import os
+- from `_` import sqlite3
+- from `_` import sys
+- from `_` import uuid
+- from `pathlib` import Path
+
+## Inputs
+- CLI args: --save, --source, --category, --session, --list, --limit, --search, --export, --stats
+- Env vars: CLAUDE_SESSION_ID
+
+## Process
+### Functions
+- `_ensure_dirs()`: (no docstring)
+- `_db()`: (no docstring)
+- `_append_md(row)`: Markdown backup write — survives DB corruption.
+- `save(prompt_text, source, category, session_id)`: Save a prompt. Returns the prompt ID.
+- `_log_crash(event_type, details, prompt_id)`: (no docstring)
+- `list_prompts(limit)`: (no docstring)
+- `search(term)`: (no docstring)
+- `export_csv(out_path)`: (no docstring)
+- `stats()`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- Dual write: SQLite + markdown
+- Log crash; markdown write still proceeds

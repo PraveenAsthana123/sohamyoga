@@ -127,7 +127,7 @@ export default function SettingsPage() {
               value={form.companyName}
               onChange={handleChange}
               required
-              placeholder="SLP Systems"
+              placeholder="SohamYoga"
             />
             <AdminFormInput
               label="Tagline"
@@ -171,7 +171,7 @@ export default function SettingsPage() {
               type="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="info@slpsystems.com"
+              placeholder="info@sohamyoga.com"
             />
             <div className="lg:col-span-2">
               <label htmlFor="address" className="block text-sm font-medium text-dark-700 mb-1">

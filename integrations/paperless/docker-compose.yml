@@ -1,0 +1,70 @@
+version: "3.9"
+# Paperless-ngx — document management for certs, credentials, waivers
+# Port 8010 (Paperless web UI)
+
+services:
+  paperless_webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: sohamyoga_paperless
+    restart: unless-stopped
+    ports:
+      - "8010:8000"
+    depends_on:
+      - paperless_db
+      - paperless_redis
+      - paperless_gotenberg
+      - paperless_tika
+    environment:
+      PAPERLESS_REDIS: redis://paperless_redis:6379
+      PAPERLESS_DBHOST: paperless_db
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: "${PAPERLESS_DB_PASSWORD:-paperlesspass}"
+      PAPERLESS_SECRET_KEY: "${PAPERLESS_SECRET_KEY:-CHANGE_ME_secret_key}"
+      PAPERLESS_ADMIN_USER: "${PAPERLESS_ADMIN_USER:-admin}"
+      PAPERLESS_ADMIN_PASSWORD: "${PAPERLESS_ADMIN_PASSWORD:-CHANGE_ME}"
+      PAPERLESS_ADMIN_MAIL: "${PAPERLESS_ADMIN_MAIL:-admin@sohamyoga.com}"
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_ENDPOINT: http://paperless_tika:9998
+      PAPERLESS_GOTENBERG_ENDPOINT: http://paperless_gotenberg:3000
+      PAPERLESS_TIME_ZONE: "${TZ:-America/Toronto}"
+      PAPERLESS_OCR_LANGUAGE: "eng"
+      # Yoga portal document tags (created on first run)
+      # Tags: student-certificates, teacher-credentials, health-waivers,
+      #       insurance, contracts, tax-documents, moodle-completions
+    volumes:
+      - paperless_data:/usr/src/paperless/data
+      - paperless_media:/usr/src/paperless/media
+      - paperless_export:/usr/src/paperless/export
+      - paperless_consume:/usr/src/paperless/consume
+
+  paperless_db:
+    image: postgres:15-alpine
+    container_name: sohamyoga_paperless_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: "${PAPERLESS_DB_PASSWORD:-paperlesspass}"
+      POSTGRES_DB: paperless
+    volumes:
+      - paperless_pg_data:/var/lib/postgresql/data
+
+  paperless_redis:
+    image: redis:7-alpine
+    container_name: sohamyoga_paperless_redis
+
+  paperless_gotenberg:
+    image: gotenberg/gotenberg:7
+    container_name: sohamyoga_paperless_gotenberg
+    command: gotenberg --chromium-disable-javascript=true --chromium-allow-list=file:///tmp/.*
+
+  paperless_tika:
+    image: ghcr.io/paperless-ngx/tika:latest
+    container_name: sohamyoga_paperless_tika
+
+volumes:
+  paperless_data:
+  paperless_media:
+  paperless_export:
+  paperless_consume:
+  paperless_pg_data:

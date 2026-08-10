@@ -5,10 +5,10 @@ import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
   title: 'About Us',
-  description: 'Learn about SLP Systems - a Calgary-based technology company delivering cutting-edge IT solutions, AI/ML services, and digital transformation strategies.',
+  description: 'Learn about SohamYoga - a Calgary-based technology company delivering cutting-edge IT solutions, AI/ML services, and digital transformation strategies.',
   openGraph: {
-    title: 'About Us - SLP Systems',
-    description: 'Learn about SLP Systems - delivering cutting-edge IT solutions and AI services.',
+    title: 'About Us - SohamYoga',
+    description: 'Learn about SohamYoga - delivering cutting-edge IT solutions and AI services.',
   },
 };
 
@@ -40,14 +40,14 @@ export default async function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="max-w-3xl">
             <span className="inline-block px-3 py-1 bg-white/20 text-white text-sm font-semibold rounded-full mb-4">
-              About SLP Systems
+              About SohamYoga
             </span>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
               Empowering Businesses Through{' '}
               <span className="text-accent-400">Innovation</span>
             </h1>
             <p className="text-lg text-primary-200 leading-relaxed">
-              Based in Calgary, Alberta, SLP Systems is a forward-thinking technology company
+              Based in Calgary, Alberta, SohamYoga is a forward-thinking technology company
               dedicated to helping businesses harness the power of artificial intelligence,
               machine learning, and modern IT solutions.
             </p>
@@ -65,7 +65,7 @@ export default async function AboutPage() {
               </h2>
               <div className="space-y-4 text-dark-600 leading-relaxed">
                 <p>
-                  SLP Systems is a technology consulting and solutions company specializing
+                  SohamYoga is a technology consulting and solutions company specializing
                   in artificial intelligence, machine learning, deep learning, and comprehensive
                   IT management services. We partner with businesses of all sizes to deliver
                   tailored solutions that drive growth, efficiency, and competitive advantage.
@@ -110,7 +110,7 @@ export default async function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="section-title text-dark-900">Our Foundation</h2>
           <p className="section-subtitle">
-            The principles that guide everything we do at SLP Systems.
+            The principles that guide everything we do at SohamYoga.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -190,10 +190,10 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* Why Choose SLP Systems */}
+      {/* Why Choose SohamYoga */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="section-title text-dark-900">Why Choose SLP Systems?</h2>
+          <h2 className="section-title text-dark-900">Why Choose SohamYoga?</h2>
           <p className="section-subtitle">
             We combine technical depth with business acumen to deliver solutions that matter.
           </p>
@@ -258,7 +258,7 @@ export default async function AboutPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="section-title text-dark-900">Meet Our Team</h2>
             <p className="section-subtitle">
-              The talented people behind SLP Systems who make innovation happen every day.
+              The talented people behind SohamYoga who make innovation happen every day.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

@@ -1,0 +1,50 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/weekly_audit_digest.py
+# auto-generated explainer · 2026-06-28T10:00:10Z
+
+## Purpose
+Weekly audit digest · aggregates last-week's 10 audit results.
+
+Per "create plan, cron" operator ask 2026-06-08. Runs Mon 14:00 (after
+all 10 audits have produced reports earlier that morning) and writes
+one consolidated digest to:
+
+  jobs/reports/weekly-digest/digest-YYYYMMDD.md
+
+Contains:
+  - PASS/FAIL count per audit
+  - Aggregate cells passed vs failed
+  - Trend vs previous week (Δ)
+  - First 3 P0 issues across all audits (extracted from FAIL lines)
+
+This is NOT a new audit · it's an aggregator. No cells. No exit-code
+gate (always exits 0 to avoid blocking the cron chain).
+
+## Imports
+- from `datetime` import datetime, timezone
+- from `_` import json
+- from `_` import logging
+- from `_` import os
+- from `_` import re
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_latest_report(report_dir)`: (no docstring)
+- `_parse_report(path)`: Extract pass/fail counts from an audit log.
+- `main()`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- Try formats observed across the 10 audits:
+- (a) "Summary: X / N pass · M fail"     (voice-ai · marketing-e2e · advanced · 100-cust · scheduler · §92 · §64.13)
+- (b) "Summary: X pass · 0 fail · Y total"   (folder-readme)
+- (c) "Summary: X pass · M fail · K missing" (recommender)
+- (d) "Grand summary: X / N cells covered (...%)" (dept-artifacts)

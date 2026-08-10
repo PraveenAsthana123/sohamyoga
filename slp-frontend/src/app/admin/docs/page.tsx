@@ -63,7 +63,7 @@ function BRDContent() {
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-dark-800 mb-3">1. Executive Summary</h3>
         <p className="text-dark-600 mb-4">
-          SLP Systems is an IT management and consulting firm based in Calgary, Alberta, specializing in AI/ML solutions,
+          SohamYoga is an IT management and consulting firm based in Calgary, Alberta, specializing in AI/ML solutions,
           digital transformation, and managed IT services. This platform serves as the company&apos;s digital presence,
           providing service information, blog content, case studies, and client engagement tools.
         </p>
@@ -409,7 +409,7 @@ function C4Content() {
                             │ submits forms
                             ▼
                     ┌───────────────┐
-                    │  SLP Systems  │
+                    │  SohamYoga  │
                     │   Platform    │───── Sends email ────▶ [SMTP Server]
                     │  (Software)   │
                     └───────┬───────┘
@@ -426,7 +426,7 @@ function C4Content() {
         <h3 className="text-lg font-semibold text-dark-800 mb-3">Level 2 — Container Diagram</h3>
         <pre className="bg-dark-900 text-green-400 p-6 rounded-lg text-xs font-mono overflow-x-auto">{`
 ┌─────────────────────────────────────────────────────────────┐
-│                     SLP Systems Platform                     │
+│                     SohamYoga Platform                     │
 │                                                              │
 │  ┌────────────────────┐      ┌────────────────────────┐     │
 │  │   Next.js Frontend  │      │   .NET 8 Web API       │     │

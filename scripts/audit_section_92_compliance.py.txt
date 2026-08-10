@@ -1,0 +1,41 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_section_92_compliance.py
+# auto-generated explainer · 2026-06-28T10:00:19Z
+
+## Purpose
+§92 compliance audit · meta-audit that checks every project mandate.
+
+Per global §92 (ai-agents/ mandatory per project).
+
+For the current project (cwd), verifies all §92-mandatory components exist:
+
+1. ai-agents/ tree (50 tool folders + _shared/)
+2. setup.sh at repo root (executable)
+3. 9 helper scripts in scripts/
+4. .github/workflows/audits.yml
+5. backend audit router (FastAPI route at /api/v1/insur/audit/*)
+6. Frontend AdminAuditPage.jsx
+7. 4 audit scripts (recommender + dept-artifacts + folder-readmes + voice-ai)
+
+Exit 0 if all present · 1 otherwise.
+
+Reference: ~/.claude/policies/ai-agents-mandatory.md
+
+## Imports
+- from `_` import os
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `check_one(rel, kind, min_size, desc)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- (path, kind, min_size_bytes, description)

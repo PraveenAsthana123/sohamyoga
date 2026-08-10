@@ -1,0 +1,33 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# ai-agents/langgraph/deep/backend/router.py
+# auto-generated explainer · 2026-06-28T10:00:27Z
+
+## Purpose
+/api/v1/webllm-agent · WebLLM + CDP + RAG + LangGraph integration.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import logging
+- from `_` import uuid
+- from `typing` import Optional
+- from `fastapi` import APIRouter, WebSocket, Request, HTTPException
+- from `cdp_manager` import CDPManager
+- from `rag_service` import RAGService
+- from `web_llm_bridge` import WebLLMBridge
+- from `schemas` import AgentGoalRequest, AgentRunResponse
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `async ws_endpoint(ws)`: Browser connects · backend pushes prompts → WebLLM → response.
+- `async run_agent(body, request)`: Trigger LangGraph DAG · uses connected WebLLM via bridge.
+- `async health()`: Self-check · per §47.8 readiness probe.
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Fallback path: run without CDP · operator wants browser-action capable
+- but degradation is acceptable for read-only use cases

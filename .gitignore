@@ -64,6 +64,14 @@ __pycache__
 .agent/
 .remember/
 
+# ─── Nested git repos — each has its own remote/history, tracked separately ──
+# (git add -A would otherwise stage them as broken dangling gitlinks: no
+# .gitmodules exists, so a plain commit here would not actually capture their
+# contents). agentic-ollama-platform: github.com/PraveenAsthana123/autoollamasetup.
+# integrations/paperclip: vendored third-party, github.com/paperclipai/paperclip.
+/agentic-ollama-platform/
+/integrations/paperclip/
+
 # ─── Test run output ──────────────────────────────────────────────────────────
 # Keep the run_*.{py,js} scripts under jobs/reports/ tracked, ignore their output.
 jobs/reports/api_test_*.json
@@ -76,3 +84,19 @@ jobs/reports/playwright_*/
 jobs/reports/test_*.json
 jobs/reports/test_*.md
 jobs/reports/run_api_tests.sh
+
+# §21 prompt-tracker · DB excluded · markdown backup IS tracked
+data/prompts.db
+data/prompts.db-shm
+data/prompts.db-wal
+data/crash-recovery.md
+
+# Continuity
+SESSION_HANDOFF.md
+.continuity/*
+# Continuity decision memory — travels with the repo (runtime state stays ignored)
+!.continuity/decisions.jsonl
+!.continuity/decisions.json
+!.continuity/.gitattributes
+!.continuity/SESSION_NOTES.md
+!.continuity/INSTRUCTIONS.md

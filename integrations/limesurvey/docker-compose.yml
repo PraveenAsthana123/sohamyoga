@@ -1,0 +1,72 @@
+version: "3.8"
+# LimeSurvey — teacher feedback, NPS, student satisfaction surveys
+# Port: 8040
+# GitHub: https://github.com/LimeSurvey/LimeSurvey
+# Docker image: martialblog/limesurvey
+
+services:
+  limesurvey:
+    image: martialblog/limesurvey:6-apache
+    container_name: sohamyoga-limesurvey
+    restart: unless-stopped
+    ports:
+      - "8040:8080"
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: limesurvey-db
+      DB_PORT: "3306"
+      DB_NAME: limesurvey
+      DB_USER: limesurvey
+      DB_PASSWORD: ${LIMESURVEY_DB_PASSWORD:-lssecret}
+      ADMIN_USER: ${LIMESURVEY_ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${LIMESURVEY_ADMIN_PASSWORD:-changeadminpassword}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sohamyoga.com}
+      ADMIN_NAME: SohamYoga Admin
+      PUBLIC_URL: http://localhost:8040
+    depends_on:
+      limesurvey-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - limesurvey-upload:/var/www/html/upload
+      - limesurvey-config:/var/www/html/application/config
+
+  limesurvey-db:
+    image: mysql:8.0
+    container_name: sohamyoga-limesurvey-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${LIMESURVEY_DB_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: limesurvey
+      MYSQL_USER: limesurvey
+      MYSQL_PASSWORD: ${LIMESURVEY_DB_PASSWORD:-lssecret}
+    volumes:
+      - limesurvey-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+volumes:
+  limesurvey-upload:
+  limesurvey-config:
+  limesurvey-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   Admin: http://localhost:8040/admin
+#
+# SohamYoga surveys to create:
+#   1. Post-class teacher feedback (5 Qs, 5-star + text)
+#   2. Monthly NPS survey (Net Promoter Score for teachers)
+#   3. Annual teacher satisfaction survey (30 Qs)
+#   4. New student onboarding health survey
+#   5. Course completion satisfaction survey

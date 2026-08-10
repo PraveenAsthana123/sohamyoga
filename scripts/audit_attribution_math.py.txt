@@ -1,0 +1,47 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_attribution_math.py
+# auto-generated explainer · 2026-06-28T10:00:05Z
+
+## Purpose
+Attribution math audit · verify model invariants · T5.9.
+
+Per docs/PENDING_PLAN.md T5.9. Checks 5 invariants that MUST hold for
+every attribution model:
+
+  1. last_touch · ONLY the final touchpoint receives credit (1 campaign)
+  2. first_touch · ONLY the first touchpoint receives credit (1 campaign)
+  3. linear · equal split (n campaigns each get total/n)
+  4. time_decay · weights sum to total (no leak)
+  5. position_based · 40% first + 40% last + 20% middle (single-touch=100%)
+
+Plus integration tests:
+  6. All 5 models conserve total_attributed (no model loses or fabricates revenue)
+  7. compare() endpoint returns 5 results
+  8. Each model returns same n_journeys count
+  9. cohort_distribution has at least 1 entry per journey
+
+Per §47.6 + §57.7 + §75 + §76 + T5.9.
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `_` import uuid
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- ── 1-5. Per-model math invariants ──────────────────
+- Synthetic 3-touchpoint journey · total_value=300
+- 1. last_touch
+- 2. first_touch
+- 3. linear

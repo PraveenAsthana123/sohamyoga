@@ -1,0 +1,43 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/generate_raf_stubs.py
+# auto-generated explainer · 2026-06-28T10:00:14Z
+
+## Purpose
+generate_raf_stubs.py — drop one stub per Recommender/Anomaly/Fraud scenario.
+
+Per operator 2026-06-08: "for each scenario" — 75 scenarios from
+docs/RECOMMENDER_ANOMALY_FRAUD_SCENARIOS.md get a stub directory each with the
+same 8-file pattern as §90 (use-case · data-quality · analysis · responsible-ai ·
+pipeline checklists + metrics/coverage JSONs + README).
+
+Output: docs/use-cases/raf/<problem>-<modality>-<idx>-<slug>/
+Total: 75 dirs × 8 files = 600 files.
+
+Idempotent. --force to overwrite. --dry-run to preview.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import argparse
+- from `_` import json
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+- CLI args: --force, --dry-run, --limit, --only, --list, --summary
+
+## Process
+### Functions
+- `stub_md(problem, modality, idx, slug, summary)`: (no docstring)
+- `slugify(s)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- 75 scenarios from RECOMMENDER_ANOMALY_FRAUD_SCENARIOS.md
+- Format: (problem · modality · id · slug · summary · dept_id)
+- Recommender · Numerical (8)
+- Recommender · Text (8)
+- Recommender · Image (7)

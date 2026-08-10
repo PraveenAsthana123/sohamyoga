@@ -1,0 +1,55 @@
+# GSD-generated draft spec (manual fill operator-edits later)
+spec_version: "0.1.0"
+use_case_id: "F4-claim-fnol-routing"
+name: "FNOL severity classification + adjuster routing"
+dept_id: 7
+process: "fnol-first-notice-of-loss"
+
+# Per §90.3 top-level 10 sections
+problem: "Manual triage takes 20min p50 · adjusters report 30% load imbalance"
+architecture: "FT-Transformer + business rules + rule engine for tier override"
+data_source:
+  primary: "claim_intake_features"
+  download: "kaggle datasets download -d sjayachandran1/sample-insurance-claim-prediction-dataset"
+
+# Per §90.3 G1-G18 subsections
+g1_preprocessing:  "schema → null scan → outlier → distribution"
+g2_eda:            "ydata-profiling + correlation heatmap"
+g3_balance:        "SMOTE if class_imbalance > 5; else class_weight"
+g4_features:       "MI ranking + Pearson + SHAP post-hoc"
+g5_cleaning:       "dedup + PII redaction + vocab map"
+g6_quality:        "Great Expectations · completeness ≥ 95% · validity ≥ 99%"
+g7_statistical:    "subject-level bootstrap CI + paired comparison"
+g8_subjective:     "adjuster preference survey · N≥50"
+g9_sensitivity:    "OAT ±10% per feature + counterfactual via DiCE"
+g10_resai_5pillar:
+  privacy:        "PII redacted before model + audit"
+  transparency:   "model card + tab on /insurance/7/.../?tab=resai"
+  robustness:     "adversarial perturbation drill"
+  safety:         "kill switch + HITL ≥ S3"
+  accountability: "named owner + §38.3 audit row per decision"
+g11_expai:         "SHAP global + local + counterfactual + citation tracing"
+g12_pipeline:
+  storage: "Postgres tables · vector ingest cron */15 min"
+
+# Per §90.3 G13-G18 (added by operator instructions)
+g13_architecture_diagram: "mermaid in DEEP_DIVE.md"
+g14_edge_cases:
+  - "missing photo · ok with lower confidence"
+  - "regulatory state-restricted features · gate"
+  - "demographic edge group · pre-check fairness"
+g15_pipelines:    "13 mandatory per §90.3"
+g16_inference:
+  sync:   "FastAPI + Triton · p95 < 500ms"
+  batch:  "overnight 1M backlog via Celery"
+  stream: "Kafka FNOL events → instant decision"
+g17_workflow:     "LangGraph DAG · plan → predict → verify → hitl"
+g18_channels:     "Email confirmation · Slack alert if HITL · in-app dashboard"
+
+# Top 1% gates (per §90.3 section 8)
+production_gates:
+  drift_psi_max: 0.2
+  fairness_disparate_impact_min: 0.8
+  shadow_pct: 5
+  canary_pct_steps: [25, 100]
+  rollback_layer: "MLflow registry"

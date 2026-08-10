@@ -695,7 +695,7 @@ export default function ChatWidget() {
                   <h3 className="text-white font-semibold text-sm">
                     {isSuccess ? 'Request Sent' : stepTitles[step]}
                   </h3>
-                  <p className="text-white/70 text-[10px]">SLP Systems</p>
+                  <p className="text-white/70 text-[10px]">SohamYoga</p>
                 </div>
               </div>
             </div>

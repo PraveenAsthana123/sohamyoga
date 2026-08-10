@@ -1,0 +1,16 @@
+[Unit]
+Description=SohamYoga Ollama director API gateway
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/deepa/sohamyoga/agentic-ollama-platform
+EnvironmentFile=/home/praveen/.config/sohamyoga/ports.env
+Environment=HOST=127.0.0.1
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+ExecStart=/usr/bin/env bash -lc 'PORT="$SOHAM_OLLAMA_GATEWAY_PORT" exec /usr/bin/bash /mnt/deepa/sohamyoga/agentic-ollama-platform/serve.sh'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

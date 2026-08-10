@@ -1,0 +1,49 @@
+version: "3.9"
+# Cal.com — booking & scheduling for classes, private sessions, consultations
+# Port 3000 (Cal.com web app)
+
+services:
+  calcom:
+    image: calcom/calcom:latest
+    container_name: sohamyoga_calcom
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgresql://calcom:${CALCOM_DB_PASSWORD:-calcompass}@calcom_db:5432/calcom"
+      NEXTAUTH_SECRET: "${CALCOM_NEXTAUTH_SECRET:-CHANGE_ME_nextauth_secret}"
+      CALENDSO_ENCRYPTION_KEY: "${CALCOM_ENCRYPTION_KEY:-CHANGE_ME_encryption_key}"
+      NEXT_PUBLIC_WEBAPP_URL: "${CALCOM_URL:-http://localhost:3000}"
+      EMAIL_FROM: "${CALCOM_EMAIL_FROM:-no-reply@sohamyoga.com}"
+      EMAIL_SERVER_HOST: "${SMTP_HOST}"
+      EMAIL_SERVER_PORT: "${SMTP_PORT:-587}"
+      EMAIL_SERVER_USER: "${SMTP_USER}"
+      EMAIL_SERVER_PASSWORD: "${SMTP_PASSWORD}"
+      # Google Calendar integration
+      GOOGLE_API_CREDENTIALS: "${GOOGLE_API_CREDENTIALS:-{}}"
+      # Stripe payments (optional)
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
+      STRIPE_PRIVATE_KEY: "${STRIPE_SECRET_KEY}"
+      STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET}"
+    ports:
+      - "3100:3000"   # Cal.com UI (avoid conflict with Next.js dev)
+    depends_on:
+      calcom_db:
+        condition: service_healthy
+
+  calcom_db:
+    image: postgres:15-alpine
+    container_name: sohamyoga_calcom_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: calcom
+      POSTGRES_PASSWORD: "${CALCOM_DB_PASSWORD:-calcompass}"
+      POSTGRES_DB: calcom
+    volumes:
+      - calcom_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U calcom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  calcom_db_data:

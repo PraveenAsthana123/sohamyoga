@@ -1,0 +1,42 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_recommender_flavors.py
+# auto-generated explainer · 2026-06-28T10:00:08Z
+
+## Purpose
+§64.22 audit · verify each dept's HOLY_RECOMMENDATION.md covers all 3 classical flavors.
+
+Per global §64.22 + docs/RECOMMENDER_FLAVORS_PER_DEPT.md.
+
+Checks:
+1. HOLY_RECOMMENDATION.md exists in each dept's business-layer/
+2. Each file mentions all 3 flavors (item-based · content-based · hybrid)
+3. Honors ITEM_NA set per RECOMMENDER_FLAVORS_PER_DEPT.md
+
+Walks BOTH:
+- global-ai-org/departments/  (operator-scaffolded · per §63)
+- Canonical 21-dept list (per RECOMMENDER_FLAVORS_PER_DEPT.md)
+  — reports each dept as MISSING if no folder yet, else audits the file.
+
+Exit 0 = all canonical depts have file + pass · 1 = otherwise.
+
+## Imports
+- from `_` import re
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `find_dept_path(did, slug)`: Find dept folder · accept multiple naming conventions.
+- `audit_file(path)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Canonical 21 depts per RECOMMENDER_FLAVORS_PER_DEPT.md
+- Depts where item-based is N/A per RECOMMENDER_FLAVORS_PER_DEPT.md
+- Fuzzy: any folder starting with did

@@ -1,0 +1,67 @@
+{
+  "use_case_id": "D13",
+  "slug": "topic-drift-customer-complaints",
+  "ten_agents_per_88": {
+    "quality-gate-agent": {
+      "owns": "default health gate",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "sast-code-quality-agent": {
+      "owns": "SonarQube + Semgrep + Ruff + ESLint + Gitleaks + Trivy",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "api-contract-test-agent": {
+      "owns": "API contract \u00b7 route \u00b7 schema \u00b7 auth \u00b7 OpenAPI \u00b7 negative",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "frontend-browser-test-agent": {
+      "owns": "Playwright \u00b7 Axe \u00b7 F12 console + network",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "load-performance-test-agent": {
+      "owns": "k6 \u00b7 Locust \u00b7 1000-request \u00b7 latency \u00b7 throughput",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "data-quality-test-agent": {
+      "owns": "Great Expectations \u00b7 Soda \u00b7 dbt \u00b7 KPI lineage",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "database-test-agent": {
+      "owns": "migration \u00b7 SQL \u00b7 pgTAP \u00b7 pgbench",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "model-evaluation-test-agent": {
+      "owns": "MLflow \u00b7 sklearn \u00b7 RAGAS \u00b7 DeepEval \u00b7 BLEU \u00b7 ROUGE \u00b7 SHAP \u00b7 Fairlearn \u00b7 Detoxify",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "reporting-notification-agent": {
+      "owns": "MD + JSON reports \u00b7 evidence \u00b7 routing",
+      "tests_run": [],
+      "status": "todo"
+    },
+    "council-governance-review-agent": {
+      "owns": "P0/P1 review \u00b7 weekly full gate \u00b7 promotion signoff",
+      "tests_run": [],
+      "status": "todo"
+    }
+  },
+  "nine_areas_per_88_2": {
+    "default_health_gate": "owner: quality-gate-agent",
+    "code_quality_sast": "owner: sast-code-quality-agent",
+    "api_testing": "owner: api-contract-test-agent",
+    "frontend_f12": "owner: frontend-browser-test-agent",
+    "load_testing": "owner: load-performance-test-agent",
+    "data_testing": "owner: data-quality-test-agent",
+    "database_testing": "owner: database-test-agent",
+    "model_training_accuracy": "owner: model-evaluation-test-agent",
+    "governance_security_ai": "owner: council-governance-review-agent"
+  }
+}

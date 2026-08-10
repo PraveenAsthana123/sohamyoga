@@ -1,10 +1,31 @@
-version: '3.9'
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: slp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-sohamyoga}"
+      POSTGRES_USER: "${POSTGRES_USER:-sohamyoga}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me-before-production}"
+    ports:
+      - "${POSTGRES_PORT:-5437}:5432"
+    volumes:
+      - slp-postgres-data:/var/lib/postgresql/data
+      - ./slp-frontend/src/domain/core/db-foundation.sql:/docker-entrypoint-initdb.d/001-foundation.sql:ro
+      - ./slp-frontend/src/domain/social/db-schema.sql:/docker-entrypoint-initdb.d/020-social.sql:ro
+      - ./slp-frontend/src/domain/marketing/automation-schema.sql:/docker-entrypoint-initdb.d/030-marketing-automation.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sohamyoga} -d ${POSTGRES_DB:-sohamyoga}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - slp-network
+
   # ── .NET Backend ──────────────────────────────────────────────────────────
   backend:
     build:
-      context: ./SLPSystems/SLPSystems.Web
+      context: ./SohamYoga/SohamYoga.Web
       dockerfile: Dockerfile
     image: slp-backend:latest
     container_name: slp-backend
@@ -13,10 +34,10 @@ services:
       - "5070:5070"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: "Data Source=/app/data/slpsystems.db"
+      ConnectionStrings__DefaultConnection: "Data Source=/app/data/sohamyoga.db"
       Cors__AllowedOrigins__0: "http://localhost:3010"
       Cors__AllowedOrigins__1: "${FRONTEND_URL:-http://localhost:3010}"
-      Admin__Email: "${ADMIN_EMAIL:-admin@slpsystems.ca}"
+      Admin__Email: "${ADMIN_EMAIL:-admin@sohamyoga.ca}"
       Admin__Password: "${ADMIN_PASSWORD:-Admin@123456}"
       Smtp__Host: "${SMTP_HOST:-}"
       Smtp__Port: "${SMTP_PORT:-587}"
@@ -55,8 +76,21 @@ services:
       # NEXT_PUBLIC_* is inlined at build time and would bake in a host-only
       # URL the container cannot reach; INTERNAL_API_URL stays runtime-readable.
       INTERNAL_API_URL: "http://backend:5070"
+      # Local AI: the /api/ai/* routes stream from the host's Ollama daemon.
+      # host.docker.internal resolves to the host via the extra_hosts mapping.
+      OLLAMA_URL: "${OLLAMA_URL:-http://host.docker.internal:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-qwen2.5:latest}"
+      OLLAMA_KEEP_ALIVE: "${OLLAMA_KEEP_ALIVE:-30m}"
+      # Agentic gateway (FastAPI): POST a goal -> Ollama planner -> task queue.
+      AGENT_API_URL: "${AGENT_API_URL:-http://host.docker.internal:8091}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-sohamyoga}:${POSTGRES_PASSWORD:-change-me-before-production}@postgres:5432/${POSTGRES_DB:-sohamyoga}"
+    extra_hosts:
+      # Lets the container reach services (Ollama) bound on the host.
+      - "host.docker.internal:host-gateway"
     depends_on:
       backend:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     healthcheck:
       # Standalone server.js binds IPv4 0.0.0.0:3010 only — busybox wget
@@ -68,6 +102,24 @@ services:
       start_period: 30s
     networks:
       - slp-network
+
+  cron:
+    build:
+      context: ./slp-frontend
+      dockerfile: Dockerfile.cron
+    image: slp-cron:latest
+    container_name: slp-cron
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-sohamyoga}:${POSTGRES_PASSWORD:-change-me-before-production}@127.0.0.1:${POSTGRES_PORT:-5437}/${POSTGRES_DB:-sohamyoga}"
+      OLLAMA_BASE_URL: "${OLLAMA_URL:-http://127.0.0.1:11434}"
+      OLLAMA_MODEL_FAST: "${OLLAMA_MODEL_FAST:-phi4-mini:latest}"
+      OLLAMA_MODEL_CODE: "${OLLAMA_MODEL_CODE:-qwen2.5-coder:latest}"
+      OLLAMA_MODEL_STRONG: "${OLLAMA_MODEL_STRONG:-qwen2.5:latest}"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # ── Nginx Reverse Proxy ───────────────────────────────────────────────────
   nginx:
@@ -88,6 +140,8 @@ services:
       - slp-network
 
 volumes:
+  slp-postgres-data:
+    driver: local
   slp-data:
     driver: local
   slp-logs:

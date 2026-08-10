@@ -1,0 +1,116 @@
+version: "3.9"
+
+# Frappe ecosystem — ERPNext + Frappe Education + Frappe CRM
+# Single frappe_docker deployment with all three apps installed
+# Based on: https://github.com/frappe/frappe_docker
+# Deploy sequence: bench init → install erpnext → install education → install crm
+
+services:
+  frappe_backend:
+    image: frappe/erpnext:v15
+    container_name: sohamyoga_frappe
+    restart: unless-stopped
+    environment:
+      DB_HOST: frappe_db
+      DB_PORT: "3306"
+      REDIS_CACHE: "redis://frappe_redis_cache:6379"
+      REDIS_QUEUE: "redis://frappe_redis_queue:6379"
+      SOCKETIO_PORT: "9000"
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+      - frappe_logs:/home/frappe/frappe-bench/logs
+    depends_on:
+      frappe_db:
+        condition: service_healthy
+
+  frappe_frontend:
+    image: frappe/erpnext:v15
+    container_name: sohamyoga_frappe_frontend
+    restart: unless-stopped
+    command: nginx-entrypoint.sh
+    environment:
+      BACKEND: frappe_backend:8000
+      SOCKETIO: frappe_websocket:9000
+      UPSTREAM_REAL_IP_ADDRESS: "127.0.0.1"
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      FRAPPE_SITE_NAME_HEADER: "$$host"
+    ports:
+      - "8080:8080"    # Frappe/ERPNext UI
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+    depends_on:
+      - frappe_backend
+
+  frappe_websocket:
+    image: frappe/erpnext:v15
+    container_name: sohamyoga_frappe_ws
+    restart: unless-stopped
+    command: node /home/frappe/frappe-bench/apps/frappe/socketio.js
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+
+  frappe_queue_short:
+    image: frappe/erpnext:v15
+    restart: unless-stopped
+    command: bench worker --queue short
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+
+  frappe_queue_default:
+    image: frappe/erpnext:v15
+    restart: unless-stopped
+    command: bench worker --queue default
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+
+  frappe_scheduler:
+    image: frappe/erpnext:v15
+    restart: unless-stopped
+    command: bench schedule
+    volumes:
+      - frappe_sites:/home/frappe/frappe-bench/sites
+
+  frappe_db:
+    image: mariadb:10.6
+    container_name: sohamyoga_frappe_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: "${FRAPPE_DB_ROOT_PASSWORD:-CHANGE_ME}"
+      MARIADB_USER: frappe
+      MARIADB_PASSWORD: "${FRAPPE_DB_PASSWORD:-CHANGE_ME}"
+      MARIADB_DATABASE: frappe
+    volumes:
+      - frappe_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD","healthcheck.sh","--connect","--innodb_initialized"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frappe_redis_cache:
+    image: redis:7-alpine
+    volumes:
+      - frappe_redis_cache:/data
+
+  frappe_redis_queue:
+    image: redis:7-alpine
+    volumes:
+      - frappe_redis_queue:/data
+
+volumes:
+  frappe_sites:
+  frappe_logs:
+  frappe_db_data:
+  frappe_redis_cache:
+  frappe_redis_queue:
+
+# ── Quick start ─────────────────────────────────────────────────
+# 1. Copy .env.example → .env
+# 2. docker compose up -d
+# 3. docker exec -it sohamyoga_frappe bench new-site sohamyoga.local
+# 4. docker exec -it sohamyoga_frappe bench --site sohamyoga.local install-app erpnext
+# 5. docker exec -it sohamyoga_frappe bench --site sohamyoga.local install-app education
+# 6. docker exec -it sohamyoga_frappe bench --site sohamyoga.local install-app crm
+# 7. Open http://localhost:8080 → login with Administrator
+# ────────────────────────────────────────────────────────────────

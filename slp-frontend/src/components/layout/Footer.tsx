@@ -36,16 +36,16 @@ export default function Footer() {
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-5">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-xs">SLP</span>
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-accent-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-xs">SY</span>
               </div>
               <span className="text-xl font-bold">
-                <span className="text-accent-400">SLP</span> Systems
+                <span className="text-accent-300">Soham</span> Yoga
               </span>
             </div>
             <p className="text-dark-400 text-sm leading-relaxed mb-6">
-              Empowering businesses with cutting-edge IT solutions, AI/ML services,
-              and digital transformation strategies.
+              Premium yoga products, meditation supplies, and wellness accessories
+              for yogis of all levels. Sustainably sourced and thoughtfully designed.
             </p>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-lg bg-dark-800 hover:bg-primary-600 flex items-center justify-center text-dark-400 hover:text-white transition-all duration-200" aria-label="LinkedIn">
@@ -60,13 +60,13 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Services */}
+          {/* Products */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-dark-300 mb-5">Services</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-dark-300 mb-5">Products</h3>
             <ul className="space-y-3">
-              {['Generative AI', 'Machine Learning', 'Deep Learning', 'Computer Vision', 'Digital Transformation', 'Managed Services'].map((s) => (
+              {['Yoga Mats', 'Meditation Cushions', 'Yoga Blocks', 'Yoga Straps', 'Bolsters', 'Essential Oils'].map((s) => (
                 <li key={s}>
-                  <Link href={`/services/${s.toLowerCase().replace(/\s+/g, '-')}`} className="text-dark-400 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 group">
+                  <Link href={`/products/${s.toLowerCase().replace(/\s+/g, '-')}`} className="text-dark-400 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 group">
                     <span className="w-1 h-1 rounded-full bg-dark-600 group-hover:bg-accent-400 transition-colors" />
                     {s}
                   </Link>
@@ -81,10 +81,9 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { href: '/about', label: 'About Us' },
-                { href: '/blog', label: 'Blog & Insights' },
-                { href: '/careers', label: 'Careers' },
+                { href: '/blog', label: 'Wellness Blog' },
+                { href: '/categories', label: 'Categories' },
                 { href: '/contact', label: 'Contact Us' },
-                { href: '/industries/banking-finance', label: 'Industries' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-dark-400 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 group">
@@ -100,7 +99,7 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-dark-300 mb-5">Stay Updated</h3>
             <p className="text-dark-400 text-sm mb-4 leading-relaxed">
-              Get the latest insights on AI & technology delivered to your inbox.
+              Get yoga tips, wellness inspiration, and new product updates delivered to your inbox.
             </p>
             {subscribed ? (
               <div className="flex items-center gap-2 text-accent-400 text-sm bg-accent-500/10 px-4 py-3 rounded-lg">
@@ -119,7 +118,7 @@ export default function Footer() {
                   className="flex-1 px-4 py-2.5 bg-dark-800/50 border border-dark-700 rounded-lg text-sm text-white placeholder:text-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all"
                   required
                 />
-                <button type="submit" className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-primary-600/25">
+                <button type="submit" aria-label="Subscribe to newsletter" className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-primary-600/25">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -138,17 +137,17 @@ export default function Footer() {
                 <svg className="w-4 h-4 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                info@slpsystems.ca
+                info@sohamyoga.com
               </p>
             </div>
           </div>
         </div>
 
         <div className="border-t border-dark-800/50 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-dark-500">
-            &copy; {new Date().getFullYear()} SLP Systems. All rights reserved.
+          <p className="text-sm text-gray-300">
+            &copy; {new Date().getFullYear()} Soham Yoga. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm text-dark-500">
+          <div className="flex gap-6 text-sm text-gray-300">
             <Link href="/contact" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/contact" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>

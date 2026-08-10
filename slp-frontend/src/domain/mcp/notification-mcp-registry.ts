@@ -1,0 +1,180 @@
+/**
+ * Notification MCP — 11 tools covering the full omnichannel notification lifecycle.
+ * Backing: Novu (orchestration), Listmonk (email/newsletters), Chatwoot (chat),
+ *          Postal (mail server), ntfy (push), Apprise (multi-channel adapter).
+ *
+ * Data residency: ALL customer profiles, preferences, templates, queue records,
+ * delivery logs, and analytics stay in local Postgres. External providers only
+ * receive the rendered message + recipient address + provider token.
+ */
+import { McpServerManifest, McpTool } from './types';
+
+const TOOLS: McpTool[] = [
+  {
+    name: 'send_notification',
+    description: 'Immediately enqueue a notification to a recipient using a named template and variable payload.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['templateSlug', 'recipientUserId', 'channel'],
+      properties: {
+        templateSlug:    { type: 'string' },
+        recipientUserId: { type: 'string' },
+        channel:         { type: 'string', enum: ['email','sms','whatsapp','push','in_app','telegram','discord','slack'] },
+        payload:         { type: 'object', additionalProperties: { type: 'string' } },
+        idempotencyKey:  { type: 'string', description: 'Caller-supplied key to prevent duplicate sends' },
+      },
+    },
+    safetyNote: 'Transactional sends only — use bulk_send_notification for marketing/bulk sends which requires admin approval',
+  },
+  {
+    name: 'schedule_notification',
+    description: 'Schedule a notification for future delivery at a specified UTC datetime.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['templateSlug', 'recipientUserId', 'channel', 'scheduledAt'],
+      properties: {
+        templateSlug:    { type: 'string' },
+        recipientUserId: { type: 'string' },
+        channel:         { type: 'string' },
+        scheduledAt:     { type: 'string', format: 'date-time' },
+        payload:         { type: 'object', additionalProperties: { type: 'string' } },
+        idempotencyKey:  { type: 'string' },
+      },
+    },
+    safetyNote: 'Respects customer quiet-hours and channel opt-in preferences; will not schedule to opted-out recipients',
+  },
+  {
+    name: 'cancel_notification',
+    description: 'Cancel a pending or scheduled notification job before it is sent. Cannot cancel already-sent notifications.',
+    tier: 'staff_approval', riskLevel: 3,
+    inputSchema: { type: 'object', required: ['jobId', 'reason'],
+      properties: {
+        jobId:  { type: 'string' },
+        reason: { type: 'string', description: 'Reason for cancellation — recorded in audit log' },
+      },
+    },
+    safetyNote: 'Requires staff approval — cancellation of scheduled notifications is irreversible',
+  },
+  {
+    name: 'retry_notification',
+    description: 'Re-queue a failed notification job for re-delivery. Maximum 3 retries per job.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['jobId'],
+      properties: { jobId: { type: 'string' } },
+    },
+    safetyNote: 'Idempotency key prevents duplicate delivery on retry',
+  },
+  {
+    name: 'get_notification_history',
+    description: 'Retrieve notification delivery history for a user: template, channel, status, sent time, and provider message ID.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['recipientUserId'],
+      properties: {
+        recipientUserId: { type: 'string' },
+        channel:         { type: 'string' },
+        fromDate:        { type: 'string', format: 'date' },
+        toDate:          { type: 'string', format: 'date' },
+        limit:           { type: 'number', default: 20 },
+      },
+    },
+  },
+  {
+    name: 'get_notification_status',
+    description: 'Check the current status of a notification job: pending/scheduled/processing/sent/failed/cancelled.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['jobId'],
+      properties: { jobId: { type: 'string' } },
+    },
+  },
+  {
+    name: 'generate_email_content',
+    description: 'Use local Ollama to generate a draft email subject and body from a brief and customer context. Returns DRAFT only — never sends automatically.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['brief', 'templateType'],
+      properties: {
+        brief:          { type: 'string', description: 'Campaign brief or message goal' },
+        templateType:   { type: 'string', enum: ['welcome','booking_reminder','promotion','newsletter','birthday','workshop'] },
+        recipientName:  { type: 'string' },
+        locale:         { type: 'string', default: 'en' },
+      },
+    },
+    safetyNote: 'AI output is DRAFT — human review required before using in any send. Never auto-publishes. Local Ollama only — no data sent to cloud AI.',
+  },
+  {
+    name: 'generate_sms_content',
+    description: 'Use local Ollama to generate a draft SMS message (max 160 chars) from a brief. Returns DRAFT only.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['brief'],
+      properties: {
+        brief:         { type: 'string' },
+        recipientName: { type: 'string' },
+        locale:        { type: 'string', default: 'en' },
+        includeLink:   { type: 'boolean', default: false },
+      },
+    },
+    safetyNote: 'AI output is DRAFT — review for compliance before use. SMS consent must be verified before sending. Local Ollama only.',
+  },
+  {
+    name: 'translate_message',
+    description: 'Translate a notification body to a target locale using local Ollama. Returns translated DRAFT — review before saving as a locale variant.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['body', 'targetLocale'],
+      properties: {
+        body:         { type: 'string' },
+        subject:      { type: 'string' },
+        targetLocale: { type: 'string' },
+        sourceLocale: { type: 'string', default: 'en' },
+      },
+    },
+    safetyNote: 'Machine translation is a DRAFT — native speaker review recommended for health or legal content. Local Ollama only.',
+  },
+  {
+    name: 'get_delivery_report',
+    description: 'Return channel-level delivery metrics: sent, delivered, failed, open rate (email), click rate (email), bounce rate.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object',
+      properties: {
+        channel:     { type: 'string' },
+        templateSlug:{ type: 'string' },
+        fromDate:    { type: 'string', format: 'date' },
+        toDate:      { type: 'string', format: 'date' },
+        groupBy:     { type: 'string', enum: ['channel','template','day','week'], default: 'channel' },
+      },
+    },
+  },
+  {
+    name: 'bulk_send_notification',
+    description: 'Send a marketing or reminder notification to a segment of users. Requires admin approval — affects many recipients simultaneously.',
+    tier: 'admin', riskLevel: 4,
+    inputSchema: { type: 'object', required: ['templateSlug', 'segmentId', 'channel', 'confirmApprovalId'],
+      properties: {
+        templateSlug:     { type: 'string' },
+        segmentId:        { type: 'string', description: 'Customer segment ID (pre-defined, not ad-hoc)' },
+        channel:          { type: 'string', enum: ['email','sms','whatsapp','push','in_app'] },
+        payload:          { type: 'object', additionalProperties: { type: 'string' } },
+        scheduledAt:      { type: 'string', format: 'date-time' },
+        confirmApprovalId:{ type: 'string', description: 'Staff approval token from the MCP approval queue' },
+        dryRun:           { type: 'boolean', default: false, description: 'Preview recipient count without sending' },
+      },
+    },
+    safetyNote: 'Bulk marketing send — requires valid confirmApprovalId; respects all opt-out lists and suppression lists; never sends to recipients without confirmed consent',
+  },
+];
+
+export const NOTIFICATION_MCP: McpServerManifest = {
+  id:          'notification-mcp',
+  slug:        'notification-mcp',
+  name:        'Notification MCP',
+  description: 'Omnichannel notification: send, schedule, retry, cancel, AI draft generation, delivery analytics. All data stays local.',
+  version:     '1.0.0',
+  tools:       TOOLS,
+  backingServices: [
+    'Novu (omnichannel orchestration — self-hosted)',
+    'Listmonk (email campaigns and newsletters — self-hosted)',
+    'Chatwoot (in-app and live-chat notifications — self-hosted)',
+    'Postal (transactional mail server — self-hosted)',
+    'ntfy (push notifications — self-hosted)',
+    'Apprise (multi-channel adapter for Telegram/Discord/Slack)',
+    'Ollama (local AI for content generation and translation)',
+  ],
+  availability: 'custom',
+  implementationNote: 'All customer data, preferences, templates, delivery logs, and analytics stored in local Postgres. External providers receive only rendered message + recipient address + provider token. No customer PII sent to cloud AI.',
+};

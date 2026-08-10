@@ -1,0 +1,45 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_schedule_executor.py
+# auto-generated explainer · 2026-06-28T10:00:15Z
+
+## Purpose
+Schedule executor audit · validates the cron loop end-to-end.
+
+Per "fix all" continuation 2026-06-08 · catches regressions in:
+  - Calendar-correct monthly math (Dec→Jan year roll · day clamping)
+  - Cadence semantics (once → None · daily/weekly/monthly → arithmetic)
+  - Per-tenant iteration (X-Tenant-ID propagation · §41.3)
+  - 0-due case (clean no-op exit 0)
+  - N-due case (multiple schedules execute · all log status)
+
+Strategy: imports the executor as a module + drives it via fixtures.
+Cleans up the marketing_campaigns + campaign_schedules tables of any
+test rows on every run · no leakage.
+
+Per §47.6 + §57.7 + §70 (cron audit) + §41.3 (multi-tenant).
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `_` import uuid
+- from `datetime` import datetime, timedelta, timezone
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_cleanup()`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Cascading via FK on campaign_id where applicable
+- Import the executor module
+- ── 1. Monthly math · Dec → Jan year roll ──────────────
+- ── 2. Monthly math · same-month rollover ────────────
+- ── 3. Daily · +1 day ─────────────────────────────────

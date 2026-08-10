@@ -1,52 +1,142 @@
 import type { Metadata } from 'next';
-import type { HomePageData } from '@/lib/api';
-import HeroCarousel from '@/components/home/HeroCarousel';
-import ServiceCarousel from '@/components/home/ServiceCarousel';
+import Link from 'next/link';
+import type { HomePageData, Service, Testimonial, TeamMember } from '@/lib/api';
+import SwiperHero, { type HeroSlide } from '@/components/carousel/SwiperHero';
+import InfiniteMarquee, { type MarqueeItem } from '@/components/carousel/InfiniteMarquee';
+import TestimonialCarousel, { type TestimonialSlide } from '@/components/carousel/TestimonialCarousel';
+import TeacherCarousel, { type TeacherSlide } from '@/components/carousel/TeacherCarousel';
 import AboutSection from '@/components/home/AboutSection';
-import TestimonialsSection from '@/components/home/TestimonialsSection';
 import CaseStudiesSection from '@/components/home/CaseStudiesSection';
 import IndustriesSection from '@/components/home/IndustriesSection';
 import VideoDemoSection from '@/components/home/VideoDemoSection';
-import TeamSection from '@/components/home/TeamSection';
 import BlogSection from '@/components/home/BlogSection';
 import NewsletterSection from '@/components/home/NewsletterSection';
 import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
-  title: 'SLP Systems - IT Management & AI Solutions | Calgary, Alberta',
+  title: 'Soham Yoga - Premium Yoga Products & Wellness Accessories',
   description:
-    'SLP Systems delivers cutting-edge IT solutions, AI/ML services, and digital transformation strategies. Trusted by enterprises across Banking, Oil & Gas, Public Sector, and Transportation.',
+    'Soham Yoga offers premium yoga mats, meditation cushions, yoga props, and wellness accessories. Eco-friendly products for yogis of all levels.',
   keywords: [
-    'IT Solutions Calgary',
-    'AI Solutions',
-    'Machine Learning',
-    'Deep Learning',
-    'Computer Vision',
-    'Generative AI',
-    'Digital Transformation',
-    'Managed IT Services',
-    'Enterprise AI',
-    'Cloud Solutions',
+    'Yoga Products',
+    'Yoga Mats',
+    'Meditation Cushions',
+    'Yoga Props',
+    'Yoga Accessories',
+    'Wellness Products',
+    'Eco-Friendly Yoga',
+    'Yoga Blocks',
+    'Yoga Straps',
+    'Meditation Supplies',
   ],
   openGraph: {
-    title: 'SLP Systems - IT Management & AI Solutions',
+    title: 'Soham Yoga - Premium Yoga Products & Wellness Accessories',
     description:
-      'Empowering businesses with cutting-edge IT solutions, AI/ML services, and digital transformation strategies.',
+      'Discover premium yoga products, meditation supplies, and wellness accessories for your practice.',
     type: 'website',
-    locale: 'en_CA',
-    siteName: 'SLP Systems',
+    locale: 'en_US',
+    siteName: 'Soham Yoga',
   },
 };
+
+// ── Static hero slides (gradient-type: no image assets required) ──────────────
+
+const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 'hero-1',
+    type: 'gradient',
+    gradientClass: 'bg-gradient-to-br from-stone-900 via-amber-950 to-stone-800',
+    heading: 'Find Your Inner Balance',
+    subheading: 'Soham Yoga Studio',
+    description:
+      'Join our community of mindful practitioners and discover the transformative power of yoga.',
+    ctaText: 'Browse Classes',
+    ctaUrl: '/services',
+    secondaryCtaText: 'Our Story',
+    secondaryCtaUrl: '/about',
+  },
+  {
+    id: 'hero-2',
+    type: 'gradient',
+    gradientClass: 'bg-gradient-to-br from-teal-900 via-emerald-900 to-stone-900',
+    heading: 'Elevate Your Practice',
+    subheading: 'Expert Teachers',
+    description:
+      'Learn from certified instructors with decades of experience across Hatha, Vinyasa, and Yin traditions.',
+    ctaText: 'Meet Our Teachers',
+    ctaUrl: '/team',
+    secondaryCtaText: 'Class Schedule',
+    secondaryCtaUrl: '/services',
+  },
+  {
+    id: 'hero-3',
+    type: 'gradient',
+    gradientClass: 'bg-gradient-to-br from-indigo-950 via-purple-900 to-stone-900',
+    heading: 'Mind, Body & Soul',
+    subheading: 'Complete Wellness',
+    description:
+      'From beginner flows to advanced Ashtanga — we have a program for every stage of your journey.',
+    ctaText: 'Explore Programs',
+    ctaUrl: '/services',
+    secondaryCtaText: 'Read Our Blog',
+    secondaryCtaUrl: '/blog',
+  },
+  {
+    id: 'hero-4',
+    type: 'gradient',
+    gradientClass: 'bg-gradient-to-br from-rose-950 via-orange-900 to-stone-900',
+    heading: 'Begin Your Journey Today',
+    subheading: 'First Class Free',
+    description:
+      'New to yoga? Start with our beginner-friendly welcome program and experience the Soham difference.',
+    ctaText: 'Get Started',
+    ctaUrl: '/contact',
+    secondaryCtaText: 'Contact Us',
+    secondaryCtaUrl: '/contact',
+  },
+];
+
+// ── Data adapters ─────────────────────────────────────────────────────────────
+
+function toMarqueeItems(services: Service[]): MarqueeItem[] {
+  return services.map(s => ({
+    id: String(s.id),
+    label: s.title,
+    description: s.shortDescription,
+    href: `/services/${s.slug}`,
+  }));
+}
+
+function toTestimonialSlides(testimonials: Testimonial[]): TestimonialSlide[] {
+  return testimonials.map(t => ({
+    id: String(t.id),
+    authorName: t.authorName,
+    authorTitle: t.authorTitle,
+    company: t.company,
+    quote: t.quote,
+    rating: t.rating,
+    initials: t.initials,
+  }));
+}
+
+function toTeacherSlides(members: TeamMember[]): TeacherSlide[] {
+  return members.map(m => ({
+    id: String(m.id),
+    name: m.name,
+    role: m.title,
+    bio: m.bio,
+    photoSrc: m.imageUrl,
+  }));
+}
+
+// ── Data fetch ────────────────────────────────────────────────────────────────
 
 async function getHomeData(): Promise<HomePageData | null> {
   try {
     const res = await fetch(`${API_URL}/api/home`, {
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      next: { revalidate: 300 },
+      headers: { 'Content-Type': 'application/json' },
     });
-
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -54,22 +144,66 @@ async function getHomeData(): Promise<HomePageData | null> {
   }
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default async function HomePage() {
   const data = await getHomeData();
 
+  const services = data?.allServices ?? data?.featuredServices ?? [];
+  const testimonials = data?.testimonials ?? [];
+  const teamMembers = data?.teamMembers ?? [];
+
   return (
     <>
-      {/* Hero Carousel */}
-      <HeroCarousel />
+      {/* Hero carousel — SwiperHero with gradient slides */}
+      <SwiperHero slides={HERO_SLIDES} autoplayDelay={6000} />
 
-      {/* Services Carousel */}
-      <ServiceCarousel services={data?.allServices ?? data?.featuredServices ?? []} />
+      {/* Services — InfiniteMarquee */}
+      <section className="py-20 bg-dark-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <h2 className="section-title text-dark-900">
+            Our <span className="text-primary-600">Services</span>
+          </h2>
+          <p className="section-subtitle">
+            Comprehensive yoga programs and wellness solutions designed to support every stage of your practice.
+          </p>
+        </div>
+        <InfiniteMarquee
+          items={toMarqueeItems(services)}
+          variant="service"
+          speed={40}
+          pauseOnHover
+        />
+        <div className="text-center mt-12">
+          <Link href="/services/generative-ai" className="btn-primary">
+            View All Services
+            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
+        </div>
+      </section>
 
-      {/* About Section */}
+      {/* About */}
       <AboutSection />
 
-      {/* Testimonials */}
-      <TestimonialsSection testimonials={data?.testimonials ?? []} />
+      {/* Testimonials — TestimonialCarousel */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="section-title text-dark-900">
+            What Our <span className="text-primary-600">Clients Say</span>
+          </h2>
+          <p className="section-subtitle">
+            Trusted by yoga practitioners of all levels — from first-timers to seasoned teachers.
+          </p>
+          <TestimonialCarousel
+            testimonials={toTestimonialSlides(testimonials)}
+            slidesPerView={3}
+            autoplay
+            autoplayDelay={5000}
+          />
+        </div>
+      </section>
 
       {/* Case Studies */}
       <CaseStudiesSection caseStudies={data?.caseStudies ?? []} />
@@ -80,8 +214,23 @@ export default async function HomePage() {
       {/* Video Demos */}
       <VideoDemoSection videos={data?.videoDemos ?? []} />
 
-      {/* Team */}
-      <TeamSection teamMembers={data?.teamMembers ?? []} />
+      {/* Team — TeacherCarousel */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="section-title text-dark-900">
+            Meet Our <span className="text-primary-600">Teachers</span>
+          </h2>
+          <p className="section-subtitle">
+            Passionate, certified yoga instructors dedicated to guiding your practice with care and expertise.
+          </p>
+          <TeacherCarousel
+            teachers={toTeacherSlides(teamMembers)}
+            slidesPerView={3}
+            autoplay
+            autoplayDelay={5000}
+          />
+        </div>
+      </section>
 
       {/* Blog */}
       <BlogSection posts={data?.recentPosts ?? []} />

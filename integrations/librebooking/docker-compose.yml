@@ -1,0 +1,68 @@
+version: "3.8"
+# LibreBooking — QR attendance, instructor scheduling, resource booking
+# Port: 8030
+# GitHub: https://github.com/librebooking/librebooking
+# Docs: https://www.librebooking.org
+
+services:
+  librebooking:
+    image: librebooking/librebooking:latest
+    container_name: sohamyoga-librebooking
+    restart: unless-stopped
+    ports:
+      - "8030:80"
+    environment:
+      DB_HOST: librebooking-db
+      DB_PORT: "3306"
+      DB_NAME: librebooking
+      DB_USER: librebooking
+      DB_PASSWORD: ${LIBREBOOKING_DB_PASSWORD:-lbsecret}
+      APP_TITLE: SohamYoga Scheduler
+      APP_URL: http://localhost:8030
+    depends_on:
+      librebooking-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - librebooking-uploads:/var/www/html/uploads
+      - librebooking-config:/var/www/html/config
+
+  librebooking-db:
+    image: mysql:8.0
+    container_name: sohamyoga-librebooking-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${LIBREBOOKING_DB_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: librebooking
+      MYSQL_USER: librebooking
+      MYSQL_PASSWORD: ${LIBREBOOKING_DB_PASSWORD:-lbsecret}
+    volumes:
+      - librebooking-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+volumes:
+  librebooking-uploads:
+  librebooking-config:
+  librebooking-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   Admin: http://localhost:8030/Web
+#   Default admin: admin / password (change on first login)
+#
+# SohamYoga use:
+#   - QR code attendance for teachers and students
+#   - Resource booking: yoga mats, props, studios
+#   - Substitute teacher scheduling
+#   - Group class capacity management

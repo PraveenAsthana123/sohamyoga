@@ -14,39 +14,39 @@ interface HeroSlide {
 
 const slides: HeroSlide[] = [
   {
-    title: 'Transforming Business with AI & Technology',
-    subtitle: 'Next-Generation Solutions',
+    title: 'Find Your Inner Balance',
+    subtitle: 'Premium Yoga Collection',
     description:
-      'Leverage cutting-edge artificial intelligence and machine learning to drive innovation, automate processes, and unlock new business opportunities.',
-    cta: { label: 'Explore Our Services', href: '/services/generative-ai' },
-    secondaryCta: { label: 'Book a Consultation', href: '/contact' },
+      'Discover our curated selection of high-quality yoga mats, props, and accessories designed to deepen your practice and bring harmony to your daily routine.',
+    cta: { label: 'Browse Products', href: '/products' },
+    secondaryCta: { label: 'Our Story', href: '/about' },
     gradient: 'from-primary-900 via-primary-800 to-dark-900',
   },
   {
-    title: 'Enterprise AI Solutions',
-    subtitle: 'Built for Scale',
+    title: 'Elevate Your Practice',
+    subtitle: 'Eco-Friendly Materials',
     description:
-      'From generative AI to computer vision, we deliver production-ready AI systems that integrate seamlessly into your existing infrastructure.',
-    cta: { label: 'View Case Studies', href: '#case-studies' },
-    secondaryCta: { label: 'Talk to an Expert', href: '/contact' },
+      'Our sustainably sourced yoga gear is crafted from natural and recycled materials, so you can feel good about every pose and every purchase.',
+    cta: { label: 'Shop Now', href: '/products' },
+    secondaryCta: { label: 'Learn More', href: '/about' },
     gradient: 'from-dark-900 via-primary-900 to-primary-800',
   },
   {
-    title: 'Digital Transformation Partners',
-    subtitle: 'End-to-End Expertise',
+    title: 'Mind, Body & Soul',
+    subtitle: 'Complete Wellness',
     description:
-      'We guide organizations through every stage of digital transformation, from strategy and architecture to implementation and managed services.',
-    cta: { label: 'Our Approach', href: '/about' },
-    secondaryCta: { label: 'Industries We Serve', href: '/industries/banking-finance' },
+      'From meditation cushions and incense to bolsters and essential oils, explore everything you need for a holistic wellness journey.',
+    cta: { label: 'Explore Collection', href: '/categories' },
+    secondaryCta: { label: 'Wellness Blog', href: '/blog' },
     gradient: 'from-primary-800 via-dark-900 to-primary-900',
   },
   {
-    title: 'Industry-Leading IT Management',
-    subtitle: 'Reliable & Secure',
+    title: 'Begin Your Journey',
+    subtitle: 'For Every Yogi',
     description:
-      'Comprehensive managed IT services, cloud infrastructure, and cybersecurity solutions designed to keep your business running at peak performance.',
-    cta: { label: 'Managed Services', href: '/services/managed-services' },
-    secondaryCta: { label: 'Get a Quote', href: '/contact' },
+      'Whether you are a beginner or an advanced practitioner, our thoughtfully designed products support every stage of your yoga journey.',
+    cta: { label: 'New Arrivals', href: '/products' },
+    secondaryCta: { label: 'Contact Us', href: '/contact' },
     gradient: 'from-dark-900 via-primary-800 to-dark-900',
   },
 ];

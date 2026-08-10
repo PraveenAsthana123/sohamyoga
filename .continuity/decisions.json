@@ -1,0 +1,1948 @@
+[
+  {
+    "id": "msdz1ttm-p8ju7e",
+    "question": "Why: fix: consistent always-blue navbar across all pages?",
+    "answer": "The navbar switched between two states based on scroll position:\n  - isScrolled=false → bg-dark-900/20 (transparent over hero) → looked\n    BLACK on pages with dark hero sections (industries, services)\n  - isScrolled=true  → bg-white/95 → looked WHITE+blue accents\n\nResult: visitors saw different top-bar colors on different pages, which\nthe operator flagged as inconsistent.\n\nPinned background to bg-primary-700 (brand blue) everywhere, regardless\nof scroll position. Kept the scroll-based shadow/padding shrink for the\n\"shrinks-on-scroll\" polish. CTA button uses bg-accent-500 (amber) so it\nstill pops against the blue. Mobile menu border lightened to white/20.\n\nFiles: src/components/layout/Navbar.tsx\n\nLocation: praveen-dev-linux-x86_64\nApproach: operator-directed (Claude Opus 4.7, this session)\nPolicies: §51 (forensic substrate), §54 (no Co-Authored-By),\n  §62 (checklist), §73 (autonomous validation), §75.7 (evidence)\nPush status: not pushed (operator decides)\nVerification:\n  docker compose build frontend && docker compose up -d frontend\n  curl -s --resolve <tunnel-host>:443:<cf-ip> \\\\\n    https://<tunnel-host>/industries/banking-finance \\\\\n    | grep -oE 'bg-primary-700[^\"]{0,30}'\n  # expect: \"bg-primary-700 py-4\" + \"bg-primary-700 text-white...\"\n\nRollback: git revert HEAD && docker compose build frontend \\\\\n  && docker compose up -d frontend Touched: slp-frontend/src/components/layout/Navbar.tsx. (commit c7a4f55) (Auto-seeded — edit to refine.)",
+    "timestamp": "2026-06-02T20:29:17.000Z",
+    "tags": [
+      "auth",
+      "auto-seeded",
+      "bug-fix",
+      "seeded"
+    ],
+    "files": [
+      "src/components/layout/Navbar.tsx",
+      "slp-frontend/src/components/layout/Navbar.tsx"
+    ],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "status": "active",
+      "source": "extension"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:47.681Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz1u60-1j7e1l",
+    "question": "Why: fix: portable frontend — relative API paths for tunnel + remote access?",
+    "answer": "Browser bundle previously baked NEXT_PUBLIC_API_URL=http://localhost:5070\nat build time, so any remote viewer's browser tried to hit *their* local\n:5070 (refused). Public tunnel served pages but every form (newsletter,\ncontact, admin login, customer auth) silently failed.\n\nFix: every client component's fallback changed from\n  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062'\nto\n  process.env.NEXT_PUBLIC_API_URL || ''\n…and .env now ships NEXT_PUBLIC_API_URL= (empty). Bundled JS becomes\n  fetch(`${''}/api/foo`) → fetch('/api/foo')\n…which hits the SAME ORIGIN — nginx on host, cloudflared at tunnel\nedge, or whatever reverse proxy is in front. INTERNAL_API_URL stays\nunchanged for SSR (server-side reads :backend:5070 over docker net).\n\nFiles patched (10):\n  src/lib/api.ts\n  src/components/{home/NewsletterSection,contact/ContactForm,\n    chat/LiveChatWidget,layout/Footer}.tsx\n  src/app/customer/chat/page.tsx\n  src/app/admin/{settings,config,live-chat,health}/page.tsx\n\nVerified through tunnel https://<random>.trycloudflare.com:\n  / → 200 (SSR pages render)\n  /api/health → 200 (proxied)\n  POST /api/newsletter/subscribe → 200 with success payload\n  Container reports healthy.\n\nLocation: praveen-dev-linux-x86_64\nApproach: operator-directed (Claude Opus 4.7, this session)\nPolicies: §3 (DI), §51 (forensic substrate), §54 (no Co-Authored-By),\n  §57 (production-grade discipline), §62 (checklist), §73 (autonomous\n  cycle: edit → build → smoke → tunnel-verify → commit),\n  §75.4 (Medium risk: 10 files + build), §75.7 (evidence: tunnel-side\n  POST 200), §75.8 (rollback documented)\nPush status: not pushed (operator decides)\nVerification:\n  docker compose build frontend && docker compose up -d frontend\n  curl -X POST -H 'Content-Type: application/json' \\\\\n    --resolve <tunnel-host>:443:<cf-ip> \\\\\n    -d '{\"email\":\"[EMAIL]@example.com\",\"name\":\"t\"}' \\\\\n    https://<tunnel-host>/api/newsletter/subscribe   # expect 200\n\nRollback: git revert HEAD && docker compose build frontend \\\\\n  && docker compose up -d frontend Touched: slp-frontend/src/app/admin/config/page.tsx, slp-frontend/src/app/admin/health/page.tsx, slp-frontend/src/app/admin/live-chat/page.tsx, slp-frontend/src/app/admin/settings/page.tsx, slp-frontend/src/app/customer/chat/page.tsx (+5 more). (commit c5cf942) (Auto-seeded — edit to refine.)",
+    "timestamp": "2026-06-02T20:15:38.000Z",
+    "tags": [
+      "api",
+      "auth",
+      "auto-seeded",
+      "bug-fix",
+      "cli",
+      "seeded"
+    ],
+    "files": [
+      "src/lib/api.ts",
+      "src/app/customer/chat/page.tsx",
+      "slp-frontend/src/app/admin/config/page.tsx",
+      "slp-frontend/src/app/admin/health/page.tsx",
+      "slp-frontend/src/app/admin/live-chat/page.tsx",
+      "slp-frontend/src/app/admin/settings/page.tsx",
+      "slp-frontend/src/app/customer/chat/page.tsx"
+    ],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "status": "active",
+      "source": "extension"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:48.126Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz1u8t-9nfqms",
+    "question": "Why: fix: server-side API URL + frontend healthcheck for docker network?",
+    "answer": "Next.js inlines NEXT_PUBLIC_* at build time, so server bundles baked\nhttp://localhost:5070 — unreachable from inside the frontend container.\nServer-rendered pages (industries, services, blog, about, home) called\nnotFound() or fell back to empty state, surfacing as user-facing 404s.\n\nAdds lib/server-api.ts exposing SERVER_API_URL that prefers a plain\nINTERNAL_API_URL env var (NOT inlined since not NEXT_PUBLIC_*), with\nNEXT_PUBLIC_API_URL as second choice. docker-compose sets\nINTERNAL_API_URL=http://backend:5070 — the docker-network hostname.\n\nAlso fixes the frontend container healthcheck (wrong port 3000 + IPv6\n[::1] resolution failure against an IPv4-only listener): probes\nhttp://127.0.0.1:3010 directly.\n\nLocation: praveen-dev-linux-x86_64\nApproach: operator-directed (Claude Opus 4.7, this session)\nPolicies applied: §3 (DI), §51 (forensic substrate), §54 (no\n  Co-Authored-By), §60 (path verification), §62 (checklist update),\n  §73 (autonomous validation), §75.7 (evidence required), §75.8\n  (rollback documented), §75.16 (observability — healthcheck restored)\nPush status: not pushed (operator decision)\nVerification:\n  docker compose up -d frontend\n  curl -s http://localhost:8085/industries/banking-finance \\\\\n    | grep -oE '<title>[^<]+</title>'\n  # expect: <title>Banking &amp; Finance - Industry Solutions | SLP Systems</title>\n  docker inspect slp-frontend --format '{{.State.Health.Status}}'\n  # expect: healthy\n\nRollback:\n  git revert HEAD\n  docker compose build frontend && docker compose up -d frontend Touched: .env.template, docker-compose.yml, slp-frontend/src/app/about/page.tsx, slp-frontend/src/app/blog/[slug]/page.tsx, slp-frontend/src/app/blog/page.tsx (+4 more). (commit 281dc83) (Auto-seeded — edit to refine.)",
+    "timestamp": "2026-06-02T20:02:15.000Z",
+    "tags": [
+      "api",
+      "auth",
+      "auto-seeded",
+      "bug-fix",
+      "rest",
+      "seeded"
+    ],
+    "files": [
+      "Next.js",
+      "lib/server-api.ts",
+      "docker-compose.yml",
+      "slp-frontend/src/app/about/page.tsx",
+      "slp-frontend/src/app/blog/page.tsx"
+    ],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "status": "active",
+      "source": "extension"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:48.223Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz1udw-9800qd",
+    "question": "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate limiter?",
+    "answer": "- Remove hardcoded secrets from appsettings.json (JWT, admin creds → env vars)\n- Add DOMPurify XSS protection on all dangerouslySetInnerHTML (13 usages → SafeHtml)\n- Fix cookie SameSite=None → Lax, restrict CORS methods/headers\n- Add input validation + message size limits to SignalR ChatHub\n- Strip email from public chat history endpoint, validate session ID format\n- Add account lockout (30min after 5 failed attempts)\n- Add CSP + Permissions-Policy headers to nginx, backend middleware, next.config\n- Block Swagger in production nginx (return 403)\n- Fix rate limiter memory leak (periodic cleanup of stale entries)\n- Remove continue-on-error from CI security scans (Trivy, TruffleHog)\n- Create .dockerignore for backend and frontend\n- Remove all console.error from frontend production code\n- Restrict Next.js image domains (was wildcard **)\n- Reduce SignalR WebSocket timeout from 24h to 2min\n- Add SignalR MaximumReceiveMessageSize (64KB)\n- Add REQUIREMENTS.md and requirements.txt\n\nCo-Authored-By: Claude Opus 4.6 <[EMAIL]@anthropic.com> Touched: .env.template, .github/workflows/ci.yml, REQUIREMENTS.md, SLPSystems/SLPSystems.Web/.dockerignore, SLPSystems/SLPSystems.Web/Controllers/Api/LiveChatController.cs (+28 more). (commit 909cd0c) (Auto-seeded — edit to refine.)",
+    "timestamp": "2026-03-06T16:11:44.000Z",
+    "tags": [
+      "api",
+      "auth",
+      "auto-seeded",
+      "rest",
+      "security",
+      "seeded"
+    ],
+    "files": [
+      "appsettings.json",
+      "Next.js",
+      "REQUIREMENTS.md",
+      ".github/workflows/ci.yml",
+      "SLPSystems/SLPSystems.Web/Controllers/Api/LiveChatController.cs"
+    ],
+    "status": "outdated",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [
+        "msdz1ttm-p8ju7e",
+        "msdz1u60-1j7e1l",
+        "msdz1u8t-9nfqms"
+      ]
+    },
+    "metadata": {
+      "status": "active",
+      "source": "extension",
+      "outdatedReason": "dream-consolidated",
+      "outdatedAt": "2026-08-04T18:10:40.715Z"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:48.410Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz1uhn-ieufsg",
+    "question": "Why: fix: resolve slug URLs, add admin pages, polish UI, add new services?",
+    "answer": "- Fix API slug paths (services, blog, industries, case studies)\n- Fix text overlap on careers pages (pt-32 padding)\n- Add admin case-studies and industries management pages\n- Add Industries link to admin sidebar\n- Enhance Navbar with backdrop-blur, active states, logo badge\n- Enhance Footer with gradient accents, icons, compact layout\n- Fix blog cards to use gradient placeholders instead of broken images\n- New services: RAG Solutions, AI Consulting, SAP Data Migration,\n  Data Engineering, ETL/ELT Solutions\n- New blog posts with process flows for each service area\n\nCo-Authored-By: Claude Opus 4.6 <[EMAIL]@anthropic.com> Touched: slp-frontend/src/app/admin/case-studies/page.tsx, slp-frontend/src/app/admin/industries/page.tsx, slp-frontend/src/app/admin/layout.tsx, slp-frontend/src/app/blog/[slug]/page.tsx, slp-frontend/src/app/blog/page.tsx (+8 more). (commit abd7ca0) (Auto-seeded — edit to refine.)",
+    "timestamp": "2026-03-06T07:06:55.000Z",
+    "tags": [
+      "api",
+      "auth",
+      "auto-seeded",
+      "bug-fix",
+      "seeded"
+    ],
+    "files": [
+      "slp-frontend/src/app/admin/case-studies/page.tsx",
+      "slp-frontend/src/app/admin/industries/page.tsx",
+      "slp-frontend/src/app/admin/layout.tsx",
+      "slp-frontend/src/app/blog/page.tsx"
+    ],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [
+        "msdz1u60-1j7e1l",
+        "msdz1u8t-9nfqms",
+        "msdz1udw-9800qd"
+      ]
+    },
+    "metadata": {
+      "status": "active",
+      "source": "extension"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:48.542Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz1usr-q3kbhy",
+    "question": "Why: feat: initial project commit — SLP Systems Portal?",
+    "answer": "Full-stack portal with Next.js 13+ frontend and .NET 8 ASP.NET Core backend.\n\nFeatures included:\n- Public site: home, services, industries, blog, careers, contact, about\n- Admin panel: blog, services, team, jobs/careers, live chat, config, settings\n- Customer panel: dashboard, blog, live chat, auth (register/login)\n- SignalR real-time live chat (customer ↔ admin)\n- Careers section: job listings, apply form, admin management with Tiptap editor\n- Config panel: social media, SMTP testing, feature flags, integrations\n- Open Graph / Twitter card meta tags for social media campaigns\n- Docker + Nginx deployment stack\n- GitHub Actions CI/CD pipeline\n\nCo-Authored-By: Claude Sonnet 4.6 <[EMAIL]@anthropic.com> Touched: .env.template, .github/workflows/ci.yml, .github/workflows/deploy.yml, .gitignore, SLPSystems/SLPSystems.Web/Controllers/AdminMonitoringController.cs (+250 more). (commit 57f3d48) (Auto-seeded — edit to refine.)",
+    "timestamp": "2026-03-03T17:47:08.000Z",
+    "tags": [
+      "auth",
+      "auto-seeded",
+      "deployment",
+      "feature",
+      "seeded"
+    ],
+    "files": [
+      "Next.js",
+      ".github/workflows/ci.yml",
+      ".github/workflows/deploy.yml",
+      "SLPSystems/SLPSystems.Web/Controllers/AdminMonitoringController.cs"
+    ],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "status": "active",
+      "source": "extension"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:48.943Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz225s-hhohio",
+    "question": "Why use Python with Python?",
+    "answer": "We chose Python for its readability, rich standard library, and ecosystem. Key dependencies: #, # slp systems portal — project requirements, #, # this file lists all dependencies for both backend and frontend., # last updated: 2026-03-06.",
+    "timestamp": "2026-08-04T01:20:58.479Z",
+    "tags": [
+      "architecture",
+      "auto-scanned",
+      "tech-stack"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "status": "active",
+      "source": "initial-scan"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:58.480Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "msdz226l-zgfq8l",
+    "question": "Why use GitHub Actions for CI/CD?",
+    "answer": "Detected .github/workflows/ directory. GitHub Actions automates testing, building, and deployment pipelines.",
+    "timestamp": "2026-08-04T01:20:58.509Z",
+    "tags": [
+      "auto-scanned",
+      "configuration",
+      "deployment",
+      "tooling"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "status": "active",
+      "source": "initial-scan"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T01:20:58.509Z",
+        "action": "created"
+      }
+    ]
+  },
+  {
+    "id": "f9d28c5b-60b1-46c6-8699-8757f9d1ad83",
+    "question": "Why integrate Ollama as a local-first AI layer for the SLP portal + a global terminal fallback?",
+    "answer": "Wired local Ollama (host :11434) three ways: (1) on-site 'SLP Assistant' chat — slp-frontend Next.js App Router route /api/ai/chat streams SSE via lib/ollama.ts, mounted through AiAssistant.tsx in LayoutWrapper; filesystem route wins over the next.config.js /api/* rewrite to .NET; docker reaches host via host.docker.internal + extra_hosts. (2) Global 'oll' terminal CLI (~/.local/bin/oll → agentic-ollama-platform/oll.py, stdlib only) for chat/code/file/pipe/REPL work from ANY folder when Claude tokens run out; auto-picks qwen2.5:latest (chat) / qwen2.5-coder:latest (code). (3) Planner+cron worker offloaded to Ollama: 'oll plan' → task queue, worker cron every minute + warmup cron every 25min (properly quoted for the space-containing repo path, flock-guarded). Fixed a real bug: specialist agents read task['name'] but the DB column is task_name → every task ran degraded with no output; added _tname() fallback. Zero cloud tokens, no API keys.",
+    "timestamp": "2026-08-04T18:10:17.487Z",
+    "tags": [
+      "ai",
+      "api",
+      "architecture",
+      "cli",
+      "docker",
+      "feature",
+      "local-first",
+      "ollama",
+      "why"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T18:10:17.491Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "next.js",
+        "docker"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "cli",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T18:10:17.461Z"
+    }
+  },
+  {
+    "id": "db4cacc8-bd06-4f2a-a6db-0c9324ad5b84",
+    "question": "Enhanced local Ollama integration in the SLP frontend",
+    "answer": "Added health-aware chat routing and a status-aware assistant UI so the local Ollama backend degrades gracefully and surfaces readiness to users",
+    "timestamp": "2026-08-04T18:17:54.054Z",
+    "tags": [
+      "ai",
+      "feature",
+      "frontend",
+      "ollama"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T18:17:54.055Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T18:17:54.051Z"
+    }
+  },
+  {
+    "id": "b6ecaed5-c47a-4a47-8d95-b7034c39e1f1",
+    "question": "Add automatic model-tier router + speed profiles to the local Ollama setup",
+    "answer": "Added app/model_router.py: deterministic classify(simple/reason/code/doc_long) -> tier (fast/code/strong) -> installed model + GTX-1080Ti speed profile (num_ctx/num_predict/keep_alive). Complements existing token-aware router.py (cloud-vs-local+budget). Wired into oll: plain 'oll \"…\"' auto-routes (no -c needed); added 'oll route' (preview) and 'oll warm [fast|code]' (preload+keep_alive). Fixed a VRAM conflict: agentic worker warmup unloaded all but llama3.2:3b every minute, evicting the interactive fast model — now keeps both llama3.2:3b + OLL_FAST_MODEL(llama3.1:8b) resident (~7GB, fits 11GB). Added OLL-FAST-WARM cron (*/20) to keep the fast tier hot. AI_MODE(LOCAL_ONLY/HYBRID) honored.",
+    "timestamp": "2026-08-04T18:35:51.775Z",
+    "tags": [
+      "ai",
+      "cli",
+      "ollama",
+      "performance",
+      "router"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T18:35:51.776Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T18:35:51.772Z"
+    }
+  },
+  {
+    "id": "0581e21a-dd50-4f3f-9b6c-8ec594c67f2a",
+    "question": "Multi-model Ollama assistant integration",
+    "answer": "The assistant now discovers installed Ollama models and lets users switch between them dynamically for chat requests",
+    "timestamp": "2026-08-04T19:11:28.347Z",
+    "tags": [
+      "ai",
+      "feature",
+      "frontend",
+      "ollama"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T19:11:28.352Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T19:11:28.332Z"
+    }
+  },
+  {
+    "id": "97618f4b-0a6d-4683-b83c-1bb625b9b0c4",
+    "question": "Add streaming resilience (timeouts + circuit breaker) to portal Ollama client",
+    "answer": "streamOllamaChat now enforces first-token (60s), idle-token (25s), and overall-deadline (300s) watchdogs via a chained AbortController, plus an in-process circuit breaker (3 failures → 30s cooldown) so a slow/dead local model fast-fails instead of freezing the UI. All env-overridable (OLLAMA_*_TIMEOUT_MS). Build + tsc clean. Note: linter-added /api/ai/monitoring + lib/monitoring.ts currently return SYNTHETIC/placeholder metrics (invented request IDs, latencies, quality scores) around real /api/tags+/api/ps — flagged to user as needing real backing (traces.jsonl + tasks.db + Ollama timing) before it can be trusted.",
+    "timestamp": "2026-08-04T19:14:04.877Z",
+    "tags": [
+      "ai",
+      "api",
+      "frontend",
+      "monitoring",
+      "ollama",
+      "reliability",
+      "resilience"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T19:14:04.878Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "rust"
+      ],
+      "patterns": [
+        "circuit breaker"
+      ],
+      "concepts": [
+        "api",
+        "streaming",
+        "monitoring"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T19:14:04.874Z"
+    }
+  },
+  {
+    "id": "4211fa6d-59b3-4f0a-ac5b-d89c211bffe9",
+    "question": "Replace fabricated monitoring with real measured data",
+    "answer": "Rewrote lib/monitoring.ts + monitoring/page.tsx to show ONLY measured data. New app/metrics.py assembles a snapshot from real sources: tasks.db (request/task states+timestamps), traces.jsonl (real Ollama total/eval/load ns → tokens/sec, avg load), budget.json (real cloud spend/remaining), Ollama /api/ps+/api/tags (loaded+installed). Added call_ollama timing capture (_trace_generation logs total_duration/eval_count/etc). Gateway exposes GET /metrics; frontend fetches it via AGENT_API_URL with an explicit dataSource flag (live/degraded/offline) and a REAL-ONLY degraded fallback (Ollama status, no invented requests/latencies/quality). Removed the placeholder fallbackSnapshot (REQ-1042, kimi-k3, invented latencies/qualityScore/tokensSaved). Build+tsc clean; metrics.py verified returning real data (37 installed, real queue counts, real budget). HTTP round-trip unverified only because the sandbox tears down persistent servers.",
+    "timestamp": "2026-08-04T19:32:26.202Z",
+    "tags": [
+      "ai",
+      "api",
+      "honesty",
+      "monitoring",
+      "observability",
+      "ollama"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T19:32:26.203Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "monitoring",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T19:32:26.130Z"
+    }
+  },
+  {
+    "id": "d068b6b4-f05f-481d-b834-bda5ee25820e",
+    "question": "Advanced local-AI platform: full API, reliability, mandatory tracking, Kimi, GitHub sync",
+    "answer": "Gateway exposes ALL operations over HTTP (health/submit/request/metrics/dashboard/run/chat/route/models/agents/calls/dead-letter/budget/mode/sync). Worker hardened: atomic lease-claim (concurrency conflict resolution via BEGIN IMMEDIATE), heartbeat, retry cap -> dead_letter_jobs, reaper for crashed workers, per-task quality gate. Continuous 'agent that keeps looking for work' via worker.py --loop. MANDATORY tracking: model_calls table persists EVERY prompt+response+timings+quality_score+boundary_check for every model call (planner/specialists/chat), linked to task_id/request_id; crash scenarios logged too. scoring.py = quality_score(0-100)+boundary_check. Router: Kimi(Moonshot)-first cloud for code/long-doc, local-first always, LOCAL_ONLY when tokens out. sync_github.py exports audit tables to a versioned git repo. Verified end-to-end: real generation saved a scored model_calls row (score 65, boundary_ok, tok/s 4.6); dashboard shows agents+jobs+tracking. All modules py_compile clean.",
+    "timestamp": "2026-08-04T19:51:56.135Z",
+    "tags": [
+      "ai",
+      "api",
+      "audit",
+      "kimi",
+      "observability",
+      "ollama",
+      "reliability",
+      "tracking"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T19:51:56.137Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "git",
+        "github"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "concurrency",
+        "reliability",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T19:51:56.123Z"
+    }
+  },
+  {
+    "id": "6d128fb2-b03b-4f02-b102-5318664a00ce",
+    "question": "Terminal ops hardening: health/heal/perf/download + idle auto-shutdown timer",
+    "answer": "oll now handles ops for all request types: health (ollama/gateway/VRAM/disk/queue), heal (unload idle models + reap stuck tasks + re-warm fast tier), perf (measured tokens/sec+scores from model_calls), download (deterministic, no tokens), warm. New app/idle_monitor.py auto-unloads idle models to free VRAM (protects fast tier + worker model; big models freed after 4min idle, others 10min); installed as OLL-IDLE-MONITOR cron every 3min. oll touches last_use on every request so active models aren't unloaded. Verified: idle sweep unloaded phi4:14b (9GB) while keeping llama3.2:3b; health/perf show real data. All compile clean.",
+    "timestamp": "2026-08-04T19:55:45.688Z",
+    "tags": [
+      "ai",
+      "cli",
+      "ollama",
+      "ops",
+      "resource-management",
+      "self-healing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T19:55:45.690Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T19:55:45.673Z"
+    }
+  },
+  {
+    "id": "2978f260-86ed-44f0-8387-2f090941d4e4",
+    "question": "Add local RAG + pytest quality suite + global policy doc",
+    "answer": "Built app/rag.py: chunk→embed(Ollama,cached in embed_cache DB)→SQLite vector store→cosine retrieve(pre/post filter)→grounded ask() with output evaluation(scoring). Wired oll index/ask/rag + oll test. Added 27-test pytest suite (scoring, db lease/dead-letter/tracking, model_router, rag) — all pass; suite caught+fixed a real WAL nested-connection deadlock in index_paths. Wrote OLLAMA_GLOBAL_POLICY.md consolidating the whole system + honest built-vs-not list. All model_calls tracked with quality score.",
+    "timestamp": "2026-08-04T20:02:45.989Z",
+    "tags": [
+      "ai",
+      "ollama",
+      "policy",
+      "quality",
+      "rag",
+      "sqlite",
+      "testing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:02:45.991Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "sqlite"
+      ],
+      "patterns": [],
+      "concepts": [
+        "cache"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:02:45.977Z"
+    }
+  },
+  {
+    "id": "e0d16e9c-d090-490f-9d39-dade1a7ea29a",
+    "question": "Eval harness, acceptance tracking, GPU lock, daemon, route-before-execution escalation",
+    "answer": "Built the top-recommendation quality layer: (1) eval_harness.py — golden set (data/golden.jsonl) → generate → judge (cloud-first, local-strong fallback) + coverage + heuristic → eval_results table; oll eval. (2) Human acceptance: model_calls.accepted + oll accept/reject → real acceptance_rate. (3) GPU concurrency lock (flock) in call_ollama so one generation at a time — stops VRAM thrash (OLL_GPU_LOCK). (4) Persistent daemon: oll daemon start/stop/status/logs/install-systemd (worker --loop, detached; systemd user unit for real persistence). (5) Router now routes BEFORE execution with ESCALATION_REQUIRED protocol + deterministic checks (empty/boundary/low-score/self-flag) → cloud escalation when available, else stays local. (6) oll report = consolidated health+quality+acceptance+eval+perf. 29 pytest tests pass (caught+fixed a real WAL deadlock). Verified escalation logic + eval/accept DB.",
+    "timestamp": "2026-08-04T20:09:16.739Z",
+    "tags": [
+      "ai",
+      "daemon",
+      "eval",
+      "gpu",
+      "ollama",
+      "quality",
+      "router"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:09:16.741Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "scala"
+      ],
+      "patterns": [],
+      "concepts": [
+        "concurrency"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:09:16.724Z"
+    }
+  },
+  {
+    "id": "c3fbbf66-ad17-4f88-94f3-d22e19867fd9",
+    "question": "Add Tier-0 deterministic layer, complexity scoring, and PII/secret redaction",
+    "answer": "Per production-critique: (1) app/tier0.py — deterministic handlers (extract emails/urls/phones/dates, validate JSON, dedup, word/line count) that answer with ZERO model tokens; router.route() tries Tier-0 first ('cheapest token is one you never generate'). (2) complexity_score() — feature-based (ctx/depth/scope/files/tools/risk), not model-judged → tier_for() bands (tier0/fast/strong/local+cloud-review/cloud). (3) app/redact.py — masks secrets/PII (private keys, AWS/JWT/bearer tokens, key=val secrets, email/phone/card) to placeholders + restore; router redacts BEFORE any cloud escalation (100% sensitive-checked before transfer). 39 pytest tests pass (caught+fixed a complexity mis-calibration for repo-scale tasks). Verified: tier0 route returns emails with no model call; redaction round-trips.",
+    "timestamp": "2026-08-04T20:14:13.126Z",
+    "tags": [
+      "ai",
+      "aws",
+      "governance",
+      "jwt",
+      "ollama",
+      "redaction",
+      "routing",
+      "security",
+      "tier0"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:14:13.129Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "scala",
+        "aws",
+        "rest",
+        "jwt"
+      ],
+      "patterns": [],
+      "concepts": []
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:14:13.109Z"
+    }
+  },
+  {
+    "id": "d7f96fed-2528-430d-af8f-e809948cd145",
+    "question": "Add cost-avoided ledger + SLO report (measured, honest)",
+    "answer": "app/ledger.py counts cloud tokens/cost AVOIDED only for local calls that passed the quality gate (boundary_ok=1, non-crash); reports accepted-only (strictest) separately — never inflates. app/slo.py measures 7 SLOs vs targets (boundary pass, crash rate, escalation rate, eval pass, acceptance, latency, dead-letter) from real model_calls/eval data; reports 'no_data' honestly for unmeasured ones. Wired oll ledger/slo + folded into oll report; gateway /ledger /slo. 42 pytest tests pass. Verified on real data: 1 passing local call → $0.0006 avoided; SLO 5 met/0 missed/2 no-data.",
+    "timestamp": "2026-08-04T20:17:23.954Z",
+    "tags": [
+      "ai",
+      "cost",
+      "governance",
+      "observability",
+      "ollama",
+      "slo"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:17:23.958Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "scala"
+      ],
+      "patterns": [],
+      "concepts": []
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:17:23.925Z"
+    }
+  },
+  {
+    "id": "adf55268-29df-40e4-a1be-f251fdf6edb2",
+    "question": "Add priority scheduling + back-pressure + maintenance/eval cron jobs",
+    "answer": "claim_task now orders by priority (urgent/high/med/low/batch → int) with aging so low-priority never starves; added queue_depth(), back_pressure() policy by depth (normal→warn→reject_low→pause_cron→high_only), gateway /backpressure. app/maintenance.py cron (daily 23:00): retention cleanup + metrics_history.jsonl snapshot (dashboard+ledger+slo) + health(ollama/disk). Installed OLL-MAINTENANCE (daily) + OLL-WEEKLY-EVAL (Sun) crons. 46 pytest tests pass (caught+fixed priority default inconsistency). Verified maintenance live (disk 86.8% free, snapshot written). Aligns with 4-model/3-cron/1-queue/1-worker starting architecture.",
+    "timestamp": "2026-08-04T20:21:04.938Z",
+    "tags": [
+      "ai",
+      "architecture",
+      "ollama",
+      "ops",
+      "priority",
+      "queue",
+      "scheduling"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:21:04.942Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:21:04.922Z"
+    }
+  },
+  {
+    "id": "07255524-de8b-4cdb-be3d-042a759c54a4",
+    "question": "Add job_events lifecycle trail + standard error codes + structured JSON logs (Phase-1 visibility)",
+    "answer": "job_events table (correlation IDs request_id/job_id/trace_id, lifecycle stage, severity, error_code, details) — the 'most important table' per monitoring doc §14. app/events.py: 18 lifecycle STAGES, 24 standard ERROR_CODES (§10), emit() writes structured JSON to data/events.jsonl AND job_events, normalizes unknown codes, and REDACTS secrets/PII from details before logging (§9). Worker emits claim/complete/fail transitions with error codes (QUALITY_GATE_FAILED/TOOL_CALL_FAILURE). Gateway /events (+ error_code_counts), oll events. 50 pytest tests pass. Verified live: 2 correlated events logged, secret redacted (not leaked). Completes Phase-1 Visibility: request/job IDs + job-status table + structured logs + failure codes.",
+    "timestamp": "2026-08-04T20:25:22.147Z",
+    "tags": [
+      "ai",
+      "events",
+      "logging",
+      "monitoring",
+      "observability",
+      "ollama",
+      "security"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:25:22.151Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "monitoring",
+        "logging"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:25:22.121Z"
+    }
+  },
+  {
+    "id": "0b69a440-fc80-4c83-a7ed-f0f2ece3953e",
+    "question": "Build evidence-based validation harness + controlled test pack",
+    "answer": "validation/ dir: inputs (short_text, good/broken python, rag facts), expected (extraction), and validate.py — a machine-executable regression suite running 14 REAL non-destructive checks (env, ollama timed call, tier0 extraction vs expected, router escalation, queue priority, crash-recovery+dead-letter, cron, tracking columns, job_events+error codes, redaction round-trip, deterministic code gate on broken_python, RAG known-answer, ledger/SLO, pytest). Produces results/report.{json,md} with CONFIRMED/PARTIAL/FAILED/BLOCKED + evidence + readiness score. oll validate. The harness CAUGHT A REAL BUG unit tests missed: redact.unredact didn't resolve nested placeholders (bearer token inside key=value secret) → round-trip failed; fixed with fixed-point resolution + added regression test. Re-run: 51 pytest pass, readiness 96/100 (12 confirmed, 1 partial=slow-gen, 0 failed, 1 blocked=RAG embed VRAM-timeout), production_ready=Conditional (honest: hardware-limited, nothing lost/broken).",
+    "timestamp": "2026-08-04T20:34:56.421Z",
+    "tags": [
+      "ai",
+      "ollama",
+      "python",
+      "qa",
+      "regression",
+      "testing",
+      "validation"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:34:56.424Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "python",
+        "scala"
+      ],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:34:56.396Z"
+    }
+  },
+  {
+    "id": "3ad040ea-218f-4f83-93f3-ec547b0801f0",
+    "question": "Add watchdog + resource sampling + alerts (5th core control)",
+    "answer": "app/watchdog.py (§165): samples real resources (GPU util/mem via nvidia-smi, loadavg, RAM via /proc, disk via shutil, queue depth, ollama /api/ps) → resource_samples table; SAFE recovery only (reap crashed-worker tasks + unload idle models — does NOT kill arbitrary OS processes since this box runs other cron jobs); raises alerts (OLLAMA_UNREACHABLE/QUEUE_CAPACITY_EXCEEDED/GPU_UNAVAILABLE/WORKER_HEARTBEAT_MISSING) → alerts table + events. Wired oll watchdog + gateway /watchdog /alerts. Installed OLL-WATCHDOG cron (every minute, flock). 55 pytest tests pass. Verified live: real sample (gpu 0%/28MB, ram 30%, disk 86.8%, queue 0, ollama up, healthy). Completes the doc's '5 most important components': queue+leases, heartbeat, per-job limits+GPU lock, watchdog, tracing.",
+    "timestamp": "2026-08-04T20:38:39.131Z",
+    "tags": [
+      "ai",
+      "alerts",
+      "api",
+      "ollama",
+      "ops",
+      "resource",
+      "watchdog"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:38:39.139Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "tracing",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:38:39.113Z"
+    }
+  },
+  {
+    "id": "72dc67d1-74b6-4632-8c7e-4890dc786ecc",
+    "question": "Publish autoollamasetup to private GitHub repo + turnkey installer",
+    "answer": "Pushed the code-only agentic-ollama-platform (73 files, no data/DBs/logs/secrets — data/ gitignored, secret-scanned) to github.com/PraveenAsthana123/autoollamasetup (commit 34debe7). Set repo PRIVATE via gh api (was public). Added MIT LICENSE + setup.sh turnkey installer (verify ollama, pull 4-model starter set, symlink global oll, optional cron, doctor smoke check) + front-page README (commit 9941303). Author email githuenasthana1@yahoo.in, Claude co-author. Clone→setup.sh→oll works on a fresh machine.",
+    "timestamp": "2026-08-04T20:45:38.739Z",
+    "tags": [
+      "ai",
+      "api",
+      "deployment",
+      "github",
+      "ollama",
+      "release"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "commitHash": "34debe7",
+      "status": "active"
+    },
+    "commitHashes": [
+      "34debe7",
+      "9941303"
+    ],
+    "history": [
+      {
+        "timestamp": "2026-08-04T20:45:38.741Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "github"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T20:45:38.723Z"
+    }
+  },
+  {
+    "id": "efb0811c-8970-4d76-a542-6bfd9e5f0360",
+    "question": "GitHub: detailed README + integrations + Slack bot + PDF/DOCX RAG + CI",
+    "answer": "Pushed to autoollamasetup repo: (1) detailed README — full oll command reference (27 cmds), install steps, gateway API (22 endpoints), env config, integratable-tools table with weblinks. (2) INTEGRATIONS.md — connect Aider/Open Interpreter/OpenHands/Continue/Cline/Open WebUI/OpenClaw/cloud to Ollama, with links+steps. (3) integrations/slack_bot.py — minimal Slack Socket-Mode bridge → gateway/Ollama. (4) oll code — autonomous file editor via Aider on local coding model (no auto-commit). (5) rag.py extract_text() reads PDF (pypdf→pdfplumber→pymupdf) + DOCX (python-docx) so oll index reads real IRB/protocol docs; +3 tests (58 total). (6) .github/workflows/ci.yml — runs pytest on push/PR; first run GREEN. Repo private, MIT, setup.sh turnkey.",
+    "timestamp": "2026-08-04T21:00:18.467Z",
+    "tags": [
+      "ai",
+      "api",
+      "ci",
+      "github",
+      "integrations",
+      "ollama",
+      "python",
+      "rag",
+      "slack"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-04T21:00:18.471Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "python",
+        "github"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-04T21:00:18.452Z"
+    }
+  },
+  {
+    "id": "32f56747-5406-4e28-8202-3f7465972d83",
+    "question": "How should multi-tenant digital marketing automation run in SohamYoga?",
+    "answer": "Use PostgreSQL tenant-scoped business profiles, per-tenant Ollama model and channel switches, approval-gated campaign requests/assets/workflow events, and a Docker cron worker every 2 minutes. Ollama performs local copy/banner-prompt/video-script generation with no cloud AI token; Postiz/YouTube publishing remains credential- and approval-gated.",
+    "timestamp": "2026-08-08T16:50:25.602Z",
+    "tags": [
+      "architecture",
+      "cron",
+      "docker",
+      "how",
+      "marketing",
+      "multitenancy",
+      "ollama",
+      "social"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-08T16:50:25.603Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "postgres",
+        "postgresql",
+        "docker"
+      ],
+      "patterns": [],
+      "concepts": []
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-08T16:50:25.599Z"
+    }
+  },
+  {
+    "id": "a70b0cb6-1db7-41a1-8ac4-c2998d147602",
+    "question": "How should the cron container reach local-only Ollama?",
+    "answer": "Run only the cron service with host networking so it can reach Ollama at 127.0.0.1:11434 while keeping Ollama loopback-only; connect from cron to PostgreSQL through mapped host port 5437.",
+    "timestamp": "2026-08-08T16:50:26.548Z",
+    "tags": [
+      "cron",
+      "deployment",
+      "how",
+      "ollama",
+      "security"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-08T16:50:26.549Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "postgres",
+        "postgresql"
+      ],
+      "patterns": [],
+      "concepts": []
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-08T16:50:26.544Z"
+    }
+  },
+  {
+    "id": "3de6340d-7b27-4c18-b19b-ff8862d48aa3",
+    "question": "How should all domain database schemas be deployed?",
+    "answer": "Use scripts/migrate-domain-schemas.sh to apply the 26 dependency-ordered PostgreSQL schemas transactionally and record each schema in schema_migration. Resolve shared-object collisions explicitly; never concatenate and blindly execute schema files.",
+    "timestamp": "2026-08-08T23:45:45.060Z",
+    "tags": [
+      "architecture",
+      "database",
+      "how",
+      "migrations",
+      "multitenancy"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-08T23:45:45.066Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "postgres",
+        "postgresql"
+      ],
+      "patterns": [],
+      "concepts": [
+        "migration",
+        "schema",
+        "database"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-08T23:45:45.051Z"
+    }
+  },
+  {
+    "id": "ccbc15fb-693f-47bd-8a38-09807733f895",
+    "question": "How should terminal requests be handled by the local Ollama platform?",
+    "answer": "Every non-interactive oll request now uses director mode: persist the request, create an Ollama plan, enqueue specialist jobs, serialize execution with the cron worker, monitor status/retries, verify outputs, synthesize a grounded final response, and print it to the terminal. Direct conversation remains explicit via oll chat. Role models are independently environment-configurable.",
+    "timestamp": "2026-08-09T00:07:46.618Z",
+    "tags": [
+      "ai",
+      "architecture",
+      "cli",
+      "how",
+      "monitoring",
+      "ollama",
+      "queue"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T00:07:46.619Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T00:07:46.607Z"
+    }
+  },
+  {
+    "id": "5fea4978-f949-4d13-ad2f-d7b4742db28a",
+    "question": "How should SohamYoga provide local AI when cloud editor tokens are unavailable?",
+    "answer": "Use the independent global oll terminal director for mandatory plan/queue/monitor/final-response execution; run gateway, worker and watchdog as systemd user services; expose plan/status/run/health through a desktop stdio MCP bridge; route role-specific installed Ollama models on demand; compact planner input deterministically; serialize GPU work and avoid periodic all-model warmups.",
+    "timestamp": "2026-08-09T00:27:19.707Z",
+    "tags": [
+      "ai",
+      "architecture",
+      "cli",
+      "how",
+      "mcp",
+      "ollama",
+      "operations",
+      "self-healing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T00:27:19.709Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T00:27:19.696Z"
+    }
+  },
+  {
+    "id": "6f086ab7-6eaf-4961-9ac0-ba37d795587b",
+    "question": "How should stakeholder reporting and module synchronization be designed?",
+    "answer": "Use a tenant-scoped report definition/schedule/run/artifact/delivery registry and role-specific dashboards. Share organization, product/service, tax, price and discount masters across modules; synchronize module transactions with outbox events, idempotent consumers, projections and reconciliation rather than duplicated master tables or distributed transactions.",
+    "timestamp": "2026-08-09T00:27:21.781Z",
+    "tags": [
+      "architecture",
+      "dashboard",
+      "database",
+      "how",
+      "multitenancy",
+      "reporting"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T00:27:21.782Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T00:27:21.775Z"
+    }
+  },
+  {
+    "id": "f60f877e-7978-4d38-bb54-c8390dee0b68",
+    "question": "How should operators control AI, social publishing and marketing workflows from one place?",
+    "answer": "Add /admin/operations-center as the unified tenant-aware control surface for live Ollama health, model enable/disable policy, voice-to-director commands, social setup, campaigns, publishing, banners, video/YouTube, blog, CRM, workflows and operational tracking. Voice transcription requires review before queue submission and never grants automatic publish authority.",
+    "timestamp": "2026-08-09T00:36:56.910Z",
+    "tags": [
+      "ai",
+      "architecture",
+      "frontend",
+      "how",
+      "marketing",
+      "ollama",
+      "social",
+      "voice"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T00:36:56.912Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T00:36:56.904Z"
+    }
+  },
+  {
+    "id": "7d097538-e37b-4bfb-a7dd-cada6ead5450",
+    "question": "How should recurring platform quality checks run?",
+    "answer": "Use scripts/run-platform-quality-gates.sh with health, daily and weekly modes; schedule 15-minute DB/Ollama/gateway/cron checks, daily unit/build/UI checks and weekly k6 baselines. Fail visibly when cron schema mismatches or portal downtime are detected.",
+    "timestamp": "2026-08-09T00:36:57.533Z",
+    "tags": [
+      "cron",
+      "how",
+      "monitoring",
+      "observability",
+      "performance",
+      "testing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T00:36:57.534Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "schema"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T00:36:57.530Z"
+    }
+  },
+  {
+    "id": "c30b291a-9265-4f84-94d3-59dad0d18b90",
+    "question": "How should SohamYoga unify browser, accessibility, role and model testing?",
+    "answer": "Installed project-local Playwright 1.62.1, axe Playwright 4.12.1 and Stagehand 3.7.1; added a story-driven Chrome/CDP suite, Quality Center UI/API and custom-port configuration. Deterministic Playwright/axe assertions are authoritative; Stagehand/CUA AI actions are opt-in through the local Ollama OpenAI-compatible gateway.",
+    "timestamp": "2026-08-09T01:41:51.781Z",
+    "tags": [
+      "accessibility",
+      "api",
+      "how",
+      "ollama",
+      "playwright",
+      "stagehand",
+      "testing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T01:41:51.782Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "playwright"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "accessibility"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T01:41:51.772Z"
+    }
+  },
+  {
+    "id": "4ca3b07d-ce16-45d0-8e03-67ffe0df702e",
+    "question": "How should automated self-healing react to quality failures?",
+    "answer": "Added a 30-minute user systemd quality timer. It may restart only known unhealthy Soham frontend/backend services, retains failure artifacts and queues an Ollama repair-review plan. It never silently edits code, publishes externally or performs destructive operations. Stagehand is capped at 60 seconds.",
+    "timestamp": "2026-08-09T01:41:55.776Z",
+    "tags": [
+      "how",
+      "monitoring",
+      "react",
+      "security",
+      "self-healing",
+      "testing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T01:41:55.777Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "react",
+        "rest"
+      ],
+      "patterns": [],
+      "concepts": [
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T01:41:55.766Z"
+    }
+  },
+  {
+    "id": "8988fdc8-29b1-49db-92ca-7c9d869fd778",
+    "question": "What global policy governs end-to-end product quality?",
+    "answer": "Added OLLAMA_GLOBAL_POLICY section 15: every change maps to actor/story and positive, negative, data, role, auth, accessibility and observability tests; deterministic Playwright/Chrome CDP/axe is authoritative; Stagehand/CUA is optional and time-bounded; failed evidence cannot be hidden; self-heal cannot silently rewrite or publish.",
+    "timestamp": "2026-08-09T01:44:48.958Z",
+    "tags": [
+      "accessibility",
+      "auth",
+      "observability",
+      "playwright",
+      "policy",
+      "self-healing",
+      "testing"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T01:44:48.959Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "playwright"
+      ],
+      "patterns": [],
+      "concepts": [
+        "observability",
+        "accessibility"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T01:44:48.951Z"
+    }
+  },
+  {
+    "id": "766569d9-00aa-4b33-bc6b-726c092dacbb",
+    "question": "Which initial accessibility defects were repaired?",
+    "answer": "Added an accessible newsletter-submit name, promoted login page title to h1, strengthened consent controls, catalogue filters/tags/capacity/CTA contrast, and footer legal-link contrast. Remaining axe failures stay in the report for subsequent repairs.",
+    "timestamp": "2026-08-09T01:44:50.237Z",
+    "tags": [
+      "accessibility",
+      "bug-fix",
+      "ui"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T01:44:50.238Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "accessibility"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T01:44:50.230Z"
+    }
+  },
+  {
+    "id": "ab3df2d6-3889-4401-a513-5e1f12d2bfc6",
+    "question": "How should an operator collect social developer-app setup data from the command line?",
+    "answer": "Added global soham-social-setup interactive CLI. It prompts for organization/email/domain/policy URLs/providers, opens official portals optionally, displays exact callbacks, reads secrets silently, writes permission-0600 local files, backs up prior config, registers only non-secret status in integration_master and validates provider completeness. It cannot bypass legal/identity/app review.",
+    "timestamp": "2026-08-09T01:50:37.474Z",
+    "tags": [
+      "cli",
+      "how",
+      "integration",
+      "oauth",
+      "security",
+      "social"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T01:50:37.475Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "cli"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T01:50:37.468Z"
+    }
+  },
+  {
+    "id": "b5bf3d7b-5cce-4107-bad3-16e48e4095c2",
+    "question": "How should Meta developer-app setup be represented in SohamYoga?",
+    "answer": "Added an admin Meta Setup Assistant with copyable domain/privacy/terms/deletion/callback values, secret-clearing credential submission, permissions/review checklist and links to compose/all providers. Added public privacy, terms and data-deletion pages and a Facebook callback handoff to Postiz. Secured social credential GET/POST with requireAdmin; anonymous writes now return 401.",
+    "timestamp": "2026-08-09T02:29:20.450Z",
+    "tags": [
+      "facebook",
+      "how",
+      "oauth",
+      "security",
+      "social",
+      "ui"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-09T02:29:20.451Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-09T02:29:20.447Z"
+    }
+  }
+]

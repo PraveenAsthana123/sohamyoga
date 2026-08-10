@@ -1,0 +1,11 @@
+[Unit]
+Description=SohamYoga Meta publishing dependencies (OpenBao and Postiz)
+After=network-online.target docker.service
+Wants=network-online.target
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/bash /mnt/deepa/sohamyoga/scripts/setup-meta-publishing-runtime.sh
+TimeoutStartSec=600
+[Install]
+WantedBy=default.target

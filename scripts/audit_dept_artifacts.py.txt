@@ -1,0 +1,45 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_dept_artifacts.py
+# auto-generated explainer · 2026-06-28T10:00:06Z
+
+## Purpose
+§64.29 audit · verify every dept has all mandatory business-layer/HOLY_*.md files.
+
+Per global §64.29 (and §64.33/.35/.38 extensions) — every dept MUST have:
+
+Mandatory MD files (per §64.29 + later §64 amendments):
+- HOLY_DEMO_STORY.md           (§64.2)
+- HOLY_ASIS_ASSESSMENT.md       (§64.3)
+- HOLY_DT_STRATEGY.md           (§64.4)
+- HOLY_CONTACT_CENTER.md        (§64.5)
+- HOLY_INCIDENT_MGMT.md         (§64.6)
+- HOLY_MEETING_COMMS.md         (§64.14)
+- HOLY_PROCESS_MGMT.md          (§64.15)
+- HOLY_DATA_MGMT.md             (§64.17)
+- HOLY_RECOMMENDATION.md        (§64.22)
+- HOLY_ANOMALY.md               (§64.23)
+- HOLY_FRAUD.md                 (§64.23)
+- HOLY_CONTACTS.md              (§64.25)
+- HOLY_FLOW.md                  (§64.27)
+- HOLY_SIMULATION.md            (§64.34)
+- HOLY_SECURITY.md              (§64.32)
+
+Walks canonical 21-dept list. Exit 0 if all present · 1 if any missing.
+
+## Imports
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `find_dept(did, slug)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Show first 10 file symbols inline

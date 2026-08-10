@@ -53,7 +53,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white">
-            <span className="text-accent-400">SLP</span> Systems
+            <span className="text-accent-400">Soham</span>Yoga
           </h1>
           <p className="text-dark-400 mt-2">Sign in to the admin panel</p>
         </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                placeholder="admin@slpsystems.com"
+                placeholder="admin@sohamyoga.com"
                 className="w-full px-4 py-2 border border-dark-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
               />
             </div>
@@ -119,7 +119,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-dark-500 text-xs mt-6">
-          SLP Systems Admin Panel
+          SohamYoga Admin Panel
         </p>
       </div>
     </div>

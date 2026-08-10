@@ -45,14 +45,14 @@ export default function AboutSection() {
           {/* Left side - Content */}
           <div>
             <span className="inline-block text-primary-600 text-sm font-semibold tracking-wider uppercase mb-4">
-              About SLP Systems
+              About SohamYoga
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-dark-900 mb-6 leading-tight">
               Your Trusted Partner for{' '}
               <span className="text-primary-600">Digital Transformation</span>
             </h2>
             <p className="text-dark-500 text-lg leading-relaxed mb-6">
-              Based in Calgary, Alberta, SLP Systems is a premier IT management and AI solutions
+              Based in Calgary, Alberta, SohamYoga is a premier IT management and AI solutions
               provider. We help organizations harness the power of artificial intelligence, machine
               learning, and modern cloud infrastructure to drive growth and efficiency.
             </p>

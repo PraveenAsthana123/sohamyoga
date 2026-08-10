@@ -11,7 +11,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:5062
+ARG NEXT_PUBLIC_API_URL=http://localhost:5070
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -32,11 +32,11 @@ COPY --from=builder --chown=slpuser:slpgroup /app/.next/static ./.next/static
 
 USER slpuser
 
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 3010
+ENV PORT=3010
 ENV HOSTNAME=0.0.0.0
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-  CMD wget -qO- http://localhost:3000 || exit 1
+  CMD wget -qO- http://localhost:3010 || exit 1
 
 CMD ["node", "server.js"]

@@ -3,10 +3,10 @@ import ContactForm from '@/components/contact/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
-  description: 'Get in touch with SLP Systems for IT solutions, AI/ML services, and digital transformation consulting. Based in Calgary, Alberta.',
+  description: 'Get in touch with SohamYoga for IT solutions, AI/ML services, and digital transformation consulting. Based in Calgary, Alberta.',
   openGraph: {
-    title: 'Contact Us - SLP Systems',
-    description: 'Get in touch with SLP Systems for IT solutions, AI/ML services, and digital transformation consulting.',
+    title: 'Contact Us - SohamYoga',
+    description: 'Get in touch with SohamYoga for IT solutions, AI/ML services, and digital transformation consulting.',
   },
 };
 
@@ -166,7 +166,7 @@ export default function ContactPage() {
           <div className="space-y-4">
             {[
               {
-                q: 'What services does SLP Systems offer?',
+                q: 'What services does SohamYoga offer?',
                 a: 'We offer a comprehensive range of IT services including Generative AI, Machine Learning, Deep Learning, Computer Vision, Managed IT Services, and Custom Software Development.',
               },
               {

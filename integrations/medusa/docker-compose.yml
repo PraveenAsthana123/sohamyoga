@@ -1,0 +1,85 @@
+# Medusa — headless commerce engine (pricing rules, cart, promotions, orders)
+# GitHub: https://github.com/medusajs/medusa
+# Port 9003 (external) → 9000 (internal admin API)
+# Port 9004 (external) → 9001 (storefront API)
+# Medusa handles the cart/order lifecycle; OfferKit handles complex coupon rules.
+# Integration: Medusa promotion plugin ↔ OfferKit webhook on coupon.applied event
+#
+# Why Medusa alongside OfferKit?
+#   - Medusa owns the cart, order, and payment lifecycle (Stripe, Razorpay)
+#   - OfferKit owns coupon rules, eligibility, fraud controls, and MCP tools
+#   - They integrate via Medusa's promotion plugin pointing to OfferKit's REST API
+
+services:
+  medusa:
+    image: node:20-alpine
+    container_name: medusa
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://medusa:medusa_pass@medusa-db:5432/medusa
+      REDIS_URL: redis://offerkit-redis:6379
+      STORE_CORS: "${STORE_URL:-http://localhost:4000}"
+      ADMIN_CORS: "${ADMIN_URL:-http://localhost:4000}"
+      AUTH_CORS: "${AUTH_URL:-http://localhost:4000}"
+      JWT_SECRET: "${MEDUSA_JWT_SECRET}"
+      COOKIE_SECRET: "${MEDUSA_COOKIE_SECRET}"
+      OFFERKIT_BASE_URL: "http://offerkit:3000"
+      OFFERKIT_MCP_TOKEN: "${OFFERKIT_MCP_TOKEN}"
+      POSTHOG_API_KEY: "${POSTHOG_API_KEY}"
+      STRIPE_API_KEY: "${STRIPE_API_KEY}"
+    ports:
+      - "9003:9000"
+      - "9004:9001"
+    depends_on:
+      medusa-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - medusa-app:/app
+      - medusa-uploads:/app/uploads
+
+  medusa-db:
+    image: postgres:15-alpine
+    container_name: medusa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medusa
+      POSTGRES_USER: medusa
+      POSTGRES_PASSWORD: medusa_pass
+    volumes:
+      - medusa-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medusa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+networks:
+  sohamyoga-net:
+    external: true
+
+volumes:
+  medusa-app:
+  medusa-uploads:
+  medusa-db-data:
+
+# =====================================================================
+# Medusa data model for SohamYoga
+# =====================================================================
+# Product categories: yoga-classes, memberships, workshops, retreats,
+#                     equipment, books, gift-vouchers
+# Payment providers: stripe (card), manual (cash/cheque/in-person)
+# Fulfillment: digital (classes), physical (equipment/books)
+# Regions: CA (CAD), IN (INR), US (USD)
+#
+# =====================================================================
+# Medusa ↔ OfferKit integration events
+# =====================================================================
+# order.placed       → OfferKit.commitReservation(redemptionId)
+# order.cancelled    → OfferKit.reverseRedemption(redemptionId)
+# order.return_requested → OfferKit.createReversal(redemptionId, reason)

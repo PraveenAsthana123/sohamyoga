@@ -1,0 +1,27 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# ai-agents/langgraph/deep/backend/langgraph_dag.py
+# auto-generated explainer · 2026-06-28T10:00:27Z
+
+## Purpose
+LangGraph DAG · plan → navigate → rag → reason → verify → hitl.
+
+Skeleton · production needs full TypedDict state and PostgresCheckpointer.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import logging
+- from `typing` import Any
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `build_dag(cdp, rag, webllm_bridge)`: Return a compiled LangGraph DAG. Caller invokes via dag.ainvoke(...).
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- In production: extract citations from rec, check against chunk IDs
+- In production: wait on Postgres hitl_queue

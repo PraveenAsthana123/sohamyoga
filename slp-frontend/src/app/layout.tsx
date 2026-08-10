@@ -2,46 +2,50 @@ import type { Metadata } from 'next';
 import './globals.css';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import LiveChatWidget from '@/components/chat/LiveChatWidget';
+import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
+import ConsentBanner from '@/components/analytics/ConsentBanner';
+import PWARegister from '@/components/PWARegister';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://slpsystems.ca';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sohamyoga.com';
 
 export const metadata: Metadata = {
+  icons: { icon: '/icon.svg' },
   title: {
-    default: 'SLP Systems — IT Management. SIMPLIFIED.',
-    template: '%s | SLP Systems',
+    default: 'Soham Yoga — Yoga Products & Wellness',
+    template: '%s | Soham Yoga',
   },
   description:
-    'SLP Systems delivers expert IT consulting, data engineering, AI/ML solutions, and managed services for businesses across Canada. Calgary, Alberta.',
+    'Soham Yoga offers premium yoga products, meditation supplies, and wellness accessories. Discover eco-friendly yoga mats, props, and everything for your practice.',
   keywords: [
-    'IT Solutions', 'Data Engineering', 'AI', 'Machine Learning', 'Digital Transformation',
-    'Calgary IT', 'Azure', 'Cloud Infrastructure', 'SLP Systems',
+    'Yoga Products', 'Yoga Mats', 'Meditation', 'Wellness', 'Yoga Accessories',
+    'Soham Yoga', 'Yoga Props', 'Meditation Supplies', 'Eco-Friendly Yoga',
   ],
   metadataBase: new URL(siteUrl),
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
-    locale: 'en_CA',
+    locale: 'en_US',
     url: siteUrl,
-    siteName: 'SLP Systems',
-    title: 'SLP Systems — IT Management. SIMPLIFIED.',
+    siteName: 'Soham Yoga',
+    title: 'Soham Yoga — Yoga Products & Wellness',
     description:
-      'Expert IT consulting, data engineering, AI/ML, and cloud services for Canadian enterprises. Calgary-based, Canada-wide.',
+      'Premium yoga products, meditation supplies, and wellness accessories for every yogi. Eco-friendly and sustainably sourced.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'SLP Systems — IT Management. SIMPLIFIED.',
+        alt: 'Soham Yoga — Yoga Products & Wellness',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SLP Systems — IT Management. SIMPLIFIED.',
+    title: 'Soham Yoga — Yoga Products & Wellness',
     description:
-      'Expert IT consulting, data engineering, AI/ML, and cloud services for Canadian enterprises.',
+      'Premium yoga products, meditation supplies, and wellness accessories for every yogi.',
     images: ['/og-image.png'],
-    creator: '@slpsystems',
+    creator: '@sohamyoga',
   },
   robots: {
     index: true,
@@ -68,8 +72,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LayoutWrapper>{children}</LayoutWrapper>
-        <LiveChatWidget />
+        <a href="#main-content" className="sr-skip-link">Skip to main content</a>
+        <AnalyticsProvider>
+          <div id="main-content"><LayoutWrapper>{children}</LayoutWrapper></div>
+          <LiveChatWidget />
+          <ConsentBanner />
+          <PWARegister />
+        </AnalyticsProvider>
       </body>
     </html>
   );

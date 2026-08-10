@@ -1,0 +1,71 @@
+version: "3.8"
+# Flowable — BPMN workflow engine for substitute requests, cert renewals, onboarding
+# Port: 8060 (UI), 8061 (REST API)
+# GitHub: https://github.com/flowable/flowable-engine
+# Processes:
+#   - Substitute teacher request approval
+#   - Teacher certification renewal reminder → upload → verify → issue
+#   - New teacher onboarding checklist
+#   - Student health waiver collection
+
+services:
+  flowable:
+    image: flowable/all-in-one:latest
+    container_name: sohamyoga-flowable
+    restart: unless-stopped
+    ports:
+      - "8060:8080"
+    environment:
+      spring.datasource.url: jdbc:postgresql://flowable-db:5432/flowable
+      spring.datasource.username: flowable
+      spring.datasource.password: ${FLOWABLE_DB_PASSWORD:-flowsecret}
+      flowable.app.admin.user-id: admin
+      flowable.app.admin.password: ${FLOWABLE_ADMIN_PASSWORD:-flowadmin}
+      flowable.app.admin.first-name: Admin
+      flowable.app.admin.last-name: SohamYoga
+      flowable.app.admin.email: ${ADMIN_EMAIL:-admin@sohamyoga.com}
+    depends_on:
+      flowable-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - flowable-data:/usr/local/tomcat/webapps/flowable-app/WEB-INF/classes/processes
+
+  flowable-db:
+    image: postgres:15-alpine
+    container_name: sohamyoga-flowable-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: flowable
+      POSTGRES_USER: flowable
+      POSTGRES_PASSWORD: ${FLOWABLE_DB_PASSWORD:-flowsecret}
+    volumes:
+      - flowable-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowable"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+volumes:
+  flowable-data:
+  flowable-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   Flowable UI: http://localhost:8060/flowable-app
+#   Default admin: admin / flowadmin
+#
+# REST API base: http://localhost:8060/flowable-app/app/rest/
+# Key BPMN processes to deploy:
+#   - substitute-request.bpmn20.xml
+#   - cert-renewal.bpmn20.xml
+#   - teacher-onboarding.bpmn20.xml
+#   - health-waiver-collection.bpmn20.xml

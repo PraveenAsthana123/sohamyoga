@@ -1,0 +1,17 @@
+[Unit]
+Description=SohamYoga .NET API and authentication backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/deepa/sohamyoga/SohamYoga/SohamYoga.Web
+EnvironmentFile=/home/praveen/.config/sohamyoga/ports.env
+EnvironmentFile=-/home/praveen/.config/sohamyoga/runtime.env
+Environment=ASPNETCORE_ENVIRONMENT=Development
+ExecStart=/usr/bin/env bash -lc 'export Cors__AllowedOrigins__0="http://127.0.0.1:$SOHAM_FRONTEND_PORT" Cors__AllowedOrigins__1="http://localhost:$SOHAM_FRONTEND_PORT"; exec /usr/bin/dotnet run --no-launch-profile --urls "http://127.0.0.1:$SOHAM_BACKEND_PORT"'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

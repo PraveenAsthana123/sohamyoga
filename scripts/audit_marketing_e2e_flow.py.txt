@@ -1,0 +1,55 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_marketing_e2e_flow.py
+# auto-generated explainer · 2026-06-28T10:00:07Z
+
+## Purpose
+End-to-end consumer flow test for marketing campaigns.
+
+Per "fix all" iteration that surfaced silent route-registration bugs.
+Exercises the FULL consumer path · not just route reachability:
+
+  1. POST   /api/v1/marketing-campaigns                  create test campaign
+  2. POST   /api/v1/marketing-campaigns/{id}/execute     apply gates → runs
+  3. GET    /public/{kind}/{ref}/{cust}/preview          consumer sees content
+  4. POST   /public/{kind}/{ref}/{cust}/respond|submit   consumer answers
+  5. GET    /marketing-campaigns/{id}/metrics            verify outcome update
+  6. Cleanup: PATCH campaign to status='complete' (idempotent)
+
+Tests BOTH survey + form channels.
+
+Per §47.6 + §57.7 · honest test of the trust contract, not just imports.
+
+Exit 0 if all 12 assertions pass · 1 otherwise.
+
+Environment expected:
+  BEV_POSTGRES_HOST, BEV_POSTGRES_PORT, BEV_POSTGRES_USER,
+  BEV_POSTGRES_PASSWORD, BEV_POSTGRES_DB (see setup.sh)
+
+## Imports
+- from `_` import json
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `_` import time
+- from `_` import uuid
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_cleanup_test_campaigns()`: Defensive · delete any leaked E2E test campaigns from prior runs.
+- `main()`: (no docstring)
+- `_persist_latencies(run_ref, latencies)`: T3.4 · persist per-step latency to e2e_step_latencies (migration 060).
+- `_summary(fails, run_ref, latencies)`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Both paths needed: REPO so `from backend.x` resolves, REPO/backend so `from main` resolves.
+- Pre-cleanup · sweep any orphans from prior runs (defensive)
+- T3.4 · per-step latency capture · [{step_id, label, latency_ms, passed}]
+- T3.4 · capture latency since last step start
+- Extract step_id (first token before space, e.g. "1.S")

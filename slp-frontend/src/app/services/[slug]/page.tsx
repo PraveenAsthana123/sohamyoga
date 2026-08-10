@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
     title: `${service.title} - Services`,
     description: service.shortDescription,
     openGraph: {
-      title: `${service.title} - SLP Systems`,
+      title: `${service.title} - SohamYoga`,
       description: service.shortDescription,
     },
   };
@@ -241,7 +241,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
               Explore More Services
             </h2>
             <p className="text-dark-500 text-center mb-10 max-w-2xl mx-auto">
-              Discover other ways SLP Systems can help accelerate your digital transformation.
+              Discover other ways SohamYoga can help accelerate your digital transformation.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

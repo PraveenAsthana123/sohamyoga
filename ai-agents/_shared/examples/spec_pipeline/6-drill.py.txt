@@ -1,0 +1,26 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# ai-agents/_shared/examples/spec_pipeline/6-drill.py
+# auto-generated explainer · 2026-06-28T10:00:27Z
+
+## Purpose
+§43-compliant drill · 1 positive + 1 negative per invariant.
+
+## Imports
+- from `_` import sys
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `assert_(condition, label)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Positive: confidence=0.45 routes to HITL
+- Negative: confidence=0.95 does NOT route to HITL
+- Positive: latency check passes for 100ms response
+- Negative: latency check fails for 600ms response

@@ -58,7 +58,7 @@ export default function LiveChatWidget() {
           id: 'welcome',
           content: `Hi ${name.split(' ')[0]}! 👋 Thanks for reaching out. Our team will be with you shortly.`,
           isFromAdmin: true,
-          senderName: 'SLP Support',
+          senderName: 'SohamYoga Support',
           createdAt: new Date(),
         },
       ]);
@@ -101,7 +101,7 @@ export default function LiveChatWidget() {
           {/* Header */}
           <div className="bg-blue-600 px-4 py-3 flex items-center justify-between">
             <div>
-              <p className="text-white font-semibold text-sm">SLP Systems Support</p>
+              <p className="text-white font-semibold text-sm">SohamYoga Support</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-yellow-400'}`} />
                 <span className="text-blue-100 text-xs">{connected ? 'Online' : 'Connecting…'}</span>

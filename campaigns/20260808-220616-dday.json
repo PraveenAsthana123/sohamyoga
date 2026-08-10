@@ -1,0 +1,20 @@
+{
+  "campaignName": "dday",
+  "platform": "facebook",
+  "pageName": "dday",
+  "postText": "dday",
+  "mediaPath": null,
+  "publishMode": "draft",
+  "scheduleAt": null,
+  "approvalRequired": false,
+  "status": "draft",
+  "createdAt": "2026-08-09T04:06:16.299992+00:00",
+  "retry": {
+    "maxAttempts": 3,
+    "backoffSeconds": [
+      30,
+      120,
+      300
+    ]
+  }
+}

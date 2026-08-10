@@ -1,0 +1,43 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_presidio_adoption.py
+# auto-generated explainer · 2026-06-28T10:00:07Z
+
+## Purpose
+Presidio Stage-1 adapter audit · T6.10.
+
+Per docs/PENDING_PLAN.md T6.10. Verifies the §56 Stage-1 adapter loads
+in EITHER mode ('presidio' or 'fallback') and detects 12 PII entity
+types. Per §57.7 honest: when env blocks Presidio, the fallback regex
+pack MUST still detect all 12 types · audit fails if neither mode works.
+
+8 assertions:
+  1. Adapter status() returns ready=True
+  2. mode is either 'presidio' or 'fallback' (not None)
+  3. supported_types has at least 12 entries
+  4. SSN detected
+  5. Credit card detected
+  6. Email detected
+  7. Multiple entity types in mixed text
+  8. Clean text returns is_pii=False
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- ── 1-3. status() snapshot ────────────────────────
+- ── 4-6. Single-entity detection ───────────────
+- ── 7. Multi-entity ──────────────────────────────
+- ── 8. Clean text · no false positive ───────

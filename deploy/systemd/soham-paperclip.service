@@ -1,0 +1,19 @@
+[Unit]
+Description=SohamYoga Paperclip AI orchestration dashboard
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/deepa/sohamyoga/integrations/paperclip
+EnvironmentFile=/home/praveen/.config/sohamyoga/ports.env
+Environment=HOST=127.0.0.1
+Environment=NODE_ENV=development
+Environment=PATH=/home/praveen/.nvm/versions/node/v22.22.2/bin:/home/praveen/.npm-global/bin:/home/praveen/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env bash -lc 'PORT="$SOHAM_PAPERCLIP_PORT" exec /home/praveen/.npm-global/bin/pnpm dev:once'
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=180
+
+[Install]
+WantedBy=default.target

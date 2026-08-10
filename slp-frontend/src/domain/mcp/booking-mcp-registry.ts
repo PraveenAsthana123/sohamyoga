@@ -1,0 +1,117 @@
+import { McpServerManifest, McpTool } from './types';
+
+const TOOLS: McpTool[] = [
+  {
+    name: 'search_class_availability',
+    description: 'Find available yoga classes by date range, style, teacher, or level. Returns open slots and waitlist counts.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object',
+      properties: {
+        dateFrom:  { type: 'string', format: 'date' },
+        dateTo:    { type: 'string', format: 'date' },
+        styleId:   { type: 'string' },
+        teacherId: { type: 'string' },
+        level:     { type: 'string', enum: ['beginner','intermediate','advanced','all'] },
+        online:    { type: 'boolean' },
+      },
+    },
+  },
+  {
+    name: 'get_class_details',
+    description: 'Return full details for a class: description, teacher, capacity, prerequisites, Zoom/room link.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['classId'],
+      properties: { classId: { type: 'string' } },
+    },
+  },
+  {
+    name: 'create_booking',
+    description: 'Book a class for a student. Validates membership/credits before confirming. Customer must confirm.',
+    tier: 'customer_confirm', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['customerId', 'classId'],
+      properties: {
+        customerId: { type: 'string' },
+        classId:    { type: 'string' },
+        useCredits: { type: 'boolean', default: true },
+        notes:      { type: 'string' },
+      },
+    },
+    safetyNote: 'Validates membership validity and available credits before deducting',
+  },
+  {
+    name: 'join_waitlist',
+    description: 'Add a customer to the class waitlist and set their notification preference.',
+    tier: 'customer_confirm', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['customerId', 'classId'],
+      properties: {
+        customerId:   { type: 'string' },
+        classId:      { type: 'string' },
+        notifyMethod: { type: 'string', enum: ['email','sms','both'], default: 'email' },
+      },
+    },
+  },
+  {
+    name: 'reschedule_booking',
+    description: 'Move an existing booking to a new class slot. Subject to cancellation policy.',
+    tier: 'customer_confirm', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['bookingId', 'newClassId'],
+      properties: {
+        bookingId:  { type: 'string' },
+        newClassId: { type: 'string' },
+        reason:     { type: 'string' },
+      },
+    },
+    safetyNote: 'Respects the 24-hour reschedule window policy; reject if outside window',
+  },
+  {
+    name: 'cancel_booking',
+    description: 'Cancel a paid class booking. Requires staff approval when inside the no-refund window.',
+    tier: 'staff_approval', riskLevel: 3,
+    inputSchema: { type: 'object', required: ['bookingId', 'cancelledBy', 'reason'],
+      properties: {
+        bookingId:   { type: 'string' },
+        cancelledBy: { type: 'string' },
+        reason:      { type: 'string' },
+        refundCredit:{ type: 'boolean', default: false },
+      },
+    },
+    safetyNote: 'Cancelling a paid class may forfeit the session credit — confirm refund policy first',
+    tags: ['requires_approval', 'financial_impact'],
+  },
+  {
+    name: 'send_booking_reminder',
+    description: 'Send a class reminder to a student via their preferred channel.',
+    tier: 'staff', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['bookingId'],
+      properties: {
+        bookingId:     { type: 'string' },
+        hoursBeforeClass: { type: 'number', default: 24 },
+        channel:       { type: 'string', enum: ['email','sms','push'] },
+      },
+    },
+  },
+  {
+    name: 'get_booking_history',
+    description: 'Retrieve past and upcoming bookings for a customer with attendance status.',
+    tier: 'staff', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['customerId'],
+      properties: {
+        customerId: { type: 'string' },
+        limit:      { type: 'number', default: 20 },
+        includeAttendance: { type: 'boolean', default: true },
+      },
+    },
+  },
+];
+
+export const BOOKING_MCP: McpServerManifest = {
+  id:          'booking-mcp',
+  slug:        'booking-mcp',
+  name:        'Booking MCP',
+  description: 'Class search, booking, waitlist, rescheduling and reminders. Wraps Cal.com and internal yoga scheduling service.',
+  version:     '1.0.0',
+  tools:       TOOLS,
+  backingServices: ['Cal.com', 'Yoga Scheduling Service', 'Novu Notifications'],
+  availability: 'custom',
+  implementationNote: 'Cal.com has community MCP adapters — evaluate before use. Build custom thin wrapper for yoga-specific credit/membership validation.',
+};

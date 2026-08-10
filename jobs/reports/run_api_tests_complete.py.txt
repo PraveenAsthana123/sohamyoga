@@ -1,0 +1,51 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# jobs/reports/run_api_tests_complete.py
+# auto-generated explainer · 2026-06-28T10:01:07Z
+
+## Purpose
+SLP comprehensive API matrix — every endpoint, public + authenticated + write-cycle.
+
+Strategy:
+  1. ANONYMOUS GETs (public catalog + every sub-route)
+  2. ADMIN flow: login → all admin-only GETs (incl. lists, by-id, sub-routes)
+  3. ADMIN CRUD lifecycle per resource (create → read → update → delete)
+     wrapped in try/finally so created rows get cleaned up even on failure.
+  4. Negative tests: bogus slugs, role boundaries, wrong creds, invalid tokens
+  5. CUSTOMER flow + role boundary
+  6. UsersController coverage (admin-only)
+
+Writes JSON + Markdown under jobs/reports/api_test_complete_<TS>.{json,md}.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import datetime
+- from `_` import http.cookiejar
+- from `_` import json
+- from `_` import sys
+- from `_` import time
+- from `_` import urllib.error
+- from `_` import urllib.request
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `load_creds()`: (no docstring)
+- `make_opener()`: (no docstring)
+- `probe(opener, label, expect, url)`: (no docstring)
+- `parse_id(excerpt)`: (no docstring)
+- `main()`: (no docstring)
+- `_write_and_exit(results)`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- Excerpt is truncated; pull "id":N out greedy-style
+- ── 1. ANONYMOUS GETs ─────────────────────────────────────────────
+- Keep one nginx-routing sanity probe so we still validate the public surface.
+- All other tests hit :5070 directly to avoid the 20r/s nginx rate limit.
+- HomeController

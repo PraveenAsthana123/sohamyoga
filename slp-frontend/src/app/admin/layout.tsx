@@ -187,6 +187,46 @@ const navItems = [
   // ── Operations ─────────────────────────────────
   { href: 'divider', label: 'Operations', icon: null, requiredRoles: [] as string[] },
   {
+    href: '/admin/operations-center',
+    label: 'AI Operations Centre',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 3a.75.75 0 00-.75.75V5H7a4 4 0 00-4 4v6a4 4 0 004 4h10a4 4 0 004-4V9a4 4 0 00-4-4h-2V3.75a.75.75 0 00-1.5 0V5h-3V3.75A.75.75 0 009.75 3zM8 11h.01M16 11h.01M8 15h8" />
+      </svg>
+    ),
+    requiredRoles: ['Admin', 'Editor', 'Sales'],
+  },
+  {
+    href: '/admin/marketing-command',
+    label: 'Marketing Automation',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin', 'Editor', 'Sales'],
+  },
+  {
+    href: '/admin/social',
+    label: 'Social Media Portal',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin', 'Editor', 'Sales'],
+  },
+  {
+    href: '/admin/campaigns',
+    label: 'Campaigns',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 11l18-5v12L3 14v-3zm0 0v6a2 2 0 002 2h1" />
+      </svg>
+    ),
+    requiredRoles: ['Admin', 'Editor', 'Sales'],
+  },
+  {
     href: '/admin/docs',
     label: 'Documentation',
     icon: (
@@ -206,6 +246,29 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  {
+    href: '/admin/schema-catalog',
+    label: 'Database Schema',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6c0 1.1 3.58 2 8 2s8-.9 8-2-3.58-2-8-2-8 .9-8 2zm0 0v6c0 1.1 3.58 2 8 2s8-.9 8-2V6m-16 6v6c0 1.1 3.58 2 8 2s8-.9 8-2v-6" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
+    href: '/admin/operations-history',
+    label: 'Operations History',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  { href:'/admin/module-assurance',label:'Module Assurance',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>),requiredRoles:['Admin'] },
+  { href:'/admin/social/meta-setup',label:'Meta Setup Assistant',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12a5 5 0 0110 0c0 4-2 7-5 7s-5-3-5-7zm0 0c0-4 2-7 5-7s5 3 5 7"/></svg>),requiredRoles:['Admin'] },
+  { href:'/admin/social/setup',label:'Developer App Setup',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>),requiredRoles:['Admin'] },
+  { href:'/admin/quality-center',label:'Quality & Test Stories',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M5 4h14v16H5z"/></svg>),requiredRoles:['Admin'] },
+  { href:'/admin/architecture-center',label:'Architecture & Processes',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16"/></svg>),requiredRoles:['Admin'] },
   {
     href: '/admin/logs',
     label: 'Log Viewer',
@@ -315,7 +378,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex items-center justify-between h-16 px-6 border-b border-dark-700">
           <Link href="/admin" className="flex items-center gap-2">
             <span className="text-xl font-bold">
-              <span className="text-accent-400">SLP</span> Admin
+              <span className="text-accent-400">Soham</span>Yoga Admin
             </span>
           </Link>
           <button

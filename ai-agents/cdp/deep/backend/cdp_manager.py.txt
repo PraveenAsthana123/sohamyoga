@@ -1,0 +1,23 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# ai-agents/cdp/deep/backend/cdp_manager.py
+# auto-generated explainer · 2026-06-28T10:00:27Z
+
+## Purpose
+Chrome DevTools Protocol wrapper (skeleton · production needs full impl).
+
+## Imports
+- from `__future__` import annotations
+- from `_` import asyncio
+- from `_` import json
+- from `_` import logging
+- from `typing` import Any, Optional
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Classes
+- `CDPManager`: Programmatic browser control via CDP.
+
+## Outputs
+- Return values from functions above

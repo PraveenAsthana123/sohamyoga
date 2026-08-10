@@ -1,0 +1,112 @@
+import { McpServerManifest, McpTool } from './types';
+
+const TOOLS: McpTool[] = [
+  {
+    name: 'get_customer_profile',
+    description: 'Retrieve a customer profile: name, contact, membership tier, and yoga preferences. No health or payment data.',
+    tier: 'staff', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['customerId'],
+      properties: { customerId: { type: 'string' } },
+    },
+    safetyNote: 'Never return health questionnaire responses, payment tokens, or social-provider tokens',
+  },
+  {
+    name: 'update_customer_preferences',
+    description: "Update a customer's yoga style preferences, preferred days, or language setting.",
+    tier: 'customer_confirm', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['customerId'],
+      properties: {
+        customerId:    { type: 'string' },
+        preferredStyle:{ type: 'string' },
+        preferredDays: { type: 'array', items: { type: 'string' } },
+        language:      { type: 'string' },
+        notifications: { type: 'object' },
+      },
+    },
+  },
+  {
+    name: 'get_membership_status',
+    description: 'Return current membership tier, validity dates, remaining class credits, and renewal date.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['customerId'],
+      properties: { customerId: { type: 'string' } },
+    },
+  },
+  {
+    name: 'get_support_history',
+    description: 'List support tickets, chat logs, and staff notes for a customer.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['customerId'],
+      properties: {
+        customerId: { type: 'string' },
+        limit:      { type: 'number', default: 20 },
+        status:     { type: 'string', enum: ['open','closed','all'], default: 'all' },
+      },
+    },
+    safetyNote: 'Chat logs may contain health-related disclosures — restrict to support role',
+  },
+  {
+    name: 'create_support_ticket',
+    description: 'Open a support ticket on behalf of a customer.',
+    tier: 'customer_confirm', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['customerId', 'subject', 'description'],
+      properties: {
+        customerId:  { type: 'string' },
+        subject:     { type: 'string' },
+        description: { type: 'string' },
+        priority:    { type: 'string', enum: ['low','normal','high'], default: 'normal' },
+      },
+    },
+  },
+  {
+    name: 'add_customer_note',
+    description: 'Add an internal staff note to a customer record.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['customerId', 'note', 'authorId'],
+      properties: {
+        customerId: { type: 'string' },
+        note:       { type: 'string' },
+        authorId:   { type: 'string' },
+      },
+    },
+    safetyNote: 'Notes are visible to all staff — never include health, legal, or protected information',
+  },
+  {
+    name: 'get_attendance_summary',
+    description: 'Retrieve class attendance statistics, current streak, and at-risk flags for a customer.',
+    tier: 'staff', riskLevel: 1,
+    inputSchema: { type: 'object', required: ['customerId'],
+      properties: {
+        customerId:  { type: 'string' },
+        periodDays:  { type: 'number', default: 90 },
+      },
+    },
+  },
+  {
+    name: 'delete_customer_data',
+    description: "Permanently delete a customer's personal data under GDPR/PIPEDA/DPDP right-to-erasure. Requires admin approval.",
+    tier: 'admin_destructive', riskLevel: 5,
+    inputSchema: { type: 'object', required: ['customerId', 'reason', 'approvedBy', 'legalBasis'],
+      properties: {
+        customerId: { type: 'string' },
+        reason:     { type: 'string', enum: ['customer_request','gdpr_erasure','pipeda_erasure','dpdp_erasure'] },
+        approvedBy: { type: 'string' },
+        legalBasis: { type: 'string' },
+      },
+    },
+    safetyNote: 'IRREVERSIBLE. Retain audit record per legal requirement. Anonymise rather than delete financial records.',
+    tags: ['requires_approval', 'legal', 'irreversible'],
+  },
+];
+
+export const CUSTOMER_MCP: McpServerManifest = {
+  id:          'customer-mcp',
+  slug:        'customer-mcp',
+  name:        'Customer MCP',
+  description: 'Customer profile, membership status, preferences, support history and GDPR data management.',
+  version:     '1.0.0',
+  tools:       TOOLS,
+  backingServices: ['Yoga Customer Service', 'Chatwoot', 'Frappe Education'],
+  availability: 'custom',
+  implementationNote: 'Thin adapter over internal customer service. Health questionnaire data is deliberately excluded — access only through a separate health-MCP with clinical-grade controls.',
+};

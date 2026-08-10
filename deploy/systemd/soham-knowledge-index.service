@@ -1,0 +1,9 @@
+[Unit]
+Description=Vector-index safe SohamYoga architecture and catalogue knowledge
+After=ollama.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/mnt/deepa/sohamyoga
+Environment=EMBED_MODEL=bge-m3:latest
+ExecStart=/usr/bin/bash /mnt/deepa/sohamyoga/scripts/index-safe-knowledge.sh

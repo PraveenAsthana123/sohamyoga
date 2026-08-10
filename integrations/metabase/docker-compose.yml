@@ -1,0 +1,52 @@
+version: "3.9"
+# Metabase — business intelligence dashboards over ERPNext + Frappe DB
+# Port 3001 (Metabase web UI)
+
+services:
+  metabase:
+    image: metabase/metabase:v0.49.0
+    container_name: sohamyoga_metabase
+    restart: unless-stopped
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: "5432"
+      MB_DB_USER: metabase
+      MB_DB_PASS: "${METABASE_DB_PASSWORD:-metabasepass}"
+      MB_DB_HOST: metabase_db
+      MB_SITE_URL: "${METABASE_URL:-http://localhost:3001}"
+      MB_EMBEDDING_SECRET_KEY: "${METABASE_SECRET_KEY:-CHANGE_ME_embedding_key}"
+      # Enable embedding for portal iframe integration
+      MB_ENABLE_EMBEDDING: "true"
+    ports:
+      - "3001:3000"
+    depends_on:
+      metabase_db:
+        condition: service_healthy
+
+  metabase_db:
+    image: postgres:15-alpine
+    container_name: sohamyoga_metabase_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: "${METABASE_DB_PASSWORD:-metabasepass}"
+      POSTGRES_DB: metabase
+    volumes:
+      - metabase_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U metabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  metabase_pg_data:
+
+# ── Data sources to add in Metabase ────────────────────────────────
+# 1. Frappe MariaDB (read-only replica) → ERPNext business data
+# 2. Frappe MariaDB → Frappe Education student data
+# 3. Frappe MariaDB → Frappe HR payroll data
+# 4. PostHog PostgreSQL → product analytics events
+# 5. Yoga Portal PostgreSQL → bookings, reservations, campaigns
+# ────────────────────────────────────────────────────────────────────

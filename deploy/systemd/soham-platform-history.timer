@@ -1,0 +1,11 @@
+[Unit]
+Description=Collect SohamYoga platform history every minute
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=60s
+AccuracySec=10s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

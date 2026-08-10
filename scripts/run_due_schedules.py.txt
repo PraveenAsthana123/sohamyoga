@@ -1,0 +1,45 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/run_due_schedules.py
+# auto-generated explainer · 2026-06-28T10:00:06Z
+
+## Purpose
+Campaign schedule executor · cron-friendly.
+
+Per operator 2026-06-08: "schedule of campaign daily, weekly, monthly"
+
+Reads /api/v1/content-ops/schedules/due via in-process TestClient (no
+HTTP server required) · for each due schedule, POSTs /execute against
+the associated marketing_campaign · updates next_run_at + last_run_at.
+
+Install via cron every 15 min:
+  */15 * * * * /path/to/venv/bin/python scripts/run_due_schedules.py \
+                > jobs/logs/scheduler-$(date +%Y%m%d).log 2>&1
+
+Per §38.3 (audit per execution) · §47.4 (correlation_id) · §70 (cron
+pattern) · §82.7 (last_run_status surface for drift detection).
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `datetime` import datetime, timedelta, timezone
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_next_run_after(schedule, now)`: Compute the next next_run_at after the just-fired one.
+- `_list_tenant_ids()`: Discover all tenants with at least one schedule.
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Last day of next month · resolves per-month (Feb→28, Apr→30, etc.)
+- Clamp 1-28 (schema enforces) · None → day 1
+- 1. Discover all tenants with due schedules · iterate per-tenant
+- 3. For each due · execute the associated campaign + update schedule
+- Execute with tenant header propagated · per §41.3 multi-tenant scoping

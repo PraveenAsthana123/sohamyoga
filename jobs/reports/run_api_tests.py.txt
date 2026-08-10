@@ -1,0 +1,39 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# jobs/reports/run_api_tests.py
+# auto-generated explainer · 2026-06-28T10:01:07Z
+
+## Purpose
+SLP API test matrix — public catalog GETs + negative slugs + auth gates + POSTs.
+
+Targets the docker-compose stack: nginx :8085 (public) and backend :5070 (direct).
+Writes JSON + Markdown reports under jobs/reports/api_test_<TS>.{json,md}.
+Exit 0 if all expected codes match; 1 otherwise.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import datetime
+- from `_` import json
+- from `_` import sys
+- from `_` import time
+- from `_` import urllib.error
+- from `_` import urllib.request
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `probe(label, expect, url)`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Writes files (detected 1 patterns)
+- Return values from functions above
+
+## Notable inline comments
+- 1. Health & infra
+- 2. Public catalog GETs
+- 3. Negative: bogus slug → 404
+- 4. Auth gates: no cookie → 401
+- 5. POST: write endpoints (these should succeed or return a structured error)

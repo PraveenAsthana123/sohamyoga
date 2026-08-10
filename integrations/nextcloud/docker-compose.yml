@@ -1,0 +1,87 @@
+version: "3.8"
+# Nextcloud — file sharing for teachers: class materials, music, lesson plans
+# Port: 8070
+# GitHub: https://github.com/nextcloud/server
+# SSO: configure Authentik as OIDC/SAML provider
+
+services:
+  nextcloud:
+    image: nextcloud:28-apache
+    container_name: sohamyoga-nextcloud
+    restart: unless-stopped
+    ports:
+      - "8070:80"
+    environment:
+      POSTGRES_HOST: nextcloud-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD:-ncsecret}
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:-ncadmin}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:-ncadminpassword}
+      NEXTCLOUD_TRUSTED_DOMAINS: localhost
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: "587"
+      SMTP_NAME: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM_ADDRESS: noreply
+      MAIL_DOMAIN: sohamyoga.com
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_started
+    networks:
+      - sohamyoga-net
+    volumes:
+      - nextcloud-data:/var/www/html
+      - nextcloud-custom-apps:/var/www/html/custom_apps
+      - nextcloud-config:/var/www/html/config
+      - nextcloud-uploads:/var/www/html/data
+
+  nextcloud-db:
+    image: postgres:15-alpine
+    container_name: sohamyoga-nextcloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD:-ncsecret}
+    volumes:
+      - nextcloud-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nextcloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+  nextcloud-redis:
+    image: redis:7-alpine
+    container_name: sohamyoga-nextcloud-redis
+    restart: unless-stopped
+    networks:
+      - sohamyoga-net
+
+volumes:
+  nextcloud-data:
+  nextcloud-custom-apps:
+  nextcloud-config:
+  nextcloud-uploads:
+  nextcloud-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   App: http://localhost:8070
+#   Admin: ncadmin / ncadminpassword
+#
+# Teacher folders to create:
+#   /shared/class-playlists    — Spotify/music links per class
+#   /shared/lesson-plans       — weekly lesson plan templates
+#   /shared/pose-sequences     — class flow PDFs
+#   /shared/props-inventory    — equipment photos & usage guides
+#   /teachers/<name>/           — personal file space per teacher

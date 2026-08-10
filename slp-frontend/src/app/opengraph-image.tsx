@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'SLP Systems — IT Management. SIMPLIFIED.';
+export const alt = 'SohamYoga — Find Your Inner Peace';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -35,17 +35,17 @@ export default function Image() {
               marginRight: 24,
             }}
           >
-            <div style={{ color: 'white', fontSize: 36, fontWeight: 900 }}>SLP</div>
+            <div style={{ color: 'white', fontSize: 36, fontWeight: 900 }}>SY</div>
           </div>
           <div style={{ color: 'white', fontSize: 48, fontWeight: 800, letterSpacing: -1 }}>
-            SLP Systems
+            SohamYoga
           </div>
         </div>
 
         {/* Tagline */}
         <div
           style={{
-            color: '#93c5fd',
+            color: '#86efac',
             fontSize: 28,
             fontWeight: 600,
             marginBottom: 20,
@@ -53,7 +53,7 @@ export default function Image() {
             textTransform: 'uppercase',
           }}
         >
-          IT Management. SIMPLIFIED.
+          Find Your Inner Peace
         </div>
 
         {/* Description */}
@@ -66,7 +66,7 @@ export default function Image() {
             lineHeight: 1.5,
           }}
         >
-          Data Engineering · AI/ML · Cloud Infrastructure · IT Consulting
+          Premium Yoga Classes · AI Pose Coach · Booking · Community
         </div>
 
         {/* Bottom accent */}
@@ -81,8 +81,8 @@ export default function Image() {
             alignItems: 'center',
           }}
         >
-          <div style={{ color: '#64748b', fontSize: 16 }}>Calgary, Alberta · Canada-wide</div>
-          <div style={{ color: '#64748b', fontSize: 16 }}>slpsystems.ca</div>
+          <div style={{ color: '#64748b', fontSize: 16 }}>Vancouver, BC · Canada</div>
+          <div style={{ color: '#64748b', fontSize: 16 }}>sohamyoga.com</div>
         </div>
       </div>
     ),

@@ -1,0 +1,45 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_postings_executor.py
+# auto-generated explainer · 2026-06-28T10:00:07Z
+
+## Purpose
+Content posting scheduler audit · validates the */30 cron loop.
+
+Per docs/PENDING_PLAN.md T2.4. Catches regressions in:
+  - Tenant discovery for due postings
+  - 0-due no-op exit 0
+  - 1-due publish lifecycle (draft → publishing → published)
+  - Per-platform run rows created with status='sent'
+  - operation_log appended with 'publish_started' + 'publish_complete'
+  - time_to_publish_seconds + quality_score populated
+
+Self-cleaning · pre+post cleanup of test rows.
+
+Per §38.3 + §47.6 + §57.7 + §70 + §82.7.
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import subprocess
+- from `_` import sys
+- from `_` import uuid
+- from `datetime` import datetime, timedelta, timezone
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_cleanup()`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Import the executor module
+- ── 1. Tenant discovery returns ≥1 (default fallback) ──
+- ── 2. 0-due case · 'nothing to do' + exit 0 ────────
+- First push out any existing due postings · we want a true 0-due
+- ── 3-6. Make 1 due + run + verify state ──────────

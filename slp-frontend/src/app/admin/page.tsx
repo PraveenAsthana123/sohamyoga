@@ -137,7 +137,7 @@ export default function AdminDashboard() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-dark-900">Dashboard</h1>
-        <p className="text-dark-500 mt-1">Welcome to the SLP Systems admin panel.</p>
+        <p className="text-dark-500 mt-1">Welcome to the SohamYoga admin panel.</p>
       </div>
 
       {/* Stats Grid */}

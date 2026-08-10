@@ -1,0 +1,67 @@
+version: "3.8"
+# Wiki.js — internal knowledge base for SOPs, manuals, guidelines
+# Port: 8050
+# GitHub: https://github.com/requarks/wiki
+# Authentik SSO: configure OIDC provider in Wiki.js admin
+
+services:
+  wikijs:
+    image: ghcr.io/requarks/wiki:2
+    container_name: sohamyoga-wikijs
+    restart: unless-stopped
+    ports:
+      - "8050:3000"
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: wikijs-db
+      DB_PORT: "5432"
+      DB_NAME: wikijs
+      DB_USER: wikijs
+      DB_PASS: ${WIKIJS_DB_PASSWORD:-wjsecret}
+    depends_on:
+      wikijs-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - wikijs-data:/wiki/data
+
+  wikijs-db:
+    image: postgres:15-alpine
+    container_name: sohamyoga-wikijs-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wikijs
+      POSTGRES_USER: wikijs
+      POSTGRES_PASSWORD: ${WIKIJS_DB_PASSWORD:-wjsecret}
+    volumes:
+      - wikijs-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wikijs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+volumes:
+  wikijs-data:
+  wikijs-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   Setup: http://localhost:8050
+#
+# Planned wiki structure:
+#   /teacher/onboarding         — new teacher checklist
+#   /teacher/class-guidelines   — dos and don'ts per style
+#   /teacher/substitution       — substitute request process
+#   /teacher/certifications     — cert renewal procedures
+#   /operations/safety          — emergency procedures
+#   /operations/props           — equipment maintenance
+#   /admin/policies             — HR policies, leave rules
+#   /admin/payroll              — payroll FAQs

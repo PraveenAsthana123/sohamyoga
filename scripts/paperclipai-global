@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec /home/praveen/.npm-global/bin/pnpm --dir /mnt/deepa/sohamyoga/integrations/paperclip paperclipai "$@"

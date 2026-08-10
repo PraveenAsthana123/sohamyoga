@@ -1,0 +1,67 @@
+version: "3.9"
+# Moodle — LMS for teacher training and student online courses
+# Port 8020 (Moodle web)
+
+services:
+  moodle:
+    image: bitnami/moodle:4.3
+    container_name: sohamyoga_moodle
+    restart: unless-stopped
+    environment:
+      MOODLE_DATABASE_HOST: moodle_db
+      MOODLE_DATABASE_PORT_NUMBER: "3306"
+      MOODLE_DATABASE_NAME: moodle
+      MOODLE_DATABASE_USER: moodle
+      MOODLE_DATABASE_PASSWORD: "${MOODLE_DB_PASSWORD:-moodlepass}"
+      MOODLE_SITE_NAME: "SohamYoga Academy"
+      MOODLE_USERNAME: "${MOODLE_ADMIN_USER:-admin}"
+      MOODLE_PASSWORD: "${MOODLE_ADMIN_PASSWORD:-CHANGE_ME}"
+      MOODLE_EMAIL: "${MOODLE_ADMIN_EMAIL:-admin@sohamyoga.com}"
+      MOODLE_SKIP_INSTALL: "${MOODLE_SKIP_INSTALL:-no}"
+      # OAuth2 login via Authentik
+      MOODLE_SMTP_HOST: "${SMTP_HOST}"
+      MOODLE_SMTP_PORT: "${SMTP_PORT:-587}"
+      MOODLE_SMTP_USER: "${SMTP_USER}"
+      MOODLE_SMTP_PASSWORD: "${SMTP_PASSWORD}"
+    ports:
+      - "8020:8080"
+    volumes:
+      - moodle_data:/bitnami/moodle
+      - moodle_datadir:/bitnami/moodledata
+    depends_on:
+      moodle_db:
+        condition: service_started
+
+  moodle_db:
+    image: mariadb:10.6
+    container_name: sohamyoga_moodle_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: "${MOODLE_DB_ROOT_PASSWORD:-rootpass}"
+      MARIADB_USER: moodle
+      MARIADB_PASSWORD: "${MOODLE_DB_PASSWORD:-moodlepass}"
+      MARIADB_DATABASE: moodle
+    volumes:
+      - moodle_db_data:/var/lib/mysql
+
+volumes:
+  moodle_data:
+  moodle_datadir:
+  moodle_db_data:
+
+# ── Yoga-specific Moodle courses ────────────────────────────────────
+# Category: Teacher Training
+#   - RYT-200 Foundations (200h)
+#   - RYT-500 Advanced (300h)
+#   - Prenatal Yoga Certification
+#   - Kids Yoga (RCYS)
+#   - Yoga Anatomy & Physiology
+# Category: Continuing Professional Development (CPD)
+#   - Monthly workshops (1–2 CPD hours each)
+#   - Trauma-informed yoga
+#   - Adaptive yoga for accessibility
+# Category: Student Online Courses
+#   - Introduction to Yoga Philosophy
+#   - Pranayama Fundamentals
+#   - Meditation for Beginners
+# ────────────────────────────────────────────────────────────────────

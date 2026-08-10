@@ -1,0 +1,72 @@
+{
+  "use_case_id": "E7",
+  "slug": "neural-ode-irregular-time-series",
+  "dept_id": 16,
+  "12_axis_per_75": {
+    "performance": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "subject_wise": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "cross_validation": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "model": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "feature": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "robustness": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "generalization": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "reliability": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "interpretability": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "computational": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "comparative": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    },
+    "statistical": {
+      "target": null,
+      "current": null,
+      "status": "todo"
+    }
+  },
+  "composite_score": {
+    "formula": "operator-defined per \u00a777 composite formulas",
+    "current": null,
+    "target": null
+  }
+}

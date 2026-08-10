@@ -5,12 +5,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
+  :root {
+    --app-font: Inter, system-ui, -apple-system, sans-serif;
+    --app-page: #f8fafc; --app-surface: #ffffff; --app-subtle: #f1f5f9;
+    --app-text: #0f172a; --app-muted: #64748b; --app-border: #e2e8f0;
+    --app-brand: #b86d1d; --app-brand-strong: #944f18;
+    --card-identity: #fff7ed; --card-commerce: #eff6ff; --card-wellness: #ecfdf5;
+    --card-marketing: #faf5ff; --card-operations: #f8fafc; --card-security: #fef2f2;
+    --card-education: #f0fdfa; --card-platform: #f1f5f9;
+  }
   html {
     scroll-behavior: smooth;
   }
   body {
-    @apply font-sans text-dark-800 antialiased;
+    font-family: var(--app-font); color: var(--app-text); background: var(--app-page);
+    @apply antialiased;
   }
+  :focus-visible { outline: 3px solid var(--app-brand); outline-offset: 3px; }
+  h1,h2,h3,h4,h5,h6 { text-wrap: balance; }
 }
 
 @layer components {
@@ -35,10 +47,18 @@
     @apply text-lg text-dark-500 text-center max-w-2xl mx-auto mb-12;
   }
   .card {
-    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6;
+    background:var(--app-surface);border:1px solid var(--app-border);
+    @apply rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6;
   }
+  .app-card { background:var(--app-surface);border:1px solid var(--app-border);border-radius:.75rem;padding:1rem; }
+  .app-card[data-category="identity"]{background:var(--card-identity)} .app-card[data-category="commerce"]{background:var(--card-commerce)}
+  .app-card[data-category="wellness"]{background:var(--card-wellness)} .app-card[data-category="marketing"]{background:var(--card-marketing)}
+  .app-card[data-category="operations"]{background:var(--card-operations)} .app-card[data-category="security"]{background:var(--card-security)}
+  .app-card[data-category="education"]{background:var(--card-education)} .app-card[data-category="platform"]{background:var(--card-platform)}
+  .sr-skip-link { position:fixed;left:1rem;top:-5rem;z-index:9999;background:#fff;color:var(--app-text);padding:.75rem 1rem;border:2px solid var(--app-brand); }
+  .sr-skip-link:focus { top:1rem; }
   .gradient-bg {
-    @apply bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900;
+    @apply bg-gradient-to-br from-primary-500 via-primary-700 to-primary-900;
   }
   .glass-card {
     @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl;
@@ -103,6 +123,274 @@
 
 .admin-sidebar-link.active {
   @apply bg-primary-600 text-white;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLASSMORPHISM SYSTEM
+   Use .glass, .glass-dark, .glass-green, .glass-blur-sm/md/lg as needed.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.glass {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 1.25rem;
+  box-shadow: 0 0.75rem 2.5rem rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.glass-dark {
+  background: rgba(10, 20, 10, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 1.25rem;
+  box-shadow: 0 0.75rem 2.5rem rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-green {
+  background: rgba(16, 80, 32, 0.45);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 1.25rem;
+  box-shadow: 0 0.75rem 2.5rem rgba(0, 0, 0, 0.20);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 1.25rem;
+  box-shadow: 0 0.75rem 2.5rem rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.glass-blur-sm  { backdrop-filter: blur(8px);  -webkit-backdrop-filter: blur(8px);  }
+.glass-blur-md  { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.glass-blur-lg  { backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); }
+
+/* ── Yoga portal gradient backgrounds ──────────────────────────────────── */
+.bg-yoga-hero {
+  background: linear-gradient(135deg,
+    #0a1a0a 0%,
+    #0d2b18 35%,
+    #153322 65%,
+    #0a1a10 100%);
+}
+
+.bg-yoga-section {
+  background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 50%, #f0fdf4 100%);
+}
+
+.bg-yoga-dark {
+  background: linear-gradient(160deg, #052e16 0%, #14532d 50%, #052e16 100%);
+}
+
+/* ── Smooth scroll & reduced motion ────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* AOS override */
+  [data-aos] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SWIPER THEME — yoga portal overrides
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.45);
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: #4ade80;
+  width: 2rem !important;
+  border-radius: 9999px;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
+  color: #ffffff !important;
+  transition: background 0.3s ease;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 0.9rem !important;
+  font-weight: 700;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(74, 222, 128, 0.3);
+}
+
+.swiper-yoga-hero .swiper-pagination {
+  bottom: 2rem;
+}
+
+/* ── Coverflow card depth ───────────────────────────────────────────────── */
+.swiper-coverflow .swiper-slide {
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.swiper-coverflow .swiper-slide:not(.swiper-slide-active) {
+  opacity: 0.65;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLYR VIDEO THEME — yoga portal skin
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.plyr {
+  border-radius: 1rem;
+  overflow: hidden;
+  --plyr-color-main: #4ade80;
+  --plyr-video-control-background-hover: rgba(74, 222, 128, 0.4);
+  --plyr-range-fill-background: #4ade80;
+  --plyr-video-progress-buffered-background: rgba(255, 255, 255, 0.15);
+}
+
+.plyr__control--overlaid {
+  background: rgba(74, 222, 128, 0.85) !important;
+}
+
+.plyr-yoga-card {
+  position: relative;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.35);
+}
+
+/* Plyr inside a glass card */
+.glass .plyr,
+.glass-dark .plyr {
+  border-radius: 0.75rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AOS custom easings
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-aos="yoga-fade-up"] {
+  transform: translateY(32px);
+  opacity: 0;
+  transition-property: transform, opacity;
+}
+
+[data-aos="yoga-fade-up"].aos-animate {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+[data-aos="yoga-scale-in"] {
+  transform: scale(0.88);
+  opacity: 0;
+  transition-property: transform, opacity;
+}
+
+[data-aos="yoga-scale-in"].aos-animate {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   YOGA PORTAL UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Text shimmer for headings */
+.text-shimmer {
+  background: linear-gradient(90deg, #4ade80, #86efac, #4ade80);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+/* Breathing ring for meditation/lottie section */
+.breathing-ring {
+  border-radius: 50%;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%       { transform: scale(1.18); opacity: 1; }
+}
+
+/* Floating card hover lift */
+.hover-lift {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.35s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.20);
+}
+
+/* Yoga style tag chips */
+.yoga-tag {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Video overlay gradient */
+.video-overlay {
+  background: linear-gradient(to top,
+    rgba(5, 46, 22, 0.9) 0%,
+    rgba(5, 46, 22, 0.4) 40%,
+    transparent 100%);
+}
+
+/* Sticky glass booking panel */
+.sticky-booking {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  max-width: 40rem;
+  width: calc(100% - 2rem);
 }
 
 /* Rich text content */

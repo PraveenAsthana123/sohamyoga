@@ -1,0 +1,34 @@
+# spec-kit generated test contracts (1 positive + 1 negative per invariant)
+tests:
+  - id: T_AUD_ROW_POS
+    invariant: AUD_ROW
+    type: positive
+    description: "Valid request emits audit row with all 16 §57.6.1 fields"
+  - id: T_AUD_ROW_NEG
+    invariant: AUD_ROW
+    type: negative
+    description: "If audit row write fails, request MUST return 5xx (fail-closed per §90 G12)"
+  - id: T_HITL_HIGH_POS
+    invariant: HITL_HIGH
+    type: positive
+    description: "confidence=0.45 routes to HITL queue"
+  - id: T_HITL_HIGH_NEG
+    invariant: HITL_HIGH
+    type: negative
+    description: "confidence=0.95 does NOT route to HITL"
+  - id: T_FAIR_DI_POS
+    invariant: FAIR_DI
+    type: positive
+    description: "Weekly fairness audit produces DI ≥ 0.8 → green"
+  - id: T_FAIR_DI_NEG
+    invariant: FAIR_DI
+    type: negative
+    description: "If DI < 0.8 → mark BLOCKING · prevent deploy"
+  - id: T_LATENCY_P95_POS
+    invariant: LATENCY_P95
+    type: positive
+    description: "1000-request load test · p95 < 500ms"
+  - id: T_LATENCY_P95_NEG
+    invariant: LATENCY_P95
+    type: negative
+    description: "Synthetic slow path (sleep 600ms) MUST violate gate · CI fails"

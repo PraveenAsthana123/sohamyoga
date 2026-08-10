@@ -1,0 +1,97 @@
+version: "3.8"
+# PhotoPrism — AI-powered photo & media library (self-hosted Google Photos)
+# Use for: banner image library, media tagging, face recognition for teacher photos
+# Port: 9002 (web app)
+# GitHub: https://github.com/photoprism/photoprism
+# Docs: https://docs.photoprism.app/getting-started/docker-compose/
+
+services:
+  photoprism:
+    image: photoprism/photoprism:latest
+    container_name: sohamyoga-photoprism
+    restart: unless-stopped
+    ports:
+      - "9002:2342"
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    environment:
+      PHOTOPRISM_ADMIN_USER: ${PHOTOPRISM_ADMIN_USER:-admin}
+      PHOTOPRISM_ADMIN_PASSWORD: ${PHOTOPRISM_ADMIN_PASSWORD:-sohamadmin}
+      PHOTOPRISM_AUTH_MODE: password
+      PHOTOPRISM_SITE_URL: http://localhost:9002/
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000          # max file size per photo in MB
+      PHOTOPRISM_HTTP_COMPRESSION: gzip
+      PHOTOPRISM_LOG_LEVEL: info
+      PHOTOPRISM_READONLY: "false"
+      PHOTOPRISM_EXPERIMENTAL: "false"
+      PHOTOPRISM_DISABLE_CHOWN: "false"
+      PHOTOPRISM_DISABLE_WEBDAV: "false"
+      PHOTOPRISM_DISABLE_SETTINGS: "false"
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"   # keep enabled for AI tagging
+      PHOTOPRISM_DISABLE_FACES: "false"
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"
+      PHOTOPRISM_DISABLE_VECTORS: "false"
+      PHOTOPRISM_DISABLE_RAW: "true"
+      PHOTOPRISM_RAW_PRESETS: "false"
+      PHOTOPRISM_JPEG_QUALITY: 85
+      PHOTOPRISM_DETECT_NSFW: "false"
+      PHOTOPRISM_UPLOAD_NSFW: "true"
+      PHOTOPRISM_DATABASE_DRIVER: mysql
+      PHOTOPRISM_DATABASE_SERVER: photoprism-db:3306
+      PHOTOPRISM_DATABASE_NAME: photoprism
+      PHOTOPRISM_DATABASE_USER: photoprism
+      PHOTOPRISM_DATABASE_PASSWORD: ${PHOTOPRISM_DB_PASSWORD:-ppsecret}
+      PHOTOPRISM_SITE_CAPTION: SohamYoga Media Library
+      PHOTOPRISM_SITE_DESCRIPTION: Yoga portal banner and media assets
+    depends_on:
+      photoprism-db:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - photoprism-originals:/photoprism/originals   # original uploads
+      - photoprism-storage:/photoprism/storage        # cache, sidecars, thumbnails
+
+  photoprism-db:
+    image: mariadb:11
+    container_name: sohamyoga-photoprism-db
+    restart: unless-stopped
+    command: --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED
+             --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+             --max-connections=512 --innodb-rollback-on-timeout=OFF
+             --innodb-lock-wait-timeout=120
+    environment:
+      MARIADB_AUTO_UPGRADE: "1"
+      MARIADB_INITDB_SKIP_TZINFO: "1"
+      MARIADB_DATABASE: photoprism
+      MARIADB_USER: photoprism
+      MARIADB_PASSWORD: ${PHOTOPRISM_DB_PASSWORD:-ppsecret}
+      MARIADB_ROOT_PASSWORD: ${PHOTOPRISM_DB_ROOT_PASSWORD:-rootsecret}
+    volumes:
+      - photoprism-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+volumes:
+  photoprism-originals:
+  photoprism-storage:
+  photoprism-db-data:
+
+networks:
+  sohamyoga-net:
+    external: true
+
+# Usage:
+#   docker compose up -d
+#   App: http://localhost:9002
+#   Admin: admin / sohamadmin (change on first login)
+#
+# Workflow: Upload banner assets → PhotoPrism auto-tags → export IDs to portal DB
+# API: GET /api/v1/photos → list media for banner picker
+# Integration: photoprismId stored on BannerMedia domain entity

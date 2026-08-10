@@ -1,0 +1,8 @@
+[Unit]
+Description=SohamYoga Ollama self-healing watchdog pass
+
+[Service]
+Type=oneshot
+WorkingDirectory=/mnt/deepa/sohamyoga/agentic-ollama-platform
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+ExecStart=/usr/bin/python3 /mnt/deepa/sohamyoga/agentic-ollama-platform/app/watchdog.py

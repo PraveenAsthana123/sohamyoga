@@ -1,0 +1,49 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_marketing_advanced.py
+# auto-generated explainer · 2026-06-28T10:00:16Z
+
+## Purpose
+Advanced testing for marketing campaigns · multi-channel + adversarial + autonomous.
+
+Per operator 2026-06-08: "create advance testing ..autonomous AI for campaign
+..end to end process"
+
+8 advanced test scenarios beyond the basic E2E flow:
+
+  1. Multi-channel · 1 campaign per each of 4 channels (E·B·S·F)
+  2. Adversarial DLP · 5 PII shapes (SSN · CC · phone+SSN · email+CC · mixed)
+  3. Concurrent execution · 3 campaigns run back-to-back · DB integrity
+  4. Autonomous agent · run with budget=2 · verify halt + decisions chain
+  5. RAI fairness gate · run with single cohort · verify DI=1.0 pass
+  6. Anti-replay · same token submitted twice · 2nd returns 404
+  7. Invalid channel · POST channel='banner_xxx' rejected
+  8. Empty campaign list · DELETE all + verify empty + count
+
+Each test uses Pre/Post cleanup to prevent leakage.
+
+Per §47.6 + §57.7 + §64.13 + §76 (RAI) + §82.21 (DLP).
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `_` import uuid
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_cleanup()`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- ── 1. MULTI-CHANNEL · create 1 of each ───────────────────────
+- ── 2. ADVERSARIAL DLP · multiple PII shapes ─────────────────
+- Need a campaign first
+- Try 5 different PII shapes
+- ── 3. CONCURRENCY · 3 campaigns back-to-back (in-process) ────

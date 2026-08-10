@@ -1,0 +1,29 @@
+# openspec-validated machine-readable spec (subset · for CI gate)
+$schema: "https://openspec.io/v1/use-case.json"
+id: F4-claim-fnol-routing
+inputs:
+  - name: claim_features
+    type: object
+    required: true
+  - name: tenant_id
+    type: string
+    required: true
+outputs:
+  - name: severity_tier
+    type: enum
+    values: [S1, S2, S3]
+  - name: assigned_adjuster
+    type: string
+  - name: confidence
+    type: number
+    min: 0
+    max: 1
+invariants:
+  - id: AUD_ROW
+    spec: "Every decision MUST emit §38.3 audit row before responding"
+  - id: HITL_HIGH
+    spec: "If confidence < 0.5 OR severity=S3, route to HITL"
+  - id: FAIR_DI
+    spec: "Disparate impact ≥ 0.8 across protected cohorts (weekly recheck)"
+  - id: LATENCY_P95
+    spec: "p95 < 500ms · streaming inference"

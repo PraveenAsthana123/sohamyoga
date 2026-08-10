@@ -1,0 +1,15 @@
+[Unit]
+Description=SohamYoga persistent Ollama job worker
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/deepa/sohamyoga/agentic-ollama-platform
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+Environment=WORKER_POLL_SECONDS=5
+ExecStart=/usr/bin/flock -n /tmp/oll_worker.lock /usr/bin/python3 /mnt/deepa/sohamyoga/agentic-ollama-platform/app/worker.py --loop
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

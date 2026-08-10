@@ -1,0 +1,42 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/run_due_postings.py
+# auto-generated explainer · 2026-06-28T10:00:18Z
+
+## Purpose
+Content posting scheduler · publishes draft postings whose scheduled_for is due.
+
+Per docs/PENDING_PLAN.md T2.4 + operator's earlier "schedule of campaign
+daily, weekly, monthly" extended to job/blog content publishing.
+
+Reads draft content_postings where `scheduled_for <= NOW()` and POSTs
+`/postings/{id}/publish` against the same in-process FastAPI app the
+schedule executor uses (no HTTP server required · cron-safe).
+
+Per-tenant iteration via X-Tenant-ID header (§41.3 federated).
+Per §38.3 audit row via posting's operation_log append (handled by
+backend service).
+
+Install cron:
+  */30 * * * * /path/to/venv/bin/python scripts/run_due_postings.py \
+      > jobs/logs/posting-scheduler-$(date +%Y%m%d).log 2>&1
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `datetime` import datetime, timezone
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_list_tenants_with_due_postings()`: Discover all tenants with at least one due draft posting.
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- Publish via API · uses the posting's own .platforms list when body omits it

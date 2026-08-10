@@ -1,0 +1,8 @@
+[Unit]
+Description=SohamYoga unified browser, accessibility and self-healing quality check
+After=network-online.target soham-frontend.service soham-backend.service
+[Service]
+Type=oneshot
+Environment=PATH=/home/praveen/.nvm/versions/node/v22.22.2/bin:/home/praveen/.npm-global/bin:/home/praveen/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/bash /mnt/deepa/sohamyoga/scripts/run-unified-quality.sh
+Nice=10

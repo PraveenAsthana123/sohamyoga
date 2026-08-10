@@ -1,0 +1,18 @@
+[Unit]
+Description=SohamYoga Next.js portal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/deepa/sohamyoga/slp-frontend
+EnvironmentFile=/home/praveen/.config/sohamyoga/ports.env
+EnvironmentFile=-/home/praveen/.config/sohamyoga/runtime.env
+Environment=NODE_ENV=development
+Environment=PATH=/home/praveen/.nvm/versions/node/v22.22.2/bin:/home/praveen/.npm-global/bin:/home/praveen/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env bash -lc 'INTERNAL_API_URL="http://127.0.0.1:$SOHAM_BACKEND_PORT" NEXT_PUBLIC_API_URL="http://127.0.0.1:$SOHAM_BACKEND_PORT" exec /home/praveen/.npm-global/bin/pnpm dev --hostname 127.0.0.1 --port "$SOHAM_FRONTEND_PORT"'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

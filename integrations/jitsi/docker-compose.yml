@@ -1,0 +1,131 @@
+version: "3.8"
+# Jitsi Meet — self-hosted video conferencing for online classes and teacher meetings
+# Ports: 8443 (HTTPS), 8880 (HTTP), 10000/udp (JVB media)
+# GitHub: https://github.com/jitsi/jitsi-meet
+# Use for: online yoga classes, teacher team meetings, 1-on-1 consultations
+
+services:
+  jitsi-web:
+    image: jitsi/web:stable-9753
+    container_name: sohamyoga-jitsi-web
+    restart: unless-stopped
+    ports:
+      - "8880:80"
+      - "8443:443"
+    volumes:
+      - jitsi-web-config:/config:Z
+      - jitsi-web-transcripts:/usr/share/jitsi-meet/transcripts:Z
+    environment:
+      - ENABLE_AUTH=0
+      - ENABLE_GUESTS=1
+      - LETSENCRYPT_DOMAIN=${JITSI_DOMAIN:-meet.sohamyoga.local}
+      - PUBLIC_URL=https://${JITSI_DOMAIN:-meet.sohamyoga.local}
+      - XMPP_SERVER=jitsi-prosody
+      - XMPP_BOSH_URL_BASE=http://jitsi-prosody:5280
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_GUEST_DOMAIN=guest.meet.jitsi
+      - TZ=UTC
+    networks:
+      - sohamyoga-net
+      - jitsi-meet
+
+  jitsi-prosody:
+    image: jitsi/prosody:stable-9753
+    container_name: sohamyoga-jitsi-prosody
+    restart: unless-stopped
+    expose:
+      - "5222"
+      - "5347"
+      - "5280"
+    volumes:
+      - jitsi-prosody-config:/config:Z
+      - jitsi-prosody-plugins:/prosody-plugins-custom:Z
+    environment:
+      - AUTH_TYPE=internal
+      - ENABLE_AUTH=0
+      - ENABLE_GUESTS=1
+      - GLOBAL_MODULES=
+      - GLOBAL_CONFIG=
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_GUEST_DOMAIN=guest.meet.jitsi
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - JICOFO_COMPONENT_SECRET=${JICOFO_COMPONENT_SECRET:-s3cr37}
+      - JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD:-authpass}
+      - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD:-jvbpass}
+      - JIGASI_XMPP_PASSWORD=${JIGASI_XMPP_PASSWORD:-jigasipass}
+      - TZ=UTC
+    networks:
+      - jitsi-meet
+
+  jitsi-jicofo:
+    image: jitsi/jicofo:stable-9753
+    container_name: sohamyoga-jitsi-jicofo
+    restart: unless-stopped
+    volumes:
+      - jitsi-jicofo-config:/config:Z
+    environment:
+      - AUTH_TYPE=internal
+      - ENABLE_AUTH=0
+      - XMPP_SERVER=jitsi-prosody
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - JICOFO_COMPONENT_SECRET=${JICOFO_COMPONENT_SECRET:-s3cr37}
+      - JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD:-authpass}
+      - TZ=UTC
+    depends_on:
+      - jitsi-prosody
+    networks:
+      - jitsi-meet
+
+  jitsi-jvb:
+    image: jitsi/jvb:stable-9753
+    container_name: sohamyoga-jitsi-jvb
+    restart: unless-stopped
+    ports:
+      - "10000:10000/udp"
+      - "4443:4443"
+    volumes:
+      - jitsi-jvb-config:/config:Z
+    environment:
+      - DOCKER_HOST_ADDRESS=${JITSI_HOST_IP:-127.0.0.1}
+      - XMPP_SERVER=jitsi-prosody
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD:-jvbpass}
+      - JVB_STUN_SERVERS=stun.l.google.com:19302
+      - TZ=UTC
+    depends_on:
+      - jitsi-prosody
+    networks:
+      - jitsi-meet
+      - sohamyoga-net
+
+volumes:
+  jitsi-web-config:
+  jitsi-web-transcripts:
+  jitsi-prosody-config:
+  jitsi-prosody-plugins:
+  jitsi-jicofo-config:
+  jitsi-jvb-config:
+
+networks:
+  sohamyoga-net:
+    external: true
+  jitsi-meet:
+    driver: bridge
+
+# Usage:
+#   Set JITSI_HOST_IP to your server's public IP for WebRTC to work
+#   docker compose up -d
+#   App: https://localhost:8443 (accept self-signed cert)
+#
+# Meeting URL pattern: https://meet.sohamyoga.local/<room-name>
+# Integrate with portal: embed iframe or open in new tab from booking confirmation
+# Cal.com: add Jitsi room URL to event location field

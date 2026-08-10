@@ -1,0 +1,116 @@
+import { McpServerManifest, McpTool } from './types';
+
+const TOOLS: McpTool[] = [
+  {
+    name: 'get_service_health',
+    description: 'Check the health status of all portal backing services (Keycloak, ERPNext, Moodle, etc.).',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object',
+      properties: {
+        services: { type: 'array', items: { type: 'string' }, description: 'Omit to check all services' },
+      },
+    },
+  },
+  {
+    name: 'get_logs',
+    description: 'Retrieve structured application logs for a service within a time window.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['service'],
+      properties: {
+        service:   { type: 'string' },
+        level:     { type: 'string', enum: ['error','warn','info','debug'], default: 'error' },
+        fromIso:   { type: 'string', format: 'date-time' },
+        toIso:     { type: 'string', format: 'date-time' },
+        limit:     { type: 'number', default: 50, maximum: 500 },
+      },
+    },
+    safetyNote: 'Logs may contain PII — restrict to admin role in production. Never return password fields or API keys from logs.',
+  },
+  {
+    name: 'get_alerts',
+    description: 'Return active Prometheus/Grafana alerts with severity and firing duration.',
+    tier: 'auto', riskLevel: 1,
+    inputSchema: { type: 'object',
+      properties: {
+        severity: { type: 'string', enum: ['critical','warning','info','all'], default: 'all' },
+        service:  { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'acknowledge_alert',
+    description: 'Acknowledge an active alert in the monitoring system with a comment.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['alertId', 'acknowledgedBy', 'comment'],
+      properties: {
+        alertId:        { type: 'string' },
+        acknowledgedBy: { type: 'string' },
+        comment:        { type: 'string' },
+        snoozeDurationMinutes: { type: 'number', default: 60 },
+      },
+    },
+  },
+  {
+    name: 'get_config',
+    description: 'Retrieve a non-secret portal configuration value (feature flags, rate limits, policy thresholds).',
+    tier: 'admin', riskLevel: 2,
+    inputSchema: { type: 'object', required: ['configKey'],
+      properties: { configKey: { type: 'string' } },
+    },
+    safetyNote: 'Never return API keys, database passwords, or JWT secrets via this tool',
+  },
+  {
+    name: 'update_config',
+    description: 'Update a portal configuration value. Admin approval required — any change takes effect immediately.',
+    tier: 'admin_destructive', riskLevel: 5,
+    inputSchema: { type: 'object', required: ['configKey', 'newValue', 'updatedBy', 'reason'],
+      properties: {
+        configKey: { type: 'string' },
+        newValue:  { type: 'string' },
+        updatedBy: { type: 'string' },
+        reason:    { type: 'string' },
+      },
+    },
+    safetyNote: 'CONFIGURATION CHANGE — verify the key name carefully. Typos in config keys may break the portal.',
+    tags: ['requires_approval', 'system_impact'],
+  },
+  {
+    name: 'get_audit_trail',
+    description: 'Retrieve the admin audit log for a specific user, resource, or time window.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object',
+      properties: {
+        userId:    { type: 'string' },
+        resource:  { type: 'string' },
+        eventType: { type: 'string' },
+        fromIso:   { type: 'string', format: 'date-time' },
+        toIso:     { type: 'string', format: 'date-time' },
+        limit:     { type: 'number', default: 50 },
+      },
+    },
+  },
+  {
+    name: 'run_health_check',
+    description: 'Trigger a full system health check and return a diagnostic report.',
+    tier: 'staff', riskLevel: 2,
+    inputSchema: { type: 'object',
+      properties: {
+        includeLatencyTests:   { type: 'boolean', default: true },
+        includeDatabaseChecks: { type: 'boolean', default: true },
+      },
+    },
+    safetyNote: 'Health checks add brief load to services — avoid during peak class hours',
+  },
+];
+
+export const ADMIN_MCP: McpServerManifest = {
+  id:          'admin-mcp',
+  slug:        'admin-mcp',
+  name:        'Admin MCP',
+  description: 'Service health checks, log retrieval, alert management, configuration, and audit trails.',
+  version:     '1.0.0',
+  tools:       TOOLS,
+  backingServices: ['Prometheus', 'Grafana', 'Loki (logs)', 'Langfuse', 'Portainer'],
+  availability: 'custom',
+  implementationNote: 'Prometheus and Grafana have community MCP adapters — evaluate before production use. Config and audit tools are fully custom.',
+};

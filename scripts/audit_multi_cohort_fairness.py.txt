@@ -1,0 +1,53 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_multi_cohort_fairness.py
+# auto-generated explainer · 2026-06-28T10:00:07Z
+
+## Purpose
+Multi-cohort fairness audit · validates the §76 RAI gate actually fires.
+
+Per docs/PENDING_PLAN.md T3.2. Previous single-cohort tests always
+produced DI=1.0 because only one segment was targeted. This audit
+exercises the cross-cohort path to verify the gate triggers a halt
+when DI < 0.8.
+
+Math sanity (with current synthetic seed of 11 gold · 11 silver · 78 std):
+  DI = min(cohort) / max(cohort) = 11 / 78 ≈ 0.141 → MUST FAIL gate.
+
+7 assertions:
+  1. DI math · single cohort = 1.0
+  2. DI math · balanced 50:50 = 1.0
+  3. DI math · imbalanced 10:90 < 0.2 (below 0.8 gate)
+  4. DI math · 3 cohorts with min/max derived correctly
+  5. Agent run · cross-cohort · halt_reason='rai_fairness_gate_failed'
+  6. Agent run · cross-cohort · fairness_di < 0.8
+  7. Agent run · cross-cohort · decisions chain contains 'rai_halt'
+  8. Agent run · single-cohort baseline · still passes (DI=1.0)
+  9. Cleanup leaves 0 test campaigns
+
+Per §47.6 + §57.7 + §76 (RAI · MANDATORY) + §80 (decision system).
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `_` import uuid
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `_di(cohort_counts)`: Disparate impact = min(cohort) / max(cohort) · §76 definition.
+- `_cleanup()`: (no docstring)
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- ── 1-4. DI math sanity ──────────────────────────────
+- ── 5-7. Agent run · cross-cohort · expect halt ──────
+- Cross-cohort run · NO initial_segment → targets all 3 cohorts
+- Per §76 the agent halts at the cohort imbalance · or completes if
+- somehow all cohorts equal (unlikely with seeded data).

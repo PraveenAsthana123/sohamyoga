@@ -1,0 +1,30 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# backend/webllm_cdp_rag_langgraph/__init__.py
+# auto-generated explainer · 2026-06-28T10:01:08Z
+
+## Purpose
+WebLLM + CDP + RAG + LangGraph integration package.
+
+Per operator 2026-06-08 + docs/WEBLLM_CDP_RAG_LANGGRAPH_INTEGRATION.md.
+Composes with §38.3 · §39 · §47 · §48 · §64.40 · §64.43 · §74 · §75 · §76 ·
+§79 · §80 · §82.21 · §87 · §88 · §90.
+
+Modules:
+- langgraph_dag · stateful agent state machine
+- cdp_manager · Chrome DevTools Protocol wrapper
+- rag_service · Chroma + retrieval
+- web_llm_bridge · WebSocket bridge to browser WebLLM
+- schemas · Pydantic models
+- router · FastAPI routes
+
+## Imports
+(no imports)
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+(no top-level classes/functions)
+
+## Outputs
+- Return values from functions above

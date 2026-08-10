@@ -1,0 +1,22 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# backend/webllm_cdp_rag_langgraph/rag_service.py
+# auto-generated explainer · 2026-06-28T10:01:08Z
+
+## Purpose
+RAG service · Chroma multi-tenant wrapper.
+
+## Imports
+- from `__future__` import annotations
+- from `_` import logging
+- from `_` import os
+- from `typing` import Any
+
+## Inputs
+- Env vars: CHROMA_HOST, CHROMA_PORT
+
+## Process
+### Classes
+- `RAGService`: Thin Chroma wrapper. Per §87.4 vector ingest cron uses this.
+
+## Outputs
+- Return values from functions above

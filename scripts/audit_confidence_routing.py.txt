@@ -1,0 +1,50 @@
+<!-- agent-py-sidecar: auto-generated; do not delete this line to allow refresh -->
+# scripts/audit_confidence_routing.py
+# auto-generated explainer · 2026-06-28T10:00:19Z
+
+## Purpose
+Confidence-score routing audit · T7.9 · Tier 7 governance gate #1.
+
+Per docs/PENDING_PLAN.md T7.9. Verifies the autonomous_agent's measure
+step now produces a confidence (0..1) and routes to one of 4 tiers per
+the registry threshold table:
+
+  95-100% → auto_execute
+  85-95%  → agent_review
+  70-85%  → human_approval
+  < 70%   → manual_processing
+
+10 assertions:
+  1. ROUTING_THRESHOLDS has 4 entries
+  2. _route_by_confidence(0.97) → auto_execute
+  3. _route_by_confidence(0.90) → agent_review
+  4. _route_by_confidence(0.78) → human_approval
+  5. _route_by_confidence(0.45) → manual_processing
+  6. _route_by_confidence(None) → None (skip · §57.7)
+  7. _compute_confidence with sparse data → low score
+  8. _compute_confidence with single-cohort + good outcome → high score
+  9. Live agent run · measure decision has confidence + routing fields
+  10. Live agent run · routing matches threshold tier
+
+## Imports
+- from `_` import logging
+- from `_` import os
+- from `_` import sys
+- from `_` import uuid
+- from `pathlib` import Path
+
+## Inputs
+(no CLI / env inputs — library module or implicit)
+
+## Process
+### Functions
+- `main()`: (no docstring)
+
+## Outputs
+- Return values from functions above
+
+## Notable inline comments
+- ── 1-6. ROUTING_THRESHOLDS · _route_by_confidence ──
+- ── 7. Sparse data · low confidence ──────────────
+- ── 8. Single-cohort + good outcome · higher ─────
+- ── 9-10. Live agent run with confidence + routing ──

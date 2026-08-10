@@ -1,0 +1,100 @@
+# OfferKit — open-source coupon & promotion engine with built-in MCP server
+# GitHub: https://github.com/sgfn/offerkit (emerging; check for latest image)
+# Port 3050 (external) → 3000 (internal)
+# Backed by PostgreSQL 15 + Redis 7 (shared with coupon reservation lock)
+# Redis key pattern: coupon:reservation:{redemptionId}  TTL=900 (15 min)
+#
+# Coupon validation sequence:
+#   normalize → status → eligibility → product → minSpend → limits
+#   → stacking → calculate → reserve(Redis) → commit(Postgres)
+
+services:
+  offerkit:
+    image: node:20-alpine
+    container_name: offerkit
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgresql://offerkit:offerkit_pass@offerkit-db:5432/offerkit
+      REDIS_URL: redis://offerkit-redis:6379
+      RESERVATION_TTL_SECONDS: "900"   # 15-minute checkout window
+      MCP_ENABLED: "true"
+      MCP_AUTH_TOKEN: "${OFFERKIT_MCP_TOKEN}"
+      ERPNEXT_BASE_URL: "http://frappe:8080"
+      ERPNEXT_API_KEY: "${ERPNEXT_API_KEY}"
+      POSTHOG_API_KEY: "${POSTHOG_API_KEY}"
+    ports:
+      - "3050:3000"
+    depends_on:
+      offerkit-db:
+        condition: service_healthy
+      offerkit-redis:
+        condition: service_healthy
+    networks:
+      - sohamyoga-net
+    volumes:
+      - offerkit-app:/app
+
+  offerkit-db:
+    image: postgres:15-alpine
+    container_name: offerkit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: offerkit
+      POSTGRES_USER: offerkit
+      POSTGRES_PASSWORD: offerkit_pass
+    volumes:
+      - offerkit-db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U offerkit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+  offerkit-redis:
+    image: redis:7-alpine
+    container_name: offerkit-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - offerkit-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sohamyoga-net
+
+networks:
+  sohamyoga-net:
+    external: true
+
+volumes:
+  offerkit-app:
+  offerkit-db-data:
+  offerkit-redis-data:
+
+# =====================================================================
+# MCP Tool endpoints (served at /mcp/*)
+# =====================================================================
+# POST /mcp/list_customer_coupons      → customer read; returns active+upcoming
+# POST /mcp/validate_coupon            → auto; dry-run discount preview
+# POST /mcp/apply_coupon_to_cart       → customer confirm; creates Redis reservation
+# POST /mcp/commit_reservation         → auto; finalizes after payment success
+# POST /mcp/create_coupon_draft        → marketing_staff
+# POST /mcp/generate_unique_codes      → requires confirmApprovalId
+# POST /mcp/revoke_coupon              → requires confirmText="REVOKE"
+#
+# =====================================================================
+# Coupon types supported
+# =====================================================================
+# percentage | fixed_amount | free_class | buy_x_get_y | membership
+# bundle | referral | first_purchase | birthday | student_senior
+# corporate | teacher | event | product | free_shipping
+# gift_voucher | private_unique | public_promo | auto_applied
