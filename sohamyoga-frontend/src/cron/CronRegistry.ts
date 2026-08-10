@@ -189,6 +189,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   180_000,
   },
+  {
+    name:        'module-boundary-quality',
+    schedule:    '30 8 * * 5',
+    description: 'Ollama (strong) reads one module\'s own source and drafts its scope boundary, concrete dos/don\'ts, a harsh 0-100 quality score with rationale, and a benchmark note against known good patterns',
+    module:      'ModuleBoundaryQualityJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -213,6 +221,7 @@ Mon    09:00  community-digest (Ollama)
 Fri    06:00  lead-nurturing
 Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
+Fri    08:30  module-boundary-quality (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 19 jobs | 11 use Ollama | 0 cloud AI tokens
+Total: 20 jobs | 12 use Ollama | 0 cloud AI tokens
 `;

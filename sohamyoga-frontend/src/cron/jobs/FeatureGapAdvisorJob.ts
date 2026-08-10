@@ -3,33 +3,11 @@
 // and asks Ollama (strong tier) what single highest-leverage feature is missing
 // to reach top-1% for that topic. Stored as a draft advisory — never auto-applied.
 
-import { readFileSync } from 'fs';
-import path from 'path';
 import { Pool } from 'pg';
 import { ollama } from '../OllamaClient';
+import { extractJson, pickLeastReviewedModule, readModuleSource } from '../moduleRegistry';
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
-const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
-const MAX_CHARS_PER_FILE = 4000;
-
-interface ModuleDef { key: string; label: string; files: string[] }
-
-const MODULES: ModuleDef[] = [
-  { key: 'marketing-automation', label: 'Marketing Automation Command Centre', files: [
-    'src/app/admin/marketing-command/page.tsx',
-    'src/app/api/marketing/automation/route.ts',
-    'src/cron/jobs/MarketingAutomationJob.ts',
-  ] },
-  { key: 'social-portal', label: 'Social Media Portal', files: [
-    'src/app/admin/social/page.tsx',
-  ] },
-  { key: 'booking', label: 'Booking', files: ['src/app/admin/booking/page.tsx'] },
-  { key: 'wellness', label: 'Wellness', files: ['src/app/admin/wellness/page.tsx'] },
-  { key: 'crm', label: 'CRM', files: ['src/app/admin/crm/page.tsx'] },
-  { key: 'ecommerce', label: 'E-commerce', files: ['src/app/admin/ecommerce/page.tsx'] },
-  { key: 'referral', label: 'Referral', files: ['src/app/admin/referral/page.tsx'] },
-  { key: 'analytics', label: 'Analytics', files: ['src/app/admin/analytics/page.tsx'] },
-];
 
 const SYSTEM = `You are a product architect reviewing one feature module's actual source code.
 Identify the SINGLE highest-leverage advanced capability missing that would move this module
@@ -41,40 +19,10 @@ Return exactly one JSON object with keys:
   effort_tier ("S", "M", or "L").
 No markdown, no prose outside the JSON object.`;
 
-function extractJson(text: string): { gap_title: string; gap_why: string; effort_tier: string } {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1] || text;
-  const start = fenced.indexOf('{');
-  const end = fenced.lastIndexOf('}');
-  if (start < 0 || end <= start) throw new Error('Ollama returned no JSON object');
-  return JSON.parse(fenced.slice(start, end + 1));
-}
-
-function readModuleSource(mod: ModuleDef): string {
-  return mod.files.map(rel => {
-    try {
-      const content = readFileSync(path.join(REPO_ROOT, rel), 'utf8');
-      return `--- ${rel} ---\n${content.slice(0, MAX_CHARS_PER_FILE)}`;
-    } catch {
-      return `--- ${rel} --- (unreadable, skipped)`;
-    }
-  }).join('\n\n');
-}
-
-async function pickNextModule(): Promise<ModuleDef> {
-  const reviewed = await db.query<{ module_key: string; last: string }>(
-    `SELECT module_key, MAX(created_at) AS last FROM feature_gap_report GROUP BY module_key`,
-  );
-  const lastByKey = new Map(reviewed.rows.map(r => [r.module_key, new Date(r.last).getTime()]));
-  const [first, ...rest] = MODULES;
-  return rest.reduce((oldest, mod) => {
-    const oldestTime = lastByKey.get(oldest.key) ?? -Infinity;
-    const modTime = lastByKey.get(mod.key) ?? -Infinity;
-    return modTime < oldestTime ? mod : oldest;
-  }, first);
-}
+interface Gap { gap_title: string; gap_why: string; effort_tier: string }
 
 export async function run(): Promise<void> {
-  const mod = await pickNextModule();
+  const mod = await pickLeastReviewedModule(db, 'feature_gap_report');
   const source = readModuleSource(mod);
 
   const report = await ollama.generate(
@@ -82,9 +30,9 @@ export async function run(): Promise<void> {
     { tier: 'strong', system: SYSTEM, maxTokens: 400, timeoutMs: 120_000 },
   );
 
-  let gap: { gap_title: string; gap_why: string; effort_tier: string };
+  let gap: Gap;
   try {
-    gap = extractJson(report);
+    gap = extractJson<Gap>(report);
   } catch (error) {
     console.error(`[feature-gap-advisor] module=${mod.key} parse failed:`, error);
     await db.end();
