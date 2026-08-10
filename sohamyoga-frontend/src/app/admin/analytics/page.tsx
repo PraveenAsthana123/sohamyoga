@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const TABS = ["overview", "events", "funnels", "sessions", "cohorts", "consent", "integrations"] as const;
+const TABS = ["overview", "events", "funnels", "attribution", "sessions", "cohorts", "consent", "integrations"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_LABELS: Record<Tab, string> = {
-  overview: "Overview", events: "Events", funnels: "Funnels",
+  overview: "Overview", events: "Events", funnels: "Funnels", attribution: "Attribution",
   sessions: "Sessions", cohorts: "Cohorts", consent: "Consent", integrations: "Integrations",
 };
 
@@ -237,6 +237,68 @@ function FunnelsTab() {
   );
 }
 
+interface AttributionData {
+  windowDays: number; totalConversions: number;
+  byChannel: { channel: string; conversions: number; uniqueSessions: number; pct: number }[];
+  byCampaign: { campaign: string; source: string; conversions: number }[];
+  byEventType: Record<string, number>;
+}
+
+function AttributionTab() {
+  const [data, setData] = useState<AttributionData | null>(null);
+  const [days, setDays] = useState(30);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+    fetchJson<AttributionData>(`/api/analytics/attribution?days=${days}`).then(d => { setData(d); setLoading(false); });
+  }, [days]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        {[7, 30, 90].map(d => (
+          <button key={d} onClick={() => setDays(d)}
+            className={`text-xs px-3 py-1.5 border rounded hover:bg-gray-50 ${days === d ? "bg-blue-50 border-blue-300 text-blue-700" : ""}`}>Last {d} days</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KpiCard label="Total Conversions" value={data?.totalConversions ?? 0} sub={`Last ${days} days`} color="green" />
+        <KpiCard label="Bookings"      value={data?.byEventType.booking_completed ?? 0} color="blue" />
+        <KpiCard label="Payments"      value={data?.byEventType.payment_completed ?? 0} color="purple" />
+        <KpiCard label="Subscriptions" value={data?.byEventType.subscription_started ?? 0} color="teal" />
+      </div>
+      <div className="bg-white border rounded-lg p-4">
+        <h3 className="font-semibold text-gray-800 mb-3">Conversions by Channel (last-touch)</h3>
+        {loading ? <EmptyState message="Loading…" /> : !data?.byChannel.length ? (
+          <EmptyState message="No conversions with linked sessions in this window yet." />
+        ) : data.byChannel.map(c => (
+          <div key={c.channel} className="flex items-center gap-3 text-sm mb-2">
+            <span className="w-24 text-gray-600 capitalize">{c.channel}</span>
+            <div className="flex-1 bg-gray-100 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full" style={{ width: `${c.pct}%` }} /></div>
+            <span className="w-10 text-right font-medium">{c.pct}%</span>
+            <span className="w-20 text-right text-xs text-gray-400">{c.conversions} conv.</span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 border-b"><h3 className="text-sm font-semibold">Top UTM Campaigns</h3></div>
+        {!data?.byCampaign.length ? (
+          <p className="p-6 text-sm text-gray-500 text-center">No UTM-tagged conversions yet.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b text-xs text-gray-500"><tr><th className="px-4 py-2 text-left">Campaign</th><th className="px-4 py-2 text-left">Source</th><th className="px-4 py-2 text-right">Conversions</th></tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.byCampaign.map((c, i) => (
+                <tr key={i}><td className="px-4 py-2">{c.campaign}</td><td className="px-4 py-2 text-gray-500">{c.source}</td><td className="px-4 py-2 text-right font-medium">{c.conversions}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface SessionRow { id: string; anon: string; device: string; browser: string; country: string; pages: number; durationLabel: string; source: string; replay: boolean }
 
 function SessionsTab() {
@@ -458,7 +520,7 @@ function IntegrationsTab() {
 export default function AnalyticsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const TAB_CONTENT: Record<Tab, React.ReactElement> = {
-    overview: <OverviewTab />, events: <EventsTab />, funnels: <FunnelsTab />,
+    overview: <OverviewTab />, events: <EventsTab />, funnels: <FunnelsTab />, attribution: <AttributionTab />,
     sessions: <SessionsTab />, cohorts: <CohortsTab />, consent: <ConsentTab />, integrations: <IntegrationsTab />,
   };
   return (
