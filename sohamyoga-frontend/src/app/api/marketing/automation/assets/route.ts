@@ -24,8 +24,9 @@ export async function GET(req: NextRequest) {
 
   const rows = await query<{
     id: string; asset_type: string; status: string; text_content: string | null; metadata: Record<string, unknown>; segment_key: string | null;
+    compliance_status: string; compliance_notes: string | null;
   }>(
-    `SELECT id, asset_type, status, text_content, metadata, segment_key
+    `SELECT id, asset_type, status, text_content, metadata, segment_key, compliance_status, compliance_notes
      FROM generated_marketing_asset WHERE request_id = $1 ORDER BY segment_key NULLS FIRST, asset_type`,
     [requestId],
   );
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
     assets: rows.rows.map(a => ({
       id: a.id, assetType: a.asset_type, status: a.status, textContent: a.text_content,
       metadata: a.metadata, segmentKey: a.segment_key ?? undefined,
+      complianceStatus: a.compliance_status, complianceNotes: a.compliance_notes ?? undefined,
     })),
   });
 }

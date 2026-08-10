@@ -25,7 +25,7 @@ const FLOW = [
 const initialProfile = { industry: 'yoga', businessName: '', audience: '', valueProposition: '', websiteUrl: '', timezone: 'America/Edmonton', approvalRequired: true };
 const initialCampaign = { title: '', objective: 'awareness', audience: '', offerText: '', callToAction: '', scheduledAt: '', assetTypes: ['copy', 'static_banner'], channels: ['instagram', 'facebook'], targetSegments: [] as string[], modelName: '' };
 
-type Asset = { id: string; assetType: string; status: string; textContent: string | null; metadata: Record<string, unknown>; segmentKey?: string };
+type Asset = { id: string; assetType: string; status: string; textContent: string | null; metadata: Record<string, unknown>; segmentKey?: string; complianceStatus?: string; complianceNotes?: string };
 
 function segmentDisplayLabel(key?: string): string {
   if (!key) return 'General';
@@ -46,6 +46,11 @@ function AssetCard({ asset, onDecide }: { asset: Asset; onDecide: (id: string, a
         <span className="text-xs font-semibold text-gray-700">{asset.assetType.replace('_', ' ')}</span>
         <span className={`rounded-full px-2 py-0.5 text-xs ${badge[asset.status] ?? 'bg-gray-100 text-gray-600'}`}>{asset.status.replace('_', ' ')}</span>
       </div>
+      {asset.complianceStatus === 'flagged' && (
+        <div className="mb-2 rounded border border-red-300 bg-red-50 px-2 py-1 text-xs text-red-700">
+          <strong>⚠ Compliance flag:</strong> {asset.complianceNotes || 'Review before approving.'}
+        </div>
+      )}
       {parsed ? (
         <div className="space-y-1 text-xs text-gray-700">
           {typeof parsed.email_subject === 'string' && <p><strong>Email subject:</strong> {parsed.email_subject}</p>}

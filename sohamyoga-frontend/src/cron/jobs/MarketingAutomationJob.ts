@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { ollama } from '../OllamaClient';
 import { CAMPAIGN_SEGMENTS, segmentLabel } from '../campaignSegments';
+import { checkContentCompliance } from '@/lib/compliance';
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -107,13 +108,14 @@ async function transactionResult(
           : assetType === 'static_banner' || assetType === 'dynamic_banner'
             ? String(content[assetType === 'static_banner' ? 'image_prompt' : 'dynamic_banner_prompt'] || '')
             : JSON.stringify(content);
+        const compliance = await checkContentCompliance(text, { offerText: request.offer_text, callToAction: request.call_to_action });
         await client.query(
           `INSERT INTO generated_marketing_asset
-           (tenant_id, request_id, asset_type, status, text_content, metadata, segment_key)
-           VALUES ($1,$2,$3,'review_required',$4,$5,$6)`,
+           (tenant_id, request_id, asset_type, status, text_content, metadata, segment_key, compliance_status, compliance_notes, compliance_checked_at)
+           VALUES ($1,$2,$3,'review_required',$4,$5,$6,$7,$8,now())`,
           [request.tenant_id, request.id, assetType, text,
             JSON.stringify({ generatedBy: 'ollama', model: request.model_name, channels: request.channels, segment: segmentKey ? segmentLabel(segmentKey) : undefined }),
-            segmentKey],
+            segmentKey, compliance.status, compliance.notes || null],
         );
       }
     }
