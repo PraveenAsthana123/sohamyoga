@@ -67,6 +67,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   300_000,
   },
+  {
+    name:        'campaign-health-audit',
+    schedule:    '45 * * * *',
+    description: 'Audit active ad campaigns for structural config problems (no ad groups/targeting, expired-but-active, bid exceeding daily budget) — Ollama drafts the explanation from given facts only, no performance data is fabricated',
+    module:      'CampaignHealthAuditJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
 
   // ── Daily 01:00 UTC ───────────────────────────────────────────────────────
   {
@@ -218,6 +226,7 @@ Every 10 min  leaderboard-refresh
 Every 30 min  abandoned-cart-recovery (Ollama)
 Hourly :00    notification-retry
 Hourly :15    campaign-adaptation (Ollama)
+Hourly :45    campaign-health-audit (Ollama)
 Daily  01:00  analytics-aggregation
 Daily  02:00  streak-update
 Daily  03:00  wellness-scoring (Ollama)
@@ -234,5 +243,5 @@ Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 21 jobs | 13 use Ollama | 0 cloud AI tokens
+Total: 22 jobs | 14 use Ollama | 0 cloud AI tokens
 `;

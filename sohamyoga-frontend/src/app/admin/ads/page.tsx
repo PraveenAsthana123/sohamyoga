@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'analytics' | 'ai' | 'integrations';
+type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'health' | 'analytics' | 'ai' | 'integrations';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview',      label: 'Overview'      },
   { id: 'campaigns',     label: 'Campaigns'     },
   { id: 'adgroups',      label: 'Ad Groups'     },
   { id: 'creatives',     label: 'Creatives'     },
+  { id: 'health',        label: 'Health'        },
   { id: 'analytics',     label: 'Analytics'     },
   { id: 'ai',            label: 'AI Engine'     },
   { id: 'integrations',  label: 'Integrations'  },
@@ -20,6 +21,82 @@ interface DashboardData {
 interface CampaignRow { id: string; name: string; type: string; status: string; budget: number; impressions: number; clicks: number; ctr: number; cpc: number }
 interface AdGroupRow { id: string; name: string; campaign: string; status: string; keywords: number; ads: number; bid: number; ctr: number }
 interface CreativeRow { id: string; name: string; type: string; status: string; ai: boolean; impressions: number; clicks: number; ctr: number; cpc: number }
+interface HealthFinding {
+  id: string; campaignId: string; campaignName: string; findingKey: string; severity: string;
+  summary: string; recommendedAction: string; status: string; createdAt: string;
+}
+
+const SEVERITY_BADGE: Record<string, string> = {
+  critical: 'bg-red-100 text-red-700',
+  warning:  'bg-amber-100 text-amber-700',
+  info:     'bg-blue-100 text-blue-700',
+};
+
+function HealthTab() {
+  const [findings, setFindings] = useState<HealthFinding[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showResolved, setShowResolved] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    fetchJson<{ findings: HealthFinding[] }>(`/api/ads/health-findings?status=${showResolved ? 'all' : 'open'}`)
+      .then(d => { setFindings(d?.findings ?? []); setLoading(false); });
+  };
+  useEffect(load, [showResolved]);
+
+  async function decide(id: string, action: 'acknowledge' | 'resolve') {
+    await fetch(`/api/ads/health-findings/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
+    });
+    load();
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          Automated config audit (runs hourly) — structural problems only, no fabricated performance data.
+        </p>
+        <label className="flex items-center gap-2 text-sm text-gray-600">
+          <input type="checkbox" checked={showResolved} onChange={e => setShowResolved(e.target.checked)} />
+          Show acknowledged/resolved
+        </label>
+      </div>
+
+      {loading ? <EmptyState message="Loading…" /> : findings.length === 0 ? (
+        <EmptyState message="No open health findings — every active campaign passed the structural audit." />
+      ) : (
+        <div className="space-y-3">
+          {findings.map(f => (
+            <div key={f.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SEVERITY_BADGE[f.severity] ?? 'bg-gray-100 text-gray-600'}`}>{f.severity}</span>
+                    <span className="text-xs text-gray-400 font-mono">{f.findingKey}</span>
+                    <span className="text-xs text-gray-400">·</span>
+                    <span className="text-xs text-gray-500 font-medium">{f.campaignName}</span>
+                    {f.status !== 'open' && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{f.status}</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-800">{f.summary}</p>
+                  <p className="text-xs text-gray-500 mt-1">→ {f.recommendedAction}</p>
+                </div>
+                {f.status === 'open' && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={() => decide(f.id, 'acknowledge')} className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50">Acknowledge</button>
+                    <button onClick={() => decide(f.id, 'resolve')} className="rounded bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700">Resolve</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
@@ -290,6 +367,9 @@ export default function AdsAdminPage() {
             ))}
           </div>
         )}
+
+        {/* ── Health ── */}
+        {activeTab === 'health' && <HealthTab />}
 
         {/* ── Analytics ── */}
         {activeTab === 'analytics' && (

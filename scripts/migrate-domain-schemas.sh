@@ -46,6 +46,7 @@ schemas=(
   "063-module-reporting-views|sohamyoga-frontend/src/domain/assurance/reporting-views.sql"
   "064-social-approval-hardening|sohamyoga-frontend/src/domain/social/approval-hardening.sql"
   "065-marketing-compliance|sohamyoga-frontend/src/domain/marketing/db-schema-compliance.sql"
+  "066-ad-campaign-health|sohamyoga-frontend/src/domain/ads/db-schema-campaign-health.sql"
 )
 
 psql_cmd=(docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME")

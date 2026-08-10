@@ -37,12 +37,25 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062'}/api/:path*`,
-      },
-    ];
+    // `fallback` (not a plain array/`afterFiles`) — this proxy must only catch
+    // requests that don't match anything in this app's own API surface. A
+    // plain-array rewrite runs before dynamic App Router routes are checked,
+    // which was silently swallowing every /api/**/[id] route in this project
+    // (PATCH/DELETE-by-id endpoints) and sending them to the .NET backend
+    // instead, where they don't exist — a 404 with no trace of ever reaching
+    // the real handler. `fallback` runs only after Next's own routes
+    // (static AND dynamic) have already been tried and none matched, which is
+    // exactly the "these are the legacy public-site/.NET-only endpoints
+    // (auth, blog, contact, jobs, newsletter, webhooks, etc.) with no Next.js
+    // route of their own" case this proxy exists for.
+    return {
+      fallback: [
+        {
+          source: '/api/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062'}/api/:path*`,
+        },
+      ],
+    };
   },
 };
 
