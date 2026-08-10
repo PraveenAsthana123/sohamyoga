@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CAMPAIGN_SEGMENTS } from "@/cron/campaignSegments";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ProductType = "physical" | "digital" | "service" | "subscription" | "bundle" | "workshop" | "retreat" | "course" | "gift_card" | "ayurvedic" | "book" | "membership";
@@ -28,6 +29,56 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 
 function EmptyState({ message }: { message: string }) {
   return <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
+}
+
+interface RecoPick { id: string; name: string; type: string; price: number; reason: string }
+
+function RecommendationsPanel() {
+  const [segment, setSegment] = useState(CAMPAIGN_SEGMENTS[0].key);
+  const [picks, setPicks] = useState<RecoPick[] | null>(null);
+  const [note, setNote] = useState<string | undefined>();
+  const [loading, setLoading] = useState(false);
+
+  async function fetchRecommendations() {
+    setLoading(true); setPicks(null); setNote(undefined);
+    const res = await fetch(`/api/ecommerce/recommendations?segment=${segment}`, { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    setPicks(res.ok ? data.recommendations ?? [] : []);
+    setNote(res.ok ? data.note : (data.error ?? "Failed to get recommendations."));
+    setLoading(false);
+  }
+
+  return (
+    <div className="bg-white border rounded-lg p-4 md:col-span-2">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <p className="text-sm font-semibold text-gray-700">Product Recommendations by Segment (Ollama)</p>
+        <div className="flex gap-2">
+          <select value={segment} onChange={e => setSegment(e.target.value)} className="text-xs border rounded px-2 py-1.5">
+            {CAMPAIGN_SEGMENTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+          </select>
+          <button onClick={fetchRecommendations} disabled={loading} className="text-xs px-3 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50">
+            {loading ? "Thinking…" : "Get recommendations"}
+          </button>
+        </div>
+      </div>
+      {picks === null ? (
+        <p className="text-xs text-gray-400">Pick a segment and generate recommendations — grounded to your actual active catalog, never invented products.</p>
+      ) : picks.length === 0 ? (
+        <EmptyState message={note ?? "No recommendations."} />
+      ) : (
+        <div className="grid md:grid-cols-3 gap-3">
+          {picks.map(p => (
+            <div key={p.id} className="border rounded-lg p-3">
+              <p className="text-sm font-medium text-gray-900">{p.name}</p>
+              <p className="text-xs text-gray-400">{p.type} · ${p.price}</p>
+              <p className="text-xs text-gray-600 mt-2">{p.reason}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {note && picks && picks.length > 0 && <p className="text-xs text-amber-600 mt-2">{note}</p>}
+    </div>
+  );
 }
 
 interface CategoryOption { id: string; name: string; slug: string; parentSlug?: string }
@@ -384,6 +435,8 @@ export default function EcommerceAdminPage() {
               </div>
             )}
           </div>
+
+          <RecommendationsPanel />
         </div>
       )}
 
