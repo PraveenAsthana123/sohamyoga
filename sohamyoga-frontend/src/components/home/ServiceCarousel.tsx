@@ -21,7 +21,7 @@ export default function ServiceCarousel({ services }: ServiceCarouselProps) {
           Our <span className="text-primary-600">Services</span>
         </h2>
         <p className="section-subtitle">
-          Comprehensive technology solutions designed to accelerate your business growth and digital transformation journey.
+          A range of classes and services designed to support your yoga practice.
         </p>
       </div>
 

@@ -3,10 +3,10 @@ import ContactForm from '@/components/contact/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
-  description: 'Get in touch with SohamYoga for IT solutions, AI/ML services, and digital transformation consulting. Based in Calgary, Alberta.',
+  description: 'Get in touch with SohamYoga to book a class or ask a question. Based in Calgary, Alberta.',
   openGraph: {
     title: 'Contact Us - SohamYoga',
-    description: 'Get in touch with SohamYoga for IT solutions, AI/ML services, and digital transformation consulting.',
+    description: 'Get in touch with SohamYoga to book a class or ask a question.',
   },
 };
 
@@ -166,20 +166,20 @@ export default function ContactPage() {
           <div className="space-y-4">
             {[
               {
-                q: 'What services does SohamYoga offer?',
-                a: 'We offer a comprehensive range of IT services including Generative AI, Machine Learning, Deep Learning, Computer Vision, Managed IT Services, and Custom Software Development.',
+                q: 'What classes does SohamYoga offer?',
+                a: 'See our current class schedule and offerings on the Services page, or reach out using the form above and we will help you find the right class.',
               },
               {
-                q: 'How long does a typical project take?',
-                a: 'Project timelines vary based on complexity and scope. Small projects may take 2-4 weeks, while larger enterprise solutions can span several months. We provide detailed timelines during the consultation phase.',
+                q: 'Do I need experience to join a class?',
+                a: 'No — let us know your experience level when you contact us and we will point you to a class that fits.',
               },
               {
-                q: 'Do you work with businesses outside of Calgary?',
-                a: 'Yes! While we are based in Calgary, Alberta, we work with clients across Canada and internationally. Our team is experienced with remote collaboration and project management.',
+                q: 'Do you offer classes outside of Calgary?',
+                a: 'We are based in Calgary, Alberta. Contact us to ask about in-person and any remote/virtual options.',
               },
               {
-                q: 'How do I get started with a project?',
-                a: 'Simply fill out the contact form above or email us directly. We will schedule an initial consultation to understand your needs and provide a tailored proposal.',
+                q: 'How do I book a class?',
+                a: 'Fill out the contact form above or email us directly, and we will help you get started.',
               },
             ].map((faq, idx) => (
               <div key={idx} className="bg-dark-50 rounded-lg p-6 border border-dark-100">

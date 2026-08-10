@@ -38,16 +38,13 @@ const REQUEST_TYPES = [
 ] as const;
 
 const SERVICE_OPTIONS = [
-  'Generative AI',
-  'Machine Learning',
-  'Deep Learning',
-  'Computer Vision',
-  'NLP',
-  'Data Migration',
-  'SharePoint',
-  'Project Management',
-  'Managed IT',
-  'Custom Development',
+  'Class Schedule',
+  'Class Booking',
+  'Membership & Pricing',
+  'Private Sessions',
+  'Workshops',
+  'Studio Shop',
+  'Teacher Training',
   'Not sure yet',
 ] as const;
 

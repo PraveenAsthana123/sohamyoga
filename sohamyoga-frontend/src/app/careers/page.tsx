@@ -39,10 +39,10 @@ export default function CareersPage() {
           <span className="inline-block px-4 py-1 bg-blue-600/30 border border-blue-400/40 rounded-full text-blue-300 text-sm font-medium mb-4">
             Join Our Team
           </span>
-          <h1 className="text-5xl font-bold mb-6">Build the Future of Data with Us</h1>
+          <h1 className="text-5xl font-bold mb-6">Teach with Us</h1>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
-            We're a team of engineers, data scientists, and consultants passionate about solving
-            complex data challenges for enterprise clients across Canada.
+            We're a studio team passionate about yoga, teaching, and building a welcoming
+            community in Calgary.
           </p>
           <div className="flex flex-wrap gap-8 justify-center text-center">
             {[
@@ -116,12 +116,12 @@ export default function CareersPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { icon: '🚀', title: 'Career Growth', desc: 'Clear progression paths, mentorship programs, and a training budget to invest in your development.' },
-              { icon: '🏡', title: 'Flexible Work', desc: 'Hybrid and remote options available. We trust our team to do great work wherever they are.' },
-              { icon: '💡', title: 'Impactful Work', desc: 'Work on real enterprise challenges — data pipelines, AI models, and cloud infrastructure that matters.' },
-              { icon: '🤝', title: 'Collaborative Culture', desc: 'Small, tight-knit teams where your ideas are heard and your contributions are recognized.' },
-              { icon: '🎓', title: 'Certifications Paid', desc: 'We cover Azure, AWS, and other professional certifications to keep you at the top of your field.' },
-              { icon: '🌍', title: 'Diverse Team', desc: 'We are proud to have built an inclusive team with members from across Canada and around the world.' },
+              { icon: '🧘', title: 'Teach What You Love', desc: 'A studio that supports your teaching style and helps you grow as an instructor.' },
+              { icon: '🏡', title: 'Flexible Scheduling', desc: 'We work with your availability to build a class schedule that fits.' },
+              { icon: '🤝', title: 'Collaborative Culture', desc: 'A small, tight-knit team where your ideas are heard and your contributions are recognized.' },
+              { icon: '🌱', title: 'Supportive Community', desc: 'Join a studio built around genuine care for students and staff alike.' },
+              { icon: '📚', title: 'Ongoing Learning', desc: 'Opportunities to deepen your own practice alongside teaching.' },
+              { icon: '🌍', title: 'Welcoming Team', desc: 'We are proud to have built an inclusive team.' },
             ].map((item) => (
               <div key={item.title} className="text-center p-6">
                 <div className="text-4xl mb-3">{item.icon}</div>

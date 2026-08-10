@@ -65,10 +65,10 @@ export default function NewsletterSection() {
         </div>
 
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          Stay Ahead with Tech Insights
+          Stay Connected with Our Studio
         </h2>
         <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-          Subscribe to our newsletter for the latest in AI, machine learning, and digital transformation.
+          Subscribe to our newsletter for class updates, workshops, and wellness tips.
           No spam, just valuable insights delivered to your inbox.
         </p>
 

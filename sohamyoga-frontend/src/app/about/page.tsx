@@ -5,10 +5,10 @@ import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
   title: 'About Us',
-  description: 'Learn about SohamYoga - a Calgary-based technology company delivering cutting-edge IT solutions, AI/ML services, and digital transformation strategies.',
+  description: 'Learn about SohamYoga - a Calgary-based yoga studio offering classes, workshops, and wellness products.',
   openGraph: {
     title: 'About Us - SohamYoga',
-    description: 'Learn about SohamYoga - delivering cutting-edge IT solutions and AI services.',
+    description: 'Learn about SohamYoga - a Calgary-based yoga studio.',
   },
 };
 
@@ -43,13 +43,12 @@ export default async function AboutPage() {
               About SohamYoga
             </span>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-              Empowering Businesses Through{' '}
-              <span className="text-accent-400">Innovation</span>
+              Practice, Breathe,{' '}
+              <span className="text-accent-400">Grow</span>
             </h1>
             <p className="text-lg text-primary-200 leading-relaxed">
-              Based in Calgary, Alberta, SohamYoga is a forward-thinking technology company
-              dedicated to helping businesses harness the power of artificial intelligence,
-              machine learning, and modern IT solutions.
+              Based in Calgary, Alberta, SohamYoga is a yoga studio dedicated to helping our
+              community build strength, flexibility, and mindfulness through practice.
             </p>
           </div>
         </div>
@@ -65,40 +64,37 @@ export default async function AboutPage() {
               </h2>
               <div className="space-y-4 text-dark-600 leading-relaxed">
                 <p>
-                  SohamYoga is a technology consulting and solutions company specializing
-                  in artificial intelligence, machine learning, deep learning, and comprehensive
-                  IT management services. We partner with businesses of all sizes to deliver
-                  tailored solutions that drive growth, efficiency, and competitive advantage.
+                  SohamYoga is a Calgary-based yoga studio offering classes for all levels,
+                  from beginners taking their first steps on the mat to experienced
+                  practitioners deepening their practice.
                 </p>
                 <p>
-                  Our team combines deep technical expertise with a thorough understanding
-                  of business challenges. We do not just implement technology -- we craft
-                  strategic solutions that align with your goals and deliver measurable results.
+                  Our instructors combine attentive, personalized guidance with a genuine
+                  care for every student&apos;s wellbeing — on and off the mat.
                 </p>
                 <p>
-                  From startups looking to integrate AI into their products to enterprises
-                  seeking digital transformation, we bring the right blend of innovation
-                  and pragmatism to every engagement.
+                  Whether you are here to build strength, find calm, or connect with a
+                  community, we aim to make every class a place to belong.
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-primary-50 rounded-xl p-6 text-center">
-                <p className="text-4xl font-bold text-primary-600 mb-2">AI</p>
-                <p className="text-sm text-dark-600 font-medium">Artificial Intelligence</p>
+                <p className="text-4xl font-bold text-primary-600 mb-2">🧘</p>
+                <p className="text-sm text-dark-600 font-medium">Yoga Classes</p>
               </div>
               <div className="bg-accent-50 rounded-xl p-6 text-center">
-                <p className="text-4xl font-bold text-accent-600 mb-2">ML</p>
-                <p className="text-sm text-dark-600 font-medium">Machine Learning</p>
+                <p className="text-4xl font-bold text-accent-600 mb-2">🧠</p>
+                <p className="text-sm text-dark-600 font-medium">Mindfulness</p>
               </div>
               <div className="bg-accent-50 rounded-xl p-6 text-center">
-                <p className="text-4xl font-bold text-accent-600 mb-2">DL</p>
-                <p className="text-sm text-dark-600 font-medium">Deep Learning</p>
+                <p className="text-4xl font-bold text-accent-600 mb-2">🌱</p>
+                <p className="text-sm text-dark-600 font-medium">Wellness</p>
               </div>
               <div className="bg-primary-50 rounded-xl p-6 text-center">
-                <p className="text-4xl font-bold text-primary-600 mb-2">IT</p>
-                <p className="text-sm text-dark-600 font-medium">Managed Services</p>
+                <p className="text-4xl font-bold text-primary-600 mb-2">🛍️</p>
+                <p className="text-sm text-dark-600 font-medium">Studio Shop</p>
               </div>
             </div>
           </div>
@@ -123,9 +119,8 @@ export default async function AboutPage() {
               </div>
               <h3 className="text-xl font-bold text-dark-900 mb-3">Our Mission</h3>
               <p className="text-dark-500 leading-relaxed">
-                To empower businesses with cutting-edge technology solutions that transform
-                operations, unlock new opportunities, and create lasting competitive advantages
-                in an increasingly digital world.
+                To make yoga accessible and welcoming to everyone in our community, and to
+                support each student&apos;s practice with attentive, knowledgeable instruction.
               </p>
             </div>
 
@@ -139,9 +134,8 @@ export default async function AboutPage() {
               </div>
               <h3 className="text-xl font-bold text-dark-900 mb-3">Our Vision</h3>
               <p className="text-dark-500 leading-relaxed">
-                To be the most trusted technology partner for businesses in Western Canada
-                and beyond, recognized for our expertise in AI/ML, our commitment to
-                client success, and our ability to deliver transformative results.
+                To be a trusted home for yoga practice in Calgary — a studio our students
+                return to for both the classes and the community.
               </p>
             </div>
 
@@ -158,25 +152,25 @@ export default async function AboutPage() {
                   <svg className="w-4 h-4 text-accent-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Innovation in everything we do</span>
+                  <span>Welcoming to every skill level</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-accent-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Integrity and transparency</span>
+                  <span>Mindful, attentive instruction</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-accent-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Client-first mentality</span>
+                  <span>Community first</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-accent-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Excellence in delivery</span>
+                  <span>Safe, respectful practice</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-accent-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +189,7 @@ export default async function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="section-title text-dark-900">Why Choose SohamYoga?</h2>
           <p className="section-subtitle">
-            We combine technical depth with business acumen to deliver solutions that matter.
+            A studio built around attentive teaching and a genuine sense of community.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -206,8 +200,8 @@ export default async function AboutPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                 ),
-                title: 'AI & ML Expertise',
-                desc: 'Deep expertise in the latest AI/ML technologies including generative AI, computer vision, and deep learning.',
+                title: 'Experienced Instructors',
+                desc: 'Certified teachers who bring years of practice and attentive, personalized guidance to every class.',
               },
               {
                 icon: (
@@ -215,8 +209,8 @@ export default async function AboutPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 ),
-                title: 'Dedicated Team',
-                desc: 'Experienced professionals committed to understanding your unique challenges and delivering tailored solutions.',
+                title: 'Welcoming Community',
+                desc: 'A studio where beginners and experienced practitioners alike feel at home.',
               },
               {
                 icon: (
@@ -224,8 +218,8 @@ export default async function AboutPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 ),
-                title: 'Proven Track Record',
-                desc: 'Successfully delivered solutions across multiple industries including finance, healthcare, energy, and retail.',
+                title: 'Classes for Every Level',
+                desc: 'From your first class to advanced practice, we offer a range of styles and paces.',
               },
               {
                 icon: (
@@ -233,8 +227,8 @@ export default async function AboutPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 ),
-                title: 'Results-Driven',
-                desc: 'We measure success by the business outcomes we deliver, not just the technology we deploy.',
+                title: 'Studio Shop',
+                desc: 'Quality yoga mats, props, and accessories chosen to support your practice.',
               },
             ].map((item, idx) => (
               <div
@@ -258,7 +252,7 @@ export default async function AboutPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="section-title text-dark-900">Meet Our Team</h2>
             <p className="section-subtitle">
-              The talented people behind SohamYoga who make innovation happen every day.
+              The instructors behind SohamYoga.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -310,15 +304,15 @@ export default async function AboutPage() {
             Ready to Start Your Journey?
           </h2>
           <p className="text-dark-300 text-lg mb-8 max-w-2xl mx-auto">
-            Whether you are exploring AI for the first time or looking to scale existing solutions,
-            our team is here to help you succeed.
+            Whether this is your first class or your practice is well established,
+            our instructors are here to support you.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/contact" className="btn-accent">
               Contact Us Today
             </Link>
-            <Link href="/services/generative-ai" className="inline-flex items-center justify-center px-6 py-3 border-2 border-dark-600 text-white font-semibold rounded-lg hover:bg-dark-800 transition-all duration-300">
-              Explore Our Services
+            <Link href="/services" className="inline-flex items-center justify-center px-6 py-3 border-2 border-dark-600 text-white font-semibold rounded-lg hover:bg-dark-800 transition-all duration-300">
+              Explore Our Classes
             </Link>
           </div>
         </div>

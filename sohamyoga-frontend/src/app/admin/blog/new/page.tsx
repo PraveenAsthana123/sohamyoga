@@ -136,7 +136,7 @@ export default function NewBlogPostPage() {
             name="tags"
             value={form.tags}
             onChange={handleChange}
-            placeholder="Comma-separated tags (e.g., AI, Machine Learning, Cloud)"
+            placeholder="Comma-separated tags (e.g., yoga, wellness, mindfulness)"
             className="lg:col-span-2"
           />
 

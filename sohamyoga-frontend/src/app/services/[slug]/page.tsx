@@ -241,7 +241,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
               Explore More Services
             </h2>
             <p className="text-dark-500 text-center mb-10 max-w-2xl mx-auto">
-              Discover other ways SohamYoga can help accelerate your digital transformation.
+              Discover other classes SohamYoga offers.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

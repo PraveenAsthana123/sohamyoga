@@ -1,10 +1,10 @@
 import Link from 'next/link';
 
 const stats = [
-  { value: '10+', label: 'Years Experience' },
-  { value: '200+', label: 'Projects Delivered' },
-  { value: '50+', label: 'Enterprise Clients' },
-  { value: '99.9%', label: 'Uptime SLA' },
+  { value: '🧘', label: 'All Skill Levels' },
+  { value: '🌱', label: 'Beginner Friendly' },
+  { value: '🤝', label: 'Welcoming Community' },
+  { value: '📍', label: 'Calgary, Alberta' },
 ];
 
 const highlights = [
@@ -14,8 +14,8 @@ const highlights = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
     ),
-    title: 'Innovation First',
-    description: 'We stay at the forefront of AI and emerging technologies to deliver solutions that give you a competitive edge.',
+    title: 'Mindful Practice',
+    description: 'Every class is designed to build strength, flexibility, and calm, at a pace that suits you.',
   },
   {
     icon: (
@@ -23,8 +23,8 @@ const highlights = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
       </svg>
     ),
-    title: 'Security by Design',
-    description: 'Enterprise-grade security practices built into every solution from architecture through deployment.',
+    title: 'Safe & Supportive',
+    description: 'Instructors are attentive to alignment and safety so you can practice with confidence.',
   },
   {
     icon: (
@@ -32,8 +32,8 @@ const highlights = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
     ),
-    title: 'Dedicated Team',
-    description: 'Our team of certified experts brings deep domain knowledge across industries and technologies.',
+    title: 'Dedicated Instructors',
+    description: 'Certified teachers who bring experience and genuine care to every class.',
   },
 ];
 
@@ -48,17 +48,17 @@ export default function AboutSection() {
               About SohamYoga
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-dark-900 mb-6 leading-tight">
-              Your Trusted Partner for{' '}
-              <span className="text-primary-600">Digital Transformation</span>
+              Your Home for{' '}
+              <span className="text-primary-600">Mindful Practice</span>
             </h2>
             <p className="text-dark-500 text-lg leading-relaxed mb-6">
-              Based in Calgary, Alberta, SohamYoga is a premier IT management and AI solutions
-              provider. We help organizations harness the power of artificial intelligence, machine
-              learning, and modern cloud infrastructure to drive growth and efficiency.
+              Based in Calgary, Alberta, SohamYoga is a yoga studio offering classes for every
+              level. We help our students build strength, flexibility, and mindfulness through
+              consistent, supported practice.
             </p>
             <p className="text-dark-500 leading-relaxed mb-8">
-              From strategy consulting to implementation and ongoing managed services, we provide
-              end-to-end technology solutions tailored to your industry and business objectives.
+              From your first class to an established practice, our instructors are here to
+              guide you — plus a studio shop stocked with mats, props, and accessories.
             </p>
 
             {/* Highlights */}
@@ -120,9 +120,9 @@ export default function AboutSection() {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-white font-semibold">Proven Track Record</div>
+                      <div className="text-white font-semibold">Community First</div>
                       <div className="text-white/70 text-sm">
-                        Consistently delivering projects on time and within budget
+                        A studio where every student is welcome
                       </div>
                     </div>
                   </div>

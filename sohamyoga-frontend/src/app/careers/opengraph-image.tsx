@@ -25,10 +25,10 @@ export default function Image() {
           JOIN OUR TEAM
         </div>
         <div style={{ color: 'white', fontSize: 56, fontWeight: 800, textAlign: 'center', lineHeight: 1.1, marginBottom: 24 }}>
-          Build the Future of Data
+          Teach with Us
         </div>
         <div style={{ color: '#cbd5e1', fontSize: 24, textAlign: 'center', maxWidth: 700 }}>
-          Data Engineering · AI/ML · IT Consulting
+          Yoga Instructors · Studio Staff
         </div>
         <div
           style={{
@@ -37,7 +37,7 @@ export default function Image() {
             gap: 24,
           }}
         >
-          {['Remote Options', 'Hybrid Work', 'Certification Budget'].map((tag) => (
+          {['Calgary, AB', 'All Levels Welcome'].map((tag) => (
             <div
               key={tag}
               style={{

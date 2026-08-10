@@ -11,7 +11,7 @@ type AppStatus = 'New' | 'Reviewed' | 'Shortlisted' | 'Rejected';
 
 const EMPTY_JOB: Partial<JobPosting> = {
   title: '',
-  department: 'Data Engineering',
+  department: 'Instruction',
   location: '',
   employmentType: 'Full-Time',
   salaryRange: '',
@@ -463,7 +463,7 @@ function JobEditModal({
                 value={job.department || ''}
                 onChange={(e) => set('department', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="e.g. Data Engineering"
+                placeholder="e.g. Instruction"
               />
             </div>
 

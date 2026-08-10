@@ -88,7 +88,7 @@ function CustomerBlogInner() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Blog & Resources</h1>
-        <p className="text-gray-500 mt-1 text-sm">Insights on AI, IT solutions, and digital transformation.</p>
+        <p className="text-gray-500 mt-1 text-sm">Insights on yoga practice and wellness.</p>
       </div>
 
       {/* Filters */}

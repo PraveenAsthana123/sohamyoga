@@ -23,14 +23,13 @@ interface FormErrors {
 
 const serviceOptions = [
   '',
-  'Generative AI',
-  'Machine Learning',
-  'Deep Learning',
-  'Computer Vision',
-  'Managed IT Services',
-  'Custom Software Development',
-  'Cloud Solutions',
-  'Data Analytics',
+  'Class Schedule',
+  'Class Booking',
+  'Membership & Pricing',
+  'Private Sessions',
+  'Workshops',
+  'Studio Shop',
+  'Teacher Training',
   'Other',
 ];
 

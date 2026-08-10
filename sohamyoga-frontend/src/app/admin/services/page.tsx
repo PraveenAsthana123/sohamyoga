@@ -130,11 +130,11 @@ export default function ServicesPage() {
   };
 
   const categoryOptions = [
-    { label: 'AI & Machine Learning', value: 'ai-ml' },
-    { label: 'Cloud & Infrastructure', value: 'cloud' },
-    { label: 'Data & Analytics', value: 'data' },
-    { label: 'Software Development', value: 'development' },
-    { label: 'Consulting', value: 'consulting' },
+    { label: 'Yoga Classes', value: 'yoga-classes' },
+    { label: 'Workshops', value: 'workshops' },
+    { label: 'Private Sessions', value: 'private-sessions' },
+    { label: 'Teacher Training', value: 'teacher-training' },
+    { label: 'Retreats', value: 'retreats' },
     { label: 'Other', value: 'other' },
   ];
 

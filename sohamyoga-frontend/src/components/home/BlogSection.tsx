@@ -28,7 +28,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
               Latest from Our <span className="text-primary-600">Blog</span>
             </h2>
             <p className="text-lg text-dark-500 max-w-2xl">
-              Insights, tutorials, and thought leadership on AI, technology, and digital transformation.
+              Insights, tips, and reflections on yoga practice and wellness.
             </p>
           </div>
           <Link

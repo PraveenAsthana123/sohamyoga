@@ -8,10 +8,10 @@ import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
   title: 'Blog - Insights & Articles',
-  description: 'Explore the latest insights on AI, machine learning, IT solutions, and digital transformation from the SohamYoga team.',
+  description: 'Explore the latest insights on yoga practice, wellness, and mindful living from the SohamYoga team.',
   openGraph: {
     title: 'Blog - SohamYoga',
-    description: 'Explore the latest insights on AI, machine learning, IT solutions, and digital transformation.',
+    description: 'Explore the latest insights on yoga practice and wellness.',
   },
 };
 
@@ -203,8 +203,7 @@ export default function BlogPage({ searchParams }: BlogPageProps) {
             Insights & Articles
           </h1>
           <p className="text-lg text-primary-200 max-w-2xl mx-auto">
-            Stay ahead with expert perspectives on AI, machine learning, cloud computing,
-            and the latest in technology innovation.
+            Stay grounded with reflections on practice, breath, and mindful living.
           </p>
         </div>
       </section>
@@ -232,7 +231,7 @@ export default function BlogPage({ searchParams }: BlogPageProps) {
             Never Miss an Update
           </h2>
           <p className="text-dark-500 mb-8">
-            Subscribe to our newsletter for the latest insights on AI, technology, and digital transformation.
+            Subscribe to our newsletter for class updates, workshops, and wellness tips.
           </p>
           <Link href="/contact" className="btn-primary">
             Subscribe to Newsletter
