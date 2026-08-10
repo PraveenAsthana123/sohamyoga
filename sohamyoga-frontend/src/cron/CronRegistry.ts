@@ -75,6 +75,22 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   180_000,
   },
+  {
+    name:        'nps-invitation',
+    schedule:    '20 * * * *',
+    description: 'Invite students to the post-class-experience NPS survey once a checked-in class has genuinely ended (computed from session end time, not a status column nothing sets)',
+    module:      'NpsInvitationJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'nps-calculation',
+    schedule:    '50 * * * *',
+    description: 'Compute real NPS scores (promoters/passives/detractors) from submitted survey_answer rows; classify free-text reasons with Ollama sentiment',
+    module:      'NpsCalculationJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
 
   // ── Daily 01:00 UTC ───────────────────────────────────────────────────────
   {
@@ -227,6 +243,8 @@ Every 30 min  abandoned-cart-recovery (Ollama)
 Hourly :00    notification-retry
 Hourly :15    campaign-adaptation (Ollama)
 Hourly :45    campaign-health-audit (Ollama)
+Hourly :20    nps-invitation
+Hourly :50    nps-calculation (Ollama)
 Daily  01:00  analytics-aggregation
 Daily  02:00  streak-update
 Daily  03:00  wellness-scoring (Ollama)
@@ -243,5 +261,5 @@ Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 22 jobs | 14 use Ollama | 0 cloud AI tokens
+Total: 24 jobs | 15 use Ollama | 0 cloud AI tokens
 `;

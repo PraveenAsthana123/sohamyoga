@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Cron Runner — starts all 22 autonomous background jobs.
+ * Cron Runner — starts all 24 autonomous background jobs.
  *
  * Uses: node-cron (npm i node-cron @types/node-cron)
  * Run:  npx tsx src/cron/runner.ts
@@ -39,6 +39,8 @@ const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void> }>> =
   ModuleBoundaryQualityJob:   () => import('./jobs/ModuleBoundaryQualityJob'),
   AbandonedCartRecoveryJob:   () => import('./jobs/AbandonedCartRecoveryJob'),
   CampaignHealthAuditJob:     () => import('./jobs/CampaignHealthAuditJob'),
+  NpsInvitationJob:           () => import('./jobs/NpsInvitationJob'),
+  NpsCalculationJob:          () => import('./jobs/NpsCalculationJob'),
 };
 
 async function runJob(name: string, moduleName: string): Promise<void> {

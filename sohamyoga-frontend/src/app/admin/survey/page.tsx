@@ -1,5 +1,44 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+interface NpsQuestionSummary {
+  type: string; text: string; totalAnswers: number;
+  promoters?: number; passives?: number; detractors?: number;
+  sentimentCounts?: { positive: number; neutral: number; negative: number };
+  textSample?: string[];
+}
+interface NpsSurveySummary {
+  id: string; title: string; npsScore: number | null; totalResponses: number;
+  completedResponses: number; category: string; questions: NpsQuestionSummary[];
+}
+
+function useNpsSummary() {
+  const [surveys, setSurveys] = useState<NpsSurveySummary[] | null>(null);
+  useEffect(() => {
+    fetch('/api/survey/nps-summary', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setSurveys(d?.surveys ?? []))
+      .catch(() => setSurveys([]));
+  }, []);
+  return surveys;
+}
+
+// Real, live-computed NPS data (from NpsCalculationJob via /api/survey/nps-summary).
+// Everything else on this page — MOCK_SURVEYS, MOCK_RESPONSES, the Questions/
+// Responses tabs, and most of the Analytics tab — remains illustrative UI
+// mockup pending a full survey-platform build (create/edit/publish surveys,
+// question builder, response viewer, exports); only the post-class-experience
+// NPS pipeline built this session is wired to real data. Flagged rather than
+// silently left to look more complete than it is.
+function MockDataNotice() {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+      This page mostly shows illustrative sample data — only the <strong>NPS Score</strong> cards below
+      are wired to the real, live post-class feedback pipeline. Survey/question/response management
+      here is a UI mockup, not yet backed by a working create/edit/respond flow beyond that one survey.
+    </div>
+  );
+}
 
 const TABS = ["overview", "surveys", "questions", "responses", "analytics", "flowchart", "integrations"] as const;
 type Tab = typeof TABS[number];
@@ -73,20 +112,26 @@ function Badge({ label, colorClass }: { label: string; colorClass: string }) {
   return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}>{label}</span>;
 }
 
-function OverviewTab() {
+function OverviewTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) {
   const totalResponses = MOCK_SURVEYS.reduce((s, sv) => s + sv.responses, 0);
   const avgCompletion = Math.round(MOCK_SURVEYS.filter(s => s.responses > 0).reduce((s, sv) => s + sv.completion, 0) / MOCK_SURVEYS.filter(s => s.responses > 0).length);
   const activeCount = MOCK_SURVEYS.filter(s => s.status === "active").length;
+  const realNps = npsSurveys?.find(s => s.npsScore !== null) ?? npsSurveys?.[0];
 
   return (
     <div className="space-y-6">
+      <MockDataNotice />
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KpiCard label="Total Surveys" value={MOCK_SURVEYS.length} sub="All types" color="blue" />
-        <KpiCard label="Active" value={activeCount} sub="Live now" color="green" />
-        <KpiCard label="Total Responses" value={totalResponses} sub="All surveys" color="purple" />
-        <KpiCard label="Avg Completion" value={`${avgCompletion}%`} sub="Submitted" color="teal" />
-        <KpiCard label="NPS Score" value="72" sub="Teacher NPS" color="amber" />
-        <KpiCard label="Avg Duration" value="4.8 min" sub="Per response" color="pink" />
+        <KpiCard label="Total Surveys" value={MOCK_SURVEYS.length} sub="All types (sample)" color="blue" />
+        <KpiCard label="Active" value={activeCount} sub="Live now (sample)" color="green" />
+        <KpiCard label="Total Responses" value={totalResponses} sub="All surveys (sample)" color="purple" />
+        <KpiCard label="Avg Completion" value={`${avgCompletion}%`} sub="Submitted (sample)" color="teal" />
+        <KpiCard
+          label="NPS Score" color="amber"
+          value={npsSurveys === null ? "…" : realNps?.npsScore !== null && realNps?.npsScore !== undefined ? realNps.npsScore : "—"}
+          sub={realNps ? `${realNps.title} (real)` : "No responses yet"}
+        />
+        <KpiCard label="Avg Duration" value="4.8 min" sub="Per response (sample)" color="pink" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -342,22 +387,43 @@ function ResponsesTab() {
   );
 }
 
-function AnalyticsTab() {
+function AnalyticsTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) {
+  const realNps = npsSurveys?.find(s => s.npsScore !== null) ?? npsSurveys?.[0];
+  const npsQ = realNps?.questions.find(q => q.type === 'nps');
+  const textQ = realNps?.questions.find(q => q.type === 'long_text');
+  const npsTotal = (npsQ?.promoters ?? 0) + (npsQ?.passives ?? 0) + (npsQ?.detractors ?? 0);
+  const pct = (n: number | undefined) => npsTotal && n !== undefined ? Math.round((n / npsTotal) * 100) : 0;
+
   return (
     <div className="space-y-6">
+      <MockDataNotice />
       <div className="grid md:grid-cols-3 gap-4">
         <div className="bg-white border rounded-lg p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">NPS Overview — Teacher Satisfaction</h3>
-          <div className="text-center">
-            <div className="text-5xl font-bold text-teal-600">72</div>
-            <div className="text-sm text-gray-500 mt-1">Net Promoter Score</div>
-            <Badge label="excellent" colorClass="bg-teal-100 text-teal-700 mt-2" />
-          </div>
-          <div className="mt-4 grid grid-cols-3 text-center text-sm border-t pt-3">
-            <div><div className="font-bold text-green-600">75%</div><div className="text-gray-400">Promoters</div></div>
-            <div><div className="font-bold text-yellow-600">12%</div><div className="text-gray-400">Passives</div></div>
-            <div><div className="font-bold text-red-600">3%</div><div className="text-gray-400">Detractors</div></div>
-          </div>
+          <h3 className="font-semibold text-gray-800 mb-3">NPS Overview — {realNps?.title ?? 'Post-Class Experience'} (real)</h3>
+          {!npsSurveys ? (
+            <p className="text-sm text-gray-400 text-center py-6">Loading…</p>
+          ) : !realNps || realNps.npsScore === null ? (
+            <p className="text-sm text-gray-400 text-center py-6">No responses yet — real score will appear once customers submit feedback.</p>
+          ) : (
+            <>
+              <div className="text-center">
+                <div className="text-5xl font-bold text-teal-600">{realNps.npsScore}</div>
+                <div className="text-sm text-gray-500 mt-1">Net Promoter Score</div>
+                <Badge label={realNps.category} colorClass="bg-teal-100 text-teal-700 mt-2" />
+              </div>
+              <div className="mt-4 grid grid-cols-3 text-center text-sm border-t pt-3">
+                <div><div className="font-bold text-green-600">{pct(npsQ?.promoters)}%</div><div className="text-gray-400">Promoters</div></div>
+                <div><div className="font-bold text-yellow-600">{pct(npsQ?.passives)}%</div><div className="text-gray-400">Passives</div></div>
+                <div><div className="font-bold text-red-600">{pct(npsQ?.detractors)}%</div><div className="text-gray-400">Detractors</div></div>
+              </div>
+              {textQ?.sentimentCounts && (
+                <div className="mt-4 border-t pt-3 text-xs text-gray-500">
+                  <p className="font-medium text-gray-700 mb-1">Free-text sentiment ({textQ.totalAnswers} responses)</p>
+                  <p>Positive {textQ.sentimentCounts.positive} · Neutral {textQ.sentimentCounts.neutral} · Negative {textQ.sentimentCounts.negative}</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         <div className="bg-white border rounded-lg p-4">
@@ -625,13 +691,14 @@ function IntegrationsTab() {
 
 export default function SurveyAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const npsSurveys = useNpsSummary();
 
   const TAB_CONTENT: Record<Tab, React.ReactElement> = {
-    overview:     <OverviewTab />,
+    overview:     <OverviewTab npsSurveys={npsSurveys} />,
     surveys:      <SurveysTab />,
     questions:    <QuestionsTab />,
     responses:    <ResponsesTab />,
-    analytics:    <AnalyticsTab />,
+    analytics:    <AnalyticsTab npsSurveys={npsSurveys} />,
     flowchart:    <FlowchartTab />,
     integrations: <IntegrationsTab />,
   };
