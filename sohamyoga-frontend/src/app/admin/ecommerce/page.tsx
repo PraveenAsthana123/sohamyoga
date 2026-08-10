@@ -31,6 +31,49 @@ function EmptyState({ message }: { message: string }) {
   return <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
 }
 
+interface CartDraft { id: string; orderId: string; customerEmail: string; cartSummary: string; cartTotal: number; subject: string; message: string; detectedAt: string }
+
+function AbandonedCartPanel() {
+  const [drafts, setDrafts] = useState<CartDraft[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => fetchJson<{ drafts: CartDraft[] }>("/api/ecommerce/abandoned-carts").then(d => {
+    setDrafts(d?.drafts ?? []); setLoading(false);
+  });
+  useEffect(() => { load(); }, []);
+
+  async function act(id: string, action: "sent" | "dismissed") {
+    await fetch(`/api/ecommerce/abandoned-carts/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }),
+    });
+    load();
+  }
+
+  if (loading || drafts.length === 0) return null; // nothing to review — don't clutter the Orders tab
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+      <p className="text-sm font-semibold text-amber-900">Abandoned Cart Recovery — {drafts.length} draft{drafts.length > 1 ? "s" : ""} to review</p>
+      {drafts.map(d => (
+        <div key={d.id} className="bg-white border rounded-lg p-3">
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">{d.customerEmail} · ${d.cartTotal} · {d.cartSummary}</p>
+              <p className="text-sm font-medium mt-1">{d.subject}</p>
+              <p className="text-xs text-gray-600 mt-1">{d.message}</p>
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={() => act(d.id, "sent")} className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">Mark Sent</button>
+              <button onClick={() => act(d.id, "dismissed")} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Dismiss</button>
+            </div>
+          </div>
+        </div>
+      ))}
+      <p className="text-xs text-amber-700">Ollama drafts these — a human sends manually. No email is dispatched automatically.</p>
+    </div>
+  );
+}
+
 interface RecoPick { id: string; name: string; type: string; price: number; reason: string }
 
 function RecommendationsPanel() {
@@ -492,6 +535,7 @@ export default function EcommerceAdminPage() {
       {/* ─── ORDERS ───────────────────────────────────────────────────────── */}
       {tab === "orders" && (
         <div className="space-y-3">
+          <AbandonedCartPanel />
           {/* Filter bar */}
           <div className="flex gap-2 flex-wrap">
             {["all","pending","confirmed","processing","shipped","delivered","cancelled","refunded"].map(f => (

@@ -40,6 +40,16 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   30_000,
   },
 
+  // ── Every 30 minutes ─────────────────────────────────────────────────────
+  {
+    name:        'abandoned-cart-recovery',
+    schedule:    '*/30 * * * *',
+    description: 'Draft a personalized recovery message (Ollama) for carts stalled in draft/pending 2+ hours, grounded in the actual cart items — staff sends manually',
+    module:      'AbandonedCartRecoveryJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+
   // ── Hourly ────────────────────────────────────────────────────────────────
   {
     name:        'notification-retry',
@@ -205,6 +215,7 @@ CRON JOB SCHEDULE (UTC):
 Every  2 min  marketing-automation (Ollama)
 Every  5 min  notification-dispatch
 Every 10 min  leaderboard-refresh
+Every 30 min  abandoned-cart-recovery (Ollama)
 Hourly :00    notification-retry
 Hourly :15    campaign-adaptation (Ollama)
 Daily  01:00  analytics-aggregation
@@ -223,5 +234,5 @@ Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 20 jobs | 12 use Ollama | 0 cloud AI tokens
+Total: 21 jobs | 13 use Ollama | 0 cloud AI tokens
 `;

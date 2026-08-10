@@ -21,6 +21,7 @@ schemas=(
   "026-coupon|sohamyoga-frontend/src/domain/coupon/db-schema.sql"
   "027-booking|sohamyoga-frontend/src/domain/yoga/db-schema-booking.sql"
   "028-marketing-personalization|sohamyoga-frontend/src/domain/marketing/db-schema-personalization.sql"
+  "029-cart-recovery|sohamyoga-frontend/src/domain/ecommerce/db-schema-cart-recovery.sql"
   "030-notification|sohamyoga-frontend/src/domain/notification/db-schema.sql"
   "031-analytics|sohamyoga-frontend/src/domain/analytics/db-schema.sql"
   "032-ads|sohamyoga-frontend/src/domain/ads/db-schema.sql"
