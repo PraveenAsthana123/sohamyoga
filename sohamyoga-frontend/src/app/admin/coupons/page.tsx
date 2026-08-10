@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type CouponType = "percentage" | "fixed_amount" | "free_class" | "buy_x_get_y" | "membership" |
   "bundle" | "referral" | "first_purchase" | "birthday" | "student_senior" |
@@ -22,18 +22,13 @@ interface CouponRow {
   channel: string[];
 }
 
-const MOCK_COUPONS: CouponRow[] = [
-  { id: "c1",  code: "SUMMER20",    type: "percentage",    name: "Summer 20% Off",            status: "active",           discount: "20%",     redemptions: 143, globalLimit: 500,  validTo: "2026-09-30", stackingRule: "combinable",  channel: ["email", "social"] },
-  { id: "c2",  code: "WELCOME15",   type: "first_purchase",name: "New Member CAD 15 Off",     status: "active",           discount: "CAD 15",  redemptions: 89,  globalLimit: undefined, validTo: "2026-12-31", stackingRule: "exclusive", channel: ["email"] },
-  { id: "c3",  code: "GIFT-100",    type: "gift_voucher",  name: "Gift Voucher CAD 100",      status: "active",           discount: "CAD 100", redemptions: 12,  globalLimit: undefined, validTo: "2027-01-01", stackingRule: "exclusive", channel: ["direct"] },
-  { id: "c4",  code: "REFER2026",   type: "referral",      name: "Referral Bonus",            status: "active",           discount: "CAD 10",  redemptions: 56,  globalLimit: undefined, validTo: "2026-12-31", stackingRule: "combinable", channel: ["referral_link"] },
-  { id: "c5",  code: "GOLDMEMBER",  type: "membership",    name: "Gold Member 25% Off",       status: "active",           discount: "25%",     redemptions: 34,  globalLimit: undefined, validTo: "2026-12-31", stackingRule: "priority",   channel: ["email"] },
-  { id: "c6",  code: "BDAY10",      type: "birthday",      name: "Birthday Month 10% Off",    status: "active",           discount: "10%",     redemptions: 78,  globalLimit: undefined, validTo: "2026-12-31", stackingRule: "combinable", channel: ["email", "sms"] },
-  { id: "c7",  code: "RETREAT50",   type: "event",         name: "Fall Retreat CAD 50 Off",   status: "scheduled",        discount: "CAD 50",  redemptions: 0,   globalLimit: 30,   validTo: "2026-11-30", stackingRule: "exclusive", channel: ["email"] },
-  { id: "c8",  code: "BLACKFRIDAY", type: "percentage",    name: "Black Friday 30% Off",      status: "draft",            discount: "30%",     redemptions: 0,   globalLimit: 200,  validTo: "2026-11-29", stackingRule: "exclusive", channel: ["email", "social"] },
-  { id: "c9",  code: "FLASH15",     type: "percentage",    name: "Flash Sale 15%",            status: "exhausted",        discount: "15%",     redemptions: 100, globalLimit: 100,  validTo: "2026-07-31", stackingRule: "combinable", channel: ["social"] },
-  { id: "c10", code: "FRAUD01",     type: "public_promo",  name: "Flagged Promo",             status: "revoked",          discount: "50%",     redemptions: 3,   globalLimit: 10,   validTo: "2026-08-15", stackingRule: "exclusive", channel: ["direct"] },
-];
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
 
 const STATUS_STYLES: Record<CouponStatus, string> = {
   draft:            "bg-gray-100 text-gray-700",
@@ -60,8 +55,22 @@ export default function CouponsAdminPage() {
   const [search, setSearch]           = useState("");
   const [filterStatus, setFilterStatus] = useState<CouponStatus | "all">("all");
   const [filterType, setFilterType]   = useState<CouponType | "all">("all");
+  const [coupons, setCoupons] = useState<CouponRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = MOCK_COUPONS.filter(c => {
+  const load = () => fetchJson<{ coupons: CouponRow[] }>("/api/coupons").then(d => {
+    setCoupons(d?.coupons ?? []); setLoading(false);
+  });
+  useEffect(() => { load(); }, []);
+
+  async function transition(id: string, action: "submit" | "activate" | "pause") {
+    const res = await fetch(`/api/coupons/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }),
+    });
+    if (res.ok) load();
+  }
+
+  const filtered = coupons.filter(c => {
     const matchSearch = !search || c.code.includes(search.toUpperCase()) || c.name.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "all" || c.status === filterStatus;
     const matchType   = filterType   === "all" || c.type   === filterType;
@@ -69,10 +78,10 @@ export default function CouponsAdminPage() {
   });
 
   const totals = {
-    active:      MOCK_COUPONS.filter(c => c.status === "active").length,
-    draft:       MOCK_COUPONS.filter(c => c.status === "draft").length,
-    exhausted:   MOCK_COUPONS.filter(c => c.status === "exhausted").length,
-    redemptions: MOCK_COUPONS.reduce((s, c) => s + c.redemptions, 0),
+    active:      coupons.filter(c => c.status === "active").length,
+    draft:       coupons.filter(c => c.status === "draft").length,
+    exhausted:   coupons.filter(c => c.status === "exhausted").length,
+    redemptions: coupons.reduce((s, c) => s + c.redemptions, 0),
   };
 
   return (
@@ -145,6 +154,13 @@ export default function CouponsAdminPage() {
       </div>
 
       {/* Coupon table */}
+      {loading ? (
+        <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">Loading…</div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">
+          {coupons.length === 0 ? "No coupons yet. Create one to get started." : "No coupons match this filter."}
+        </div>
+      ) : (
       <div className="bg-white border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
@@ -170,7 +186,7 @@ export default function CouponsAdminPage() {
                   {c.redemptions}
                   {c.globalLimit && <span className="text-gray-400 ml-1">/ {c.globalLimit}</span>}
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{c.validTo}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{new Date(c.validTo).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-xs text-gray-500">{c.stackingRule}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1 flex-wrap">
@@ -182,10 +198,10 @@ export default function CouponsAdminPage() {
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
                     <button className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Edit</button>
-                    {c.status === "active"    && <button className="text-xs px-2 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded">Pause</button>}
-                    {c.status === "draft"     && <button className="text-xs px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded">Submit</button>}
-                    {c.status === "paused"    && <button className="text-xs px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded">Activate</button>}
-                    {c.status === "scheduled" && <button className="text-xs px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded">Activate</button>}
+                    {c.status === "active"    && <button onClick={() => transition(c.id, "pause")} className="text-xs px-2 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded">Pause</button>}
+                    {c.status === "draft"     && <button onClick={() => transition(c.id, "submit")} className="text-xs px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded">Submit</button>}
+                    {c.status === "paused"    && <button onClick={() => transition(c.id, "activate")} className="text-xs px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded">Activate</button>}
+                    {c.status === "scheduled" && <button onClick={() => transition(c.id, "activate")} className="text-xs px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded">Activate</button>}
                   </div>
                 </td>
               </tr>
@@ -193,6 +209,7 @@ export default function CouponsAdminPage() {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* MCP tools quick reference */}
       <div className="bg-white border rounded-lg p-4">
