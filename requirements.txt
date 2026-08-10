@@ -1,5 +1,5 @@
 # ============================================================
-# SLP Systems Portal — Project Requirements
+# SohamYoga Portal — Project Requirements
 # ============================================================
 # This file lists ALL dependencies for both backend and frontend.
 # Last updated: 2026-03-06
@@ -20,7 +20,7 @@
 # BACKEND — .NET 8 NuGet Packages
 # ------------------------------------------------------------
 # Install: dotnet restore
-# File:    SLPSystems/SLPSystems.Web/SLPSystems.Web.csproj
+# File:    SohamYoga/SohamYoga.Web/SohamYoga.Web.csproj
 # ------------------------------------------------------------
 Microsoft.AspNetCore.Identity.EntityFrameworkCore    8.0.*
 Microsoft.EntityFrameworkCore.Sqlite                 8.0.*
@@ -35,8 +35,8 @@ Swashbuckle.AspNetCore                               6.5.0
 # ------------------------------------------------------------
 # FRONTEND — Node.js Production Dependencies
 # ------------------------------------------------------------
-# Install: cd slp-frontend && npm install
-# File:    slp-frontend/package.json
+# Install: cd sohamyoga-frontend && npm install
+# File:    sohamyoga-frontend/package.json
 # ------------------------------------------------------------
 next                                ^14.2.35
 react                               ^18.3.1
@@ -82,7 +82,7 @@ eslint-config-next                  ^14.2.35
 # ASPNETCORE_ENVIRONMENT       = Development
 
 # ENVIRONMENT VARIABLES (optional)
-# NEXT_PUBLIC_SITE_URL         = https://slpsystems.ca
+# NEXT_PUBLIC_SITE_URL         = https://sohamyoga.ca
 # ASPNETCORE_URLS              = http://+:5062
 # AllowedOrigins__0            = http://localhost:3000
 # RateLimit__MaxRequests        = 100

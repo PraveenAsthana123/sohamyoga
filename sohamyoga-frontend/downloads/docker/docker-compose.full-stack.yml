@@ -1,0 +1,36 @@
+version: '3.9'
+# ─────────────────────────────────────────────────────────────────────────────
+# Soham Yoga Portal — Full Stack Orchestration
+# Starts all services in correct dependency order.
+#
+# Start:  docker compose -f downloads/docker/docker-compose.full-stack.yml up -d
+# Stop:   docker compose -f downloads/docker/docker-compose.full-stack.yml down
+# Logs:   docker compose -f downloads/docker/docker-compose.full-stack.yml logs -f
+#
+# Services:
+#   Infrastructure:  Postgres, Redis
+#   Identity:        Keycloak (port 8080)
+#   Secrets:         OpenBao (port 8200)
+#   OAuth:           Nango (port 3003)
+#   Notifications:   Novu, Listmonk, Postal, ntfy
+#   Publishing:      Postiz (port 3000)
+#   Automation:      Activepieces (port 8181), n8n (port 5678)
+#   Analytics:       Matomo (port 8888), PostHog
+#   CMS:             Strapi
+#   AI:              Ollama runs on HOST (not in Docker — needs GPU)
+#   Portal:          Next.js frontend (port 3333)
+#   Cron:            Autonomous background jobs (Ollama)
+# ─────────────────────────────────────────────────────────────────────────────
+
+include:
+  - path: ./openbao/docker-compose.openbao.yml
+  - path: ./keycloak/docker-compose.keycloak.yml
+  - path: ./nango/docker-compose.nango.yml
+  - path: ./n8n/docker-compose.n8n.yml
+  - path: ./activepieces/docker-compose.activepieces.yml
+  - path: ./cron/docker-compose.cron.yml
+
+networks:
+  sohamyoga-net:
+    name: sohamyoga-net
+    driver: bridge

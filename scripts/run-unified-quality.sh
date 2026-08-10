@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 ROOT=/mnt/deepa/sohamyoga
-FRONTEND="$ROOT/slp-frontend"
+FRONTEND="$ROOT/sohamyoga-frontend"
 source "$HOME/.config/sohamyoga/ports.env"
 export SOHAM_BASE_URL="http://127.0.0.1:$SOHAM_FRONTEND_PORT"
 mkdir -p "$FRONTEND/test-results"

@@ -95,5 +95,5 @@ volumes:
 # 2. docker compose up -d
 # 3. Open http://localhost:5000 → create admin account
 # 4. Connect social accounts via OAuth in Postiz UI
-# 5. Set POSTIZ_URL and POSTIZ_SECRET in slp-frontend/.env.local
+# 5. Set POSTIZ_URL and POSTIZ_SECRET in sohamyoga-frontend/.env.local
 # ──────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
-# SLP — Advanced Testing Summary
+# SohamYoga — Advanced Testing Summary
 
 **Run date:** 2026-06-02T19:43Z
-**Stack:** docker-compose (slp-backend healthy, slp-frontend healthy, slp-nginx)
+**Stack:** docker-compose (sohamyoga-backend healthy, sohamyoga-frontend healthy, sohamyoga-nginx)
 **Commit:** `59f6600` (server-API URL fix + healthcheck) + this commit (test suites)
 
 ## Headline
@@ -51,8 +51,8 @@ server-side API URL fix.
 |---|---|---|
 | **CUA** (Anthropic Computer Use) | Paid Anthropic API key required; this stack is a Next.js + .NET CRUD app where Playwright already covers the browser-agent need. | Set `ANTHROPIC_API_KEY`, install `cua_sdk` per §77 row 1402, write a goal-driven scenario. |
 | **Stagehand** (Browserbase) | Paid Browserbase account required; same coverage rationale. | Set `BROWSERBASE_API_KEY` + `BROWSERBASE_PROJECT_ID`, install `@browserbasehq/stagehand`, write semantic actions. |
-| Built-in `api` / `frontend` surfaces of `agent test-runner all` | Stale — point at `localhost:8000` (insur_project bootstrap default); not retargeted for SLP. | Edit `~/.claude/scripts/agent-test-runner.sh` constants OR override per-project via `.agent/`. |
-| Built-in TDD / vector / chunking / guardrail / sync surfaces | Designed for AI/RAG projects; SLP is a traditional web app — these will always be red/skip and the noise hides real signal. | Either disable for this project or wire SLP-specific drills (§43). |
+| Built-in `api` / `frontend` surfaces of `agent test-runner all` | Stale — point at `localhost:8000` (insur_project bootstrap default); not retargeted for SohamYoga. | Edit `~/.claude/scripts/agent-test-runner.sh` constants OR override per-project via `.agent/`. |
+| Built-in TDD / vector / chunking / guardrail / sync surfaces | Designed for AI/RAG projects; SohamYoga is a traditional web app — these will always be red/skip and the noise hides real signal. | Either disable for this project or wire SohamYoga-specific drills (§43). |
 | Admin write operations (POST/PUT/DELETE on /api/blog, /api/services, etc.) | Invasive — creates DB rows; would need teardown to be idempotent. | Add a fixture cleanup hook OR run against a disposable test DB clone. |
 
 ## How to re-run
@@ -63,8 +63,8 @@ cd /mnt/deepa/slp
 /media/praveen/praveenlinux21/praveen/aman/cuda/venv/bin/python jobs/reports/run_api_tests.py
 # Authenticated matrix
 /media/praveen/praveenlinux21/praveen/aman/cuda/venv/bin/python jobs/reports/run_api_tests_authenticated.py
-# Playwright smoke (one-time: npm i playwright in /tmp/slp-pw)
-NODE_PATH=/tmp/slp-pw/node_modules node jobs/reports/run_playwright_smoke.js
+# Playwright smoke (one-time: npm i playwright in /tmp/sohamyoga-pw)
+NODE_PATH=/tmp/sohamyoga-pw/node_modules node jobs/reports/run_playwright_smoke.js
 ```
 
 ## Composes with global policy
@@ -75,7 +75,7 @@ NODE_PATH=/tmp/slp-pw/node_modules node jobs/reports/run_playwright_smoke.js
   is a positive lock, not just an absence
 - §51 forensic substrate — each run writes a dated JSON + MD snapshot under `jobs/reports/`
 - §62 checklist format — pass/fail is the only thing the operator needs at a glance
-- §64.30 (12-tier) + §65.8 (8-surface) — these scripts populate the **api** + **smoke** rows for SLP
+- §64.30 (12-tier) + §65.8 (8-surface) — these scripts populate the **api** + **smoke** rows for SohamYoga
 - §74.5 task matrix — "API: start service + curl test + error-log check" done
 - §75.7 evidence — exit code + JSON + Markdown + screenshots constitute reproducible artifacts
 - §77 row 1411 (multi-agent runtime) + 1422 (vector DB) — N/A for this project; intentionally skipped

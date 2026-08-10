@@ -2,15 +2,15 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FRONTEND="$PROJECT_ROOT/slp-frontend"
+FRONTEND="$PROJECT_ROOT/sohamyoga-frontend"
 MODE="${1:-health}"
 BASE_URL="${SOHAM_BASE_URL:-http://127.0.0.1:8085}"
 
 check_health() {
-  docker exec slp-postgres pg_isready -U sohamyoga -d sohamyoga
+  docker exec sohamyoga-postgres pg_isready -U sohamyoga -d sohamyoga
   curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8091/health
   curl --fail --silent --show-error --max-time 10 http://127.0.0.1:11434/api/tags >/dev/null
-  docker logs --since 20m slp-cron 2>&1 | grep -E "failed:|ERROR" && return 1 || true
+  docker logs --since 20m sohamyoga-cron 2>&1 | grep -E "failed:|ERROR" && return 1 || true
 }
 
 check_ui() {

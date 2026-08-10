@@ -8,7 +8,7 @@ version: "3.9"
 #   docker compose -f docker-compose.master.yml --env-file .env.master up -d
 #
 # Service port map:
-#   4000  — SohamYoga Next.js portal (slp-frontend)
+#   4000  — SohamYoga Next.js portal (sohamyoga-frontend)
 #   8080  — Frappe/ERPNext/Education/CRM UI
 #   3100  — Cal.com booking
 #   5000  — Postiz social media
@@ -27,11 +27,11 @@ services:
   # ── 1. SohamYoga Portal (Next.js) ──────────────────────────────
   portal:
     build:
-      context: ./slp-frontend
+      context: ./sohamyoga-frontend
       dockerfile: Dockerfile
     container_name: sohamyoga_portal
     restart: unless-stopped
-    env_file: ./slp-frontend/.env.local
+    env_file: ./sohamyoga-frontend/.env.local
     ports:
       - "4000:3000"
     depends_on:

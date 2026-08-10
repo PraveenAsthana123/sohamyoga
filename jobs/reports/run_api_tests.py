@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SLP API test matrix — public catalog GETs + negative slugs + auth gates + POSTs.
+"""SohamYoga API test matrix — public catalog GETs + negative slugs + auth gates + POSTs.
 
 Targets the docker-compose stack: nginx :8085 (public) and backend :5070 (direct).
 Writes JSON + Markdown reports under jobs/reports/api_test_<TS>.{json,md}.
@@ -17,7 +17,7 @@ from pathlib import Path
 
 NGINX = "http://localhost:8085"
 BACKEND = "http://localhost:5070"
-ROOT = Path("/mnt/deepa/slp")
+ROOT = Path("/mnt/deepa/sohamyoga")
 OUT_DIR = ROOT / "jobs" / "reports"
 TS = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
@@ -114,7 +114,7 @@ def main() -> int:
             200,
             f"{NGINX}/api/newsletter/subscribe",
             method="POST",
-            body={"email": f"smoke-{TS.lower()}@example.com", "name": "SLP API Smoke"},
+            body={"email": f"smoke-{TS.lower()}@example.com", "name": "SohamYoga API Smoke"},
         ),
         probe(
             "contact-submit",
@@ -122,7 +122,7 @@ def main() -> int:
             f"{NGINX}/api/contact",
             method="POST",
             body={
-                "name": "SLP Smoke",
+                "name": "SohamYoga Smoke",
                 "email": "smoke@example.com",
                 "subject": "API smoke test",
                 "message": "Automated smoke from run_api_tests.py — ignore.",

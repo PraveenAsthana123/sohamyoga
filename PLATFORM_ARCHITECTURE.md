@@ -14,7 +14,7 @@ Customer (Web / Mobile App)
         │
         ▼
   ┌─────────────────────────────────┐
-  │  Next.js Frontend (slp-frontend)│
+  │  Next.js Frontend (sohamyoga-frontend)│
   │  · Auth  · Booking  · Payments  │
   │  · Student Portal  · Teacher    │
   │  · Community  · Shop            │
@@ -56,7 +56,7 @@ Customer (Web / Mobile App)
 ### 1. Authentication & Identity
 | Component | Source | Status |
 |-----------|--------|--------|
-| User login/register | `slp-frontend/src/app/auth/` | Exists |
+| User login/register | `sohamyoga-frontend/src/app/auth/` | Exists |
 | JWT / session | `SohamYoga.Web` .NET Identity | Exists |
 | OAuth (Google, Apple) | NextAuth.js | TODO |
 | Role management | Teacher / Student / Admin | Partial |
@@ -140,7 +140,7 @@ Customer (Web / Mobile App)
 ### 9. Student Portal
 | Component | Source | Status |
 |-----------|--------|--------|
-| Dashboard | `slp-frontend/src/app/customer/` | Partial |
+| Dashboard | `sohamyoga-frontend/src/app/customer/` | Partial |
 | Class history | Build | TODO |
 | Progress charts | Build | TODO |
 | Pose archive | Build | TODO |
@@ -160,8 +160,8 @@ Customer (Web / Mobile App)
 ### 11. Admin Dashboard
 | Component | Source | Status |
 |-----------|--------|--------|
-| User management | `slp-frontend/src/app/admin/users/` | Exists |
-| Analytics | `slp-frontend/src/app/admin/` | Partial |
+| User management | `sohamyoga-frontend/src/app/admin/users/` | Exists |
+| Analytics | `sohamyoga-frontend/src/app/admin/` | Partial |
 | Content management | Existing admin | Partial |
 | API monitoring | Existing monitoring page | Exists |
 | Reports | agentic platform `oll report` | Exists |
@@ -220,7 +220,7 @@ Phase 4 — Mobile & Scale (Weeks 13-16)
 
 ### Priority 1 — Payments (Stripe)
 ```
-slp-frontend/src/app/
+sohamyoga-frontend/src/app/
   └── payments/
       ├── page.tsx         ← pricing plans
       ├── checkout/page.tsx
@@ -232,7 +232,7 @@ backend/stripe/
 
 ### Priority 2 — Booking
 ```
-slp-frontend/src/app/
+sohamyoga-frontend/src/app/
   └── booking/
       ├── page.tsx          ← class calendar
       ├── [classId]/page.tsx
@@ -241,7 +241,7 @@ slp-frontend/src/app/
 
 ### Priority 3 — Pose Detection
 ```
-slp-frontend/src/app/
+sohamyoga-frontend/src/app/
   └── ai/
       ├── pose/page.tsx     ← webcam + MediaPipe
       ├── coach/page.tsx    ← AI flow generator
@@ -250,7 +250,7 @@ slp-frontend/src/app/
 
 ### Priority 4 — Teacher & Student Portals
 ```
-slp-frontend/src/app/
+sohamyoga-frontend/src/app/
   ├── teacher/
   │   ├── dashboard/page.tsx
   │   ├── classes/page.tsx

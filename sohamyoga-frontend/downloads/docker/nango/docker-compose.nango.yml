@@ -1,0 +1,84 @@
+version: '3.9'
+# Nango — OAuth + API integration manager
+# UI: http://localhost:3003
+# After first start: connect each social platform once via Nango UI
+# MCP tools call Nango to get valid tokens — never store tokens in code
+
+services:
+  nango-db:
+    image: postgres:16-alpine
+    container_name: sohamyoga-nango-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       nango
+      POSTGRES_USER:     nango
+      POSTGRES_PASSWORD: ${NANGO_DB_PASSWORD:-nango_secret}
+    volumes:
+      - nango-db-data:/var/lib/postgresql/data
+    networks:
+      - sohamyoga-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nango"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nango-redis:
+    image: redis:7-alpine
+    container_name: sohamyoga-nango-redis
+    restart: unless-stopped
+    networks:
+      - sohamyoga-net
+
+  nango:
+    image: nangohq/nango:latest
+    container_name: sohamyoga-nango
+    restart: unless-stopped
+    depends_on:
+      nango-db:
+        condition: service_healthy
+      nango-redis:
+        condition: service_started
+    ports:
+      - "3003:3003"
+    environment:
+      DATABASE_URL:        postgresql://nango:${NANGO_DB_PASSWORD:-nango_secret}@nango-db:5432/nango
+      REDIS_URL:           redis://nango-redis:6379
+      NANGO_SECRET_KEY:    ${NANGO_SECRET_KEY}
+      NANGO_PUBLIC_KEY:    ${NANGO_PUBLIC_KEY}
+      SERVER_PORT:         3003
+      # Providers configured via UI — no hardcoded secrets here
+      CALLBACK_URL:        ${NANGO_CALLBACK_URL:-http://localhost:3003/oauth/callback}
+    volumes:
+      - nango-data:/usr/src/app/.nango
+    networks:
+      - sohamyoga-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Nango worker for background token refresh
+  nango-worker:
+    image: nangohq/nango:latest
+    container_name: sohamyoga-nango-worker
+    restart: unless-stopped
+    depends_on:
+      nango:
+        condition: service_healthy
+    command: worker
+    environment:
+      DATABASE_URL:     postgresql://nango:${NANGO_DB_PASSWORD:-nango_secret}@nango-db:5432/nango
+      REDIS_URL:        redis://nango-redis:6379
+      NANGO_SECRET_KEY: ${NANGO_SECRET_KEY}
+    networks:
+      - sohamyoga-net
+
+networks:
+  sohamyoga-net:
+    external: true
+
+volumes:
+  nango-db-data:
+  nango-data:

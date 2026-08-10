@@ -26,8 +26,8 @@ ensure_line "$RUNTIME" POSTIZ_CLIENT_URL "http://127.0.0.1:$SOHAM_POSTIZ_PORT"
 ensure_line "$RUNTIME" POSTIZ_INTERNAL_URL "http://127.0.0.1:$SOHAM_POSTIZ_PORT"
 chmod 600 "$POSTIZ_ENV" "$RUNTIME"
 set -a; source "$RUNTIME"; source "$POSTIZ_ENV"; source "$SOCIAL" 2>/dev/null || true; set +a
-docker network inspect slp-net >/dev/null 2>&1 || docker network create slp-net >/dev/null
-docker compose --env-file "$RUNTIME" --env-file "$PORTS" -f "$ROOT/slp-frontend/downloads/docker/openbao/docker-compose.openbao.yml" up -d openbao
+docker network inspect sohamyoga-net >/dev/null 2>&1 || docker network create sohamyoga-net >/dev/null
+docker compose --env-file "$RUNTIME" --env-file "$PORTS" -f "$ROOT/sohamyoga-frontend/downloads/docker/openbao/docker-compose.openbao.yml" up -d openbao
 for i in $(seq 1 30); do curl -fsS --max-time 2 "$OPENBAO_ADDR/v1/sys/health" >/dev/null && break; sleep 1; done
 curl -fsS --max-time 3 "$OPENBAO_ADDR/v1/sys/health" >/dev/null || { echo 'OpenBao failed health check' >&2; exit 1; }
 docker compose --env-file "$POSTIZ_ENV" --env-file "$SOCIAL" --env-file "$PORTS" -f "$ROOT/integrations/postiz/docker-compose.yml" up -d

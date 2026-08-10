@@ -50,7 +50,7 @@ UPDATE module_database_object SET module_id=(SELECT id FROM module_master WHERE 
 WHERE object_name=:'table' AND EXISTS(SELECT 1 FROM module_master WHERE module_key=:'module');
 SQL
   done < <(sed -nE 's/^[[:space:]]*CREATE TABLE( IF NOT EXISTS)?[[:space:]]+"?([a-zA-Z0-9_]+)"?.*/\2/Ip' "$schema_file")
-done < <(find "$ROOT/slp-frontend/src/domain" -mindepth 2 -maxdepth 2 -name '*.sql' | sort)
+done < <(find "$ROOT/sohamyoga-frontend/src/domain" -mindepth 2 -maxdepth 2 -name '*.sql' | sort)
 
 test_route() {
  local stakeholder="$1" route="$2" module="$3" started code duration status err=''
@@ -70,7 +70,7 @@ SQL
 }
 
 while IFS= read -r file; do
- rel=${file#"$ROOT/slp-frontend/src/app/"}; route=/${rel%/page.tsx}; [[ "$route" == /page.tsx ]] && route=/
+ rel=${file#"$ROOT/sohamyoga-frontend/src/app/"}; route=/${rel%/page.tsx}; [[ "$route" == /page.tsx ]] && route=/
  if [[ "$route" == /admin* ]]; then stakeholder=admin; segment=${route#/admin}; segment=${segment#/}; module=${segment%%/*};
  elif [[ "$route" == /customer* ]]; then stakeholder=customer; module=customer;
  else stakeholder=sales; segment=${route#/}; module=${segment%%/*}; fi
@@ -78,7 +78,7 @@ while IFS= read -r file; do
  exists=$(psql "$DATABASE_URL" -Atc "SELECT 1 FROM module_master WHERE module_key='${module//\'/}'")
  [[ "$exists" == 1 ]] || module=core
  test_route "$stakeholder" "$route" "$module"
-done < <(find "$ROOT/slp-frontend/src/app" -name page.tsx -not -path '*/integrations/paperclip/*' | sort)
+done < <(find "$ROOT/sohamyoga-frontend/src/app" -name page.tsx -not -path '*/integrations/paperclip/*' | sort)
 
 # Downloaded/configured is distinct from healthy/working.
 while IFS= read -r name; do

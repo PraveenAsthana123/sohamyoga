@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/mnt/deepa/sohamyoga/slp-frontend
+WorkingDirectory=/mnt/deepa/sohamyoga/sohamyoga-frontend
 EnvironmentFile=/home/praveen/.config/sohamyoga/ports.env
 EnvironmentFile=-/home/praveen/.config/sohamyoga/runtime.env
 Environment=NODE_ENV=development

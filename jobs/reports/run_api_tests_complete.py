@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SLP comprehensive API matrix — every endpoint, public + authenticated + write-cycle.
+"""SohamYoga comprehensive API matrix — every endpoint, public + authenticated + write-cycle.
 
 Strategy:
   1. ANONYMOUS GETs (public catalog + every sub-route)
@@ -25,7 +25,7 @@ from pathlib import Path
 
 NGINX = "http://localhost:8085"
 BACKEND = "http://localhost:5070"
-ROOT = Path("/mnt/deepa/slp")
+ROOT = Path("/mnt/deepa/sohamyoga")
 OUT_DIR = ROOT / "jobs" / "reports"
 TS = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 ENV_PATH = ROOT / ".env"
@@ -43,7 +43,7 @@ def load_creds() -> tuple[str, str]:
 def make_opener() -> urllib.request.OpenerDirector:
     jar = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-    opener.addheaders = [("User-Agent", "slp-api-tester/1.0"), ("Accept", "application/json")]
+    opener.addheaders = [("User-Agent", "sohamyoga-api-tester/1.0"), ("Accept", "application/json")]
     return opener
 
 
@@ -181,7 +181,7 @@ def main() -> int:
     results.append(
         probe(anon, "newsletter-subscribe-anon", [200, 201],
               f"{BACKEND}/api/newsletter/subscribe", method="POST",
-              body={"email": f"smoke-{TS.lower()}@example.com", "name": "SLP Smoke"})
+              body={"email": f"smoke-{TS.lower()}@example.com", "name": "SohamYoga Smoke"})
     )
     results.append(
         probe(anon, "contact-submit-anon", [200, 201],

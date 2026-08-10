@@ -104,7 +104,7 @@ SQL
 fi
 
 say ''; say 'Configuration check (values are never printed):'
-set +e; bash "$ROOT/slp-frontend/downloads/scripts/validate-postiz-providers.sh" "$ENV_FILE"; validate_code=$?; set -e
+set +e; bash "$ROOT/sohamyoga-frontend/downloads/scripts/validate-postiz-providers.sh" "$ENV_FILE"; validate_code=$?; set -e
 say ''; say "Protected credentials: $ENV_FILE"; say "Non-secret checklist: $META_FILE"; say "Configured now: $configured | skipped/partial: $skipped"
 say "Portal setup UI: http://127.0.0.1:$(awk -F= '$1==\"SOHAM_FRONTEND_PORT\"{print $2}' "$PORTS_FILE" 2>/dev/null || echo 8085)/admin/social/setup"
 say 'Next: finish platform verification, then connect each tenant account using OAuth. Never enter social passwords in this file.'

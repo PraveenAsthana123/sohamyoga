@@ -2,7 +2,7 @@
 set -u
 
 ROOT="/mnt/deepa/sohamyoga"
-FRONTEND="$ROOT/slp-frontend"
+FRONTEND="$ROOT/sohamyoga-frontend"
 ENVFILE="$FRONTEND/.env.local"
 
 BACKEND="http://127.0.0.1:15070"

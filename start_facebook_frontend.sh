@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-FRONTEND="/mnt/deepa/sohamyoga/slp-frontend"
+FRONTEND="/mnt/deepa/sohamyoga/sohamyoga-frontend"
 LOG="/tmp/sohamyoga-8085.log"
 PIDFILE="/tmp/sohamyoga-8085.pid"
 

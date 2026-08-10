@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SLP authenticated API matrix — admin login + per-controller authenticated GETs.
+"""SohamYoga authenticated API matrix — admin login + per-controller authenticated GETs.
 
 Login first as admin (from .env ADMIN_EMAIL/ADMIN_PASSWORD), then hit every
 authenticated endpoint we know about. Also exercises the customer flow:
@@ -20,7 +20,7 @@ import urllib.request
 from pathlib import Path
 
 NGINX = "http://localhost:8085"
-ROOT = Path("/mnt/deepa/slp")
+ROOT = Path("/mnt/deepa/sohamyoga")
 OUT_DIR = ROOT / "jobs" / "reports"
 TS = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 ENV_PATH = ROOT / ".env"
@@ -38,7 +38,7 @@ def load_admin_credentials() -> tuple[str, str]:
 def make_opener() -> urllib.request.OpenerDirector:
     jar = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-    opener.addheaders = [("User-Agent", "slp-api-tester/1.0"), ("Accept", "application/json")]
+    opener.addheaders = [("User-Agent", "sohamyoga-api-tester/1.0"), ("Accept", "application/json")]
     return opener
 
 

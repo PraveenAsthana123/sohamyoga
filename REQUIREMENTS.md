@@ -1,4 +1,4 @@
-# Requirements — SLP Systems Portal
+# Requirements — SohamYoga Portal
 
 ---
 
@@ -119,8 +119,8 @@
 
 | Volume | Mount Point | Purpose |
 |--------|-------------|---------|
-| `slp-data` | `/app/data` | SQLite database persistence |
-| `slp-logs` | `/app/logs` | Serilog log file persistence |
+| `sohamyoga-data` | `/app/data` | SQLite database persistence |
+| `sohamyoga-logs` | `/app/logs` | Serilog log file persistence |
 
 ---
 
@@ -137,7 +137,7 @@
 
 | Variable | Default | Used By |
 |----------|---------|---------|
-| `NEXT_PUBLIC_SITE_URL` | `https://slpsystems.ca` | Frontend (OG tags) |
+| `NEXT_PUBLIC_SITE_URL` | `https://sohamyoga.ca` | Frontend (OG tags) |
 | `ASPNETCORE_URLS` | `http://+:5062` | Backend |
 | `AllowedOrigins__0` | `http://localhost:3000` | Backend (CORS) |
 | `RateLimit__MaxRequests` | `100` | Backend |

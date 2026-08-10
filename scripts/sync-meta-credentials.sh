@@ -4,7 +4,7 @@ CFG="${XDG_CONFIG_HOME:-$HOME/.config}/sohamyoga"; ROOT=/mnt/deepa/sohamyoga
 source "$CFG/runtime.env"; source "$CFG/ports.env"
 command -v jq >/dev/null || { echo 'jq is required' >&2; exit 1; }
 # A missing secret is the normal pre-configuration state; keep the minute timer quiet.
-payload=$(curl -fs --max-time 8 -H "X-Vault-Token: $OPENBAO_ROOT_TOKEN" "$OPENBAO_ADDR/v1/secret/data/slp-portal/facebook" 2>/dev/null) || exit 0
+payload=$(curl -fs --max-time 8 -H "X-Vault-Token: $OPENBAO_ROOT_TOKEN" "$OPENBAO_ADDR/v1/secret/data/sohamyoga-portal/facebook" 2>/dev/null) || exit 0
 app_id=$(jq -er '.data.data.app_id|select(length>0)' <<<"$payload") || exit 0
 app_secret=$(jq -er '.data.data.app_secret|select(length>0)' <<<"$payload") || exit 0
 social="$CFG/social-integrations.env"; mkdir -p "$CFG"; umask 077; tmp=$(mktemp "$CFG/.social-sync.XXXXXX"); trap 'rm -f "$tmp"' EXIT

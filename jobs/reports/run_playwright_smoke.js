@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SLP Playwright smoke — browser-driven E2E across the public site.
+ * SohamYoga Playwright smoke — browser-driven E2E across the public site.
  * Renders 7 pages, asserts no "Page not found" in the visible body,
  * grabs title + heading + screenshot for each. Exits 0 if all pass.
  *
@@ -18,7 +18,7 @@ const SCREENS_DIR = path.join(OUT_DIR, `playwright_${TS}`);
 fs.mkdirSync(SCREENS_DIR, { recursive: true });
 
 const ROUTES = [
-  { label: 'home',                 url: '/',                                expectInTitle: 'SLP Systems' },
+  { label: 'home',                 url: '/',                                expectInTitle: 'SohamYoga' },
   { label: 'about',                url: '/about',                           expectInTitle: 'About' },
   { label: 'blog-list',            url: '/blog',                            expectInTitle: 'Blog' },
   { label: 'industries-banking',   url: '/industries/banking-finance',      expectInTitle: 'Banking' },

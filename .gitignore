@@ -30,8 +30,8 @@ nginx/ssl/
 node_modules/
 .next/
 out/
-slp-frontend/.env
-slp-frontend/.env.local
+sohamyoga-frontend/.env
+sohamyoga-frontend/.env.local
 
 # ─── Docker ───────────────────────────────────────────────────────────────────
 # (docker-compose.yml is committed, .env is not)
