@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const TABS = ['Overview', 'Leads', 'Pipeline', 'Segmentation', 'CLV', 'Churn', 'Campaigns'] as const;
 type Tab = typeof TABS[number];
@@ -20,106 +20,42 @@ function Badge({ children, color = 'blue' }: { children: React.ReactNode; color?
   return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c[color] ?? c.blue}`}>{children}</span>;
 }
 
+function EmptyState({ message }: { message: string }) {
+  return <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
+}
+
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
+
+interface OverviewData {
+  totalContacts: number; activeLeads: number; conversionRatePct: number; avgClv: number; churnRatePct: number;
+  leadSources: { source: string; count: number; pct: number }[];
+}
+
 function OverviewTab() {
+  const [data, setData] = useState<OverviewData | null>(null);
+  useEffect(() => { fetchJson<OverviewData>('/api/crm/overview').then(setData); }, []);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Total Contacts"       value="3,284" sub="↑ 8% vs Jul"         color="blue" />
-        <KpiCard label="Active Leads"         value="184"   sub="↑ 22% vs last week"  color="green" />
-        <KpiCard label="Conversion Rate"      value="18%"   sub="↑ 2% vs last month"  color="teal" />
-        <KpiCard label="Avg CLV"              value="$840"  sub="Per active member"    color="purple" />
-        <KpiCard label="Churn Rate (Month)"   value="4.2%"  sub="↓ 0.8% vs Jul"       color="amber" />
-        <KpiCard label="NPS Score"            value="72"    sub="Excellent"            color="green" />
-        <KpiCard label="Email Open Rate"      value="34%"   sub="Industry avg: 21%"   color="blue" />
-        <KpiCard label="Referral Signups"     value="42"    sub="This month"           color="teal" />
+        <KpiCard label="Total Contacts"     value={(data?.totalContacts ?? 0).toLocaleString()} color="blue" />
+        <KpiCard label="Active Leads"       value={(data?.activeLeads ?? 0).toLocaleString()}   color="green" />
+        <KpiCard label="Conversion Rate"    value={`${data?.conversionRatePct ?? 0}%`} sub="Last 90 days" color="teal" />
+        <KpiCard label="Avg CLV"            value={`$${(data?.avgClv ?? 0).toLocaleString()}`} color="purple" />
+        <KpiCard label="Churn Risk"         value={`${data?.churnRatePct ?? 0}%`} sub="High/critical flagged" color="amber" />
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="border rounded-lg p-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Lead Sources (Aug)</h3>
-          {[['Organic Search', 48, 'bg-blue-400'], ['Referral', 23, 'bg-green-400'], ['Instagram', 14, 'bg-pink-400'], ['WhatsApp', 9, 'bg-teal-400'], ['Direct', 6, 'bg-gray-400']].map(([l, p, c]) => (
-            <div key={String(l)} className="flex items-center gap-3 text-sm mb-2">
-              <span className="w-28 text-gray-600 text-xs">{l}</span>
-              <div className="flex-1 h-2 bg-gray-100 rounded"><div className={`h-2 ${c} rounded`} style={{ width: `${p}%` }} /></div>
-              <span className="w-8 text-right font-medium">{p}%</span>
-            </div>
-          ))}
-        </div>
-        <div className="border rounded-lg p-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Customer Journey (Funnel)</h3>
-          {[['Website Visitors', 4200], ['Leads', 184], ['Trial Started', 96], ['Converted', 33], ['Retained 3mo', 28]].map(([stage, n]) => (
-            <div key={String(stage)} className="flex justify-between items-center text-sm mb-1.5">
-              <span className="text-gray-600">{stage}</span>
-              <div className="flex items-center gap-2">
-                <div className="w-32 h-1.5 bg-gray-100 rounded"><div className="h-1.5 bg-blue-400 rounded" style={{ width: `${(Number(n) / 4200) * 100}%` }} /></div>
-                <span className="w-12 text-right font-medium">{n.toLocaleString()}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LeadsTab() {
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="px-4 py-3 bg-gray-50 flex justify-between">
-        <h3 className="text-sm font-semibold">Active Leads (184)</h3>
-        <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Add Lead</button>
-      </div>
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Name', 'Email', 'Source', 'Stage', 'Score', 'Owner', 'Added'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
-        <tbody className="divide-y divide-gray-100">
-          {[
-            ['Priya Kapoor',  'priya.k@email.com', 'Instagram',  'trial',      84, 'Meera', 'Aug 4'],
-            ['Arjun Mehta',   'arjun.m@email.com', 'Referral',   'contacted',  72, 'Ranjit', 'Aug 4'],
-            ['Sneha Patel',   'sneha.p@email.com', 'Organic',    'new',        61, 'Auto',  'Aug 5'],
-            ['Vikas Sharma',  'vikas.s@email.com', 'WhatsApp',   'demo_scheduled', 91, 'Meera', 'Aug 3'],
-            ['Anjali Roy',    'anjali.r@email.com','Direct',     'trial',      78, 'Ranjit', 'Aug 2'],
-          ].map(([name, email, source, stage, score, owner, added]) => (
-            <tr key={String(email)} className="hover:bg-gray-50">
-              <td className="px-3 py-2 font-medium">{name}</td>
-              <td className="px-3 py-2 text-gray-600 text-xs">{email}</td>
-              <td className="px-3 py-2"><Badge color="blue">{source}</Badge></td>
-              <td className="px-3 py-2"><Badge color={stage === 'demo_scheduled' ? 'purple' : stage === 'trial' ? 'teal' : 'gray'}>{stage}</Badge></td>
-              <td className="px-3 py-2">
-                <div className="flex items-center gap-1">
-                  <div className="w-12 h-1.5 bg-gray-100 rounded"><div className={`h-1.5 ${Number(score) > 80 ? 'bg-green-500' : Number(score) > 60 ? 'bg-amber-400' : 'bg-gray-400'} rounded`} style={{ width: `${score}%` }} /></div>
-                  <span className="text-xs font-medium">{score}</span>
-                </div>
-              </td>
-              <td className="px-3 py-2 text-gray-600">{owner}</td>
-              <td className="px-3 py-2 text-gray-500 text-xs">{added}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function PipelineTab() {
-  const stages = [
-    { name: 'New',          leads: 42, color: 'bg-gray-100 border-gray-300' },
-    { name: 'Contacted',    leads: 38, color: 'bg-blue-100 border-blue-300' },
-    { name: 'Trial',        leads: 28, color: 'bg-purple-100 border-purple-300' },
-    { name: 'Demo Scheduled', leads: 12, color: 'bg-amber-100 border-amber-300' },
-    { name: 'Proposal',     leads: 8,  color: 'bg-teal-100 border-teal-300' },
-    { name: 'Converted',    leads: 33, color: 'bg-green-100 border-green-300' },
-  ];
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Total in Pipeline" value="161"  color="blue" />
-        <KpiCard label="Converted (Month)" value="33"   sub="18% conversion" color="green" />
-        <KpiCard label="Avg Deal Time"     value="12 days" color="purple" />
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-        {stages.map(stage => (
-          <div key={stage.name} className={`border-2 rounded-lg p-3 ${stage.color}`}>
-            <div className="text-lg font-bold text-gray-800">{stage.leads}</div>
-            <div className="text-xs font-medium text-gray-600 mt-0.5">{stage.name}</div>
+      <div className="border rounded-lg p-4">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Lead Sources (30 days)</h3>
+        {!data?.leadSources.length ? <EmptyState message="No leads captured in the last 30 days." /> : data.leadSources.map(s => (
+          <div key={s.source} className="flex items-center gap-3 text-sm mb-2">
+            <span className="w-28 text-gray-600 text-xs">{s.source}</span>
+            <div className="flex-1 h-2 bg-gray-100 rounded"><div className="h-2 bg-blue-400 rounded" style={{ width: `${s.pct}%` }} /></div>
+            <span className="w-8 text-right font-medium">{s.pct}%</span>
           </div>
         ))}
       </div>
@@ -127,7 +63,79 @@ function PipelineTab() {
   );
 }
 
+interface LeadRow { id: string; name: string; email: string; source: string; stage: string; score: number | null; temperature: string | null; added: string }
+
+function LeadsTab() {
+  const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetchJson<{ leads: LeadRow[] }>('/api/crm/leads').then(d => { setLeads(d?.leads ?? []); setLoading(false); }); }, []);
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div className="px-4 py-3 bg-gray-50 flex justify-between">
+        <h3 className="text-sm font-semibold">Active Leads ({leads.length})</h3>
+        <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Add Lead</button>
+      </div>
+      {loading ? <EmptyState message="Loading…" /> : leads.length === 0 ? <EmptyState message="No active leads yet." /> : (
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Name', 'Email', 'Source', 'Stage', 'Score', 'Added'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-gray-100">
+            {leads.map(l => (
+              <tr key={l.id} className="hover:bg-gray-50">
+                <td className="px-3 py-2 font-medium">{l.name}</td>
+                <td className="px-3 py-2 text-gray-600 text-xs">{l.email}</td>
+                <td className="px-3 py-2"><Badge color="blue">{l.source}</Badge></td>
+                <td className="px-3 py-2"><Badge color={l.stage === 'demo_scheduled' ? 'purple' : l.stage === 'trial' ? 'teal' : 'gray'}>{l.stage}</Badge></td>
+                <td className="px-3 py-2">
+                  {l.score === null ? <span className="text-xs text-gray-400">not scored</span> : (
+                    <div className="flex items-center gap-1">
+                      <div className="w-12 h-1.5 bg-gray-100 rounded"><div className={`h-1.5 ${l.score > 80 ? 'bg-green-500' : l.score > 60 ? 'bg-amber-400' : 'bg-gray-400'} rounded`} style={{ width: `${l.score}%` }} /></div>
+                      <span className="text-xs font-medium">{l.score}</span>
+                    </div>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-gray-500 text-xs">{new Date(l.added).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+interface PipelineData { total: number; converted: number; conversionRatePct: number; avgDealDays: number | null; stages: { name: string; count: number }[] }
+
+function PipelineTab() {
+  const [data, setData] = useState<PipelineData | null>(null);
+  useEffect(() => { fetchJson<PipelineData>('/api/crm/pipeline').then(setData); }, []);
+  const STAGE_COLOR: Record<string, string> = {
+    new: 'bg-gray-100 border-gray-300', contacted: 'bg-blue-100 border-blue-300', trial: 'bg-purple-100 border-purple-300',
+    demo_scheduled: 'bg-amber-100 border-amber-300', proposal: 'bg-teal-100 border-teal-300', converted: 'bg-green-100 border-green-300',
+  };
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3">
+        <KpiCard label="Total in Pipeline (90d)" value={String(data?.total ?? 0)} color="blue" />
+        <KpiCard label="Converted" value={String(data?.converted ?? 0)} sub={`${data?.conversionRatePct ?? 0}% conversion`} color="green" />
+        <KpiCard label="Avg Deal Time" value={data?.avgDealDays != null ? `${data.avgDealDays} days` : '—'} color="purple" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+        {(data?.stages ?? []).map(stage => (
+          <div key={stage.name} className={`border-2 rounded-lg p-3 ${STAGE_COLOR[stage.name] ?? 'bg-gray-100 border-gray-300'}`}>
+            <div className="text-lg font-bold text-gray-800">{stage.count}</div>
+            <div className="text-xs font-medium text-gray-600 mt-0.5 capitalize">{stage.name.replace('_', ' ')}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface SegmentRow { name: string; count: number; desc: string }
+
 function SegmentationTab() {
+  const [segments, setSegments] = useState<SegmentRow[]>([]);
+  useEffect(() => { fetchJson<{ segments: SegmentRow[] }>('/api/crm/segments').then(d => setSegments(d?.segments ?? [])); }, []);
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
@@ -135,21 +143,14 @@ function SegmentationTab() {
         <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Create Segment</button>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
-        {[
-          { name: 'High-Value Members',      count: 392, desc: 'Platinum tier, CLV > $1,200',          color: 'purple' },
-          { name: 'At-Risk Members',         count: 184, desc: 'No class > 14 days, active membership',color: 'rose' },
-          { name: 'Highly Engaged',          count: 620, desc: '8+ classes/month, NPS > 8',             color: 'green' },
-          { name: 'Win-Back Candidates',     count: 248, desc: 'Lapsed > 60 days, previously Gold+',   color: 'amber' },
-          { name: 'Corporate Prospects',     count: 42,  desc: 'B2B contacts, no contract yet',         color: 'blue' },
-          { name: 'Referral Champions',      count: 84,  desc: 'Made ≥ 2 successful referrals',        color: 'teal' },
-        ].map(seg => (
+        {segments.map(seg => (
           <div key={seg.name} className="border rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div>
                 <div className="font-semibold text-sm">{seg.name}</div>
                 <div className="text-xs text-gray-500 mt-0.5">{seg.desc}</div>
               </div>
-              <span className={`text-lg font-bold ${seg.color === 'purple' ? 'text-purple-600' : seg.color === 'green' ? 'text-green-600' : seg.color === 'rose' ? 'text-rose-600' : 'text-blue-600'}`}>{seg.count}</span>
+              <span className="text-lg font-bold text-blue-600">{seg.count}</span>
             </div>
             <div className="flex gap-2 mt-3">
               <button className="text-xs text-blue-600 hover:underline">View</button>
@@ -163,23 +164,26 @@ function SegmentationTab() {
   );
 }
 
+interface ClvData { avgClv: number; top10PctClv: number; byTier: { tier: string; p25: number; median: number; p90: number }[] }
+
 function CLVTab() {
+  const [data, setData] = useState<ClvData | null>(null);
+  useEffect(() => { fetchJson<ClvData>('/api/crm/clv').then(setData); }, []);
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Avg CLV"         value="$840"   sub="Per active member" color="purple" />
-        <KpiCard label="Top 10% CLV"     value="$3,200" sub="Platinum members"  color="green" />
-        <KpiCard label="CLV / CAC Ratio" value="8.4x"   sub="Target: > 3x"      color="teal" />
+      <div className="grid grid-cols-2 gap-3">
+        <KpiCard label="Avg CLV"         value={`$${(data?.avgClv ?? 0).toLocaleString()}`}   sub="Per paying customer" color="purple" />
+        <KpiCard label="Top 10% CLV"     value={`$${(data?.top10PctClv ?? 0).toLocaleString()}`} sub="90th percentile"   color="green" />
       </div>
       <div className="border rounded-lg p-4">
         <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">CLV Distribution by Tier</h3>
-        {[['Silver', '$320', '$480', '$610'], ['Gold', '$680', '$920', '$1,240'], ['Platinum', '$1,800', '$2,400', '$3,800'], ['Drop-in', '$80', '$120', '$200']].map(([tier, p25, median, p90]) => (
-          <div key={String(tier)} className="py-2 border-b border-gray-50 text-sm">
+        {!data?.byTier.length ? <EmptyState message="No customer spend recorded yet." /> : data.byTier.map(t => (
+          <div key={t.tier} className="py-2 border-b border-gray-50 text-sm">
             <div className="flex justify-between">
-              <span className="font-medium w-20">{tier}</span>
-              <span className="text-gray-500 text-xs">P25: {p25}</span>
-              <span className="font-semibold text-purple-700">Median: {median}</span>
-              <span className="text-gray-500 text-xs">P90: {p90}</span>
+              <span className="font-medium w-20 capitalize">{t.tier}</span>
+              <span className="text-gray-500 text-xs">P25: ${t.p25}</span>
+              <span className="font-semibold text-purple-700">Median: ${t.median}</span>
+              <span className="text-gray-500 text-xs">P90: ${t.p90}</span>
             </div>
           </div>
         ))}
@@ -188,39 +192,38 @@ function CLVTab() {
   );
 }
 
+interface ChurnData {
+  churnRatePct: number; membersFlagged: number;
+  reasons: { reason: string; pct: number }[];
+  atRisk: { name: string; lastClass: string | null; risk: string }[];
+}
+
 function ChurnTab() {
+  const [data, setData] = useState<ChurnData | null>(null);
+  useEffect(() => { fetchJson<ChurnData>('/api/crm/churn').then(setData); }, []);
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Churn Rate (Month)"   value="4.2%"  sub="↓ 0.8% vs Jul" color="green" />
-        <KpiCard label="Members Churned"      value="142"   sub="142 this month" color="amber" />
-        <KpiCard label="Revenue Lost"         value="$11,280" sub="From churned" color="rose" />
+      <div className="grid grid-cols-2 gap-3">
+        <KpiCard label="Churn Risk Rate"   value={`${data?.churnRatePct ?? 0}%`}  color="amber" />
+        <KpiCard label="Members Flagged"   value={String(data?.membersFlagged ?? 0)} sub="High/critical risk" color="rose" />
       </div>
       <div className="grid md:grid-cols-2 gap-4">
         <div className="border rounded-lg p-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Churn Reasons (Exit Survey)</h3>
-          {[['Too expensive', 28], ['Not using enough', 22], ['Moved location', 18], ['Health reasons', 12], ['Schedule conflict', 11], ['Other', 9]].map(([reason, pct]) => (
-            <div key={String(reason)} className="flex items-center gap-3 text-sm mb-2">
-              <span className="w-36 text-gray-600 text-xs">{reason}</span>
-              <div className="flex-1 h-2 bg-gray-100 rounded"><div className="h-2 bg-rose-400 rounded" style={{ width: `${pct}%` }} /></div>
-              <span className="w-8 text-right font-medium">{pct}%</span>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Top Churn Reasons (Ollama-flagged)</h3>
+          {!data?.reasons.length ? <EmptyState message="No high-risk members flagged yet." /> : data.reasons.map(r => (
+            <div key={r.reason} className="flex items-center gap-3 text-sm mb-2">
+              <span className="w-36 text-gray-600 text-xs truncate" title={r.reason}>{r.reason}</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded"><div className="h-2 bg-rose-400 rounded" style={{ width: `${r.pct}%` }} /></div>
+              <span className="w-8 text-right font-medium">{r.pct}%</span>
             </div>
           ))}
         </div>
         <div className="border rounded-lg p-4">
           <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">At-Risk — Early Warning</h3>
-          {[
-            { name: 'Sanjay Mehta', last: '18 days ago', tier: 'Gold',   risk: 'High' },
-            { name: 'Pooja Sharma', last: '14 days ago', tier: 'Silver', risk: 'High' },
-            { name: 'Rahul Nair',   last: '12 days ago', tier: 'Gold',   risk: 'Medium' },
-            { name: 'Kavya Singh',  last: '10 days ago', tier: 'Platinum',risk: 'Low' },
-          ].map(({ name, last, tier, risk }) => (
-            <div key={name} className="flex items-center justify-between text-sm py-1.5 border-b border-gray-50">
-              <div><div className="font-medium">{name}</div><div className="text-xs text-gray-500">Last class: {last}</div></div>
-              <div className="flex items-center gap-2">
-                <Badge color="blue">{tier}</Badge>
-                <Badge color={risk === 'High' ? 'red' : risk === 'Medium' ? 'amber' : 'green'}>{risk}</Badge>
-              </div>
+          {!data?.atRisk.length ? <EmptyState message="No members currently flagged." /> : data.atRisk.map((m, i) => (
+            <div key={i} className="flex items-center justify-between text-sm py-1.5 border-b border-gray-50">
+              <div><div className="font-medium">{m.name}</div><div className="text-xs text-gray-500">Last class: {m.lastClass ? new Date(m.lastClass).toLocaleDateString() : 'never'}</div></div>
+              <Badge color={m.risk === 'Critical' || m.risk === 'High' ? 'red' : m.risk === 'Medium' ? 'amber' : 'green'}>{m.risk}</Badge>
             </div>
           ))}
         </div>
@@ -229,37 +232,36 @@ function ChurnTab() {
   );
 }
 
+interface CampaignRow { id: string; name: string; status: string; segment: string; sent: number; ctrPct: number; conversions: number }
+
 function CampaignsTab() {
+  const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
+  useEffect(() => { fetchJson<{ campaigns: CampaignRow[] }>('/api/crm/campaigns').then(d => setCampaigns(d?.campaigns ?? [])); }, []);
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
         <h3 className="text-sm font-semibold">CRM Campaigns</h3>
         <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ New Campaign</button>
       </div>
+      {campaigns.length === 0 ? <EmptyState message="No campaigns yet — create one in Marketing Automation." /> : (
       <div className="border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Campaign', 'Segment', 'Sent', 'Open Rate', 'CTR', 'Conversions', 'Status'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Campaign', 'Segment', 'Impressions', 'Click Rate', 'Conversions', 'Status'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-gray-100">
-            {[
-              ['Win-Back Aug', 'Win-Back Candidates', 248, '28%', '6.4%', 14, 'active'],
-              ['Platinum Upgrade', 'Gold + High CLV', 186, '42%', '12%', 22, 'active'],
-              ['Re-engage At-Risk', 'At-Risk Members', 184, '24%', '4.2%', 8, 'active'],
-              ['Corporate Outreach', 'Corporate Prospects', 42, '38%', '18%', 6, 'draft'],
-              ['Referral Drive', 'Highly Engaged', 620, '44%', '22%', 42, 'completed'],
-            ].map(([name, segment, sent, open, ctr, conv, status]) => (
-              <tr key={String(name)} className="hover:bg-gray-50">
-                <td className="px-3 py-2 font-medium">{name}</td>
-                <td className="px-3 py-2 text-xs text-gray-600">{segment}</td>
-                <td className="px-3 py-2">{sent}</td>
-                <td className="px-3 py-2 font-medium">{open}</td>
-                <td className="px-3 py-2">{ctr}</td>
-                <td className="px-3 py-2 font-bold text-green-700">{conv}</td>
-                <td className="px-3 py-2"><Badge color={status === 'active' ? 'green' : status === 'completed' ? 'blue' : 'gray'}>{status}</Badge></td>
+            {campaigns.map(c => (
+              <tr key={c.id} className="hover:bg-gray-50">
+                <td className="px-3 py-2 font-medium">{c.name}</td>
+                <td className="px-3 py-2 text-xs text-gray-600">{c.segment}</td>
+                <td className="px-3 py-2">{c.sent.toLocaleString()}</td>
+                <td className="px-3 py-2">{c.ctrPct}%</td>
+                <td className="px-3 py-2 font-bold text-green-700">{c.conversions}</td>
+                <td className="px-3 py-2"><Badge color={c.status === 'active' ? 'green' : c.status === 'completed' ? 'blue' : 'gray'}>{c.status}</Badge></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

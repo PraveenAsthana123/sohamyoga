@@ -16,6 +16,7 @@ schemas=(
   "021-marketing|sohamyoga-frontend/src/domain/marketing/db-schema.sql"
   "022-marketing-provider-status|sohamyoga-frontend/src/domain/marketing/db-schema-postiz-status.sql"
   "023-marketing-automation|sohamyoga-frontend/src/domain/marketing/automation-schema.sql"
+  "024-lead-scoring|sohamyoga-frontend/src/domain/marketing/db-schema-lead-scoring.sql"
   "030-notification|sohamyoga-frontend/src/domain/notification/db-schema.sql"
   "031-analytics|sohamyoga-frontend/src/domain/analytics/db-schema.sql"
   "032-ads|sohamyoga-frontend/src/domain/ads/db-schema.sql"
