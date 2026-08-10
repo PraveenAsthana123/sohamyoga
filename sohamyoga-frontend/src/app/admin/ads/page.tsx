@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'analytics' | 'ai' | 'integrations';
 
@@ -13,40 +13,25 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'integrations',  label: 'Integrations'  },
 ];
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+interface DashboardData {
+  kpis: { activeCampaigns: number; totalSpend: number; totalImpressions: number; totalClicks: number; conversions: number; avgCtrPct: number; avgCpc: number };
+  spendByType: { type: string; spend: number; pct: number }[];
+}
+interface CampaignRow { id: string; name: string; type: string; status: string; budget: number; impressions: number; clicks: number; ctr: number; cpc: number }
+interface AdGroupRow { id: string; name: string; campaign: string; status: string; keywords: number; ads: number; bid: number; ctr: number }
+interface CreativeRow { id: string; name: string; type: string; status: string; ai: boolean; impressions: number; clicks: number; ctr: number; cpc: number }
 
-const KPI = [
-  { label: 'Active Campaigns',    value: '7',       sub: '3 search · 2 display · 2 video', color: 'text-amber-600'  },
-  { label: 'Total Spend (MTD)',   value: '₹42,300', sub: '68% of ₹62,000 monthly budget',  color: 'text-red-600'    },
-  { label: 'Total Impressions',   value: '1.24M',   sub: '↑ 18% from last month',          color: 'text-blue-600'   },
-  { label: 'Total Clicks',        value: '38,400',  sub: 'Avg CTR 3.1%',                   color: 'text-green-600'  },
-  { label: 'Conversions',         value: '1,284',   sub: '3.3% conversion rate',            color: 'text-purple-600' },
-  { label: 'Avg CPC',             value: '₹1.10',   sub: 'Target: < ₹1.50',                color: 'text-indigo-600' },
-  { label: 'ROAS',                value: '4.2×',    sub: '↑ from 3.8× last month',         color: 'text-teal-600'   },
-];
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
 
-const CAMPAIGNS = [
-  { id: 'C-1', name: 'Yoga Beginners Search',   type: 'search',  status: 'active',   budget: 800,  impressions: 420000, clicks: 13100, ctr: 3.12, cpc: 0.95, roas: 5.1 },
-  { id: 'C-2', name: 'Summer Wellness Display',  type: 'display', status: 'active',   budget: 500,  impressions: 510000, clicks: 10200, ctr: 2.00, cpc: 1.20, roas: 3.8 },
-  { id: 'C-3', name: 'Meditation Video Ads',     type: 'video',   status: 'paused',   budget: 300,  impressions: 180000, clicks: 5400,  ctr: 3.00, cpc: 1.05, roas: 4.2 },
-  { id: 'C-4', name: 'Corporate Yoga Packages',  type: 'search',  status: 'active',   budget: 600,  impressions: 95000,  clicks: 7100,  ctr: 7.47, cpc: 0.80, roas: 6.8 },
-  { id: 'C-5', name: 'New Year Campaign 2027',   type: 'display', status: 'draft',    budget: 1200, impressions: 0,      clicks: 0,     ctr: 0,    cpc: 0,    roas: 0   },
-];
-
-const AD_GROUPS = [
-  { id: 'AG-1', campaign: 'Yoga Beginners Search', name: 'Hatha Yoga',     status: 'active', keywords: 8, ads: 3, bid: 0.85, ctr: 3.4 },
-  { id: 'AG-2', campaign: 'Yoga Beginners Search', name: 'Beginner Poses', status: 'active', keywords: 12, ads: 2, bid: 0.90, ctr: 2.9 },
-  { id: 'AG-3', campaign: 'Corporate Yoga',        name: 'Office Wellness', status: 'active', keywords: 6, ads: 4, bid: 1.20, ctr: 7.1 },
-  { id: 'AG-4', campaign: 'Summer Wellness',       name: 'Mindfulness',    status: 'paused', keywords: 4, ads: 2, bid: 0.75, ctr: 1.8 },
-];
-
-const CREATIVES = [
-  { id: 'AD-1', name: 'RSA — Yoga Beginners',    type: 'responsive_search', status: 'active',       ai: true,  impressions: 120000, clicks: 3900, ctr: 3.25, cpc: 0.88 },
-  { id: 'AD-2', name: 'Display — Summer Banner', type: 'banner',            status: 'active',       ai: true,  impressions: 250000, clicks: 4800, ctr: 1.92, cpc: 1.30 },
-  { id: 'AD-3', name: 'Video — Meditation 30s',  type: 'video',             status: 'under_review', ai: false, impressions: 0,       clicks: 0,    ctr: 0,    cpc: 0    },
-  { id: 'AD-4', name: 'RSA — Corporate Yoga',    type: 'responsive_search', status: 'active',       ai: true,  impressions: 95000,  clicks: 7100, ctr: 7.47, cpc: 0.80 },
-  { id: 'AD-5', name: 'Image — New Year',        type: 'image',             status: 'paused',       ai: false, impressions: 48000,  clicks: 900,  ctr: 1.88, cpc: 1.44 },
-];
+function EmptyState({ message }: { message: string }) {
+  return <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
+}
 
 const STATUS_BADGE: Record<string, string> = {
   active:       'bg-green-100 text-green-700',
@@ -75,7 +60,32 @@ export default function AdsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredCampaigns = CAMPAIGNS.filter(c => statusFilter === 'all' || c.status === statusFilter);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
+  const [adGroups, setAdGroups] = useState<AdGroupRow[]>([]);
+  const [creatives, setCreatives] = useState<CreativeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetchJson<DashboardData>('/api/ads/dashboard'),
+      fetchJson<{ adGroups: AdGroupRow[] }>('/api/ads/adgroups'),
+      fetchJson<{ creatives: CreativeRow[] }>('/api/ads/creatives'),
+    ]).then(([dash, groups, cre]) => {
+      setDashboard(dash);
+      setAdGroups(groups?.adGroups ?? []);
+      setCreatives(cre?.creatives ?? []);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const qs = statusFilter === 'all' ? '' : `?status=${statusFilter}`;
+    fetchJson<{ campaigns: CampaignRow[] }>(`/api/ads/campaigns${qs}`).then(d => setCampaigns(d?.campaigns ?? []));
+  }, [statusFilter]);
+
+  const filteredCampaigns = campaigns;
+  const kpis = dashboard?.kpis;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -119,12 +129,19 @@ export default function AdsAdminPage() {
         {/* ── Overview ── */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {KPI.map(k => (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {[
+                { label: 'Active Campaigns',  value: String(kpis?.activeCampaigns ?? 0), color: 'text-amber-600' },
+                { label: 'Total Spend',       value: `₹${(kpis?.totalSpend ?? 0).toLocaleString()}`, color: 'text-red-600' },
+                { label: 'Total Impressions', value: (kpis?.totalImpressions ?? 0).toLocaleString(), color: 'text-blue-600' },
+                { label: 'Total Clicks',      value: (kpis?.totalClicks ?? 0).toLocaleString(), sub: `Avg CTR ${kpis?.avgCtrPct ?? 0}%`, color: 'text-green-600' },
+                { label: 'Conversions',       value: (kpis?.conversions ?? 0).toLocaleString(), color: 'text-purple-600' },
+                { label: 'Avg CPC',           value: `₹${kpis?.avgCpc ?? 0}`, color: 'text-indigo-600' },
+              ].map(k => (
                 <div key={k.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <p className="text-xs text-gray-500">{k.label}</p>
                   <p className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</p>
-                  <p className="text-xs text-gray-400 mt-1">{k.sub}</p>
+                  {k.sub && <p className="text-xs text-gray-400 mt-1">{k.sub}</p>}
                 </div>
               ))}
             </div>
@@ -154,23 +171,20 @@ export default function AdsAdminPage() {
 
             {/* Spend by campaign type */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h3 className="font-semibold text-gray-900 mb-4">Spend by Campaign Type (MTD)</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Spend by Campaign Type</h3>
+              {!dashboard?.spendByType.length ? <EmptyState message={loading ? 'Loading…' : 'No ad spend recorded yet.'} /> : (
               <div className="space-y-3">
-                {[
-                  { type: 'Search',  spend: 24000, pct: 57, roas: 5.9 },
-                  { type: 'Display', spend: 12000, pct: 28, roas: 3.8 },
-                  { type: 'Video',   spend: 6300,  pct: 15, roas: 4.2 },
-                ].map(s => (
+                {dashboard.spendByType.map(s => (
                   <div key={s.type} className="flex items-center gap-3 text-sm">
-                    <span className="w-16 text-gray-600">{s.type}</span>
+                    <span className="w-16 text-gray-600 capitalize">{s.type}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2.5">
                       <div className="bg-amber-400 h-2.5 rounded-full" style={{ width: `${s.pct}%` }} />
                     </div>
                     <span className="text-gray-700 w-20 text-right">₹{s.spend.toLocaleString()}</span>
-                    <span className="text-green-600 w-16 text-right font-medium">ROAS {s.roas}×</span>
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
         )}
@@ -187,40 +201,42 @@ export default function AdsAdminPage() {
               </select>
             </div>
 
+            {filteredCampaigns.length === 0 ? <EmptyState message="No campaigns match this filter." /> : (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>{['ID','Name','Type','Status','Budget/day','Impressions','Clicks','CTR','CPC','ROAS'].map(h => (
+                  <tr>{['ID','Name','Type','Status','Budget/day','Impressions','Clicks','CTR','CPC'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                   ))}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredCampaigns.map(c => (
                     <tr key={c.id} className="hover:bg-amber-50/30 transition-colors cursor-pointer">
-                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{c.id}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{c.id.slice(0, 8)}</td>
                       <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[c.type] ?? 'bg-gray-100 text-gray-600'}`}>{c.type}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status]}`}>{c.status}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status] ?? 'bg-gray-100 text-gray-600'}`}>{c.status}</span>
                       </td>
                       <td className="px-4 py-3">₹{c.budget}</td>
                       <td className="px-4 py-3">{c.impressions ? c.impressions.toLocaleString() : '—'}</td>
                       <td className="px-4 py-3">{c.clicks ? c.clicks.toLocaleString() : '—'}</td>
                       <td className="px-4 py-3">{c.ctr ? `${c.ctr}%` : '—'}</td>
                       <td className="px-4 py-3">{c.cpc ? `₹${c.cpc}` : '—'}</td>
-                      <td className="px-4 py-3 font-semibold text-green-600">{c.roas ? `${c.roas}×` : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
 
         {/* ── Ad Groups ── */}
         {activeTab === 'adgroups' && (
+          adGroups.length === 0 ? <EmptyState message={loading ? 'Loading…' : 'No ad groups yet.'} /> :
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
@@ -229,13 +245,13 @@ export default function AdsAdminPage() {
                 ))}</tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {AD_GROUPS.map(g => (
+                {adGroups.map(g => (
                   <tr key={g.id} className="hover:bg-amber-50/30 transition-colors cursor-pointer">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{g.id}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{g.id.slice(0, 8)}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">{g.name}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{g.campaign}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[g.status]}`}>{g.status}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[g.status] ?? 'bg-gray-100 text-gray-600'}`}>{g.status}</span>
                     </td>
                     <td className="px-4 py-3">{g.keywords}</td>
                     <td className="px-4 py-3">{g.ads}</td>
@@ -250,8 +266,9 @@ export default function AdsAdminPage() {
 
         {/* ── Creatives ── */}
         {activeTab === 'creatives' && (
+          creatives.length === 0 ? <EmptyState message={loading ? 'Loading…' : 'No ad creatives yet.'} /> :
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {CREATIVES.map(ad => (
+            {creatives.map(ad => (
               <div key={ad.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
