@@ -91,6 +91,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   180_000,
   },
+  {
+    name:        'social-content-idea',
+    schedule:    '5 * * * *',
+    description: 'Auto-enqueue an hourly campaign brief (rotating honest, non-fabricated angles) for every tenant with a configured business profile and at least one enabled channel — MarketingAutomationJob then generates real copy/banner-prompt content into the review queue; never publishes',
+    module:      'SocialContentIdeaJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
 
   // ── Daily 01:00 UTC ───────────────────────────────────────────────────────
   {
@@ -245,6 +253,7 @@ Hourly :15    campaign-adaptation (Ollama)
 Hourly :45    campaign-health-audit (Ollama)
 Hourly :20    nps-invitation
 Hourly :50    nps-calculation (Ollama)
+Hourly :05    social-content-idea
 Daily  01:00  analytics-aggregation
 Daily  02:00  streak-update
 Daily  03:00  wellness-scoring (Ollama)
@@ -261,5 +270,5 @@ Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 24 jobs | 15 use Ollama | 0 cloud AI tokens
+Total: 25 jobs | 15 use Ollama | 0 cloud AI tokens
 `;
