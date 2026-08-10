@@ -15,8 +15,14 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 interface DashboardData {
-  kpis: { activeCampaigns: number; totalSpend: number; totalImpressions: number; totalClicks: number; conversions: number; avgCtrPct: number; avgCpc: number };
+  kpis: { activeCampaigns: number; totalSpend: number; totalImpressions: number; totalClicks: number; conversions: number; avgCtrPct: number; avgCpc: number; avgCpm: number; avgCpa: number };
+  funnel: { impressions: number; clicks: number; conversions: number };
   spendByType: { type: string; spend: number; pct: number }[];
+  aiEngine: { adsGenerated: number; keywordCount: number; healthFindings: number };
+}
+interface AttributionData {
+  windowDays: number;
+  byChannel: { channel: string; conversions: number; pct: number }[];
 }
 interface CampaignRow { id: string; name: string; type: string; status: string; budget: number; impressions: number; clicks: number; ctr: number; cpc: number }
 interface AdGroupRow { id: string; name: string; campaign: string; status: string; keywords: number; ads: number; bid: number; ctr: number }
@@ -138,6 +144,7 @@ export default function AdsAdminPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [attribution, setAttribution] = useState<AttributionData | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [adGroups, setAdGroups] = useState<AdGroupRow[]>([]);
   const [creatives, setCreatives] = useState<CreativeRow[]>([]);
@@ -148,10 +155,12 @@ export default function AdsAdminPage() {
       fetchJson<DashboardData>('/api/ads/dashboard'),
       fetchJson<{ adGroups: AdGroupRow[] }>('/api/ads/adgroups'),
       fetchJson<{ creatives: CreativeRow[] }>('/api/ads/creatives'),
-    ]).then(([dash, groups, cre]) => {
+      fetchJson<AttributionData>('/api/analytics/attribution?days=30'),
+    ]).then(([dash, groups, cre, attr]) => {
       setDashboard(dash);
       setAdGroups(groups?.adGroups ?? []);
       setCreatives(cre?.creatives ?? []);
+      setAttribution(attr);
       setLoading(false);
     });
   }, []);
@@ -376,10 +385,10 @@ export default function AdsAdminPage() {
           <div className="space-y-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Avg CTR',          value: '3.1%',   color: 'text-blue-600'   },
-                { label: 'Avg CPC',          value: '₹1.10',  color: 'text-green-600'  },
-                { label: 'Avg CPM',          value: '₹34.10', color: 'text-purple-600' },
-                { label: 'Avg CPA',          value: '₹32.96', color: 'text-amber-600'  },
+                { label: 'Avg CTR', value: `${kpis?.avgCtrPct ?? 0}%`,    color: 'text-blue-600'   },
+                { label: 'Avg CPC', value: `₹${kpis?.avgCpc ?? 0}`,       color: 'text-green-600'  },
+                { label: 'Avg CPM', value: `₹${dashboard?.kpis.avgCpm ?? 0}`, color: 'text-purple-600' },
+                { label: 'Avg CPA', value: `₹${dashboard?.kpis.avgCpa ?? 0}`, color: 'text-amber-600'  },
               ].map(m => (
                 <div key={m.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <p className="text-xs text-gray-500">{m.label}</p>
@@ -388,48 +397,60 @@ export default function AdsAdminPage() {
               ))}
             </div>
 
-            {/* Conversion funnel */}
+            {/* Conversion funnel — real advertisement impression/click/conversion sums.
+                No "landing page" / "add to cart" step: no ad-click-to-page-visit link
+                exists without a connected ad platform, so only what's actually
+                measurable end-to-end is shown. */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h3 className="font-semibold text-gray-900 mb-4">Conversion Funnel — Last 30 Days</h3>
-              <div className="space-y-2">
-                {[
-                  { step: 'Impressions',      count: 1240000, pct: 100  },
-                  { step: 'Clicks',           count: 38400,   pct: 3.1  },
-                  { step: 'Landing page',     count: 30720,   pct: 2.48 },
-                  { step: 'Add to cart / book', count: 6860,  pct: 0.55 },
-                  { step: 'Converted',        count: 1284,    pct: 0.10 },
-                ].map(f => (
-                  <div key={f.step} className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-600 w-40 flex-shrink-0">{f.step}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-3">
-                      <div className="bg-amber-400 h-3 rounded-full" style={{ width: `${f.pct}%` }} />
+              <h3 className="font-semibold text-gray-900 mb-4">Conversion Funnel — All Time</h3>
+              {!dashboard?.funnel.impressions ? (
+                <EmptyState message={loading ? 'Loading…' : 'No impression data yet — connect an ad platform to populate this funnel.'} />
+              ) : (
+                <div className="space-y-2">
+                  {(() => {
+                    const { impressions, clicks, conversions } = dashboard.funnel;
+                    return [
+                      { step: 'Impressions', count: impressions, pct: 100 },
+                      { step: 'Clicks',      count: clicks,      pct: impressions ? Math.round((clicks / impressions) * 10000) / 100 : 0 },
+                      { step: 'Converted',   count: conversions, pct: impressions ? Math.round((conversions / impressions) * 10000) / 100 : 0 },
+                    ];
+                  })().map(f => (
+                    <div key={f.step} className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-600 w-40 flex-shrink-0">{f.step}</span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-3">
+                        <div className="bg-amber-400 h-3 rounded-full" style={{ width: `${f.pct}%` }} />
+                      </div>
+                      <span className="text-gray-500 w-20 text-right">{f.count.toLocaleString()}</span>
+                      <span className="text-gray-400 w-12 text-right text-xs">{f.pct}%</span>
                     </div>
-                    <span className="text-gray-500 w-20 text-right">{f.count.toLocaleString()}</span>
-                    <span className="text-gray-400 w-12 text-right text-xs">{f.pct}%</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Attribution */}
+            {/* Attribution — real site-wide conversion attribution (tracking_event
+                joined to tracking_session.traffic_source), the same data source as
+                the Marketing Attribution tab under Analytics. Ad-specific per-channel
+                spend is already shown above in Overview → Spend by Campaign Type. */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h3 className="font-semibold text-gray-900 mb-4">Attribution by Channel</h3>
-              <div className="space-y-2">
-                {[
-                  { ch: 'Search',  convs: 820,  pct: 64, revenue: 24600 },
-                  { ch: 'Display', convs: 280,  pct: 22, revenue: 7280  },
-                  { ch: 'Video',   convs: 184,  pct: 14, revenue: 4800  },
-                ].map(a => (
-                  <div key={a.ch} className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-600 w-16">{a.ch}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-3">
-                      <div className="bg-green-400 h-3 rounded-full" style={{ width: `${a.pct}%` }} />
+              <h3 className="font-semibold text-gray-900 mb-1">Site-Wide Conversion Attribution</h3>
+              <p className="text-xs text-gray-400 mb-4">Last {attribution?.windowDays ?? 30} days · booking/payment/subscription conversions by traffic source</p>
+              {!attribution?.byChannel.length ? (
+                <EmptyState message={loading ? 'Loading…' : 'No conversion events recorded yet.'} />
+              ) : (
+                <div className="space-y-2">
+                  {attribution.byChannel.map(a => (
+                    <div key={a.channel} className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-600 w-16 capitalize">{a.channel}</span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-3">
+                        <div className="bg-green-400 h-3 rounded-full" style={{ width: `${a.pct}%` }} />
+                      </div>
+                      <span className="text-gray-500 w-20 text-right">{a.conversions} conv</span>
+                      <span className="text-gray-400 w-12 text-right text-xs">{a.pct}%</span>
                     </div>
-                    <span className="text-gray-500 w-16 text-right">{a.convs} conv</span>
-                    <span className="text-green-600 w-24 text-right font-medium">₹{a.revenue.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -439,12 +460,31 @@ export default function AdsAdminPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { tool: 'Ad Copy Generation',      engine: 'Ollama (llama3)',        desc: 'Generate RSA headlines, descriptions, and CTAs from campaign brief', status: 'active', count: '342 ads generated' },
-                { tool: 'Banner Image Generation', engine: 'ComfyUI (SDXL)',          desc: 'Generate display and banner images from text prompts', status: 'active', count: '87 banners generated' },
-                { tool: 'Keyword Suggestions',     engine: 'Ollama + search APIs',   desc: 'Suggest long-tail keywords from seed keyword and campaign context', status: 'active', count: '1,240 keywords suggested' },
-                { tool: 'Landing Page Optimization',engine: 'Ollama',                 desc: 'Analyse landing page copy and suggest A/B variant headlines', status: 'active', count: '23 page analyses' },
-                { tool: 'A/B Testing',             engine: 'GrowthBook',             desc: 'Split-test ad variants, budgets, and landing page CTAs', status: 'active', count: '5 experiments running' },
-                { tool: 'Campaign Automation',     engine: 'Activepieces',           desc: 'Workflow triggers: budget alerts, daily reports, pause on low ROAS', status: 'active', count: '12 automations' },
+                {
+                  tool: 'Campaign Health Audit', engine: 'Ollama (fast tier)', connected: true,
+                  desc: 'Hourly structural config audit — no ad groups/targeting, expired-but-active, bid exceeding budget',
+                  count: `${dashboard?.aiEngine.healthFindings ?? 0} findings generated`,
+                },
+                {
+                  tool: 'Ad Copy Generation', engine: 'Ollama', connected: (dashboard?.aiEngine.adsGenerated ?? 0) > 0,
+                  desc: 'Generate RSA headlines, descriptions, and CTAs for an ad group',
+                  count: `${dashboard?.aiEngine.adsGenerated ?? 0} ads generated`,
+                },
+                {
+                  tool: 'Keyword Inventory', engine: 'Manual entry', connected: (dashboard?.aiEngine.keywordCount ?? 0) > 0,
+                  desc: 'Ad group keywords configured for search targeting (no AI-suggestion path is wired yet)',
+                  count: `${dashboard?.aiEngine.keywordCount ?? 0} keywords configured`,
+                },
+                {
+                  tool: 'Banner Image Generation', engine: 'ComfyUI (SDXL)', connected: false,
+                  desc: 'Generate display and banner images from text prompts',
+                  count: 'Not connected',
+                },
+                {
+                  tool: 'A/B Testing', engine: 'GrowthBook', connected: false,
+                  desc: 'Split-test ad variants, budgets, and landing page CTAs',
+                  count: 'Not connected',
+                },
               ].map(t => (
                 <div key={t.tool} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                   <div className="flex items-start justify-between mb-2">
@@ -452,7 +492,9 @@ export default function AdsAdminPage() {
                       <p className="font-semibold text-gray-900">{t.tool}</p>
                       <p className="text-xs text-amber-600 font-medium mt-0.5">{t.engine}</p>
                     </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{t.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.connected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {t.connected ? 'active' : 'not connected'}
+                    </span>
                   </div>
                   <p className="text-sm text-gray-500">{t.desc}</p>
                   <p className="text-xs text-gray-400 mt-2">{t.count}</p>
