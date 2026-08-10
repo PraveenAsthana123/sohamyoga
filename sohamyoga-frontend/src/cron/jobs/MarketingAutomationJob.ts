@@ -69,7 +69,9 @@ Offer: ${request.offer_text}
 CTA: ${request.call_to_action}
 Channels: ${request.channels.join(', ')}
 Return exactly one JSON object with keys: headline, body, short_caption, hashtags (array),
-image_prompt, dynamic_banner_prompt, video_title, video_script, youtube_description.
+image_prompt, dynamic_banner_prompt, video_title, video_script, youtube_description,
+email_subject (<=60 chars, specific to this audience/offer, no generic "Check this out"),
+email_preview_text (<=100 chars, complements the subject, does not repeat it).
 Do not invent prices, certifications, medical outcomes, testimonials, or guarantees.`,
         { model: request.model_name || undefined, tier: 'strong', temperature: 0.4, maxTokens: 1800, timeoutMs: 180_000 },
       );

@@ -25,6 +25,90 @@ const FLOW = [
 const initialProfile = { industry: 'yoga', businessName: '', audience: '', valueProposition: '', websiteUrl: '', timezone: 'America/Edmonton', approvalRequired: true };
 const initialCampaign = { title: '', objective: 'awareness', audience: '', offerText: '', callToAction: '', scheduledAt: '', assetTypes: ['copy', 'static_banner'], channels: ['instagram', 'facebook'], targetSegments: [] as string[], modelName: '' };
 
+type Asset = { id: string; assetType: string; status: string; textContent: string | null; metadata: Record<string, unknown>; segmentKey?: string };
+
+function segmentDisplayLabel(key?: string): string {
+  if (!key) return 'General';
+  return CAMPAIGN_SEGMENTS.find(s => s.key === key)?.label ?? key;
+}
+
+function AssetCard({ asset, onDecide }: { asset: Asset; onDecide: (id: string, action: 'approve' | 'reject') => void }) {
+  let parsed: Record<string, unknown> | null = null;
+  if (asset.assetType === 'copy' && asset.textContent) {
+    try { parsed = JSON.parse(asset.textContent); } catch { /* not JSON, show raw */ }
+  }
+  const badge: Record<string, string> = {
+    review_required: 'bg-amber-100 text-amber-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700',
+  };
+  return (
+    <div className="rounded-lg border p-3 bg-gray-50">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-gray-700">{asset.assetType.replace('_', ' ')}</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs ${badge[asset.status] ?? 'bg-gray-100 text-gray-600'}`}>{asset.status.replace('_', ' ')}</span>
+      </div>
+      {parsed ? (
+        <div className="space-y-1 text-xs text-gray-700">
+          {typeof parsed.email_subject === 'string' && <p><strong>Email subject:</strong> {parsed.email_subject}</p>}
+          {typeof parsed.email_preview_text === 'string' && <p><strong>Preview text:</strong> {parsed.email_preview_text}</p>}
+          {typeof parsed.headline === 'string' && <p><strong>Headline:</strong> {parsed.headline}</p>}
+          {typeof parsed.body === 'string' && <p className="whitespace-pre-wrap"><strong>Body:</strong> {parsed.body}</p>}
+          {typeof parsed.short_caption === 'string' && <p><strong>Caption:</strong> {parsed.short_caption}</p>}
+        </div>
+      ) : (
+        <p className="text-xs text-gray-700 whitespace-pre-wrap">{asset.textContent || '(empty)'}</p>
+      )}
+      {asset.status === 'review_required' && (
+        <div className="mt-2 flex gap-2">
+          <button onClick={() => onDecide(asset.id, 'approve')} className="rounded bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700">Approve</button>
+          <button onClick={() => onDecide(asset.id, 'reject')} className="rounded border border-red-300 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Reject</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CampaignReviewPanel({ requestId, onChanged }: { requestId: string; onChanged: () => void }) {
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(() => {
+    fetch(`/api/marketing/automation/assets?requestId=${requestId}`, { cache: 'no-store' })
+      .then(r => r.json()).then(d => { setAssets(d.assets ?? []); setLoading(false); });
+  }, [requestId]);
+  useEffect(() => { load(); }, [load]);
+
+  async function decide(assetId: string, action: 'approve' | 'reject') {
+    await fetch(`/api/marketing/automation/assets/${assetId}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
+    });
+    load();
+    onChanged();
+  }
+
+  const bySegment = new Map<string, Asset[]>();
+  for (const a of assets) {
+    const key = a.segmentKey ?? '__general__';
+    if (!bySegment.has(key)) bySegment.set(key, []);
+    bySegment.get(key)!.push(a);
+  }
+
+  if (loading) return <p className="p-3 text-xs text-gray-400">Loading generated content…</p>;
+  if (!assets.length) return <p className="p-3 text-xs text-gray-400">No generated assets yet.</p>;
+
+  return (
+    <div className="p-3 space-y-4 bg-white">
+      {Array.from(bySegment.entries()).map(([key, group]) => (
+        <div key={key}>
+          <p className="mb-2 text-xs font-semibold uppercase text-gray-500">{segmentDisplayLabel(key === '__general__' ? undefined : key)}</p>
+          <div className="grid gap-2 md:grid-cols-2">
+            {group.map(a => <AssetCard key={a.id} asset={a} onDecide={decide} />)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function MarketingAutomationPage() {
   const [tenantId, setTenantId] = useState('');
   const [profile, setProfile] = useState(initialProfile);
@@ -34,6 +118,7 @@ export default function MarketingAutomationPage() {
   const [requests, setRequests] = useState<Campaign[]>([]);
   const [message, setMessage] = useState('Enter a tenant UUID to load persistent settings.');
   const [busy, setBusy] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => setTenantId(localStorage.getItem('marketingTenantId') || ''), []);
   const configuredChannels = useMemo(() => Object.fromEntries(channelRows.map(c => [c.channel, c])), [channelRows]);
@@ -154,7 +239,20 @@ export default function MarketingAutomationPage() {
 
       <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">Process flow and responsibilities</h2><div className="mt-4 grid gap-3 md:grid-cols-3">{FLOW.map(([n,title,desc]) => <div key={n} className="rounded-lg border p-3"><span className="mr-2 rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-700">{n}</span><strong className="text-sm">{title}</strong><p className="mt-2 text-xs text-gray-500">{desc}</p></div>)}</div></section>
 
-      <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">Campaign workflow queue</h2><div className="mt-3 overflow-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-xs text-gray-500"><th className="p-2">Campaign</th><th>Assets</th><th>Channels</th><th>Segments</th><th>Stage</th><th>Progress</th><th>Status</th></tr></thead><tbody>{requests.map(r => <tr key={r.id} className="border-b"><td className="p-2 font-medium">{r.title}<div className="text-xs text-gray-400">{r.industry} · {r.model_name || 'tenant default'}</div></td><td>{r.asset_types?.join(', ')}</td><td>{r.channels?.join(', ')}</td><td>{r.target_segments?.length ? <span className="rounded bg-purple-50 px-2 py-1 text-xs text-purple-700">{r.target_segments.length} segment{r.target_segments.length > 1 ? 's' : ''}</span> : <span className="text-xs text-gray-400">generic</span>}</td><td>{r.current_stage}</td><td>{r.progress_percent}%</td><td><span className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">{r.status}</span></td></tr>)}</tbody></table>{!requests.length && <p className="p-4 text-sm text-gray-500">No campaigns loaded.</p>}</div></section>
+      <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">Campaign workflow queue</h2><p className="text-xs text-gray-500">Click a row to review the Ollama-generated content.</p><div className="mt-3 overflow-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-xs text-gray-500"><th className="p-2">Campaign</th><th>Assets</th><th>Channels</th><th>Segments</th><th>Stage</th><th>Progress</th><th>Status</th></tr></thead><tbody>{requests.map(r => (
+        <>
+          <tr key={r.id} onClick={() => setExpandedId(id => id === r.id ? null : r.id)} className="border-b cursor-pointer hover:bg-gray-50">
+            <td className="p-2 font-medium">{r.title}<div className="text-xs text-gray-400">{r.industry} · {r.model_name || 'tenant default'}</div></td>
+            <td>{r.asset_types?.join(', ')}</td><td>{r.channels?.join(', ')}</td>
+            <td>{r.target_segments?.length ? <span className="rounded bg-purple-50 px-2 py-1 text-xs text-purple-700">{r.target_segments.length} segment{r.target_segments.length > 1 ? 's' : ''}</span> : <span className="text-xs text-gray-400">generic</span>}</td>
+            <td>{r.current_stage}</td><td>{r.progress_percent}%</td>
+            <td><span className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">{r.status}</span></td>
+          </tr>
+          {expandedId === r.id && (
+            <tr key={`${r.id}-review`} className="border-b"><td colSpan={7} className="p-0"><CampaignReviewPanel requestId={r.id} onChanged={load} /></td></tr>
+          )}
+        </>
+      ))}</tbody></table>{!requests.length && <p className="p-4 text-sm text-gray-500">No campaigns loaded.</p>}</div></section>
     </div>
   );
 }
