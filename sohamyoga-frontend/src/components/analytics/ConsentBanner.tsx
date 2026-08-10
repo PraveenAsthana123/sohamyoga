@@ -14,6 +14,22 @@ export function getStoredConsent(): ConsentLevel | null {
 export function setStoredConsent(level: ConsentLevel) {
   localStorage.setItem(CONSENT_KEY, level);
   window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: { level } }));
+  persistConsent(level);
+}
+
+// Records the choice server-side (analytics_consent_record) so consent can
+// actually be demonstrated later — localStorage alone is not an audit trail.
+// Best-effort: a failed write must never block the banner from closing.
+function persistConsent(level: ConsentLevel) {
+  const anonymousId = localStorage.getItem('sohamyoga_anon_id')
+    ?? `anon-${Math.random().toString(36).slice(2, 10)}-${performance.now().toString(36).replace('.', '')}`;
+  localStorage.setItem('sohamyoga_anon_id', anonymousId);
+  fetch('/api/analytics/consent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ anonymousId, level }),
+    keepalive: true,
+  }).catch(() => { /* consent choice still applies locally even if the write fails */ });
 }
 
 export default function ConsentBanner() {
