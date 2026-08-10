@@ -7,7 +7,7 @@ type ProductType = "physical" | "digital" | "service" | "subscription" | "bundle
 type OrderStatus = "draft" | "pending" | "confirmed" | "processing" | "partially_shipped" | "shipped" | "delivered" | "cancelled" | "refunded" | "returned";
 type Tab = "overview" | "products" | "orders" | "inventory" | "marketplace" | "flowchart" | "integrations";
 
-interface ProductRow { id: string; name: string; type: ProductType; sku: string; price: number; stock: number; status: string; rating: number; vendor?: string }
+interface ProductRow { id: string; name: string; type: ProductType; sku: string; price: number; stock: number; status: string; rating: number; vendor?: string; vendorId?: string }
 interface OrderRow   { id: string; number: string; customer: string; status: OrderStatus; payment: string; total: number; items: number; date: string; tracking?: string }
 interface InventoryRow { id: string; product: string; sku: string; warehouse: string; qty: number; reserved: number; reorderPoint: number; batch?: string }
 interface VendorRow  { id: string; name: string; type: string; commission: string; sales: number; pending: number; status: string }
@@ -28,6 +28,152 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 
 function EmptyState({ message }: { message: string }) {
   return <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
+}
+
+interface CategoryOption { id: string; name: string; slug: string; parentSlug?: string }
+
+const SERVICE_LIKE_TYPES: ProductType[] = ["service", "workshop", "course"];
+
+function ProductFormModal({ vendors, onClose, onCreated }: {
+  vendors: VendorRow[]; onClose: () => void; onCreated: () => void;
+}) {
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [name, setName] = useState("");
+  const [productType, setProductType] = useState<ProductType>("service");
+  const [categorySlug, setCategorySlug] = useState("");
+  const [basePrice, setBasePrice] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
+  const [vendorId, setVendorId] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchJson<{ categories: CategoryOption[] }>("/api/ecommerce/categories").then(d => setCategories(d?.categories ?? []));
+  }, []);
+
+  const activeVendors = vendors.filter(v => v.status === "active");
+  const isService = SERVICE_LIKE_TYPES.includes(productType);
+
+  async function submit() {
+    setError("");
+    const price = Number(basePrice);
+    if (!name.trim()) return setError("Name is required.");
+    if (!Number.isFinite(price) || price < 0) return setError("Enter a valid price.");
+    setSaving(true);
+    const res = await fetch("/api/ecommerce/products", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name, productType, basePrice: price, shortDescription,
+        categorySlug: categorySlug || undefined, vendorId: vendorId || undefined,
+        durationMinutes: isService && durationMinutes ? Number(durationMinutes) : undefined,
+      }),
+    });
+    setSaving(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "Failed to create listing."); return; }
+    onCreated();
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
+        <h2 className="text-lg font-bold text-gray-900">New Listing</h2>
+        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>}
+        <div className="grid gap-3">
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Name (e.g. Social Media Management — Monthly)"
+            className="border rounded-lg px-3 py-2 text-sm" />
+          <div className="grid grid-cols-2 gap-3">
+            <select value={productType} onChange={e => setProductType(e.target.value as ProductType)} className="border rounded-lg px-3 py-2 text-sm">
+              {(Object.keys(PRODUCT_TYPE_COLOR) as ProductType[]).map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={categorySlug} onChange={e => setCategorySlug(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+              <option value="">No category</option>
+              {categories.map(c => (
+                <option key={c.slug} value={c.slug}>{c.parentSlug ? `— ${c.name}` : c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input value={basePrice} onChange={e => setBasePrice(e.target.value)} placeholder="Price (CAD)" type="number" min="0" step="0.01"
+              className="border rounded-lg px-3 py-2 text-sm" />
+            {isService && (
+              <input value={durationMinutes} onChange={e => setDurationMinutes(e.target.value)} placeholder="Duration (minutes)" type="number" min="0"
+                className="border rounded-lg px-3 py-2 text-sm" />
+            )}
+          </div>
+          <select value={vendorId} onChange={e => setVendorId(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+            <option value="">Sold directly by the studio</option>
+            {activeVendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+          </select>
+          {vendors.length > 0 && activeVendors.length === 0 && (
+            <p className="text-xs text-amber-600">No vendors are active yet — this listing will be sold directly by the studio.</p>
+          )}
+          <textarea value={shortDescription} onChange={e => setShortDescription(e.target.value)} placeholder="Short description"
+            rows={3} className="border rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50">Cancel</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            {saving ? "Saving…" : "Create draft listing"}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400">New listings start as <code>draft</code> — publish from the Products tab once ready.</p>
+      </div>
+    </div>
+  );
+}
+
+function VendorFormModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [name, setName] = useState("");
+  const [vendorType, setVendorType] = useState("independent");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [commissionRate, setCommissionRate] = useState("15");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    setError("");
+    if (!name.trim()) return setError("Vendor name is required.");
+    if (!email.trim()) return setError("Vendor email is required.");
+    setSaving(true);
+    const res = await fetch("/api/ecommerce/vendors", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, vendorType, email, phone, commissionType: "percentage", commissionRate: Number(commissionRate) }),
+    });
+    setSaving(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "Failed to onboard vendor."); return; }
+    onCreated();
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+        <h2 className="text-lg font-bold text-gray-900">Onboard Vendor</h2>
+        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>}
+        <div className="grid gap-3">
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Vendor / business name" className="border rounded-lg px-3 py-2 text-sm" />
+          <select value={vendorType} onChange={e => setVendorType(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+            {["teacher", "partner", "brand", "affiliate", "independent"].map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" type="email" className="border rounded-lg px-3 py-2 text-sm" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone (optional)" className="border rounded-lg px-3 py-2 text-sm" />
+          <div>
+            <label className="text-xs text-gray-500">Commission rate (%)</label>
+            <input value={commissionRate} onChange={e => setCommissionRate(e.target.value)} type="number" min="0" max="100"
+              className="border rounded-lg px-3 py-2 text-sm w-full mt-1" />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50">Cancel</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            {saving ? "Saving…" : "Onboard vendor"}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400">New vendors start as <code>pending</code> — activate them below once verified.</p>
+      </div>
+    </div>
+  );
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -71,27 +217,37 @@ export default function EcommerceAdminPage() {
   const [activeWarehouses, setActiveWarehouses] = useState(0);
   const [vendors, setVendors] = useState<VendorRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showVendorModal, setShowVendorModal] = useState(false);
+  const [vendorFilter, setVendorFilter] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([
-      fetchJson<DashboardData>("/api/ecommerce/dashboard"),
-      fetchJson<{ products: ProductRow[] }>("/api/ecommerce/products"),
-      fetchJson<{ inventory: InventoryRow[]; activeWarehouses: number }>("/api/ecommerce/inventory"),
-      fetchJson<{ vendors: VendorRow[] }>("/api/ecommerce/vendors"),
-    ]).then(([dash, prod, inv, ven]) => {
-      setDashboard(dash);
-      setProducts(prod?.products ?? []);
-      setInventory(inv?.inventory ?? []);
-      setActiveWarehouses(inv?.activeWarehouses ?? 0);
-      setVendors(ven?.vendors ?? []);
-      setLoading(false);
-    });
-  }, []);
+  const reloadCore = () => Promise.all([
+    fetchJson<DashboardData>("/api/ecommerce/dashboard"),
+    fetchJson<{ products: ProductRow[] }>("/api/ecommerce/products"),
+    fetchJson<{ inventory: InventoryRow[]; activeWarehouses: number }>("/api/ecommerce/inventory"),
+    fetchJson<{ vendors: VendorRow[] }>("/api/ecommerce/vendors"),
+  ]).then(([dash, prod, inv, ven]) => {
+    setDashboard(dash);
+    setProducts(prod?.products ?? []);
+    setInventory(inv?.inventory ?? []);
+    setActiveWarehouses(inv?.activeWarehouses ?? 0);
+    setVendors(ven?.vendors ?? []);
+    setLoading(false);
+  });
+
+  useEffect(() => { reloadCore(); }, []);
 
   useEffect(() => {
     const qs = orderFilter === "all" ? "" : `?status=${orderFilter}`;
     fetchJson<{ orders: OrderRow[] }>(`/api/ecommerce/orders${qs}`).then(d => setOrders(d?.orders ?? []));
   }, [orderFilter]);
+
+  useEffect(() => {
+    if (!vendorFilter) return;
+    fetchJson<{ products: ProductRow[] }>(`/api/ecommerce/products?vendorId=${vendorFilter}`).then(d => setProducts(d?.products ?? []));
+  }, [vendorFilter]);
+
+  const vendorFilterName = vendorFilter ? vendors.find(v => v.id === vendorFilter)?.name : undefined;
 
   const kpis = dashboard?.kpis;
 
@@ -114,11 +270,20 @@ export default function EcommerceAdminPage() {
             className="px-3 py-1.5 text-xs bg-green-50 text-green-700 border border-green-200 rounded hover:bg-green-100">
             ERPNext Items
           </a>
-          <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button onClick={() => setShowProductModal(true)} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             + Add Product
           </button>
         </div>
       </div>
+
+      {showProductModal && (
+        <ProductFormModal vendors={vendors} onClose={() => setShowProductModal(false)}
+          onCreated={() => { setShowProductModal(false); reloadCore(); setTab("products"); }} />
+      )}
+      {showVendorModal && (
+        <VendorFormModal onClose={() => setShowVendorModal(false)}
+          onCreated={() => { setShowVendorModal(false); reloadCore(); }} />
+      )}
 
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -225,6 +390,12 @@ export default function EcommerceAdminPage() {
       {/* ─── PRODUCTS ─────────────────────────────────────────────────────── */}
       {tab === "products" && (
         <div className="space-y-4">
+          {vendorFilter && (
+            <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm text-blue-800">
+              <span>Showing listings from <strong>{vendorFilterName ?? "this vendor"}</strong></span>
+              <button onClick={() => { setVendorFilter(null); reloadCore(); }} className="text-xs underline">Clear filter</button>
+            </div>
+          )}
           {products.length === 0 ? <EmptyState message={loading ? "Loading…" : "No products yet. Add one to get started."} /> : (
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
@@ -371,6 +542,12 @@ export default function EcommerceAdminPage() {
       {/* ─── MARKETPLACE ──────────────────────────────────────────────────── */}
       {tab === "marketplace" && (
         <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-500">Teachers, partners, and brands who sell products or services (e.g. digital marketing services) through this marketplace.</p>
+            <button onClick={() => setShowVendorModal(true)} className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex-shrink-0">
+              + Onboard Vendor
+            </button>
+          </div>
           {vendors.length === 0 ? <EmptyState message="No vendors onboarded yet." /> : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {vendors.map(v => (
@@ -386,8 +563,17 @@ export default function EcommerceAdminPage() {
                   <div><span className="text-gray-400">Pending Balance:</span> <span className="text-blue-600 font-medium">${v.pending.toLocaleString()}</span></div>
                 </div>
                 <div className="flex gap-1 pt-1 border-t">
-                  <button className="text-xs px-2 py-1 bg-gray-100 rounded">Products</button>
-                  <button className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded">Settle</button>
+                  <button onClick={() => { setVendorFilter(v.id); setTab("products"); }} className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">Products</button>
+                  {v.status === "pending" && (
+                    <button
+                      onClick={async () => { await fetch("/api/ecommerce/vendors", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: v.id, status: "active" }) }); reloadCore(); }}
+                      className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100">Activate</button>
+                  )}
+                  {v.status === "active" && (
+                    <button
+                      onClick={async () => { await fetch("/api/ecommerce/vendors", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: v.id, status: "suspended" }) }); reloadCore(); }}
+                      className="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Suspend</button>
+                  )}
                 </div>
               </div>
             ))}
