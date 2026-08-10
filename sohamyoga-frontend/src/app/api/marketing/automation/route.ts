@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query, transaction } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
+import { CAMPAIGN_SEGMENTS } from '@/cron/campaignSegments';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const INDUSTRIES = new Set(['yoga','dental','retail','restaurant','professional_services','other']);
 const ASSET_TYPES = new Set(['copy','static_banner','dynamic_banner','video_script','video','thumbnail']);
 const CHANNELS = new Set(['facebook','instagram','linkedin','x_twitter','threads','tiktok','youtube','pinterest','reddit','bluesky','google_business','email','sms']);
+const SEGMENT_KEYS = new Set(CAMPAIGN_SEGMENTS.map(s => s.key));
 
 function tenantId(req: NextRequest, supplied?: string): string | null {
   const id = supplied || req.nextUrl.searchParams.get('tenantId') || req.headers.get('x-tenant-id');
@@ -74,6 +76,9 @@ export async function POST(req: NextRequest) {
     const industry = typeof body.industry === 'string' && INDUSTRIES.has(body.industry) ? body.industry : 'other';
     const assetTypes = Array.isArray(body.assetTypes) ? body.assetTypes.filter(v => typeof v === 'string' && ASSET_TYPES.has(v)) : [];
     const channels = Array.isArray(body.channels) ? body.channels.filter(v => typeof v === 'string' && CHANNELS.has(v)) : [];
+    const targetSegments = Array.isArray(body.targetSegments)
+      ? body.targetSegments.filter(v => typeof v === 'string' && SEGMENT_KEYS.has(v))
+      : [];
     if (!title || !assetTypes.length || !channels.length) {
       return Response.json({ error: 'Title, at least one asset, and at least one channel are required.' }, { status: 400 });
     }
@@ -90,11 +95,12 @@ export async function POST(req: NextRequest) {
       const result = await client.query<{ id: string }>(
         `INSERT INTO marketing_automation_request
          (tenant_id, title, industry, objective, audience, offer_text, call_to_action,
-          asset_types, channels, scheduled_at, timezone, model_name, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'queued') RETURNING id`,
+          asset_types, channels, scheduled_at, timezone, model_name, target_segments, status)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'queued') RETURNING id`,
         [tenant, title, industry, String(body.objective || 'awareness'), String(body.audience || ''),
           String(body.offerText || ''), String(body.callToAction || ''), assetTypes, channels,
-          body.scheduledAt || null, String(body.timezone || 'America/Edmonton'), body.modelName || null],
+          body.scheduledAt || null, String(body.timezone || 'America/Edmonton'), body.modelName || null,
+          targetSegments],
       );
       await client.query(
         `INSERT INTO marketing_workflow_event (tenant_id, request_id, stage, status, actor_type, message)

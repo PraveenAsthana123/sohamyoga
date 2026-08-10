@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CAMPAIGN_SEGMENTS } from '@/cron/campaignSegments';
 
 type Model = { name: string; installed: boolean; enabled: boolean; isDefault: boolean; purpose: string };
 type Channel = { channel: string; enabled: boolean; connection_status: string; provider: string };
-type Campaign = { id: string; title: string; industry: string; status: string; progress_percent: number; current_stage: string; channels: string[]; asset_types: string[]; scheduled_at?: string; model_name?: string; asset_count: number };
+type Campaign = { id: string; title: string; industry: string; status: string; progress_percent: number; current_stage: string; channels: string[]; asset_types: string[]; scheduled_at?: string; model_name?: string; asset_count: number; target_segments?: string[] };
 
 const INDUSTRIES = ['yoga', 'dental', 'retail', 'restaurant', 'professional_services', 'other'];
 const CHANNELS = ['facebook', 'instagram', 'linkedin', 'x_twitter', 'threads', 'tiktok', 'youtube', 'pinterest', 'reddit', 'bluesky', 'google_business', 'email', 'sms'];
@@ -22,7 +23,7 @@ const FLOW = [
 ];
 
 const initialProfile = { industry: 'yoga', businessName: '', audience: '', valueProposition: '', websiteUrl: '', timezone: 'America/Edmonton', approvalRequired: true };
-const initialCampaign = { title: '', objective: 'awareness', audience: '', offerText: '', callToAction: '', scheduledAt: '', assetTypes: ['copy', 'static_banner'], channels: ['instagram', 'facebook'], modelName: '' };
+const initialCampaign = { title: '', objective: 'awareness', audience: '', offerText: '', callToAction: '', scheduledAt: '', assetTypes: ['copy', 'static_banner'], channels: ['instagram', 'facebook'], targetSegments: [] as string[], modelName: '' };
 
 export default function MarketingAutomationPage() {
   const [tenantId, setTenantId] = useState('');
@@ -111,7 +112,7 @@ export default function MarketingAutomationPage() {
     finally { setBusy(false); }
   };
 
-  const toggleList = (key: 'assetTypes' | 'channels', value: string) => setCampaign(c => ({ ...c, [key]: c[key].includes(value) ? c[key].filter(v => v !== value) : [...c[key], value] }));
+  const toggleList = (key: 'assetTypes' | 'channels' | 'targetSegments', value: string) => setCampaign(c => ({ ...c, [key]: c[key].includes(value) ? c[key].filter(v => v !== value) : [...c[key], value] }));
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
@@ -145,12 +146,15 @@ export default function MarketingAutomationPage() {
         <div className="mt-4 grid gap-3 md:grid-cols-2"><input value={campaign.title} onChange={e => setCampaign(c => ({ ...c, title: e.target.value }))} placeholder="Campaign title" className="rounded-lg border p-2 text-sm" /><select value={campaign.objective} onChange={e => setCampaign(c => ({ ...c, objective: e.target.value }))} className="rounded-lg border p-2 text-sm">{['awareness','lead_generation','booking','sale','event','education'].map(v => <option key={v}>{v}</option>)}</select><input value={campaign.audience} onChange={e => setCampaign(c => ({ ...c, audience: e.target.value }))} placeholder="Campaign audience" className="rounded-lg border p-2 text-sm" /><input value={campaign.offerText} onChange={e => setCampaign(c => ({ ...c, offerText: e.target.value }))} placeholder="Offer/message" className="rounded-lg border p-2 text-sm" /><input value={campaign.callToAction} onChange={e => setCampaign(c => ({ ...c, callToAction: e.target.value }))} placeholder="Call to action" className="rounded-lg border p-2 text-sm" /><input type="datetime-local" value={campaign.scheduledAt} onChange={e => setCampaign(c => ({ ...c, scheduledAt: e.target.value }))} className="rounded-lg border p-2 text-sm" /></div>
         <p className="mt-4 text-xs font-semibold uppercase text-gray-500">Assets</p><div className="mt-2 flex flex-wrap gap-2">{ASSETS.map(([id,label]) => <button key={id} onClick={() => toggleList('assetTypes', id)} className={`rounded-full border px-3 py-1 text-xs ${campaign.assetTypes.includes(id) ? 'bg-indigo-600 text-white' : ''}`}>{label}</button>)}</div>
         <p className="mt-4 text-xs font-semibold uppercase text-gray-500">Channels</p><div className="mt-2 flex flex-wrap gap-2">{CHANNELS.filter(ch => configuredChannels[ch]?.enabled).map(ch => <button key={ch} onClick={() => toggleList('channels', ch)} className={`rounded-full border px-3 py-1 text-xs ${campaign.channels.includes(ch) ? 'bg-green-600 text-white' : ''}`}>{ch}</button>)}</div>
+        <p className="mt-4 text-xs font-semibold uppercase text-gray-500">Personalize by segment (optional)</p>
+        <p className="text-xs text-gray-400">Leave empty for one generic version. Pick segments to have Ollama generate distinct, tone-matched copy per audience — same segments as the CRM Segmentation tab.</p>
+        <div className="mt-2 flex flex-wrap gap-2">{CAMPAIGN_SEGMENTS.map(s => <button key={s.key} title={s.toneGuidance} onClick={() => toggleList('targetSegments', s.key)} className={`rounded-full border px-3 py-1 text-xs ${campaign.targetSegments.includes(s.key) ? 'bg-purple-600 text-white' : ''}`}>{s.label}</button>)}</div>
         <button disabled={!tenantId || !campaign.title || busy} onClick={createCampaign} className="mt-5 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white disabled:opacity-40">Generate with Ollama</button>
       </section>
 
       <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">Process flow and responsibilities</h2><div className="mt-4 grid gap-3 md:grid-cols-3">{FLOW.map(([n,title,desc]) => <div key={n} className="rounded-lg border p-3"><span className="mr-2 rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-700">{n}</span><strong className="text-sm">{title}</strong><p className="mt-2 text-xs text-gray-500">{desc}</p></div>)}</div></section>
 
-      <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">Campaign workflow queue</h2><div className="mt-3 overflow-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-xs text-gray-500"><th className="p-2">Campaign</th><th>Assets</th><th>Channels</th><th>Stage</th><th>Progress</th><th>Status</th></tr></thead><tbody>{requests.map(r => <tr key={r.id} className="border-b"><td className="p-2 font-medium">{r.title}<div className="text-xs text-gray-400">{r.industry} · {r.model_name || 'tenant default'}</div></td><td>{r.asset_types?.join(', ')}</td><td>{r.channels?.join(', ')}</td><td>{r.current_stage}</td><td>{r.progress_percent}%</td><td><span className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">{r.status}</span></td></tr>)}</tbody></table>{!requests.length && <p className="p-4 text-sm text-gray-500">No campaigns loaded.</p>}</div></section>
+      <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">Campaign workflow queue</h2><div className="mt-3 overflow-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-xs text-gray-500"><th className="p-2">Campaign</th><th>Assets</th><th>Channels</th><th>Segments</th><th>Stage</th><th>Progress</th><th>Status</th></tr></thead><tbody>{requests.map(r => <tr key={r.id} className="border-b"><td className="p-2 font-medium">{r.title}<div className="text-xs text-gray-400">{r.industry} · {r.model_name || 'tenant default'}</div></td><td>{r.asset_types?.join(', ')}</td><td>{r.channels?.join(', ')}</td><td>{r.target_segments?.length ? <span className="rounded bg-purple-50 px-2 py-1 text-xs text-purple-700">{r.target_segments.length} segment{r.target_segments.length > 1 ? 's' : ''}</span> : <span className="text-xs text-gray-400">generic</span>}</td><td>{r.current_stage}</td><td>{r.progress_percent}%</td><td><span className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">{r.status}</span></td></tr>)}</tbody></table>{!requests.length && <p className="p-4 text-sm text-gray-500">No campaigns loaded.</p>}</div></section>
     </div>
   );
 }
