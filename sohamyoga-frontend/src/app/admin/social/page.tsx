@@ -87,7 +87,7 @@ const AUTOMATION_LADDER = [
 ];
 
 export default function SocialPortalPage() {
-  const [tab, setTab] = useState<"overview" | "accounts" | "queue" | "platforms" | "approvals" | "automation">("overview");
+  const [tab, setTab] = useState<"overview" | "accounts" | "queue" | "platforms" | "approvals" | "automation" | "sentiment">("overview");
   const [tenantId, setTenantId] = useState("");
   const [providers, setProviders] = useState<ProviderRow[]>([]);
   const [queue, setQueue] = useState<QueueRow[]>([]);
@@ -171,7 +171,7 @@ export default function SocialPortalPage() {
 
       {/* Tab nav */}
       <div className="flex gap-1 border-b mb-6 flex-wrap">
-        {(["overview","accounts","queue","platforms","approvals","automation"] as const).map(t => (
+        {(["overview","accounts","queue","platforms","approvals","automation","sentiment"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
               tab === t ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-800"
@@ -497,6 +497,99 @@ export default function SocialPortalPage() {
           </div>
         </div>
       )}
+
+      {/* ─── Sentiment ──────────────────────────────────────────────────────── */}
+      {tab === "sentiment" && <SentimentTab />}
+    </div>
+  );
+}
+
+interface SentimentEntry { id: string; source: string; platform?: string; text: string; sentiment: string; confidence?: number; reason: string; createdAt: string }
+
+const SENTIMENT_COLORS: Record<string, string> = {
+  positive: "bg-green-100 text-green-700", neutral: "bg-gray-100 text-gray-600", negative: "bg-red-100 text-red-700",
+};
+
+function SentimentTab() {
+  const [text, setText] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState<{ sentiment: string; confidence: number; reason: string } | null>(null);
+  const [error, setError] = useState("");
+  const [log, setLog] = useState<SentimentEntry[]>([]);
+  const [summary, setSummary] = useState<Record<string, number>>({});
+
+  const loadLog = () => fetch("/api/social/sentiment", { cache: "no-store" })
+    .then(r => r.json()).then(d => { setLog(d.log ?? []); setSummary(d.summary ?? {}); });
+  useEffect(() => { loadLog(); }, []);
+
+  async function analyze() {
+    if (!text.trim()) return;
+    setAnalyzing(true); setError(""); setResult(null);
+    const res = await fetch("/api/social/sentiment", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
+    });
+    const data = await res.json();
+    setAnalyzing(false);
+    if (!res.ok) { setError(data.error ?? "Analysis failed."); return; }
+    setResult(data);
+    setText("");
+    loadLog();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white border rounded-lg p-5">
+        <h2 className="font-semibold text-gray-800 mb-1">Analyze text</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Paste a review, DM, or comment to classify its sentiment right now — works without any connected social account.
+          Comments read automatically via <code>read_comments</code> once accounts are connected get classified the same way.
+        </p>
+        <textarea value={text} onChange={e => setText(e.target.value)} rows={3} placeholder="Paste text to analyze…"
+          className="w-full rounded-lg border px-3 py-2 text-sm" />
+        <div className="mt-2 flex items-center gap-3">
+          <button onClick={analyze} disabled={analyzing || !text.trim()} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">
+            {analyzing ? "Analyzing…" : "Analyze"}
+          </button>
+          {error && <span className="text-xs text-red-600">{error}</span>}
+        </div>
+        {result && (
+          <div className="mt-4 flex items-center gap-3 rounded-lg border p-3">
+            <span className={`text-xs px-2 py-1 rounded-full font-medium ${SENTIMENT_COLORS[result.sentiment] ?? ""}`}>{result.sentiment}</span>
+            <span className="text-xs text-gray-400">confidence {(result.confidence * 100).toFixed(0)}%</span>
+            <span className="text-sm text-gray-700">{result.reason}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        {(["positive", "neutral", "negative"] as const).map(s => (
+          <div key={s} className="bg-white border rounded-lg p-4">
+            <div className={`text-2xl font-bold ${s === "positive" ? "text-green-600" : s === "negative" ? "text-red-600" : "text-gray-600"}`}>{summary[s] ?? 0}</div>
+            <div className="text-sm text-gray-500 capitalize">{s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 border-b"><h3 className="text-sm font-semibold">Recent Analyses</h3></div>
+        {log.length === 0 ? (
+          <p className="p-6 text-sm text-gray-500 text-center">No sentiment analyses yet.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b text-xs text-gray-500"><tr><th className="px-4 py-2 text-left">Source</th><th className="px-4 py-2 text-left">Text</th><th className="px-4 py-2 text-left">Sentiment</th><th className="px-4 py-2 text-left">Reason</th></tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {log.map(l => (
+                <tr key={l.id}>
+                  <td className="px-4 py-2 text-xs text-gray-500">{l.platform ? `${l.source} · ${l.platform}` : l.source}</td>
+                  <td className="px-4 py-2 text-xs text-gray-700 max-w-xs truncate">{l.text}</td>
+                  <td className="px-4 py-2"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${SENTIMENT_COLORS[l.sentiment] ?? ""}`}>{l.sentiment}</span></td>
+                  <td className="px-4 py-2 text-xs text-gray-500">{l.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
