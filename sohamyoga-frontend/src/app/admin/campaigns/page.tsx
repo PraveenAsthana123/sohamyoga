@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 type CStatus = "DRAFT" | "SCHEDULED" | "RUNNING" | "PAUSED" | "COMPLETED" | "CANCELLED";
@@ -20,14 +20,6 @@ interface Campaign {
   createdAt: string;
 }
 
-const SEED_CAMPAIGNS: Campaign[] = [
-  { id: "c1", name: "August Free → Monthly Push", type: "one_time", channels: ["email", "whatsapp"], status: "RUNNING", audience: "Free Plan Users", audienceSize: 512, goalType: "membership_conversions", goalTarget: 50, conversions: 31, revenueCAD: 1519, scheduledAt: "2026-08-01", createdAt: "2026-07-28" },
-  { id: "c2", name: "Birthday Wishes — August", type: "trigger", channels: ["whatsapp", "in_app"], status: "RUNNING", audience: "Birthday This Month", audienceSize: 41, goalType: "re_engagement", goalTarget: 30, conversions: 18, revenueCAD: 0, createdAt: "2026-08-01" },
-  { id: "c3", name: "Re-engage Dormant Students", type: "drip", channels: ["email"], status: "SCHEDULED", audience: "At-Risk Churn", audienceSize: 97, goalType: "re_engagement", goalTarget: 20, conversions: 0, revenueCAD: 0, scheduledAt: "2026-08-06", createdAt: "2026-08-03" },
-  { id: "c4", name: "Summer Annual Upgrade", type: "one_time", channels: ["email", "push"], status: "COMPLETED", audience: "Active Members", audienceSize: 284, goalType: "membership_conversions", goalTarget: 30, conversions: 34, revenueCAD: 4914, createdAt: "2026-07-15" },
-  { id: "c5", name: "Referral Drive", type: "referral", channels: ["whatsapp", "email"], status: "DRAFT", audience: "High-Value Annual Members", audienceSize: 63, goalType: "referrals", goalTarget: 25, conversions: 0, revenueCAD: 0, createdAt: "2026-08-04" },
-];
-
 const STATUS_STYLE: Record<CStatus, string> = {
   DRAFT:     "bg-gray-800 text-gray-300",
   SCHEDULED: "bg-blue-900 text-blue-300",
@@ -41,24 +33,38 @@ const CHANNEL_ICON: Record<string, string> = {
   email: "📧", whatsapp: "💬", sms: "📱", push: "🔔", in_app: "🏠", social: "📲",
 };
 
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
+
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState(SEED_CAMPAIGNS);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<CStatus | "ALL">("ALL");
+
+  const load = () => fetchJson<{ campaigns: Campaign[] }>("/api/lifecycle-campaigns").then(d => {
+    setCampaigns(d?.campaigns ?? []); setLoading(false);
+  });
+  useEffect(() => { load(); }, []);
 
   const filtered = filter === "ALL" ? campaigns : campaigns.filter(c => c.status === filter);
 
   const totalRevenue = campaigns.reduce((s, c) => s + c.revenueCAD, 0);
   const running = campaigns.filter(c => c.status === "RUNNING").length;
   const totalConversions = campaigns.reduce((s, c) => s + c.conversions, 0);
+  const totalAudience = campaigns.reduce((s, c) => s + c.audienceSize, 0);
 
-  function toggleStatus(id: string) {
-    setCampaigns(prev => prev.map(c => {
-      if (c.id !== id) return c;
-      if (c.status === "RUNNING") return { ...c, status: "PAUSED" as CStatus };
-      if (c.status === "PAUSED")  return { ...c, status: "RUNNING" as CStatus };
-      if (c.status === "DRAFT")   return { ...c, status: "RUNNING" as CStatus };
-      return c;
-    }));
+  async function toggleStatus(c: Campaign) {
+    const nextStatus: CStatus = c.status === "RUNNING" ? "PAUSED" : "RUNNING";
+    const res = await fetch(`/api/lifecycle-campaigns/${c.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: nextStatus }),
+    });
+    if (res.ok) load();
   }
 
   return (
@@ -83,7 +89,7 @@ export default function CampaignsPage() {
             { label: "Running", value: running, color: "text-green-400" },
             { label: "Total Conversions", value: totalConversions, color: "text-purple-400" },
             { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, color: "text-yellow-400" },
-            { label: "Avg Conversion Rate", value: `${Math.round((totalConversions / campaigns.reduce((s,c)=>s+c.audienceSize,0))*100)}%`, color: "text-blue-400" },
+            { label: "Avg Conversion Rate", value: totalAudience ? `${Math.round((totalConversions / totalAudience) * 100)}%` : "—", color: "text-blue-400" },
           ].map(k => (
             <div key={k.label} className="bg-gray-900 rounded-2xl p-4 text-center">
               <div className={`text-2xl font-bold ${k.color}`}>{k.value}</div>
@@ -103,9 +109,16 @@ export default function CampaignsPage() {
         </div>
 
         {/* ONE ROW PER CAMPAIGN */}
+        {loading ? (
+          <div className="text-center py-12 text-gray-500 text-sm">Loading…</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 text-sm border border-dashed border-gray-800 rounded-2xl">
+            No campaigns yet. Create one to get started.
+          </div>
+        ) : (
         <div className="space-y-3">
           {filtered.map(c => {
-            const goalPct = Math.min(100, Math.round((c.conversions / c.goalTarget) * 100));
+            const goalPct = c.goalTarget ? Math.min(100, Math.round((c.conversions / c.goalTarget) * 100)) : 0;
             return (
               <div key={c.id} className="bg-gray-900 rounded-2xl p-5 space-y-3">
                 {/* Row 1: name + status + channels */}
@@ -118,12 +131,12 @@ export default function CampaignsPage() {
                     </div>
                     <p className="text-sm text-gray-400 mt-0.5">
                       👥 {c.audience} ({c.audienceSize.toLocaleString()}) ·
-                      {c.channels.map(ch => ` ${CHANNEL_ICON[ch]}`).join("")} {c.channels.join(", ")}
+                      {c.channels.map(ch => ` ${CHANNEL_ICON[ch] ?? ""}`).join("")} {c.channels.join(", ")}
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     {["RUNNING", "PAUSED", "DRAFT"].includes(c.status) && (
-                      <button onClick={() => toggleStatus(c.id)}
+                      <button onClick={() => toggleStatus(c)}
                         className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs transition-colors">
                         {c.status === "RUNNING" ? "Pause" : "Launch"}
                       </button>
@@ -155,7 +168,7 @@ export default function CampaignsPage() {
                   )}
                   {c.scheduledAt && (
                     <div className="text-right shrink-0 text-xs text-gray-400">
-                      {c.status === "SCHEDULED" ? "Scheduled" : "Started"}: {c.scheduledAt}
+                      {c.status === "SCHEDULED" ? "Scheduled" : "Started"}: {new Date(c.scheduledAt).toLocaleDateString()}
                     </div>
                   )}
                 </div>
@@ -163,6 +176,7 @@ export default function CampaignsPage() {
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );
