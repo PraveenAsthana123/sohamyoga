@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const TABS = ["overview", "events", "funnels", "sessions", "cohorts", "consent", "integrations"] as const;
 type Tab = typeof TABS[number];
@@ -32,14 +32,10 @@ function Badge({ label, colorClass }: { label: string; colorClass: string }) {
   return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}>{label}</span>;
 }
 
-const MOCK_EVENTS = [
-  { id: "ev-1", type: "page_view", name: "Page Viewed", url: "/classes", anon: "anon-abc", status: "collected", at: "10:02 AM" },
-  { id: "ev-2", type: "click", name: "Book Now Clicked", url: "/classes/hatha", anon: "anon-abc", status: "collected", at: "10:04 AM" },
-  { id: "ev-3", type: "booking_started", name: "Booking Started", url: "/booking", anon: "anon-abc", status: "collected", at: "10:05 AM" },
-  { id: "ev-4", type: "payment_initiated", name: "Payment Initiated", url: "/checkout", anon: "anon-def", status: "masked", at: "10:08 AM" },
-  { id: "ev-5", type: "booking_completed", name: "Booking Completed", url: "/thank-you", anon: "anon-def", status: "collected", at: "10:10 AM" },
-  { id: "ev-6", type: "error", name: "API Error", url: "/api/bookings", anon: "anon-xyz", status: "collected", at: "10:15 AM" },
-];
+function EmptyState({ message }: { message: string }) {
+  return <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
+}
+
 const EVENT_TYPE_COLORS: Record<string, string> = {
   page_view: "bg-blue-100 text-blue-700", click: "bg-gray-100 text-gray-600",
   form_start: "bg-indigo-100 text-indigo-700", booking_started: "bg-amber-100 text-amber-700",
@@ -51,59 +47,51 @@ const STATUS_COLORS: Record<string, string> = {
   collected: "bg-green-100 text-green-700", masked: "bg-yellow-100 text-yellow-700",
   dropped: "bg-red-100 text-red-600", pending: "bg-gray-100 text-gray-600",
 };
-const MOCK_FUNNELS = [
-  { id: "fn-1", name: "Booking Funnel", steps: 5, status: "active", convRate: 10 },
-  { id: "fn-2", name: "Membership Signup", steps: 4, status: "active", convRate: 22 },
-  { id: "fn-3", name: "Workshop Booking", steps: 3, status: "paused", convRate: 38 },
-];
-const FUNNEL_STEPS = [
-  { step: "Landing page", count: 2000, conv: 100, drop: 0 },
-  { step: "Services page", count: 1200, conv: 60, drop: 40 },
-  { step: "Booking form", count: 800, conv: 66.7, drop: 33.3 },
-  { step: "Payment", count: 400, conv: 50, drop: 50 },
-  { step: "Confirmed", count: 200, conv: 50, drop: 50 },
-];
-const MOCK_SESSIONS = [
-  { id: "sess-1", anon: "anon-abc", device: "desktop", browser: "Chrome", country: "CA", pages: 6, duration: "8m 40s", source: "google", replay: true },
-  { id: "sess-2", anon: "anon-def", device: "mobile", browser: "Safari", country: "IN", pages: 3, duration: "3m 12s", source: "instagram", replay: false },
-  { id: "sess-3", anon: "anon-xyz", device: "desktop", browser: "Firefox", country: "CA", pages: 1, duration: "0m 45s", source: "direct", replay: false },
-  { id: "sess-4", anon: "anon-pqr", device: "tablet", browser: "Chrome", country: "US", pages: 4, duration: "5m 20s", source: "email", replay: true },
-];
-const TRAFFIC_SOURCES = [
-  { source: "Direct", count: 1240, pct: 31 },
-  { source: "Google Search", count: 1050, pct: 26 },
-  { source: "Instagram", count: 830, pct: 21 },
-  { source: "Email", count: 520, pct: 13 },
-  { source: "Referral", count: 360, pct: 9 },
-];
-const CONSENT_DIST = [
-  { level: "all", count: 1840, pct: 46 },
-  { level: "analytics", count: 1200, pct: 30 },
-  { level: "essential", count: 560, pct: 14 },
-  { level: "none", count: 400, pct: 10 },
-];
 const CONSENT_COLORS: Record<string, string> = {
   all: "bg-green-500", analytics: "bg-blue-500", essential: "bg-yellow-400", none: "bg-gray-300",
 };
 
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
+
+interface DashboardData {
+  kpis: { uniqueVisitors: number; totalSessions: number; pageViews: number; avgSessionMinutes: number; bounceRatePct: number; jsErrors7d: number };
+  trafficSources: { source: string; count: number; pct: number }[];
+  conversionsToday: Record<string, number>;
+}
+
 function OverviewTab() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetchJson<DashboardData>("/api/analytics/dashboard").then(d => { setData(d); setLoading(false); }); }, []);
+
+  if (loading) return <EmptyState message="Loading…" />;
+  if (!data) return <EmptyState message="Analytics data is unavailable right now." />;
+  const { kpis } = data;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <KpiCard label="Unique Visitors" value="4,000" sub="This month" color="blue" />
-        <KpiCard label="Total Sessions" value="5,840" sub="This month" color="teal" />
-        <KpiCard label="Page Views" value="28,200" sub="This month" color="purple" />
-        <KpiCard label="Avg Session" value="4.8 min" sub="Duration" color="amber" />
-        <KpiCard label="Bounce Rate" value="38%" sub="Single-page" color="pink" />
-        <KpiCard label="Conversions" value="200" sub="Bookings completed" color="green" />
-        <KpiCard label="JS Errors" value="12" sub="Last 7 days" color="red" />
+        <KpiCard label="Unique Visitors" value={kpis.uniqueVisitors.toLocaleString()} sub="Last 30 days" color="blue" />
+        <KpiCard label="Total Sessions" value={kpis.totalSessions.toLocaleString()} sub="Last 30 days" color="teal" />
+        <KpiCard label="Page Views" value={kpis.pageViews.toLocaleString()} sub="Last 30 days" color="purple" />
+        <KpiCard label="Avg Session" value={`${kpis.avgSessionMinutes.toFixed(1)} min`} sub="Duration" color="amber" />
+        <KpiCard label="Bounce Rate" value={`${kpis.bounceRatePct}%`} sub="Single-page" color="pink" />
+        <KpiCard label="Conversions" value={data.conversionsToday.booking_completed ?? 0} sub="Bookings completed today" color="green" />
+        <KpiCard label="JS Errors" value={kpis.jsErrors7d} sub="Last 7 days" color="red" />
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Traffic Sources</h3>
-          {TRAFFIC_SOURCES.map(s => (
+          {data.trafficSources.length === 0 && <EmptyState message="No sessions recorded yet." />}
+          {data.trafficSources.map(s => (
             <div key={s.source} className="flex items-center gap-3 mb-2">
-              <span className="text-sm text-gray-700 w-28 flex-shrink-0">{s.source}</span>
+              <span className="text-sm text-gray-700 w-28 flex-shrink-0 capitalize">{s.source}</span>
               <div className="flex-1 bg-gray-100 rounded-full h-2">
                 <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${s.pct}%` }} />
               </div>
@@ -115,16 +103,16 @@ function OverviewTab() {
         <div className="bg-white border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Conversion Events (Today)</h3>
           {[
-            { label: "Bookings Completed", count: 12, badge: "booking_completed" },
-            { label: "Payments Completed", count: 11, badge: "payment_completed" },
-            { label: "Subscriptions Started", count: 5, badge: "subscription_started" },
-            { label: "Booking Started", count: 48, badge: "booking_started" },
+            { label: "Bookings Completed", key: "booking_completed" },
+            { label: "Payments Completed", key: "payment_completed" },
+            { label: "Subscriptions Started", key: "subscription_started" },
+            { label: "Booking Started", key: "booking_started" },
           ].map(c => (
-            <div key={c.label} className="flex items-center justify-between mb-2">
+            <div key={c.key} className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-700">{c.label}</span>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-gray-900">{c.count}</span>
-                <Badge label={c.badge} colorClass={EVENT_TYPE_COLORS[c.badge] || ""} />
+                <span className="font-bold text-gray-900">{data.conversionsToday[c.key] ?? 0}</span>
+                <Badge label={c.key} colorClass={EVENT_TYPE_COLORS[c.key] || ""} />
               </div>
             </div>
           ))}
@@ -134,9 +122,18 @@ function OverviewTab() {
   );
 }
 
+interface EventRow { id: string; event_type: string; name: string; url: string; anonymous_id: string; status: string; created_at: string }
+
 function EventsTab() {
   const [typeFilter, setTypeFilter] = useState("all");
-  const filtered = MOCK_EVENTS.filter(e => typeFilter === "all" || e.type === typeFilter);
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+    const qs = typeFilter === "all" ? "" : `?type=${typeFilter}`;
+    fetchJson<{ events: EventRow[] }>(`/api/analytics/events${qs}`).then(d => { setEvents(d?.events ?? []); setLoading(false); });
+  }, [typeFilter]);
+
   return (
     <div className="space-y-4">
       <div className="flex gap-3 flex-wrap items-center">
@@ -145,72 +142,92 @@ function EventsTab() {
           {Object.keys(EVENT_TYPE_COLORS).map(t => <option key={t}>{t}</option>)}
         </select>
         <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-          Sensitive fields automatically masked · IP never stored raw
+          Sensitive fields automatically masked · IP never stored
         </div>
       </div>
-      <div className="bg-white border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {["Type", "Name", "URL", "Visitor", "Status", "Time"].map(h => (
-                <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {filtered.map(e => (
-              <tr key={e.id} className={`hover:bg-gray-50 ${e.type === "error" ? "bg-red-50" : ""}`}>
-                <td className="px-4 py-3"><Badge label={e.type} colorClass={EVENT_TYPE_COLORS[e.type] || ""} /></td>
-                <td className="px-4 py-3 font-medium">{e.name}</td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-500 max-w-[180px] truncate">{e.url}</td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-400">{e.anon}</td>
-                <td className="px-4 py-3"><Badge label={e.status} colorClass={STATUS_COLORS[e.status] || ""} /></td>
-                <td className="px-4 py-3 text-gray-400 text-xs">{e.at}</td>
+      {loading ? <EmptyState message="Loading…" /> : events.length === 0 ? (
+        <EmptyState message="No events collected yet." />
+      ) : (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {["Type", "Name", "URL", "Visitor", "Status", "Time"].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y">
+              {events.map(e => (
+                <tr key={e.id} className={`hover:bg-gray-50 ${e.event_type === "error" ? "bg-red-50" : ""}`}>
+                  <td className="px-4 py-3"><Badge label={e.event_type} colorClass={EVENT_TYPE_COLORS[e.event_type] || ""} /></td>
+                  <td className="px-4 py-3 font-medium">{e.name}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-500 max-w-[180px] truncate">{e.url}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-400">{e.anonymous_id}</td>
+                  <td className="px-4 py-3"><Badge label={e.status} colorClass={STATUS_COLORS[e.status] || ""} /></td>
+                  <td className="px-4 py-3 text-gray-400 text-xs">{new Date(e.created_at).toLocaleTimeString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
+interface FunnelData {
+  id: string; name: string; status: string; entryCount: number; completedCount: number; overallConvPct: number;
+  steps: { name: string; count: number; convPct: number; dropPct: number }[];
+}
+
 function FunnelsTab() {
-  const [sel, setSel] = useState(MOCK_FUNNELS[0].id);
+  const [funnels, setFunnels] = useState<FunnelData[]>([]);
+  const [sel, setSel] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetchJson<{ funnels: FunnelData[] }>("/api/analytics/funnels").then(d => {
+      setFunnels(d?.funnels ?? []); setSel(d?.funnels?.[0]?.id ?? null); setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <EmptyState message="Loading…" />;
+  if (funnels.length === 0) return <EmptyState message="No funnels defined yet. Create one to start tracking conversion steps." />;
+  const active = funnels.find(f => f.id === sel) ?? funnels[0];
+
   return (
     <div className="space-y-6">
       <div className="flex gap-3 flex-wrap">
-        {MOCK_FUNNELS.map(f => (
+        {funnels.map(f => (
           <button key={f.id} onClick={() => setSel(f.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${sel === f.id ? "bg-amber-500 text-white border-amber-500" : "border-gray-200 text-gray-600 hover:border-amber-300"}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${active.id === f.id ? "bg-amber-500 text-white border-amber-500" : "border-gray-200 text-gray-600 hover:border-amber-300"}`}>
             {f.name}
           </button>
         ))}
-        <button className="ml-auto bg-amber-500 text-white px-4 py-2 rounded text-sm font-medium">+ New Funnel</button>
       </div>
       <div className="grid md:grid-cols-3 gap-4">
-        <KpiCard label="Entry Count" value="2,000" sub="Sessions entered" color="blue" />
-        <KpiCard label="Completed" value="200" sub="Reached final step" color="green" />
-        <KpiCard label="Overall Conv." value="10%" sub="Entry → Complete" color="amber" />
+        <KpiCard label="Entry Count" value={active.entryCount.toLocaleString()} sub="Sessions entered" color="blue" />
+        <KpiCard label="Completed" value={active.completedCount.toLocaleString()} sub="Reached final step" color="green" />
+        <KpiCard label="Overall Conv." value={`${active.overallConvPct}%`} sub="Entry → Complete" color="amber" />
       </div>
       <div className="bg-white border rounded-lg p-6">
-        <h3 className="font-semibold text-gray-800 mb-4">Booking Funnel — Step by Step</h3>
+        <h3 className="font-semibold text-gray-800 mb-4">{active.name} — Step by Step</h3>
         <div className="space-y-4">
-          {FUNNEL_STEPS.map((s, i) => (
-            <div key={s.step}>
+          {active.steps.map((s, i) => (
+            <div key={s.name}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                  <span className="text-sm font-medium">{s.step}</span>
+                  <span className="text-sm font-medium">{s.name}</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm">
                   <span className="font-bold">{s.count.toLocaleString()}</span>
-                  {i > 0 && <span className="text-red-500 text-xs">−{s.drop}% drop</span>}
-                  <span className="text-green-600 font-medium">{s.conv}%</span>
+                  {i > 0 && <span className="text-red-500 text-xs">−{s.dropPct}% drop</span>}
+                  <span className="text-green-600 font-medium">{s.convPct}%</span>
                 </div>
               </div>
               <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
-                <div className="bg-gradient-to-r from-amber-400 to-amber-500 h-3 rounded-full" style={{ width: `${(s.count / 2000) * 100}%` }} />
+                <div className="bg-gradient-to-r from-amber-400 to-amber-500 h-3 rounded-full" style={{ width: `${Math.min(100, s.convPct)}%` }} />
               </div>
             </div>
           ))}
@@ -220,53 +237,70 @@ function FunnelsTab() {
   );
 }
 
+interface SessionRow { id: string; anon: string; device: string; browser: string; country: string; pages: number; durationLabel: string; source: string; replay: boolean }
+
 function SessionsTab() {
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetchJson<{ sessions: SessionRow[] }>("/api/analytics/sessions").then(d => { setSessions(d?.sessions ?? []); setLoading(false); }); }, []);
+
   const DEVICE_ICONS: Record<string, string> = { desktop: "🖥️", mobile: "📱", tablet: "📟" };
   const SOURCE_COLORS: Record<string, string> = {
-    google: "bg-blue-100 text-blue-700", instagram: "bg-pink-100 text-pink-700",
-    direct: "bg-gray-100 text-gray-600", email: "bg-amber-100 text-amber-700",
+    search: "bg-blue-100 text-blue-700", social: "bg-pink-100 text-pink-700",
+    direct: "bg-gray-100 text-gray-600", email: "bg-amber-100 text-amber-700", referral: "bg-purple-100 text-purple-700", paid: "bg-orange-100 text-orange-700",
   };
   return (
     <div className="space-y-4">
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
         Sessions are anonymised. Session replay requires staff approval. No raw IP stored.
       </div>
-      <div className="bg-white border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {["Visitor", "Device", "Browser", "Country", "Pages", "Duration", "Source", "Replay"].map(h => (
-                <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {MOCK_SESSIONS.map(s => (
-              <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs text-gray-400">{s.anon}</td>
-                <td className="px-4 py-3">{DEVICE_ICONS[s.device] || "?"} {s.device}</td>
-                <td className="px-4 py-3">{s.browser}</td>
-                <td className="px-4 py-3">{s.country}</td>
-                <td className="px-4 py-3">{s.pages}</td>
-                <td className="px-4 py-3">{s.duration}</td>
-                <td className="px-4 py-3"><Badge label={s.source} colorClass={SOURCE_COLORS[s.source] || "bg-gray-100 text-gray-600"} /></td>
-                <td className="px-4 py-3">
-                  {s.replay
-                    ? <button className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200">▶ Replay</button>
-                    : <span className="text-gray-300 text-xs">—</span>}
-                </td>
+      {loading ? <EmptyState message="Loading…" /> : sessions.length === 0 ? (
+        <EmptyState message="No sessions recorded yet." />
+      ) : (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {["Visitor", "Device", "Browser", "Country", "Pages", "Duration", "Source", "Replay"].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y">
+              {sessions.map(s => (
+                <tr key={s.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-mono text-xs text-gray-400">{s.anon}</td>
+                  <td className="px-4 py-3">{DEVICE_ICONS[s.device] || "?"} {s.device}</td>
+                  <td className="px-4 py-3">{s.browser}</td>
+                  <td className="px-4 py-3">{s.country}</td>
+                  <td className="px-4 py-3">{s.pages}</td>
+                  <td className="px-4 py-3">{s.durationLabel}</td>
+                  <td className="px-4 py-3"><Badge label={s.source} colorClass={SOURCE_COLORS[s.source] || "bg-gray-100 text-gray-600"} /></td>
+                  <td className="px-4 py-3">
+                    {s.replay
+                      ? <button className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200">▶ Replay</button>
+                      : <span className="text-gray-300 text-xs">—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
+interface CohortData {
+  totals: { newUsers: number; returning: number; converted: number; churned: number };
+  heatmap: { cohortWeek: string; points: { period: string; rate: number }[] }[];
+}
+
 function CohortsTab() {
-  const WEEKS = ["W1", "W2", "W3", "W4", "W5", "W6"];
-  const RETENTION = [[100,42,31,28,25,22],[100,45,33,30,27],[100,48,35,31],[100,50,38],[100,46],[100]];
+  const [data, setData] = useState<CohortData | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetchJson<CohortData>("/api/analytics/cohorts").then(d => { setData(d); setLoading(false); }); }, []);
+
   function heat(pct: number) {
     if (pct >= 80) return "bg-green-600 text-white";
     if (pct >= 50) return "bg-green-400 text-white";
@@ -274,49 +308,61 @@ function CohortsTab() {
     if (pct >= 15) return "bg-orange-200 text-gray-900";
     return "bg-gray-100 text-gray-500";
   }
+  if (loading) return <EmptyState message="Loading…" />;
+  if (!data) return <EmptyState message="Cohort data is unavailable right now." />;
+  const avgWk2 = data.heatmap.length
+    ? Math.round(data.heatmap.reduce((sum, c) => sum + (c.points[0]?.rate ?? 0), 0) / data.heatmap.length)
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="grid md:grid-cols-4 gap-4">
-        <KpiCard label="New Users" value="1,200" sub="This month" color="blue" />
-        <KpiCard label="Returning" value="2,800" sub="Came back" color="green" />
-        <KpiCard label="Converted" value="200" sub="Completed booking" color="amber" />
-        <KpiCard label="Wk2 Retention" value="46%" sub="Avg" color="purple" />
+        <KpiCard label="New Users" value={data.totals.newUsers.toLocaleString()} sub="Last 90 days" color="blue" />
+        <KpiCard label="Returning" value={data.totals.returning.toLocaleString()} sub="Came back" color="green" />
+        <KpiCard label="Converted" value={data.totals.converted.toLocaleString()} sub="Completed booking" color="amber" />
+        <KpiCard label="Wk2 Retention" value={`${avgWk2}%`} sub="Avg" color="purple" />
       </div>
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="font-semibold text-gray-800 mb-4">Retention Heatmap — August Cohorts</h3>
-        <div className="overflow-x-auto">
-          <table className="text-xs text-center">
-            <thead>
-              <tr>
-                <th className="px-3 py-2 text-left text-gray-500">Cohort</th>
-                {WEEKS.map(w => <th key={w} className="px-3 py-2 text-gray-500">{w}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {RETENTION.map((row, i) => (
-                <tr key={i}>
-                  <td className="px-3 py-2 text-left text-gray-600 font-medium">Aug W{i + 1}</td>
-                  {row.map((pct, j) => (
-                    <td key={j} className={`px-3 py-2 rounded font-medium ${heat(pct)}`}>{pct}%</td>
-                  ))}
-                  {Array.from({ length: WEEKS.length - row.length }, (_, k) => (
-                    <td key={k} className="px-3 py-2 text-gray-200">—</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h3 className="font-semibold text-gray-800 mb-4">Retention Heatmap</h3>
+        {data.heatmap.length === 0 ? <EmptyState message="No retention data computed yet." /> : (
+          <div className="overflow-x-auto">
+            <table className="text-xs text-center">
+              <thead><tr><th className="px-3 py-2 text-left text-gray-500">Cohort</th>
+                {data.heatmap[0].points.map((_, i) => <th key={i} className="px-3 py-2 text-gray-500">Wk{i + 1}</th>)}
+              </tr></thead>
+              <tbody>
+                {data.heatmap.map(row => (
+                  <tr key={row.cohortWeek}>
+                    <td className="px-3 py-2 text-left text-gray-600 font-medium">{row.cohortWeek}</td>
+                    {row.points.map((p, j) => (
+                      <td key={j} className={`px-3 py-2 rounded font-medium ${heat(p.rate)}`}>{p.rate}%</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
+interface ConsentData { distribution: { level: string; count: number; pct: number }[] }
+
 function ConsentTab() {
+  const [data, setData] = useState<ConsentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetchJson<ConsentData>("/api/analytics/consent").then(d => { setData(d); setLoading(false); }); }, []);
+
+  if (loading) return <EmptyState message="Loading…" />;
+  const dist = data?.distribution ?? [];
+
   return (
     <div className="space-y-6">
       <div className="grid md:grid-cols-4 gap-4">
-        {CONSENT_DIST.map(c => (
+        {dist.length === 0 && <EmptyState message="No consent records yet." />}
+        {dist.map(c => (
           <KpiCard key={c.level} label={`Level: ${c.level}`} value={`${c.pct}%`} sub={`${c.count.toLocaleString()} visitors`}
             color={c.level === "all" ? "green" : c.level === "analytics" ? "blue" : c.level === "essential" ? "amber" : "pink"} />
         ))}
@@ -324,11 +370,11 @@ function ConsentTab() {
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Consent Distribution</h3>
-          {CONSENT_DIST.map(c => (
+          {dist.map(c => (
             <div key={c.level} className="flex items-center gap-3 mb-2">
               <span className="text-sm text-gray-700 capitalize w-20">{c.level}</span>
               <div className="flex-1 bg-gray-100 rounded-full h-3">
-                <div className={`${CONSENT_COLORS[c.level]} h-3 rounded-full`} style={{ width: `${c.pct}%` }} />
+                <div className={`${CONSENT_COLORS[c.level] ?? "bg-gray-300"} h-3 rounded-full`} style={{ width: `${c.pct}%` }} />
               </div>
               <span className="text-sm font-bold w-8 text-right">{c.pct}%</span>
             </div>

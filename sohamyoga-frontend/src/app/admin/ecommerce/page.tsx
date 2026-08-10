@@ -1,65 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ProductType = "physical" | "digital" | "service" | "subscription" | "bundle" | "workshop" | "retreat" | "course" | "gift_card" | "ayurvedic" | "book" | "membership";
-type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded" | "returned";
+type OrderStatus = "draft" | "pending" | "confirmed" | "processing" | "partially_shipped" | "shipped" | "delivered" | "cancelled" | "refunded" | "returned";
 type Tab = "overview" | "products" | "orders" | "inventory" | "marketplace" | "flowchart" | "integrations";
 
 interface ProductRow { id: string; name: string; type: ProductType; sku: string; price: number; stock: number; status: string; rating: number; vendor?: string }
 interface OrderRow   { id: string; number: string; customer: string; status: OrderStatus; payment: string; total: number; items: number; date: string; tracking?: string }
 interface InventoryRow { id: string; product: string; sku: string; warehouse: string; qty: number; reserved: number; reorderPoint: number; batch?: string }
 interface VendorRow  { id: string; name: string; type: string; commission: string; sales: number; pending: number; status: string }
+interface DashboardData {
+  kpis: { todayRevenue: number; pendingOrders: number; activeProducts: number; lowStock: number; outOfStock: number };
+  revenueByType: { type: string; revenue: number; pct: number }[];
+  ordersByStatus: { status: string; count: number; pct: number }[];
+  totalOrders: number;
+}
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const PRODUCTS: ProductRow[] = [
-  { id: "p1",  name: "Premium Yoga Mat 6mm",        type: "physical",     sku: "YM-001",     price: 69.99,  stock: 45,  status: "active",      rating: 4.8 },
-  { id: "p2",  name: "Ayurvedic Ashwagandha Oil",   type: "ayurvedic",    sku: "AY-012",     price: 29.99,  stock: 120, status: "active",      rating: 4.6 },
-  { id: "p3",  name: "30-Day Yoga Foundations",      type: "course",       sku: "CRS-001",    price: 149.0,  stock: 999, status: "active",      rating: 4.9 },
-  { id: "p4",  name: "Morning Flow Workshop",        type: "workshop",     sku: "WS-2026-09", price: 89.0,   stock: 12,  status: "active",      rating: 4.7 },
-  { id: "p5",  name: "Kerala Retreat (5 nights)",    type: "retreat",      sku: "RET-2026-11",price: 1299.0, stock: 8,   status: "active",      rating: 5.0 },
-  { id: "p6",  name: "Yoga Blocks (pair)",           type: "physical",     sku: "BLK-002",    price: 24.99,  stock: 3,   status: "active",      rating: 4.4 },
-  { id: "p7",  name: "Gold Membership Monthly",      type: "membership",   sku: "MBR-GOLD-M", price: 149.0,  stock: 999, status: "active",      rating: 4.9 },
-  { id: "p8",  name: "Meditation MP3 Bundle",        type: "digital",      sku: "DL-MED-001", price: 19.99,  stock: 999, status: "active",      rating: 4.5 },
-  { id: "p9",  name: "Yoga Starter Pack",            type: "bundle",       sku: "BDL-001",    price: 89.0,   stock: 25,  status: "active",      rating: 4.6, vendor: "ananya-studio" },
-  { id: "p10", name: "Private Class (60 min)",       type: "service",      sku: "SVC-PRIV-1", price: 120.0,  stock: 20,  status: "active",      rating: 5.0, vendor: "ananya-studio" },
-  { id: "p11", name: "Light on Yoga (Book)",         type: "book",         sku: "BK-001",     price: 34.99,  stock: 0,   status: "out_of_stock", rating: 4.8 },
-  { id: "p12", name: "CAD 100 Gift Card",            type: "gift_card",    sku: "GC-100",     price: 100.0,  stock: 999, status: "active",      rating: 0 },
-];
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
 
-const ORDERS: OrderRow[] = [
-  { id: "o1", number: "ORD-2026-1042", customer: "Alice Chen",        status: "delivered",  payment: "paid",    total: 89.0,   items: 2, date: "2026-07-28", tracking: "1Z999AA10123456784" },
-  { id: "o2", number: "ORD-2026-1043", customer: "Bob Sharma",        status: "processing", payment: "paid",    total: 1388.0, items: 1, date: "2026-08-01" },
-  { id: "o3", number: "ORD-2026-1044", customer: "Carol Wu",          status: "pending",    payment: "pending", total: 49.98,  items: 2, date: "2026-08-04" },
-  { id: "o4", number: "ORD-2026-1045", customer: "David Corp Inc.",   status: "confirmed",  payment: "paid",    total: 1440.0, items: 8, date: "2026-08-04" },
-  { id: "o5", number: "ORD-2026-1046", customer: "Emma Patel",        status: "shipped",    payment: "paid",    total: 149.0,  items: 1, date: "2026-08-03", tracking: "TRK2026-0803-E" },
-  { id: "o6", number: "ORD-2026-1047", customer: "Frank Novak",       status: "cancelled",  payment: "refunded",total: 69.99,  items: 1, date: "2026-07-30" },
-  { id: "o7", number: "ORD-2026-1048", customer: "Grace Kim",         status: "returned",   payment: "refunded",total: 29.99,  items: 1, date: "2026-07-15" },
-  { id: "o8", number: "ORD-2026-1049", customer: "Henry Lee",         status: "delivered",  payment: "paid",    total: 268.0,  items: 3, date: "2026-07-20", tracking: "1Z888XY22345678" },
-];
-
-const INVENTORY: InventoryRow[] = [
-  { id: "inv1", product: "Premium Yoga Mat 6mm",      sku: "YM-001",     warehouse: "Toronto Main",  qty: 45, reserved: 3,  reorderPoint: 10 },
-  { id: "inv2", product: "Ayurvedic Ashwagandha Oil", sku: "AY-012",     warehouse: "Toronto Main",  qty: 120,reserved: 8,  reorderPoint: 20, batch: "AY-2026-07" },
-  { id: "inv3", product: "Yoga Blocks (pair)",         sku: "BLK-002",   warehouse: "Toronto Main",  qty: 3,  reserved: 0,  reorderPoint: 10 },
-  { id: "inv4", product: "Light on Yoga (Book)",       sku: "BK-001",    warehouse: "Toronto Main",  qty: 0,  reserved: 0,  reorderPoint: 5 },
-  { id: "inv5", product: "Yoga Starter Pack",          sku: "BDL-001",   warehouse: "Vancouver DC",  qty: 25, reserved: 2,  reorderPoint: 8 },
-  { id: "inv6", product: "Premium Yoga Mat 6mm",       sku: "YM-001",    warehouse: "Vancouver DC",  qty: 18, reserved: 1,  reorderPoint: 5 },
-];
-
-const VENDORS: VendorRow[] = [
-  { id: "v1", name: "Ananya Yoga Studio",  type: "teacher",     commission: "20%",     sales: 4500,  pending: 720,  status: "active" },
-  { id: "v2", name: "AyurVeda Canada",     type: "partner",     commission: "15%",     sales: 8200,  pending: 1394, status: "active" },
-  { id: "v3", name: "YogaWear Co.",        type: "brand",       commission: "12%",     sales: 2100,  pending: 264,  status: "active" },
-  { id: "v4", name: "Priya Wellness",      type: "affiliate",   commission: "CAD 10",  sales: 1200,  pending: 180,  status: "suspended" },
-];
+function EmptyState({ message }: { message: string }) {
+  return <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 text-sm">{message}</div>;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const ORDER_STATUS_STYLE: Record<OrderStatus, string> = {
+const ORDER_STATUS_STYLE: Record<string, string> = {
+  draft:      "bg-gray-100 text-gray-500",
   pending:    "bg-yellow-100 text-yellow-800",
   confirmed:  "bg-blue-100 text-blue-700",
   processing: "bg-indigo-100 text-indigo-700",
+  partially_shipped: "bg-purple-100 text-purple-600",
   shipped:    "bg-purple-100 text-purple-700",
   delivered:  "bg-green-100 text-green-800",
   cancelled:  "bg-gray-200 text-gray-500",
@@ -67,7 +44,7 @@ const ORDER_STATUS_STYLE: Record<OrderStatus, string> = {
   returned:   "bg-orange-100 text-orange-700",
 };
 
-const PRODUCT_TYPE_COLOR: Record<ProductType, string> = {
+const PRODUCT_TYPE_COLOR: Record<string, string> = {
   physical:     "bg-blue-50 text-blue-700",
   digital:      "bg-purple-50 text-purple-700",
   service:      "bg-green-50 text-green-700",
@@ -87,14 +64,36 @@ export default function EcommerceAdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [orderFilter, setOrderFilter] = useState<string>("all");
 
-  const totalRevenue = ORDERS.filter(o => o.payment === "paid").reduce((s, o) => s + o.total, 0);
-  const pendingOrders = ORDERS.filter(o => o.status === "pending").length;
-  const lowStockItems = INVENTORY.filter(i => i.qty > 0 && i.qty <= i.reorderPoint).length;
-  const outOfStock = INVENTORY.filter(i => i.qty === 0).length;
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [inventory, setInventory] = useState<InventoryRow[]>([]);
+  const [activeWarehouses, setActiveWarehouses] = useState(0);
+  const [vendors, setVendors] = useState<VendorRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredOrders = orderFilter === "all"
-    ? ORDERS
-    : ORDERS.filter(o => o.status === orderFilter);
+  useEffect(() => {
+    Promise.all([
+      fetchJson<DashboardData>("/api/ecommerce/dashboard"),
+      fetchJson<{ products: ProductRow[] }>("/api/ecommerce/products"),
+      fetchJson<{ inventory: InventoryRow[]; activeWarehouses: number }>("/api/ecommerce/inventory"),
+      fetchJson<{ vendors: VendorRow[] }>("/api/ecommerce/vendors"),
+    ]).then(([dash, prod, inv, ven]) => {
+      setDashboard(dash);
+      setProducts(prod?.products ?? []);
+      setInventory(inv?.inventory ?? []);
+      setActiveWarehouses(inv?.activeWarehouses ?? 0);
+      setVendors(ven?.vendors ?? []);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const qs = orderFilter === "all" ? "" : `?status=${orderFilter}`;
+    fetchJson<{ orders: OrderRow[] }>(`/api/ecommerce/orders${qs}`).then(d => setOrders(d?.orders ?? []));
+  }, [orderFilter]);
+
+  const kpis = dashboard?.kpis;
 
   return (
     <div className="p-6 space-y-6">
@@ -124,11 +123,11 @@ export default function EcommerceAdminPage() {
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
-          { label: "Today's Revenue",    value: `$${totalRevenue.toLocaleString()}`, color: "text-green-600",  bg: "bg-green-50" },
-          { label: "Pending Orders",     value: pendingOrders,                       color: "text-yellow-700", bg: "bg-yellow-50" },
-          { label: "Active Products",    value: PRODUCTS.filter(p => p.status === "active").length, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Low Stock Items",    value: lowStockItems,                       color: "text-orange-600", bg: "bg-orange-50" },
-          { label: "Out of Stock",       value: outOfStock,                          color: "text-red-600",    bg: "bg-red-50" },
+          { label: "Today's Revenue",    value: `$${(kpis?.todayRevenue ?? 0).toLocaleString()}`, color: "text-green-600",  bg: "bg-green-50" },
+          { label: "Pending Orders",     value: kpis?.pendingOrders ?? 0,                       color: "text-yellow-700", bg: "bg-yellow-50" },
+          { label: "Active Products",    value: kpis?.activeProducts ?? 0, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Low Stock Items",    value: kpis?.lowStock ?? 0,                       color: "text-orange-600", bg: "bg-orange-50" },
+          { label: "Out of Stock",       value: kpis?.outOfStock ?? 0,                          color: "text-red-600",    bg: "bg-red-50" },
         ].map(kpi => (
           <div key={kpi.label} className={`${kpi.bg} rounded-lg p-4 border`}>
             <p className="text-xs text-gray-500">{kpi.label}</p>
@@ -153,44 +152,41 @@ export default function EcommerceAdminPage() {
           {/* Revenue by product type */}
           <div className="bg-white border rounded-lg p-4">
             <p className="text-sm font-semibold text-gray-700 mb-3">Product Type Revenue Mix</p>
-            <div className="space-y-2">
-              {([
-                ["membership",  "$8,400", 32],
-                ["course",      "$5,600", 22],
-                ["retreat",     "$5,200", 20],
-                ["physical",    "$3,100", 12],
-                ["workshop",    "$1,800", 7],
-                ["ayurvedic",   "$1,200", 5],
-                ["other",       "$500",   2],
-              ] as [string, string, number][]).map(([type, rev, pct]) => (
-                <div key={type} className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600 w-24">{type}</span>
-                  <div className="flex-1 bg-gray-100 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
+            {loading ? <EmptyState message="Loading…" /> : !dashboard?.revenueByType.length ? (
+              <EmptyState message="No sales recorded yet." />
+            ) : (
+              <div className="space-y-2">
+                {dashboard.revenueByType.map(({ type, revenue, pct }) => (
+                  <div key={type} className="flex items-center gap-2">
+                    <span className="text-xs text-gray-600 w-24">{type}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700 w-14 text-right">${revenue.toLocaleString()}</span>
                   </div>
-                  <span className="text-xs font-medium text-gray-700 w-14 text-right">{rev}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Order status breakdown */}
           <div className="bg-white border rounded-lg p-4">
             <p className="text-sm font-semibold text-gray-700 mb-3">Orders by Status</p>
-            <div className="space-y-2">
-              {(["delivered","confirmed","processing","shipped","pending","cancelled","refunded","returned"] as OrderStatus[]).map(s => {
-                const count = ORDERS.filter(o => o.status === s).length;
-                return (
-                  <div key={s} className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full w-24 text-center ${ORDER_STATUS_STYLE[s]}`}>{s}</span>
+            {loading ? <EmptyState message="Loading…" /> : !dashboard?.ordersByStatus.length ? (
+              <EmptyState message="No orders yet." />
+            ) : (
+              <div className="space-y-2">
+                {dashboard.ordersByStatus.map(({ status, count, pct }) => (
+                  <div key={status} className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full w-28 text-center ${ORDER_STATUS_STYLE[status] ?? "bg-gray-100 text-gray-600"}`}>{status}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                      <div className="bg-gray-400 h-1.5 rounded-full" style={{ width: `${(count / ORDERS.length) * 100}%` }} />
+                      <div className="bg-gray-400 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                     <span className="text-xs w-4">{count}</span>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Yoga-specific commerce features */}
@@ -210,16 +206,18 @@ export default function EcommerceAdminPage() {
           {/* Marketplace summary */}
           <div className="bg-white border rounded-lg p-4">
             <p className="text-sm font-semibold text-gray-700 mb-3">Marketplace Vendors</p>
-            <div className="space-y-2">
-              {VENDORS.map(v => (
-                <div key={v.id} className="flex justify-between items-center text-xs">
-                  <span className="text-gray-700 font-medium">{v.name}</span>
-                  <span className="text-gray-400">{v.type}</span>
-                  <span className="text-green-600 font-medium">${v.sales.toLocaleString()}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-xs ${v.status === "active" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>{v.status}</span>
-                </div>
-              ))}
-            </div>
+            {vendors.length === 0 ? <EmptyState message="No vendors onboarded yet." /> : (
+              <div className="space-y-2">
+                {vendors.map(v => (
+                  <div key={v.id} className="flex justify-between items-center text-xs">
+                    <span className="text-gray-700 font-medium">{v.name}</span>
+                    <span className="text-gray-400">{v.type}</span>
+                    <span className="text-green-600 font-medium">${v.sales.toLocaleString()}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-xs ${v.status === "active" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>{v.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -227,6 +225,7 @@ export default function EcommerceAdminPage() {
       {/* ─── PRODUCTS ─────────────────────────────────────────────────────── */}
       {tab === "products" && (
         <div className="space-y-4">
+          {products.length === 0 ? <EmptyState message={loading ? "Loading…" : "No products yet. Add one to get started."} /> : (
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
@@ -235,18 +234,18 @@ export default function EcommerceAdminPage() {
                 ))}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {PRODUCTS.map(p => (
+                {products.map(p => (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="font-medium text-gray-900 text-sm">{p.name}</div>
                       {p.vendor && <div className="text-xs text-gray-400">{p.vendor}</div>}
                     </td>
-                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${PRODUCT_TYPE_COLOR[p.type]}`}>{p.type}</span></td>
+                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${PRODUCT_TYPE_COLOR[p.type] ?? ""}`}>{p.type}</span></td>
                     <td className="px-4 py-3 font-mono text-xs text-gray-500">{p.sku}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">${p.price}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-medium ${p.stock === 0 ? "text-red-600" : p.stock <= 5 ? "text-orange-600" : "text-gray-700"}`}>
-                        {p.stock === 999 ? "∞" : p.stock}
+                        {p.stock}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-600">{p.rating > 0 ? `★ ${p.rating}` : "—"}</td>
@@ -262,6 +261,7 @@ export default function EcommerceAdminPage() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
@@ -277,6 +277,7 @@ export default function EcommerceAdminPage() {
               </button>
             ))}
           </div>
+          {orders.length === 0 ? <EmptyState message="No orders match this filter." /> : (
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
@@ -285,15 +286,15 @@ export default function EcommerceAdminPage() {
                 ))}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map(o => (
+                {orders.map(o => (
                   <tr key={o.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono text-xs text-blue-600">{o.number}</td>
                     <td className="px-4 py-3 font-medium text-gray-900 text-sm">{o.customer}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs ${ORDER_STATUS_STYLE[o.status]}`}>{o.status}</span></td>
+                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs ${ORDER_STATUS_STYLE[o.status] ?? "bg-gray-100 text-gray-600"}`}>{o.status}</span></td>
                     <td className="px-4 py-3"><span className={`text-xs ${o.payment === "paid" ? "text-green-600" : o.payment === "refunded" ? "text-red-600" : "text-yellow-700"}`}>{o.payment}</span></td>
                     <td className="px-4 py-3 font-medium">${o.total.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{o.items} item{o.items > 1 ? "s" : ""}</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{o.date}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{o.items} item{o.items !== 1 ? "s" : ""}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{new Date(o.date).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
                         <button className="text-xs px-2 py-1 bg-gray-100 rounded">View</button>
@@ -310,6 +311,7 @@ export default function EcommerceAdminPage() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
@@ -318,9 +320,9 @@ export default function EcommerceAdminPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3 text-xs">
             {[
-              { label: "Warehouses",   value: "2 active (Toronto + Vancouver)" },
-              { label: "Low Stock",    value: `${lowStockItems} SKUs below reorder point` },
-              { label: "Out of Stock", value: `${outOfStock} SKUs — PO required` },
+              { label: "Warehouses",   value: `${activeWarehouses} active` },
+              { label: "Low Stock",    value: `${kpis?.lowStock ?? 0} SKUs below reorder point` },
+              { label: "Out of Stock", value: `${kpis?.outOfStock ?? 0} SKUs — PO required` },
             ].map(s => (
               <div key={s.label} className="bg-white border rounded-lg p-3">
                 <p className="text-gray-500">{s.label}</p>
@@ -328,6 +330,7 @@ export default function EcommerceAdminPage() {
               </div>
             ))}
           </div>
+          {inventory.length === 0 ? <EmptyState message="No inventory records yet." /> : (
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
@@ -336,7 +339,7 @@ export default function EcommerceAdminPage() {
                 ))}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {INVENTORY.map(i => {
+                {inventory.map(i => {
                   const avail = i.qty - i.reserved;
                   const isLow = avail > 0 && avail <= i.reorderPoint;
                   const isOut = avail <= 0;
@@ -361,14 +364,16 @@ export default function EcommerceAdminPage() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
       {/* ─── MARKETPLACE ──────────────────────────────────────────────────── */}
       {tab === "marketplace" && (
         <div className="space-y-4">
+          {vendors.length === 0 ? <EmptyState message="No vendors onboarded yet." /> : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {VENDORS.map(v => (
+            {vendors.map(v => (
               <div key={v.id} className="bg-white border rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
                   <p className="font-semibold text-gray-900 text-sm">{v.name}</p>
@@ -387,6 +392,7 @@ export default function EcommerceAdminPage() {
               </div>
             ))}
           </div>
+          )}
 
           {/* MCP Tools */}
           <div className="bg-white border rounded-lg p-4">
