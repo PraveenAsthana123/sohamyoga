@@ -38,6 +38,33 @@ const SEVERITY_BADGE: Record<string, string> = {
   info:     'bg-blue-100 text-blue-700',
 };
 
+const HEALTH_FLOW = [
+  { label: '1. Hourly audit', sub: 'CampaignHealthAuditJob queries active campaigns', color: 'bg-gray-50 border-gray-200 text-gray-800' },
+  { label: '2. Compute facts', sub: 'SQL only — no ad groups, no targeting, expired, bid > budget', color: 'bg-blue-50 border-blue-200 text-blue-800' },
+  { label: '3. Ollama explains', sub: 'Writes summary from given facts only, never invents a metric', color: 'bg-amber-50 border-amber-200 text-amber-800' },
+  { label: '4. Finding created', sub: "status='open', one per issue per campaign", color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  { label: '5. Admin reviews', sub: 'Acknowledge or resolve — auto-resolves if fixed next run', color: 'bg-green-50 border-green-200 text-green-800' },
+];
+
+function ProcessFlow({ steps }: { steps: { label: string; sub: string; color: string }[] }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <h3 className="font-semibold text-gray-900 mb-4">Process Flow</h3>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm text-center">
+        {steps.map((n, i) => (
+          <div key={n.label} className="flex flex-col items-center gap-1">
+            <div className={`w-full border rounded-xl p-3 ${n.color}`}>
+              <p className="font-semibold text-xs">{n.label}</p>
+              <p className="text-xs opacity-70 mt-0.5">{n.sub}</p>
+            </div>
+            {i < steps.length - 1 && <span className="text-gray-300 hidden md:block text-xs">→</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HealthTab() {
   const [findings, setFindings] = useState<HealthFinding[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +86,7 @@ function HealthTab() {
 
   return (
     <div className="space-y-4">
+      <ProcessFlow steps={HEALTH_FLOW} />
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
           Automated config audit (runs hourly) — structural problems only, no fabricated performance data.

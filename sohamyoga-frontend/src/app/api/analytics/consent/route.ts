@@ -67,11 +67,27 @@ export async function GET(req: NextRequest) {
   );
   const total = rows.rows.reduce((sum, r) => sum + Number(r.count), 0);
 
+  // Individual records for the admin table — anonymous_id only (no PII;
+  // ip_hash is a one-way SHA-256, never the raw IP) so this is safe to list.
+  const limit = Math.min(Number(req.nextUrl.searchParams.get('limit')) || 50, 200);
+  const records = await query<{
+    id: string; anonymous_id: string; level: string; granted: boolean;
+    granted_at: string | null; revoked_at: string | null; created_at: string;
+  }>(
+    `SELECT id, anonymous_id, level::text, granted, granted_at, revoked_at, created_at
+     FROM analytics_consent_record ORDER BY created_at DESC LIMIT $1`,
+    [limit],
+  );
+
   return Response.json({
     distribution: rows.rows.map(r => ({
       level: r.level,
       count: Number(r.count),
       pct: total ? Math.round((Number(r.count) / total) * 100) : 0,
+    })),
+    records: records.rows.map(r => ({
+      id: r.id, anonymousId: r.anonymous_id, level: r.level, granted: r.granted,
+      grantedAt: r.granted_at ?? undefined, revokedAt: r.revoked_at ?? undefined, createdAt: r.created_at,
     })),
   });
 }

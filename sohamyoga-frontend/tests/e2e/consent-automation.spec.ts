@@ -55,6 +55,30 @@ test.describe('CONSENT-001 POST /api/analytics/consent — positive', () => {
   });
 });
 
+test.describe('CONSENT-005 GET /api/analytics/consent — admin records table', () => {
+  test('requires admin auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext();
+    const res = await unauth.get('http://127.0.0.1:8085/api/analytics/consent');
+    expect(res.status()).toBe(401);
+    await unauth.dispose();
+  });
+
+  test('an authenticated admin sees the individual record in the records list, not just the aggregate', async ({ request }) => {
+    const anonymousId = id('admin-records-visible');
+    await postConsent(request, { anonymousId, level: 'marketing' });
+
+    const login = await request.post('/api/auth/login', { data: { email: 'admin@sohamyoga.ca', password: 'Admin@123456' } });
+    expect(login.ok()).toBeTruthy();
+
+    const res = await request.get('/api/analytics/consent');
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body.distribution)).toBe(true);
+    expect(Array.isArray(body.records)).toBe(true);
+    expect(body.records.some((r: { anonymousId: string; level: string }) => r.anonymousId === anonymousId && r.level === 'marketing')).toBe(true);
+  });
+});
+
 test.describe('CONSENT-002 POST /api/analytics/consent — negative', () => {
   test('an unrecognised level is rejected with 400 and nothing is written', async ({ request }) => {
     const anonymousId = id('negative-badlevel');

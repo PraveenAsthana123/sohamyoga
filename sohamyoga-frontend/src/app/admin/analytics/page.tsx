@@ -410,7 +410,35 @@ function CohortsTab() {
   );
 }
 
-interface ConsentData { distribution: { level: string; count: number; pct: number }[] }
+interface ConsentRecord { id: string; anonymousId: string; level: string; granted: boolean; grantedAt?: string; revokedAt?: string; createdAt: string }
+interface ConsentData { distribution: { level: string; count: number; pct: number }[]; records: ConsentRecord[] }
+
+function ProcessFlow({ steps }: { steps: { label: string; sub: string; color: string }[] }) {
+  return (
+    <div className="bg-white border rounded-lg p-5">
+      <h3 className="font-semibold text-gray-800 mb-4">Process Flow</h3>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm text-center">
+        {steps.map((n, i) => (
+          <div key={n.label} className="flex flex-col items-center gap-1">
+            <div className={`w-full border rounded-xl p-3 ${n.color}`}>
+              <p className="font-semibold text-xs">{n.label}</p>
+              <p className="text-xs opacity-70 mt-0.5">{n.sub}</p>
+            </div>
+            {i < steps.length - 1 && <span className="text-gray-300 hidden md:block text-xs">→</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const CONSENT_FLOW = [
+  { label: "1. Visitor loads page", sub: "ConsentBanner.tsx renders", color: "bg-gray-50 border-gray-200 text-gray-800" },
+  { label: "2. Visitor chooses", sub: "Essential / Analytics / All", color: "bg-blue-50 border-blue-200 text-blue-800" },
+  { label: "3. POST /api/analytics/consent", sub: "IP hashed, never stored raw", color: "bg-amber-50 border-amber-200 text-amber-800" },
+  { label: "4. analytics_consent_record", sub: "Append-only, latest row wins", color: "bg-purple-50 border-purple-200 text-purple-800" },
+  { label: "5. Every event gated", sub: "tracking_event stamped + dropped if not consented", color: "bg-green-50 border-green-200 text-green-800" },
+];
 
 function ConsentTab() {
   const [data, setData] = useState<ConsentData | null>(null);
@@ -419,9 +447,11 @@ function ConsentTab() {
 
   if (loading) return <EmptyState message="Loading…" />;
   const dist = data?.distribution ?? [];
+  const records = data?.records ?? [];
 
   return (
     <div className="space-y-6">
+      <ProcessFlow steps={CONSENT_FLOW} />
       <div className="grid md:grid-cols-4 gap-4">
         {dist.length === 0 && <EmptyState message="No consent records yet." />}
         {dist.map(c => (
@@ -457,6 +487,33 @@ function ConsentTab() {
             GDPR Art.5(2) · PIPEDA · DPDP Act 2023 · Right-to-erasure via delete_user_data MCP (admin_destructive)
           </div>
         </div>
+      </div>
+
+      <div className="bg-white border rounded-lg overflow-hidden">
+        <h3 className="font-semibold text-gray-800 p-4 pb-0">Consent Records ({records.length})</h3>
+        {records.length === 0 ? <div className="p-4"><EmptyState message="No consent records yet." /></div> : (
+          <table className="w-full text-sm mt-3">
+            <thead className="bg-gray-50 border-y">
+              <tr>
+                {["Anonymous ID", "Level", "Granted", "Granted At", "Revoked At", "Recorded"].map(h => (
+                  <th key={h} className="px-4 py-2 text-left font-medium text-gray-600">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {records.map(r => (
+                <tr key={r.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 font-mono text-xs text-gray-500">{r.anonymousId}</td>
+                  <td className="px-4 py-2"><Badge label={r.level} colorClass={CONSENT_COLORS[r.level] ? `${CONSENT_COLORS[r.level]} text-white` : "bg-gray-100 text-gray-600"} /></td>
+                  <td className="px-4 py-2">{r.granted ? "✓" : "—"}</td>
+                  <td className="px-4 py-2 text-xs text-gray-500">{r.grantedAt ? new Date(r.grantedAt).toLocaleString() : "—"}</td>
+                  <td className="px-4 py-2 text-xs text-gray-500">{r.revokedAt ? new Date(r.revokedAt).toLocaleString() : "—"}</td>
+                  <td className="px-4 py-2 text-xs text-gray-500">{new Date(r.createdAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

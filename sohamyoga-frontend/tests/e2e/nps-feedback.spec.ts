@@ -165,3 +165,28 @@ test.describe('NPS-005 GET nps-summary — admin auth', () => {
     expect(body.surveys.some((s: { title: string }) => s.title === 'Post-Class Experience')).toBe(true);
   });
 });
+
+test.describe('NPS-006 GET nps-records — individual invitation/response rows', () => {
+  test('requires admin auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext();
+    const res = await unauth.get('http://127.0.0.1:8085/api/survey/nps-records');
+    expect(res.status()).toBe(401);
+    await unauth.dispose();
+  });
+
+  test('a fresh invitation and its submitted response both appear as individual rows', async ({ request }) => {
+    const login = await request.post('/api/auth/login', { data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } });
+    expect(login.ok()).toBeTruthy();
+
+    const token = await seedInvitation();
+    const submit = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 8 } });
+    expect(submit.status()).toBe(200);
+    createdResponseIds.push((await submit.json()).responseId);
+
+    const res = await request.get('/api/survey/nps-records');
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.invitations.some((i: { id: string; status: string }) => i.status === 'completed')).toBe(true);
+    expect(body.responses.some((r: { npsScore: number }) => r.npsScore === 8)).toBe(true);
+  });
+});

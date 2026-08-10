@@ -23,6 +23,109 @@ function useNpsSummary() {
   return surveys;
 }
 
+interface NpsInvitationRecord { id: string; email: string; status: string; sentAt: string; completedAt?: string }
+interface NpsResponseRecord { id: string; respondent: string; status: string; submittedAt?: string; npsScore?: number }
+
+function useNpsRecords() {
+  const [data, setData] = useState<{ invitations: NpsInvitationRecord[]; responses: NpsResponseRecord[] } | null>(null);
+  useEffect(() => {
+    fetch('/api/survey/nps-records', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setData(d ?? { invitations: [], responses: [] }))
+      .catch(() => setData({ invitations: [], responses: [] }));
+  }, []);
+  return data;
+}
+
+const NPS_FLOW = [
+  { label: '1. Class ends', sub: 'checked_in booking, session end time computed from real timestamps', color: 'bg-gray-50 border-gray-200 text-gray-800' },
+  { label: '2. NpsInvitationJob', sub: 'Hourly — creates survey_invitation + notification_queue row', color: 'bg-blue-50 border-blue-200 text-blue-800' },
+  { label: '3. Email sent', sub: 'NotificationDispatchJob delivers the /feedback link', color: 'bg-amber-50 border-amber-200 text-amber-800' },
+  { label: '4. Customer submits', sub: 'POST /api/survey/[slug]/respond — score + optional reason', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  { label: '5. NpsCalculationJob', sub: 'Hourly — real NPS score + Ollama sentiment on free text', color: 'bg-green-50 border-green-200 text-green-800' },
+];
+
+function ProcessFlow({ steps }: { steps: { label: string; sub: string; color: string }[] }) {
+  return (
+    <div className="bg-white border rounded-lg p-5">
+      <h3 className="font-semibold text-gray-800 mb-4">Process Flow</h3>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm text-center">
+        {steps.map((n, i) => (
+          <div key={n.label} className="flex flex-col items-center gap-1">
+            <div className={`w-full border rounded-xl p-3 ${n.color}`}>
+              <p className="font-semibold text-xs">{n.label}</p>
+              <p className="text-xs opacity-70 mt-0.5">{n.sub}</p>
+            </div>
+            {i < steps.length - 1 && <span className="text-gray-300 hidden md:block text-xs">→</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const NPS_STATUS_COLORS: Record<string, string> = {
+  sent: 'bg-blue-100 text-blue-700', opened: 'bg-cyan-100 text-cyan-700', started: 'bg-amber-100 text-amber-700',
+  completed: 'bg-green-100 text-green-700', bounced: 'bg-red-100 text-red-700',
+  submitted: 'bg-green-100 text-green-700', partial: 'bg-yellow-100 text-yellow-700', in_progress: 'bg-blue-100 text-blue-700',
+};
+
+function NpsRecordsSection() {
+  const data = useNpsRecords();
+  return (
+    <div className="space-y-6">
+      <ProcessFlow steps={NPS_FLOW} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <h3 className="font-semibold text-gray-800 p-4 pb-0">Invitations ({data?.invitations.length ?? 0})</h3>
+          {!data || data.invitations.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6">{data ? 'No invitations sent yet.' : 'Loading…'}</p>
+          ) : (
+            <table className="w-full text-sm mt-3">
+              <thead className="bg-gray-50 border-y">
+                <tr>{['Email', 'Status', 'Sent', 'Completed'].map(h => <th key={h} className="px-4 py-2 text-left font-medium text-gray-600">{h}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y">
+                {data.invitations.map(i => (
+                  <tr key={i.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-xs text-gray-600">{i.email}</td>
+                    <td className="px-4 py-2"><Badge label={i.status} colorClass={NPS_STATUS_COLORS[i.status] || 'bg-gray-100 text-gray-600'} /></td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{new Date(i.sentAt).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{i.completedAt ? new Date(i.completedAt).toLocaleString() : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <h3 className="font-semibold text-gray-800 p-4 pb-0">Responses ({data?.responses.length ?? 0})</h3>
+          {!data || data.responses.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6">{data ? 'No responses submitted yet.' : 'Loading…'}</p>
+          ) : (
+            <table className="w-full text-sm mt-3">
+              <thead className="bg-gray-50 border-y">
+                <tr>{['Respondent', 'Score', 'Status', 'Submitted'].map(h => <th key={h} className="px-4 py-2 text-left font-medium text-gray-600">{h}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y">
+                {data.responses.map(r => (
+                  <tr key={r.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-xs text-gray-600">{r.respondent}</td>
+                    <td className="px-4 py-2 font-bold">{r.npsScore ?? '—'}</td>
+                    <td className="px-4 py-2"><Badge label={r.status} colorClass={NPS_STATUS_COLORS[r.status] || 'bg-gray-100 text-gray-600'} /></td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Real, live-computed NPS data (from NpsCalculationJob via /api/survey/nps-summary).
 // Everything else on this page — MOCK_SURVEYS, MOCK_RESPONSES, the Questions/
 // Responses tabs, and most of the Analytics tab — remains illustrative UI
@@ -397,6 +500,7 @@ function AnalyticsTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null })
   return (
     <div className="space-y-6">
       <MockDataNotice />
+      <NpsRecordsSection />
       <div className="grid md:grid-cols-3 gap-4">
         <div className="bg-white border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">NPS Overview — {realNps?.title ?? 'Post-Class Experience'} (real)</h3>
