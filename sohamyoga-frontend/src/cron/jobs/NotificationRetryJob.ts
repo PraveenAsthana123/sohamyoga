@@ -17,5 +17,9 @@ export async function run(): Promise<void> {
 
   if (result.rowCount ?? 0 > 0)
     console.log(`[notification-retry] re-queued=${result.rowCount}`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts dynamically imports this module once
+  // and Node caches it, so every scheduled invocation reuses this same
+  // module-scope pool. Ending it after the first run breaks every run after
+  // that ("Cannot use a pool after calling end on the pool") — confirmed via
+  // this exact error in the live cron container's logs.
 }

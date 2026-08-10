@@ -162,5 +162,9 @@ export async function run(): Promise<void> {
   }
 
   console.log(`[campaign-health-audit] campaigns=${campaigns.rows.length} findings_created=${created} findings_resolved=${resolved}`);
-  await db.end();
+  // Do NOT db.end() here — this module is cached and reused across every
+  // scheduled invocation in the long-lived cron runner; ending the pool
+  // breaks every run after the first ("Cannot use a pool after calling end
+  // on the pool" — confirmed live in production for other jobs with this
+  // same now-fixed anti-pattern).
 }
