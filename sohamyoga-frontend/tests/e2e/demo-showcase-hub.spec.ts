@@ -1,10 +1,14 @@
-// Demo Showcase Hub — DEMO-001..004. Covers the real fixed-credential demo
+// Demo Showcase Hub — DEMO-001..006. Covers the real fixed-credential demo
 // accounts (admin_demo/customer_demo, seeded in SohamYoga.Web/Data/SeedData.cs),
-// the admin Demo Hub page (use-case catalog, sequence flows, related tooling
-// links, on-demand "Run Now" job trigger), and the customer self-service
-// features page. The run-job endpoint executes the real job module (not a
-// simulation) — DEMO-003 exercises it against leaderboard-refresh, a fast
-// non-Ollama job, to keep the test quick and deterministic.
+// the admin Demo Hub page (use-case catalog, sequence flows, Reports and
+// Dashboard tabs, related tooling links, on-demand "Run Now" job trigger),
+// the demo-data seeder, and the customer self-service features page. The
+// run-job endpoint executes the real job module (not a simulation) —
+// DEMO-003 exercises it against leaderboard-refresh, a fast non-Ollama job,
+// to keep the test quick and deterministic; the Ollama-dependent jobs
+// (voice-of-customer, churn-prediction) are covered by live manual
+// verification instead, since a full run takes 30-60s against the real
+// local model and would make this suite slow.
 
 import { test, expect } from 'playwright/test';
 import { Pool } from 'pg';
@@ -92,5 +96,59 @@ test.describe('DEMO-004 POST /api/admin/demo-hub/run-job — negative', () => {
 
     const res = await request.post('/api/admin/demo-hub/run-job', { data: {} });
     expect(res.status()).toBe(400);
+  });
+});
+
+test.describe('DEMO-005 Reports and Dashboard tabs', () => {
+  test('Reports tab renders real report cards with correct auth gating', async ({ page, request }) => {
+    const unauthReports = await request.get('/api/admin/demo-hub/reports-summary');
+    expect(unauthReports.status()).toBe(401);
+    const unauthDashboard = await request.get('/api/admin/demo-hub/dashboard-summary');
+    expect(unauthDashboard.status()).toBe(401);
+
+    const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    expect(login.ok()).toBeTruthy();
+    const state = await request.storageState();
+    await page.context().addCookies(state.cookies);
+
+    await page.goto('/admin/demo-hub');
+    await page.getByRole('button', { name: 'Reports' }).click();
+    await expect(page.getByRole('heading', { name: 'Voice of Customer' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campaign Health' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'NPS' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Churn Prediction' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'SEO Report' })).toBeVisible();
+    // Real, honest scope: SEO is blocked (Matomo not deployed), never fabricated.
+    await expect(page.getByText(/Blocked on your side.*Matomo/)).toBeVisible();
+
+    await page.getByRole('button', { name: 'Dashboard' }).click();
+    await expect(page.getByText('Runs (24h)')).toBeVisible();
+    await expect(page.getByText('Open errors')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Most recent runs' })).toBeVisible();
+  });
+});
+
+test.describe('DEMO-006 POST /api/admin/demo-hub/seed-demo-data', () => {
+  test('rejects unauthenticated requests, then seeds real underlying rows once and is a safe no-op on re-run', async ({ playwright, request }) => {
+    const unauth = await playwright.request.newContext();
+    const unauthRes = await unauth.post('http://127.0.0.1:8085/api/admin/demo-hub/seed-demo-data');
+    expect(unauthRes.status()).toBe(401);
+    await unauth.dispose();
+
+    const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    expect(login.ok()).toBeTruthy();
+
+    const first = await request.post('/api/admin/demo-hub/seed-demo-data');
+    expect(first.status()).toBe(200);
+    const firstBody = await first.json();
+    expect(firstBody.seeded.leadCount).toBeGreaterThanOrEqual(0);
+
+    const second = await request.post('/api/admin/demo-hub/seed-demo-data');
+    expect(second.status()).toBe(200);
+    const secondBody = await second.json();
+    // Idempotent: the second call must never create duplicate leads.
+    expect(secondBody.seeded.leadCount).toBe(0);
+    expect(secondBody.seeded.enrollmentCreated).toBe(false);
+    expect(secondBody.seeded.campaignCreated).toBe(false);
   });
 });

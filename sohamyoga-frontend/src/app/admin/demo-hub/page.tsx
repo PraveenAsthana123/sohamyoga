@@ -10,9 +10,25 @@
 // same job module the scheduled cron runner uses — not a simulation. Every
 // run is recorded in operation_run and appears in /admin/operations-history.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CRON_JOBS, type CronJobDef } from '@/cron/CronRegistry';
+
+interface ReportsSummary {
+  voiceOfCustomer: { hasData: boolean; reason?: string; overall_summary?: string; source_message_count?: number; period_end?: string };
+  campaignHealth: { hasData: boolean; reason?: string; openBySeverity: Record<string, number> };
+  nps: { hasData: boolean; reason?: string; score?: number; totalResponses?: number };
+  churn: { hasData: boolean; reason?: string; total: number; flagged: number };
+  seo: { hasData: boolean; status: string | null; blocked: string };
+}
+
+interface DashboardSummary {
+  last24h: { total: number; succeeded: number; failed: number; avgDurationMs: number | null };
+  bySource: Array<{ source: string; count: number }>;
+  models: Array<{ modelName: string; provider: string; calls: number; avgLatencyMs: number | null }>;
+  openErrors: number;
+  recentRuns: Array<{ operation_name: string; status: string; source: string; created_at: string; duration_ms: number | null }>;
+}
 
 const DEMO_CREDENTIALS = [
   { role: 'Admin (full platform control)', email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456', loginUrl: '/api/auth/login (POST) — see admin UI for the login form host' },
@@ -134,8 +150,177 @@ function RunNowButton({ job }: { job: CronJobDef }) {
   );
 }
 
+function SeedDemoDataButton() {
+  const [state, setState] = useState<'idle' | 'seeding' | 'done' | 'failed'>('idle');
+  const [detail, setDetail] = useState('');
+
+  const seed = async () => {
+    setState('seeding');
+    try {
+      const res = await fetch('/api/admin/demo-hub/seed-demo-data', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Seed failed');
+      setState('done');
+      setDetail(`${data.seeded.leadCount} leads, enrollment: ${data.seeded.enrollmentCreated}, campaign: ${data.seeded.campaignCreated}`);
+    } catch (e) {
+      setState('failed');
+      setDetail(e instanceof Error ? e.message : 'Seed failed');
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={seed}
+        disabled={state === 'seeding'}
+        className="rounded bg-gray-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-900 disabled:opacity-50"
+      >
+        {state === 'seeding' ? 'Seeding…' : 'Seed Demo Data'}
+      </button>
+      {state === 'done' && <span className="text-xs text-emerald-700">✓ {detail}</span>}
+      {state === 'failed' && <span className="text-xs text-red-700">✗ {detail}</span>}
+    </div>
+  );
+}
+
+function ReportsTab() {
+  const [data, setData] = useState<ReportsSummary | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/admin/demo-hub/reports-summary', { cache: 'no-store' })
+      .then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error); setData(d); })
+      .catch(e => setError(e.message));
+  }, []);
+
+  if (error) return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+  if (!data) return <div className="p-4 text-sm text-gray-500">Loading…</div>;
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between rounded-xl border bg-white p-4">
+        <p className="text-sm text-gray-600">No source data yet? Seed a small, clearly-tagged demo dataset so these reports have something real to compute.</p>
+        <SeedDemoDataButton />
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-xl border bg-white p-4">
+          <h3 className="font-semibold">Voice of Customer</h3>
+          {data.voiceOfCustomer.hasData ? (
+            <>
+              <p className="mt-2 text-sm text-gray-700">{data.voiceOfCustomer.overall_summary}</p>
+              <p className="mt-1 text-xs text-gray-400">{data.voiceOfCustomer.source_message_count} messages · period ending {data.voiceOfCustomer.period_end}</p>
+            </>
+          ) : <p className="mt-2 text-xs text-gray-500">{data.voiceOfCustomer.reason}</p>}
+          <Link href="/admin/crm" className="mt-2 inline-block text-xs text-primary-700 hover:underline">View in CRM →</Link>
+        </div>
+
+        <div className="rounded-xl border bg-white p-4">
+          <h3 className="font-semibold">Campaign Health</h3>
+          {data.campaignHealth.hasData ? (
+            <div className="mt-2 flex gap-3 text-sm">
+              {Object.entries(data.campaignHealth.openBySeverity).map(([sev, count]) => (
+                <span key={sev} className="rounded bg-gray-100 px-2 py-1">{sev}: <b>{count}</b></span>
+              ))}
+            </div>
+          ) : <p className="mt-2 text-xs text-gray-500">{data.campaignHealth.reason}</p>}
+          <Link href="/admin/ads" className="mt-2 inline-block text-xs text-primary-700 hover:underline">View in Ads →</Link>
+        </div>
+
+        <div className="rounded-xl border bg-white p-4">
+          <h3 className="font-semibold">NPS</h3>
+          {data.nps.hasData ? (
+            <p className="mt-2 text-2xl font-bold">{data.nps.score} <span className="text-sm font-normal text-gray-500">({data.nps.totalResponses} responses)</span></p>
+          ) : <p className="mt-2 text-xs text-gray-500">{data.nps.reason}</p>}
+          <Link href="/admin/survey" className="mt-2 inline-block text-xs text-primary-700 hover:underline">View in Survey →</Link>
+        </div>
+
+        <div className="rounded-xl border bg-white p-4">
+          <h3 className="font-semibold">Churn Prediction</h3>
+          {data.churn.hasData ? (
+            <p className="mt-2 text-sm">{data.churn.flagged} of {data.churn.total} members flagged high/critical risk</p>
+          ) : <p className="mt-2 text-xs text-gray-500">{data.churn.reason}</p>}
+          <Link href="/admin/crm" className="mt-2 inline-block text-xs text-primary-700 hover:underline">View in CRM →</Link>
+        </div>
+
+        <div className="rounded-xl border bg-white p-4 md:col-span-2">
+          <h3 className="font-semibold">SEO Report</h3>
+          {data.seo.hasData ? (
+            <p className="mt-2 text-sm">Latest report status: {data.seo.status}</p>
+          ) : (
+            <p className="mt-2 text-xs text-amber-700">{data.seo.blocked}</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DashboardTab() {
+  const [data, setData] = useState<DashboardSummary | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/admin/demo-hub/dashboard-summary', { cache: 'no-store' })
+      .then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error); setData(d); })
+      .catch(e => setError(e.message));
+  }, []);
+
+  if (error) return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+  if (!data) return <div className="p-4 text-sm text-gray-500">Loading…</div>;
+
+  return (
+    <section className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="rounded-xl border bg-white p-4"><div className="text-xs uppercase text-gray-500">Runs (24h)</div><div className="text-xl font-bold">{data.last24h.total}</div></div>
+        <div className="rounded-xl border bg-white p-4"><div className="text-xs uppercase text-gray-500">Succeeded</div><div className="text-xl font-bold text-emerald-700">{data.last24h.succeeded}</div></div>
+        <div className="rounded-xl border bg-white p-4"><div className="text-xs uppercase text-gray-500">Failed</div><div className="text-xl font-bold text-red-700">{data.last24h.failed}</div></div>
+        <div className="rounded-xl border bg-white p-4"><div className="text-xs uppercase text-gray-500">Avg duration</div><div className="text-xl font-bold">{data.last24h.avgDurationMs ?? '—'}ms</div></div>
+        <div className="rounded-xl border bg-white p-4"><div className="text-xs uppercase text-gray-500">Open errors</div><div className="text-xl font-bold">{data.openErrors}</div></div>
+      </div>
+
+      <div className="rounded-xl border bg-white p-4">
+        <h3 className="mb-2 font-semibold">Runs by source (24h)</h3>
+        <div className="flex flex-wrap gap-2">
+          {data.bySource.map(s => <span key={s.source} className="rounded bg-gray-100 px-2 py-1 text-xs">{s.source}: <b>{s.count}</b></span>)}
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-white p-4">
+        <h3 className="mb-2 font-semibold">Model usage (24h)</h3>
+        <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
+          {data.models.map(m => (
+            <div key={m.modelName} className="rounded border p-2 text-xs">
+              <div className="font-semibold">{m.modelName}</div>
+              <div className="text-gray-500">{m.provider} · {m.calls} calls{m.avgLatencyMs ? ` · ${m.avgLatencyMs}ms avg` : ''}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border bg-white">
+        <h3 className="p-4 font-semibold">Most recent runs</h3>
+        <table className="w-full text-sm">
+          <thead><tr className="bg-gray-50 text-left text-xs"><th className="p-2">Operation</th><th>Status</th><th>Source</th><th>Duration</th><th>When</th></tr></thead>
+          <tbody>
+            {data.recentRuns.map((r, i) => (
+              <tr key={i} className="border-t">
+                <td className="p-2 font-mono text-xs">{r.operation_name}</td>
+                <td className="p-2 text-xs">{r.status}</td>
+                <td className="p-2 text-xs">{r.source}</td>
+                <td className="p-2 text-xs">{r.duration_ms ?? '—'}ms</td>
+                <td className="p-2 text-xs">{new Date(r.created_at).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 export default function DemoHubPage() {
-  const [tab, setTab] = useState<'catalog' | 'flows' | 'links'>('catalog');
+  const [tab, setTab] = useState<'catalog' | 'flows' | 'reports' | 'dashboard' | 'links'>('catalog');
   const ollamaJobs = CRON_JOBS.filter(j => j.description.toLowerCase().includes('ollama') || j.timeoutMs >= 60_000);
 
   return (
@@ -162,13 +347,17 @@ export default function DemoHubPage() {
       </section>
 
       <nav className="flex gap-2 border-b">
-        {(['catalog', 'flows', 'links'] as const).map(t => (
+        {(['catalog', 'flows', 'reports', 'dashboard', 'links'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium ${tab === t ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500'}`}
           >
-            {t === 'catalog' ? `Use Case Catalog (${CRON_JOBS.length})` : t === 'flows' ? 'Sequence Flows' : 'Related Tooling'}
+            {t === 'catalog' ? `Use Case Catalog (${CRON_JOBS.length})`
+              : t === 'flows' ? 'Sequence Flows'
+              : t === 'reports' ? 'Reports'
+              : t === 'dashboard' ? 'Dashboard'
+              : 'Related Tooling'}
           </button>
         ))}
       </nav>
@@ -210,6 +399,10 @@ export default function DemoHubPage() {
           ))}
         </section>
       )}
+
+      {tab === 'reports' && <ReportsTab />}
+
+      {tab === 'dashboard' && <DashboardTab />}
 
       {tab === 'links' && (
         <section className="grid gap-3 md:grid-cols-3">
