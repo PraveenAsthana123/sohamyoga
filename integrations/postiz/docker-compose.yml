@@ -14,8 +14,26 @@ services:
       # --- Required ---
       MAIN_URL: "${POSTIZ_URL:-http://localhost:15080}"
       BACKEND_INTERNAL_URL: "http://localhost:3000"
+      # Read server-side by the backend process itself (apps/backend/dist/.../
+      # start.mcp.js: `new URL('/mcp-oauth', process.env.NEXT_PUBLIC_BACKEND_URL)`)
+      # despite the NEXT_PUBLIC_ naming — left unset, the backend crash-loops on
+      # every boot with "TypeError: Invalid URL". Same value as BACKEND_INTERNAL_URL
+      # since both are resolved from inside this same container.
+      NEXT_PUBLIC_BACKEND_URL: "http://localhost:3000"
       FRONTEND_URL: "${POSTIZ_FRONTEND_URL:-http://localhost:15080}"
       IS_GENERAL: "true"
+
+      # No Temporal server is deployed in this stack (would need its own
+      # Postgres/Elasticsearch cluster — real infra project, not a bug fix).
+      # Most Temporal usage in this image already degrades gracefully to a
+      # WARN (TemporalConnectionFactory returns null on connect failure), but
+      # TemporalRegister.onModuleInit's listSearchAttributes() call is NOT
+      # wrapped and was fatally crashing backend startup. The app has a
+      # built-in early-return for exactly this case, guarded by this flag
+      # (temporal.register.js: `if TEMPORAL_TLS==='true' return`) — not an
+      # actual TLS toggle in our case, since there's still no server to talk
+      # to either way, just the documented way to skip that one hard call.
+      TEMPORAL_TLS: "true"
 
       # --- Database ---
       DATABASE_URL: "postgresql://postiz:${POSTGRES_PASSWORD:-postizpass}@postiz_db:5432/postiz"
