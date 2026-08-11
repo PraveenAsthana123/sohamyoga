@@ -57,6 +57,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
             { href: '/customer/features', label: 'All Features', icon: '🧭' },
             { href: '/customer/blog', label: 'Blog & Resources', icon: '📖' },
             { href: '/customer/chat', label: 'My Chats', icon: '💬' },
+            { href: '/customer/referral', label: 'Refer a Friend', icon: '🎁' },
           ].map((item) => (
             <Link
               key={item.href}

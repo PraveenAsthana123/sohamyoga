@@ -30,7 +30,7 @@ test.describe('GOV-002 GET /api/admin/ai-governance — positive', () => {
     expect(Array.isArray(body.governance.models)).toBe(true);
 
     // Decision/Fairness/Ethical: source-cited, fixed-size classification arrays.
-    expect(body.decision.length).toBe(22);
+    expect(body.decision.length).toBe(23);
     expect(body.fairness.length).toBeGreaterThan(0);
     expect(body.ethical.length).toBeGreaterThan(0);
     for (const d of body.decision) {
@@ -42,7 +42,7 @@ test.describe('GOV-002 GET /api/admin/ai-governance — positive', () => {
     }
 
     // Interpretable: every Ollama job maps to a named tier, never undefined.
-    expect(Object.keys(body.interpretable.modelTierByJob).length).toBe(22);
+    expect(Object.keys(body.interpretable.modelTierByJob).length).toBe(23);
     expect(Object.values(body.interpretable.modelTierByJob).every((t: unknown) => t === 'fast' || t === 'strong')).toBe(true);
 
     // Responsible: composite counts must reconcile with the decision matrix.

@@ -28,7 +28,7 @@ export const dynamic = 'force-dynamic';
 
 // Source-cited: derived from grep across src/cron/jobs/*.ts (tier: 'x' calls).
 const MODEL_TIER_BY_JOB: Record<string, string> = {
-  'marketing-automation': 'strong', 'campaign-adaptation': 'strong', 'campaign-copy-draft': 'strong', 'yoga-education-content': 'strong', 'funnel-stage-analysis': 'fast', 'advocacy-score': 'fast', 'viral-detection': 'fast', 'influencer-value': 'fast', 'github-repo-scout': 'fast',
+  'marketing-automation': 'strong', 'campaign-adaptation': 'strong', 'campaign-copy-draft': 'strong', 'yoga-education-content': 'strong', 'funnel-stage-analysis': 'fast', 'advocacy-score': 'fast', 'referral-invitation': 'fast', 'viral-detection': 'fast', 'influencer-value': 'fast', 'github-repo-scout': 'fast',
   'ai-coach': 'strong', 'newsletter-draft': 'strong', 'feature-gap-advisor': 'strong',
   'module-boundary-quality': 'strong', 'voice-of-customer': 'strong',
   'abandoned-cart-recovery': 'fast', 'churn-prediction': 'fast', 'community-digest': 'fast',
@@ -43,6 +43,7 @@ const DECISION_AUTONOMY: Array<{ job: string; autonomy: 'draft-requires-approval
   { job: 'yoga-education-content', autonomy: 'draft-requires-approval', evidence: 'Lands in the same social_content_draft review queue as every other content job — never auto-published; class-list content is grounded in real class_session rows, not invented.', file: 'YogaEducationContentJob.ts' },
   { job: 'funnel-stage-analysis', autonomy: 'advisory-informational', evidence: 'Writes a diagnosis of an already-computed real conversion-rate leak; never modifies funnel data or takes an action.', file: 'FunnelStageAnalysisJob.ts' },
   { job: 'advocacy-score', autonomy: 'advisory-informational', evidence: 'Computes and stores a composite eligibility score for staff visibility; never auto-sends a referral ask or auto-approves a reward.', file: 'AdvocacyScoreJob.ts' },
+  { job: 'referral-invitation', autonomy: 'draft-requires-approval', evidence: 'Referral code issuance is a deterministic, non-Ollama, reversible action (an unused code is harmless); the Ollama-drafted invitation text is customer-facing draft copy the customer must choose to send — a deterministic fact-check discards any draft that invents a reward figure not in the real active campaign.', file: 'ReferralInvitationJob.ts' },
   { job: 'viral-detection', autonomy: 'advisory-informational', evidence: 'Flags a post as a real statistical outlier for staff visibility; never boosts spend, auto-replies, or otherwise acts on a post — avoids letting an autonomous agent interact unsupervised with a real audience.', file: 'ViralDetectionJob.ts' },
   { job: 'influencer-value', autonomy: 'advisory-informational', evidence: 'Computes and stores a value score from real referral attribution for staff visibility; never auto-contacts an influencer or auto-approves compensation.', file: 'InfluencerValueJob.ts' },
   { job: 'github-repo-scout', autonomy: 'advisory-informational', evidence: 'Produces a reading list of real GitHub repos with real API metadata for staff review; never clones, installs, or runs anything it finds.', file: 'GitHubRepoScoutJob.ts' },
@@ -163,8 +164,8 @@ export async function GET(req: NextRequest) {
     fairness: FAIRNESS_AUDIT,
     ethical: ETHICAL_GUARDRAILS,
     responsible: {
-      totalJobs: 33,
-      ollamaJobs: 22,
+      totalJobs: 34,
+      ollamaJobs: 23,
       draftGatedJobs: DECISION_AUTONOMY.filter(d => d.autonomy === 'draft-requires-approval').length,
       advisoryJobs: DECISION_AUTONOMY.filter(d => d.autonomy === 'advisory-informational').length,
       modelsRegistered: models.rowCount,

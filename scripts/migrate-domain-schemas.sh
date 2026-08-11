@@ -62,6 +62,7 @@ schemas=(
   "079-viral-detection|sohamyoga-frontend/src/domain/social/db-schema-viral-signal.sql"
   "080-influencer|sohamyoga-frontend/src/domain/growth/db-schema-influencer.sql"
   "081-github-scout|sohamyoga-frontend/src/domain/growth/db-schema-github-scout.sql"
+  "082-referral-invitation|sohamyoga-frontend/src/domain/referral/db-schema-invitation.sql"
 )
 
 psql_cmd=(docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME")

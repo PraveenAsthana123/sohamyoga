@@ -283,6 +283,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   180_000,
   },
+  {
+    name:        'referral-invitation',
+    schedule:    '45 8 * * 4',
+    description: 'Closes the funnel->advocacy->referral loop for real: issues a real referral_code (via the real ReferralCode domain class) to strong_candidate customers who don\'t already have one, and drafts a personalized invitation for /customer/referral — a deterministic fact-check discards any Ollama draft that invents a reward figure not in the real active campaign',
+    module:      'ReferralInvitationJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
 
   // ── Daily 07:00 UTC ───────────────────────────────────────────────────────
   {
@@ -347,9 +355,10 @@ Fri    10:00  voice-of-customer (Ollama)
 Wed    09:00  yoga-education-content (Ollama)
 Thu    08:00  funnel-stage-analysis (Ollama)
 Thu    08:30  advocacy-score (Ollama)
+Thu    08:45  referral-invitation (Ollama)
 Daily  07:00  viral-detection (Ollama)
 Thu    09:00  influencer-value (Ollama)
 1st    06:00  github-repo-scout (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 33 jobs | 22 use Ollama | 0 cloud AI tokens
+Total: 34 jobs | 23 use Ollama | 0 cloud AI tokens
 `;
