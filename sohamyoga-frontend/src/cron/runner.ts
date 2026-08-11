@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Cron Runner — starts all 27 autonomous background jobs.
+ * Cron Runner — starts all 28 autonomous background jobs.
  *
  * Uses: node-cron (npm i node-cron @types/node-cron)
  * Run:  npx tsx src/cron/runner.ts

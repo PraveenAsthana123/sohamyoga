@@ -32,4 +32,5 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   NpsCalculationJob:          () => import('./jobs/NpsCalculationJob'),
   SocialContentIdeaJob:       () => import('./jobs/SocialContentIdeaJob'),
   VoiceOfCustomerJob:         () => import('./jobs/VoiceOfCustomerJob'),
+  YogaEducationContentJob:    () => import('./jobs/YogaEducationContentJob'),
 };

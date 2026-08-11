@@ -255,6 +255,16 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   180_000,
   },
+
+  // ── Weekly Wednesday 09:00 UTC ────────────────────────────────────────────
+  {
+    name:        'yoga-education-content',
+    schedule:    '0 9 * * 3',
+    description: 'Draft real educational/marketing content (banner, text, video script, table, list, data-narrative) across 5 topics — class list (grounded in real class_session rows), types of yoga, best practices, benefits, challenges — into the Social Scheduler review queue',
+    module:      'YogaEducationContentJob',
+    enabled:     true,
+    timeoutMs:   600_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -286,6 +296,7 @@ Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 Fri    10:00  voice-of-customer (Ollama)
+Wed    09:00  yoga-education-content (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 27 jobs | 16 use Ollama | 0 cloud AI tokens
+Total: 28 jobs | 17 use Ollama | 0 cloud AI tokens
 `;
