@@ -184,6 +184,18 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  // ── Growth ─────────────────────────────────
+  { href: 'divider', label: 'Growth', icon: null, requiredRoles: [] as string[] },
+  {
+    href: '/admin/growth/funnel',
+    label: 'Customer Funnel',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18l-7 9v6l-4 2v-8z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
   // ── Operations ─────────────────────────────────
   { href: 'divider', label: 'Operations', icon: null, requiredRoles: [] as string[] },
   {

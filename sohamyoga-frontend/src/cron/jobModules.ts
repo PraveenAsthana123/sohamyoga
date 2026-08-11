@@ -33,4 +33,5 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   SocialContentIdeaJob:       () => import('./jobs/SocialContentIdeaJob'),
   VoiceOfCustomerJob:         () => import('./jobs/VoiceOfCustomerJob'),
   YogaEducationContentJob:    () => import('./jobs/YogaEducationContentJob'),
+  FunnelStageAnalysisJob:     () => import('./jobs/FunnelStageAnalysisJob'),
 };

@@ -265,6 +265,16 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   600_000,
   },
+
+  // ── Weekly Thursday 08:00 UTC ─────────────────────────────────────────────
+  {
+    name:        'funnel-stage-analysis',
+    schedule:    '0 8 * * 4',
+    description: 'Computes real per-stage unique-visitor counts and stage-to-stage conversion rates (engagement→interest→intent→lead→conversion→experience→advocacy) from tracking_event/campaign_lead/booking/survey data for the past 7 days; Ollama diagnoses the single weakest transition, reasoning only from the real computed numbers',
+    module:      'FunnelStageAnalysisJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -297,6 +307,7 @@ Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 Fri    10:00  voice-of-customer (Ollama)
 Wed    09:00  yoga-education-content (Ollama)
+Thu    08:00  funnel-stage-analysis (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 28 jobs | 17 use Ollama | 0 cloud AI tokens
+Total: 29 jobs | 18 use Ollama | 0 cloud AI tokens
 `;

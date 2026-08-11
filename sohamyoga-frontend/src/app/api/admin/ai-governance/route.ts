@@ -28,7 +28,7 @@ export const dynamic = 'force-dynamic';
 
 // Source-cited: derived from grep across src/cron/jobs/*.ts (tier: 'x' calls).
 const MODEL_TIER_BY_JOB: Record<string, string> = {
-  'marketing-automation': 'strong', 'campaign-adaptation': 'strong', 'campaign-copy-draft': 'strong', 'yoga-education-content': 'strong',
+  'marketing-automation': 'strong', 'campaign-adaptation': 'strong', 'campaign-copy-draft': 'strong', 'yoga-education-content': 'strong', 'funnel-stage-analysis': 'fast',
   'ai-coach': 'strong', 'newsletter-draft': 'strong', 'feature-gap-advisor': 'strong',
   'module-boundary-quality': 'strong', 'voice-of-customer': 'strong',
   'abandoned-cart-recovery': 'fast', 'churn-prediction': 'fast', 'community-digest': 'fast',
@@ -41,6 +41,7 @@ const MODEL_TIER_BY_JOB: Record<string, string> = {
 const DECISION_AUTONOMY: Array<{ job: string; autonomy: 'draft-requires-approval' | 'advisory-informational' | 'deterministic-auto-apply'; evidence: string; file: string }> = [
   { job: 'campaign-copy-draft', autonomy: 'draft-requires-approval', evidence: 'All output saved as DRAFT — never auto-published.', file: 'CampaignCopyDraftJob.ts' },
   { job: 'yoga-education-content', autonomy: 'draft-requires-approval', evidence: 'Lands in the same social_content_draft review queue as every other content job — never auto-published; class-list content is grounded in real class_session rows, not invented.', file: 'YogaEducationContentJob.ts' },
+  { job: 'funnel-stage-analysis', autonomy: 'advisory-informational', evidence: 'Writes a diagnosis of an already-computed real conversion-rate leak; never modifies funnel data or takes an action.', file: 'FunnelStageAnalysisJob.ts' },
   { job: 'ai-coach', autonomy: 'draft-requires-approval', evidence: 'Output stored as DRAFT — never auto-publishes to student.', file: 'AiCoachJob.ts' },
   { job: 'newsletter-draft', autonomy: 'draft-requires-approval', evidence: 'Store as draft template — requires staff to approve before Listmonk send.', file: 'NewsletterDraftJob.ts' },
   { job: 'abandoned-cart-recovery', autonomy: 'draft-requires-approval', evidence: 'No auto-send: draft-only pattern — staff sends manually.', file: 'AbandonedCartRecoveryJob.ts' },
@@ -158,8 +159,8 @@ export async function GET(req: NextRequest) {
     fairness: FAIRNESS_AUDIT,
     ethical: ETHICAL_GUARDRAILS,
     responsible: {
-      totalJobs: 28,
-      ollamaJobs: 17,
+      totalJobs: 29,
+      ollamaJobs: 18,
       draftGatedJobs: DECISION_AUTONOMY.filter(d => d.autonomy === 'draft-requires-approval').length,
       advisoryJobs: DECISION_AUTONOMY.filter(d => d.autonomy === 'advisory-informational').length,
       modelsRegistered: models.rowCount,
