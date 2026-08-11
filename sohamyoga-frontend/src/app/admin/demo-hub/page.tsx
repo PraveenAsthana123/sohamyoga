@@ -36,6 +36,7 @@ const DEMO_CREDENTIALS = [
 ];
 
 const RELATED_TOOLS = [
+  { title: 'AI Governance', href: '/admin/ai-governance', description: 'Eleven audit dimensions (responsible, explainable, fairness, risk, etc.) grounded in real job data.' },
   { title: 'Use Case & Test Matrix', href: '/admin/quality-center', description: 'Actor/route/objective user stories with live positive/negative Playwright status.' },
   { title: 'Module Assurance', href: '/admin/module-assurance', description: 'Feature, integration, model and test-failure matrix, grouped by sales/customer/admin stakeholder.' },
   { title: 'Operations History', href: '/admin/operations-history', description: 'Every scheduled and manual job run, error, circuit breaker and model call.' },
