@@ -15,6 +15,18 @@ Return ONLY valid JSON:
 {"score": 0-100, "temperature": "cold"|"warm"|"hot", "next_action": "string"}
 Score 0=cold, 100=immediately ready to buy.`;
 
+// Ollama (phi4-mini and others) commonly wraps JSON in ```json fences despite
+// being told not to — plain JSON.parse(raw) throws on that and the lead
+// silently never gets scored (caught, swallowed, no log). Confirmed live: a
+// real lead was skipped this way before this fix.
+function extractJson<T>(text: string): T {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1] || text;
+  const start = fenced.indexOf('{');
+  const end = fenced.lastIndexOf('}');
+  if (start < 0 || end <= start) throw new Error('Ollama returned no JSON object');
+  return JSON.parse(fenced.slice(start, end + 1)) as T;
+}
+
 async function triggerMauticSegment(leadId: string, segment: string) {
   // Only sends segment action trigger — no PII in payload
   const auth = Buffer.from(`${MAUTIC_USER}:${MAUTIC_PASS}`).toString('base64');
@@ -58,7 +70,10 @@ export async function run(): Promise<void> {
 
       const raw = await ollama.generate(prompt, { tier: 'fast', system: SYSTEM, maxTokens: 150 });
       let score: { score: number; temperature: string; next_action: string };
-      try { score = JSON.parse(raw); } catch { continue; }
+      try { score = extractJson(raw); } catch (parseErr) {
+        console.error(`[lead-nurturing] lead ${lead.id}: unparseable Ollama response:`, parseErr);
+        continue;
+      }
 
       // Update lead score locally
       await db.query(`
@@ -83,5 +98,7 @@ export async function run(): Promise<void> {
   }
 
   console.log(`[lead-nurturing] processed=${leads.rows.length} warm=${warm} hot=${hot}`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts caches this module across every
+  // scheduled invocation in the long-lived cron container; ending the pool
+  // breaks every run after the first.
 }

@@ -65,11 +65,40 @@ function OverviewTab() {
 
 interface LeadRow { id: string; name: string; email: string; source: string; stage: string; score: number | null; temperature: string | null; added: string }
 
+const LEAD_FLOW = [
+  { label: '1. Contact form', sub: 'POST /api/contact — real submission, no longer 404ing', color: 'bg-gray-50 border-gray-200 text-gray-800' },
+  { label: '2. campaign_lead row', sub: "source_platform='website_form', funnel_stage='new'", color: 'bg-blue-50 border-blue-200 text-blue-800' },
+  { label: '3. LeadNurturingJob', sub: 'Weekly Fri 06:00 UTC — Ollama scores 0-100 + temperature', color: 'bg-amber-50 border-amber-200 text-amber-800' },
+  { label: '4. Warm/hot leads', sub: 'Mautic drip segment triggered (if connected)', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  { label: '5. Sales follow-up', sub: 'Visible here in the Leads table', color: 'bg-green-50 border-green-200 text-green-800' },
+];
+
+function ProcessFlow({ steps }: { steps: { label: string; sub: string; color: string }[] }) {
+  return (
+    <div className="border rounded-lg p-5 bg-white">
+      <h3 className="font-semibold text-gray-800 mb-4 text-sm">Process Flow</h3>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm text-center">
+        {steps.map((n, i) => (
+          <div key={n.label} className="flex flex-col items-center gap-1">
+            <div className={`w-full border rounded-xl p-3 ${n.color}`}>
+              <p className="font-semibold text-xs">{n.label}</p>
+              <p className="text-xs opacity-70 mt-0.5">{n.sub}</p>
+            </div>
+            {i < steps.length - 1 && <span className="text-gray-300 hidden md:block text-xs">→</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function LeadsTab() {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => { fetchJson<{ leads: LeadRow[] }>('/api/crm/leads').then(d => { setLeads(d?.leads ?? []); setLoading(false); }); }, []);
   return (
+    <div className="space-y-4">
+    <ProcessFlow steps={LEAD_FLOW} />
     <div className="border rounded-lg overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 flex justify-between">
         <h3 className="text-sm font-semibold">Active Leads ({leads.length})</h3>
@@ -99,6 +128,7 @@ function LeadsTab() {
           </tbody>
         </table>
       )}
+    </div>
     </div>
   );
 }
