@@ -22,11 +22,14 @@ test.afterAll(async () => {
 });
 
 test.describe('DEMO-001 admin_demo — Demo Showcase Hub', () => {
-  test('renders the credential box, use-case catalog, sequence flows and related tooling', async ({ page, request }) => {
-    const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+  test('renders the credential box, use-case catalog, sequence flows and related tooling', async ({ page }) => {
+    // page.request shares the browser context's cookie jar directly — no
+    // storageState/addCookies round-trip, which was an intermittent source
+    // of the logged-in cookie not reliably reaching the page's context
+    // under full-suite load (confirmed via a login-page screenshot on
+    // an otherwise-successful login response).
+    const login = await page.request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
     expect(login.ok()).toBeTruthy();
-    const state = await request.storageState();
-    await page.context().addCookies(state.cookies);
 
     await page.goto('/admin/demo-hub');
     await expect(page.getByRole('main').getByRole('heading', { name: 'Demo Showcase Hub' })).toBeVisible();
@@ -43,11 +46,9 @@ test.describe('DEMO-001 admin_demo — Demo Showcase Hub', () => {
 });
 
 test.describe('DEMO-002 customer_demo — self-service features page', () => {
-  test('renders the real feature groups for the logged-in demo customer', async ({ page, request }) => {
-    const login = await request.post('/api/customer/auth/login', { data: { email: 'customer_demo@sohamyoga.ca', password: 'CustomerDemo@123456' } });
+  test('renders the real feature groups for the logged-in demo customer', async ({ page }) => {
+    const login = await page.request.post('/api/customer/auth/login', { data: { email: 'customer_demo@sohamyoga.ca', password: 'CustomerDemo@123456' } });
     expect(login.ok()).toBeTruthy();
-    const state = await request.storageState();
-    await page.context().addCookies(state.cookies);
 
     await page.goto('/customer/features');
     await expect(page.getByRole('heading', { name: 'Everything available to you' })).toBeVisible();
@@ -106,10 +107,8 @@ test.describe('DEMO-005 Reports and Dashboard tabs', () => {
     const unauthDashboard = await request.get('/api/admin/demo-hub/dashboard-summary');
     expect(unauthDashboard.status()).toBe(401);
 
-    const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    const login = await page.request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
     expect(login.ok()).toBeTruthy();
-    const state = await request.storageState();
-    await page.context().addCookies(state.cookies);
 
     await page.goto('/admin/demo-hub');
     await page.getByRole('button', { name: 'Reports' }).click();

@@ -1,175 +1,127 @@
 "use client";
-// Student 360 profile — enrollment, attendance, wellness, plan, loyalty, support
+// Student 360 profile — real data from student + enrollment + the
+// gamification tables (practice_journal, streak, achievement) already
+// written by StreakUpdateJob/BadgeAwardJob/WellnessScoringJob. Previously
+// a fully static mock (fixed "Priya Mehta" regardless of the route param)
+// with fabricated loyalty points, membership tier, outstanding balance,
+// and Frappe/Chatwoot/ERPNext IDs — none of that is reintroduced here.
 
-import { useState } from "react";
-import { MASTERY_LABELS, MASTERY_COLORS } from "@/domain/yoga/PoseProgress";
+import { useEffect, useState } from "react";
 
-type Tab = "overview" | "enrollment" | "wellness" | "plan" | "support" | "loyalty";
-
-const DEMO_STUDENT = {
-  id: "s1", enrollmentNumber: "SY-2026-0001", name: "Priya Mehta",
-  email: "priya@example.com", phone: "+1 604 555 0182", timezone: "America/Vancouver",
-  status: "active", primaryStyle: "Hatha", experienceYears: 3,
-  goals: ["stress_relief", "flexibility"], healthClearance: "cleared",
-  totalClasses: 42, totalAbsences: 3, currentStreak: 12, loyaltyPoints: 4200, tier: "gold",
-  outstandingBalance: 0, frappe: "STU-2026-00042", chatwoot: "CW-1084", erpnext: "CUST-00312",
-  enrolledAt: "Jan 15, 2026",
-};
-
-const DEMO_POSES = [
-  { name: "Tadasana",            level: "master",       avgScore: 94, attempts: 28, trend: "plateau"   },
-  { name: "Adho Mukha Svanasana",level: "advanced",     avgScore: 82, attempts: 35, trend: "improving" },
-  { name: "Virabhadrasana I",    level: "intermediate", avgScore: 67, attempts: 22, trend: "improving" },
-  { name: "Vrksasana",           level: "beginner",     avgScore: 51, attempts: 14, trend: "improving" },
-  { name: "Sirsasana",           level: "novice",       avgScore: 28, attempts: 6,  trend: "insufficient_data" },
-];
-
-const DEMO_JOURNAL = [
-  { date: "Aug 4", type: "class",    mood: "4→5", energy: "low→high",  title: "Morning Hatha",      milestone: true  },
-  { date: "Aug 3", type: "self",     mood: "3→4", energy: "mod→high",  title: "Home practice 30min", milestone: false },
-  { date: "Aug 2", type: "class",    mood: "2→4", energy: "low→mod",   title: "Yin Yoga evening",    milestone: false },
-];
+interface Student {
+  id: string; display_name: string; email: string; phone: string | null; status: string;
+  journey_phase: string; experience_level: string; yoga_style_preference: string[] | null;
+  enrolled_at: string; first_class_at: string | null; last_class_at: string | null;
+}
+interface Enrollment { id: string; status: string; start_date: string; enrolled_at: string }
+interface JournalEntry { entry_date: string; session_type: string; duration_minutes: number | null; mood_before: number | null; mood_after: number | null; energy_level: number | null; notes: string | null }
+interface Streak { current_streak: number; longest_streak: number; last_activity_date: string | null; total_active_days: number }
+interface Achievement { badge_id: string; earned_at: string; source: string }
 
 export default function StudentDetailPage({ params }: { params: { id: string } }) {
-  const [tab, setTab] = useState<Tab>("overview");
+  const [data, setData] = useState<{ student: Student; enrollment: Enrollment | null; journal: JournalEntry[]; streak: Streak | null; achievements: Achievement[] } | null>(null);
+  const [error, setError] = useState("");
 
-  const s = DEMO_STUDENT;
-  const tabs: Tab[] = ["overview","enrollment","wellness","plan","support","loyalty"];
+  useEffect(() => {
+    fetch(`/api/admin/students/${params.id}`, { cache: "no-store" })
+      .then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error); setData(d); })
+      .catch(e => setError(e.message));
+  }, [params.id]);
+
+  if (error) return <div className="p-6 max-w-5xl mx-auto"><div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div></div>;
+  if (!data) return <div className="p-6 text-sm text-gray-500">Loading…</div>;
+
+  const { student, enrollment, journal, streak, achievements } = data;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="bg-white border rounded-xl p-5 mb-6">
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="bg-white border rounded-xl p-5">
         <div className="flex items-start gap-4">
           <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-xl flex-shrink-0">
-            PM
+            {student.display_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-gray-900">{s.name}</h1>
-              <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">{s.status}</span>
-              <span className="bg-yellow-50 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-medium border border-yellow-200">Gold</span>
+              <h1 className="text-xl font-bold text-gray-900">{student.display_name}</h1>
+              <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">{student.status}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${enrollment?.status === "active" ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-500"}`}>
+                {enrollment?.status === "active" ? "Enrolled" : "Not enrolled"}
+              </span>
             </div>
-            <div className="text-sm text-gray-500 mt-0.5">{s.enrollmentNumber} · {s.email} · {s.timezone}</div>
-            <div className="flex gap-3 mt-2 text-xs">
-              {s.frappe  && <span className="bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded">Frappe: {s.frappe}</span>}
-              {s.chatwoot && <span className="bg-teal-50 border border-teal-200 text-teal-700 px-2 py-0.5 rounded">Chatwoot: {s.chatwoot}</span>}
-              {s.erpnext  && <span className="bg-orange-50 border border-orange-200 text-orange-700 px-2 py-0.5 rounded">ERPNext: {s.erpnext}</span>}
+            <div className="text-sm text-gray-500 mt-0.5">{student.email}{student.phone ? ` · ${student.phone}` : ""}</div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center flex-shrink-0">
+            <div>
+              <div className="text-lg font-bold text-orange-500">{streak?.current_streak ?? 0}d</div>
+              <div className="text-xs text-gray-400">Streak</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-indigo-600">{achievements.length}</div>
+              <div className="text-xs text-gray-400">Badges</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-gray-700">{journal.length}</div>
+              <div className="text-xs text-gray-400">Journal entries</div>
             </div>
           </div>
-          <div className="grid grid-cols-4 gap-3 text-center flex-shrink-0">
-            {[
-              { label: "Classes",  value: s.totalClasses,            color: "text-indigo-600" },
-              { label: "Streak",   value: `${s.currentStreak}d`,     color: "text-orange-500" },
-              { label: "Points",   value: s.loyaltyPoints.toLocaleString(), color: "text-yellow-600" },
-              { label: "Balance",  value: `$${s.outstandingBalance}`, color: s.outstandingBalance > 0 ? "text-red-500" : "text-gray-400" },
-            ].map(k => (
-              <div key={k.label}>
-                <div className={`text-lg font-bold ${k.color}`}>{k.value}</div>
-                <div className="text-xs text-gray-400">{k.label}</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="font-semibold text-gray-800 mb-3">Profile</h3>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between"><dt className="text-gray-500">Experience</dt><dd className="capitalize">{student.experience_level}</dd></div>
+            <div className="flex justify-between"><dt className="text-gray-500">Journey Phase</dt><dd className="capitalize">{student.journey_phase.replace(/_/g, " ")}</dd></div>
+            <div className="flex justify-between"><dt className="text-gray-500">Style Preference</dt><dd>{student.yoga_style_preference?.join(", ") || "—"}</dd></div>
+            <div className="flex justify-between"><dt className="text-gray-500">Enrolled</dt><dd>{new Date(student.enrolled_at).toLocaleDateString()}</dd></div>
+            <div className="flex justify-between"><dt className="text-gray-500">Last Class</dt><dd>{student.last_class_at ? new Date(student.last_class_at).toLocaleDateString() : "Never"}</dd></div>
+          </dl>
+        </div>
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="font-semibold text-gray-800 mb-3">Streak & Activity</h3>
+          {streak ? (
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-gray-500">Current Streak</dt><dd className="font-medium">{streak.current_streak} days</dd></div>
+              <div className="flex justify-between"><dt className="text-gray-500">Longest Streak</dt><dd className="font-medium">{streak.longest_streak} days</dd></div>
+              <div className="flex justify-between"><dt className="text-gray-500">Total Active Days</dt><dd className="font-medium">{streak.total_active_days}</dd></div>
+              <div className="flex justify-between"><dt className="text-gray-500">Last Activity</dt><dd>{streak.last_activity_date ? new Date(streak.last_activity_date).toLocaleDateString() : "—"}</dd></div>
+            </dl>
+          ) : <p className="text-sm text-gray-400">No streak record yet.</p>}
+        </div>
+      </div>
+
+      <div className="bg-white border rounded-lg p-4">
+        <h3 className="font-semibold text-gray-800 mb-3">Recent Practice Journal</h3>
+        {journal.length === 0 ? (
+          <p className="text-sm text-gray-400">No journal entries yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {journal.map((j, i) => (
+              <div key={i} className="flex items-center gap-3 text-sm border-b last:border-0 pb-2 last:pb-0">
+                <span className="text-xs text-gray-400 w-24">{new Date(j.entry_date).toLocaleDateString()}</span>
+                <span className="flex-1 text-gray-700 capitalize">{j.session_type}{j.duration_minutes ? ` · ${j.duration_minutes} min` : ""}</span>
+                {j.mood_before != null && j.mood_after != null && <span className="text-xs text-gray-400">mood {j.mood_before}→{j.mood_after}</span>}
               </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b mb-6">
-        {tabs.map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${tab === t ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-800"}`}>
-            {t}
-          </button>
-        ))}
+      <div className="bg-white border rounded-lg p-4">
+        <h3 className="font-semibold text-gray-800 mb-3">Badges Earned</h3>
+        {achievements.length === 0 ? (
+          <p className="text-sm text-gray-400">No badges earned yet.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {achievements.map((a, i) => (
+              <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-50 border border-yellow-200 text-yellow-700">
+                🏅 {a.badge_id} <span className="text-gray-400">({new Date(a.earned_at).toLocaleDateString()})</span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Overview */}
-      {tab === "overview" && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white border rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Quick Info</h3>
-            <dl className="space-y-2 text-sm">
-              {[
-                ["Style",       s.primaryStyle],
-                ["Experience",  `${s.experienceYears} years`],
-                ["Goals",       s.goals.join(", ").replace(/_/g," ")],
-                ["Enrolled",    s.enrolledAt],
-                ["Attendance",  `${Math.round((42/(42+3))*100)}%`],
-                ["Health",      s.healthClearance],
-              ].map(([k,v]) => (
-                <div key={k as string} className="flex justify-between">
-                  <dt className="text-gray-500">{k}</dt>
-                  <dd className="font-medium text-gray-800 capitalize">{v as string}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-          <div className="bg-white border rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Practice Journal (recent)</h3>
-            <div className="space-y-2">
-              {DEMO_JOURNAL.map((j, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm">
-                  <span className="text-xs text-gray-400 w-12">{j.date}</span>
-                  <span className="flex-1 text-gray-700">{j.title}</span>
-                  {j.milestone && <span className="text-xs">🌟</span>}
-                  <span className="text-xs text-gray-400">{j.mood}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Wellness / Pose Progress */}
-      {tab === "wellness" && (
-        <div>
-          <h2 className="font-semibold text-gray-800 mb-4">Pose Mastery Progress</h2>
-          <div className="space-y-3">
-            {DEMO_POSES.map(p => {
-              const color = MASTERY_COLORS[p.level as keyof typeof MASTERY_COLORS] ?? "bg-gray-100 text-gray-600";
-              const label = MASTERY_LABELS[p.level as keyof typeof MASTERY_LABELS] ?? p.level;
-              const trendIcon = p.trend === "improving" ? "↑" : p.trend === "declining" ? "↓" : "→";
-              const trendColor = p.trend === "improving" ? "text-green-600" : p.trend === "declining" ? "text-red-500" : "text-gray-400";
-              return (
-                <div key={p.name} className="bg-white border rounded-lg p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="font-medium text-gray-800">{p.name}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${color}`}>{label}</span>
-                        <span className={`text-xs font-medium ${trendColor}`}>{trendIcon} {p.trend.replace(/_/g," ")}</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
-                        <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${p.avgScore}%` }} />
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-bold text-gray-900">{p.avgScore}</div>
-                      <div className="text-xs text-gray-400">{p.attempts} attempts</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Placeholder tabs */}
-      {["enrollment","plan","support","loyalty"].includes(tab) && (
-        <div className="bg-white border rounded-lg p-8 text-center text-gray-400">
-          <div className="text-4xl mb-2">
-            {tab === "enrollment" ? "📋" : tab === "plan" ? "🗺️" : tab === "support" ? "💬" : "🏅"}
-          </div>
-          <div className="font-medium text-gray-600 capitalize">{tab}</div>
-          <div className="text-sm mt-1">
-            {tab === "enrollment" && "Enrollment and attendance data synced from Frappe Education"}
-            {tab === "plan"       && "Personalized practice plan assigned by teacher or AI"}
-            {tab === "support"    && "Support conversations from Chatwoot inbox"}
-            {tab === "loyalty"    && "Loyalty point history and reward redemptions from ERPNext"}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

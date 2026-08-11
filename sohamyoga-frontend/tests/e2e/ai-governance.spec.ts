@@ -55,11 +55,12 @@ test.describe('GOV-002 GET /api/admin/ai-governance — positive', () => {
 });
 
 test.describe('GOV-003 /admin/ai-governance page — renders all eleven sections', () => {
-  test('every named AI governance dimension has a visible heading with real content', async ({ page, request }) => {
-    const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+  test('every named AI governance dimension has a visible heading with real content', async ({ page }) => {
+    // page.request shares the browser context's cookie jar directly — see
+    // the note in demo-showcase-hub.spec.ts for why this replaced the
+    // request+storageState+addCookies pattern.
+    const login = await page.request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
     expect(login.ok()).toBeTruthy();
-    const state = await request.storageState();
-    await page.context().addCookies(state.cookies);
 
     await page.goto('/admin/ai-governance');
     await expect(page.getByRole('heading', { name: 'AI Governance', exact: true })).toBeVisible();

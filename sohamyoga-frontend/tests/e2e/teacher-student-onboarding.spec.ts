@@ -1,4 +1,4 @@
-// Teacher onboarding + student enrollment — TSO-001..004. Before this,
+// Teacher onboarding + student enrollment — TSO-001..005. Before this,
 // /admin/teachers and /admin/students were both entirely hardcoded mock
 // arrays (DEMO_TEACHERS/DEMO_STUDENTS) with no backing API — the biggest
 // real functional gap found in this session's admin-UI audit. The
@@ -130,19 +130,69 @@ test.describe('TSO-003 negative validation', () => {
 });
 
 test.describe('TSO-004 admin UI renders real data', () => {
-  test('teachers and students pages render a working Add form and real fetched data', async ({ page, request }) => {
-    await loginAsAdmin(request);
-    const state = await request.storageState();
-    await page.context().addCookies(state.cookies);
+  test('teachers and students pages render a working Add form and real fetched data', async ({ page }) => {
+    // page.request shares the browser context's cookie jar directly — see
+    // the note in demo-showcase-hub.spec.ts for why this replaced the
+    // request+storageState+addCookies pattern (that pattern intermittently
+    // failed to carry the session into the page under full-suite load).
+    await loginAsAdmin(page.request);
 
     await page.goto('/admin/teachers');
-    // Longer timeout: in dev mode Next.js JIT-compiles a route on its first
-    // hit, which can push a cold page's first render past the default 8s.
-    await expect(page.getByRole('heading', { name: 'Teachers' })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('heading', { name: 'Teachers' })).toBeVisible();
     await expect(page.getByRole('button', { name: '+ Add Teacher' })).toBeVisible();
 
     await page.goto('/admin/students');
-    await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible();
     await expect(page.getByRole('button', { name: '+ Add Student' })).toBeVisible();
+  });
+});
+
+test.describe('TSO-005 detail pages — real data by route param', () => {
+  test('GET /api/admin/teachers/[id] and /api/admin/students/[id] return the real record, not a fixed mock', async ({ request }) => {
+    await loginAsAdmin(request);
+    const email = id('teacher-detail');
+
+    const create = await request.post('/api/admin/teachers', {
+      data: { firstName: 'Detail', lastName: 'Check', email, password: 'TeacherDemo@123456', bio: 'TSO-005 fixture', specializations: ['Yin'] },
+    });
+    expect(create.status()).toBe(201);
+    const teacherId = (await create.json()).teacher.id;
+
+    const detail = await request.get(`/api/admin/teachers/${teacherId}`);
+    expect(detail.status()).toBe(200);
+    const detailBody = await detail.json();
+    expect(detailBody.teacher).toMatchObject({ id: teacherId, first_name: 'Detail', last_name: 'Check', bio: 'TSO-005 fixture' });
+    expect(detailBody.certifications).toEqual([]);
+
+    const missing = await request.get('/api/admin/teachers/00000000-0000-0000-0000-000000000000');
+    expect(missing.status()).toBe(404);
+
+    const studentDetail = await request.get('/api/admin/students/d0000000-0000-4000-8000-000000000001');
+    expect(studentDetail.status()).toBe(200);
+    const studentBody = await studentDetail.json();
+    expect(studentBody.student.id).toBe('d0000000-0000-4000-8000-000000000001');
+    expect(studentBody).toHaveProperty('enrollment');
+    expect(studentBody).toHaveProperty('journal');
+    expect(studentBody).toHaveProperty('streak');
+    expect(studentBody).toHaveProperty('achievements');
+
+    const missingStudent = await request.get('/api/admin/students/00000000-0000-0000-0000-000000000000');
+    expect(missingStudent.status()).toBe(404);
+  });
+
+  test('detail pages render real, route-specific data end to end', async ({ page }) => {
+    await loginAsAdmin(page.request);
+    const email = id('teacher-detail-ui');
+
+    const create = await page.request.post('/api/admin/teachers', {
+      data: { firstName: 'UiDetail', lastName: 'Check', email, password: 'TeacherDemo@123456', bio: 'TSO-005 UI fixture', specializations: ['Restorative'] },
+    });
+    expect(create.status()).toBe(201);
+    const teacherId = (await create.json()).teacher.id;
+
+    await page.goto(`/admin/teachers/${teacherId}`);
+    await expect(page.getByRole('heading', { name: 'UiDetail Check' })).toBeVisible();
+    await expect(page.getByText('TSO-005 UI fixture')).toBeVisible();
+    await expect(page.getByText('No certifications on file yet.')).toBeVisible();
   });
 });
