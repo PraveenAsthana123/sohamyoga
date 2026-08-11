@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import { customerAuthApi } from '@/lib/api';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -64,6 +65,14 @@ export default function CustomerRegisterPage() {
   const [privacyOk,  setPrivacyOk]  = useState(false);
   const [marketingOk,setMarketingOk]= useState(false);
 
+  // A referral link (/r/[code]) redirects here with ?ref=CODE — capture it
+  // into the same field the manual "Referral Code" input writes to, so a
+  // real click flows through to a real registered referral either way.
+  useEffect(() => {
+    const refParam = new URLSearchParams(window.location.search).get('ref');
+    if (refParam) setRef(refParam.toUpperCase());
+  }, []);
+
   const next = async () => {
     setError('');
     if (step < 5) setStep((step + 1) as Step);
@@ -73,11 +82,18 @@ export default function CustomerRegisterPage() {
   const submit = async () => {
     setLoading(true);
     try {
-      // TODO: POST /api/auth/register with collected data
-      await new Promise((r) => setTimeout(r, 1000));
-      window.location.href = '/student/dashboard';
-    } catch {
-      setError('Registration failed. Please try again.');
+      await customerAuthApi.register({ name, email, password });
+      // Real account + session now exist (ASP.NET Identity, via the .NET
+      // backend proxy) but no Postgres customer row yet — that, and real
+      // referral attribution if a code was entered, happens here.
+      await fetch('/api/customer/complete-registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ displayName: name, marketingOptIn: marketingOk, referralCode: ref || undefined }),
+      });
+      window.location.href = '/customer/dashboard';
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

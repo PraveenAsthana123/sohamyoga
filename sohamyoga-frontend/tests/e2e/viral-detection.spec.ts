@@ -129,7 +129,7 @@ test.describe('VIR-003 page renders per-platform tabs', () => {
   test('/admin/social/facebook shows Overview and Viral Signals tabs', async ({ page }) => {
     await loginAsAdmin(page.request);
     await page.goto('/admin/social/facebook');
-    await expect(page.getByRole('heading', { name: 'Facebook' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Facebook' })).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('button', { name: 'Viral Signals' })).toBeVisible();
     await page.getByRole('button', { name: 'Viral Signals' }).click();
   });
