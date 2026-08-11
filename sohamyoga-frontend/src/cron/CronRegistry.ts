@@ -275,6 +275,44 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   120_000,
   },
+  {
+    name:        'advocacy-score',
+    schedule:    '30 8 * * 4',
+    description: 'Computes a real composite advocacy-eligibility score per active student — NPS, attendance, retention, real referral history from the migration-052 referral domain, and churn-risk override; Ollama writes one advisory line for the single most borderline eligibility case',
+    module:      'AdvocacyScoreJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
+
+  // ── Daily 07:00 UTC ───────────────────────────────────────────────────────
+  {
+    name:        'viral-detection',
+    schedule:    '0 7 * * *',
+    description: 'Computes real share/like/comment velocity per post (every platform with a connected account) from social_post_analytics snapshots and flags a post viral only when it is a real statistical outlier (z-score >= 2) against that account\'s own trailing baseline; Ollama writes one advisory sentence for the single most viral post',
+    module:      'ViralDetectionJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
+
+  // ── Weekly Thursday 09:00 UTC ─────────────────────────────────────────────
+  {
+    name:        'influencer-value',
+    schedule:    '0 9 * * 4',
+    description: 'Scores known influencer profiles from real referral attribution (referral_count, revenue_attributed via their issued referral_code) — an influencer with no code issued yet is scored insufficient_data, never a fabricated number; Ollama writes one advisory line for the single highest-scoring influencer',
+    module:      'InfluencerValueJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+
+  // ── Monthly, 1st 06:00 UTC ────────────────────────────────────────────────
+  {
+    name:        'github-repo-scout',
+    schedule:    '0 6 1 * *',
+    description: 'Enriches seeded/discovered candidate repos with real GitHub API metadata (stars, description, push date) and searches a small fixed query list for genuinely new open-source reuse candidates (referral, influencer, viral-detection, social-automation) — never clones, installs, or runs anything found; Ollama writes a relevance note only for newly discovered repos, reasoning strictly from real API data',
+    module:      'GitHubRepoScoutJob',
+    enabled:     true,
+    timeoutMs:   240_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -308,6 +346,10 @@ Fri    08:30  module-boundary-quality (Ollama)
 Fri    10:00  voice-of-customer (Ollama)
 Wed    09:00  yoga-education-content (Ollama)
 Thu    08:00  funnel-stage-analysis (Ollama)
+Thu    08:30  advocacy-score (Ollama)
+Daily  07:00  viral-detection (Ollama)
+Thu    09:00  influencer-value (Ollama)
+1st    06:00  github-repo-scout (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 29 jobs | 18 use Ollama | 0 cloud AI tokens
+Total: 33 jobs | 22 use Ollama | 0 cloud AI tokens
 `;

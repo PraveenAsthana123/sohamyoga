@@ -58,6 +58,10 @@ schemas=(
   "075-teacher-profile|sohamyoga-frontend/src/domain/teacher/db-schema-teacher-profile.sql"
   "076-complaint-alert|sohamyoga-frontend/src/domain/marketing/db-schema-complaint-alert.sql"
   "077-funnel-stage-engine|sohamyoga-frontend/src/domain/funnel/db-schema.sql"
+  "078-advocacy-referral|sohamyoga-frontend/src/domain/funnel/db-schema-advocacy.sql"
+  "079-viral-detection|sohamyoga-frontend/src/domain/social/db-schema-viral-signal.sql"
+  "080-influencer|sohamyoga-frontend/src/domain/growth/db-schema-influencer.sql"
+  "081-github-scout|sohamyoga-frontend/src/domain/growth/db-schema-github-scout.sql"
 )
 
 psql_cmd=(docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME")

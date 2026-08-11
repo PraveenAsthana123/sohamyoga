@@ -34,4 +34,8 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   VoiceOfCustomerJob:         () => import('./jobs/VoiceOfCustomerJob'),
   YogaEducationContentJob:    () => import('./jobs/YogaEducationContentJob'),
   FunnelStageAnalysisJob:     () => import('./jobs/FunnelStageAnalysisJob'),
+  AdvocacyScoreJob:           () => import('./jobs/AdvocacyScoreJob'),
+  ViralDetectionJob:          () => import('./jobs/ViralDetectionJob'),
+  InfluencerValueJob:         () => import('./jobs/InfluencerValueJob'),
+  GitHubRepoScoutJob:         () => import('./jobs/GitHubRepoScoutJob'),
 };

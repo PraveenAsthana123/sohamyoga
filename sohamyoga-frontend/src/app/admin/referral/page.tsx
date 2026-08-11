@@ -1,27 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-// ── mock data ────────────────────────────────────────────────────────────────
+// ── real data types (fetched from /api/admin/referral/*) ───────────────────
 
-const KPI = [
-  { label: "Total Referrals",     value: "1,842",  sub: "+214 this month",   color: "text-blue-600" },
-  { label: "Successful",          value: "934",    sub: "50.7% conversion",  color: "text-green-600" },
-  { label: "Pending Rewards",     value: "87",     sub: "Awaiting approval", color: "text-yellow-600" },
-  { label: "Rewards Paid",        value: "$14,280",sub: "CAD this month",    color: "text-purple-600" },
-  { label: "Active Campaigns",    value: "4",      sub: "2 expiring soon",   color: "text-indigo-600" },
-  { label: "Revenue Generated",   value: "$68,420",sub: "from referrals",    color: "text-emerald-600" },
-];
-
-const REFERRALS = [
-  { id: "ref-001", referrer: "Priya Sharma",    referree: "Anika Mehta",     type: "customer_customer", status: "reward_paid",    amount: 149, channel: "whatsapp", campaign: "Summer 2026" },
-  { id: "ref-002", referrer: "Raj Kumar",       referree: "Sunita Patel",    type: "teacher_student",   status: "reward_pending", amount: 229, channel: "qr_code",  campaign: "Teacher Drive" },
-  { id: "ref-003", referrer: "Meera Nair",      referree: "Arjun Singh",     type: "customer_customer", status: "registered",     amount: null,channel: "email",    campaign: "Summer 2026" },
-  { id: "ref-004", referrer: "Dr. Gupta",       referree: "Ritu Verma",      type: "doctor",            status: "membership_purchased", amount: 299, channel: "direct_link", campaign: "Doctor Referral" },
-  { id: "ref-005", referrer: "TechCorp HR",     referree: "5 employees",     type: "corporate",         status: "reward_approved",amount: 1495,channel: "email",    campaign: "Corporate Q3" },
-  { id: "ref-006", referrer: "Ananya Iyer",     referree: "Vivek Shah",      type: "customer_customer", status: "reward_rejected", amount: null,channel: "facebook","campaign": "Summer 2026" },
-  { id: "ref-007", referrer: "YogaInfluencer1", referree: "412 clicks",      type: "influencer",        status: "clicked",        amount: null,channel: "instagram","campaign": "Influencer Aug" },
-  { id: "ref-008", referrer: "Kavita Reddy",    referree: "Sanjay Bose",     type: "student_teacher",   status: "verified",       amount: null,channel: "telegram", campaign: "Teacher Drive" },
-];
+interface Summary {
+  totalReferrals: number; successful: number; conversionRatePct: number; pendingRewards: number;
+  pendingRewardValue: number; rewardsPaid: number; revenueGenerated: number; activeCampaigns: number;
+  topReferrers: { referrerId: string; referrerName: string; totalReferrals: number; successful: number; conversionRatePct: number; totalRevenueGenerated: number }[];
+  statusBreakdown: Record<string, number>;
+  rewardTypeDistribution: { type: string; count: number }[];
+}
+interface ReferralRow { id: string; referrer: string; referree: string; type: string; status: string; channel: string | null; amount: number | null; campaign: string | null }
+interface CodeRow { code: string; referrer: string; type: string; status: string; clicks: number; uses: number; maxUses: number | null; campaign: string | null; expiry: string | null }
+interface CampaignRow { name: string; type: string; status: string; rewardType: string; referrerReward: number; referreeReward: number; referrals: number; paid: number; conversion: number }
+interface RewardRow { id: string; referral: string; referrer: string; type: string; value: number; campaign: string | null; flags: string[] }
 
 const STATUS_STYLE: Record<string, string> = {
   draft:                "bg-gray-100 text-gray-700",
@@ -53,29 +45,6 @@ const TYPE_COLOR: Record<string, string> = {
   workshop:          "bg-violet-100 text-violet-700",
   retreat:           "bg-green-100 text-green-700",
 };
-
-const CODES = [
-  { code: "PRAVEEN2026", referrer: "Praveen Asthana",  type: "customer_customer", status: "active",  clicks: 148, uses: 42, maxUses: null,   campaign: "Summer 2026",  expiry: "2026-12-31" },
-  { code: "YOGI-PRIYA",  referrer: "Priya Sharma",     type: "customer_customer", status: "active",  clicks: 92,  uses: 31, maxUses: null,   campaign: "Summer 2026",  expiry: "2026-12-31" },
-  { code: "TEACH-RAJ",  referrer: "Raj Kumar",          type: "teacher_student",   status: "active",  clicks: 67,  uses: 18, maxUses: 50,     campaign: "Teacher Drive", expiry: "2026-09-30" },
-  { code: "CORP-TECH",  referrer: "TechCorp HR",        type: "corporate",         status: "paused",  clicks: 210, uses: 5,  maxUses: 10,     campaign: "Corporate Q3", expiry: "2026-09-30" },
-  { code: "DR-GUPTA",   referrer: "Dr. Gupta",          type: "doctor",            status: "active",  clicks: 34,  uses: 12, maxUses: null,   campaign: "Doctor Referral", expiry: null },
-  { code: "INFL-001",   referrer: "YogaInfluencer1",   type: "influencer",        status: "active",  clicks: 412, uses: 0,  maxUses: null,   campaign: "Influencer Aug", expiry: "2026-08-31" },
-];
-
-const CAMPAIGNS = [
-  { name: "Summer Referral 2026",  type: "standard",     status: "active", rewardType: "wallet_credit",  referrerReward: 25, referreeReward: 15, referrals: 842,  paid: 8420,  conversion: 50.7 },
-  { name: "Teacher Drive Q3",      type: "standard",     status: "active", rewardType: "free_class",     referrerReward: 1,  referreeReward: 1,  referrals: 214,  paid: 214,   conversion: 38.2 },
-  { name: "Corporate Q3 2026",     type: "corporate",    status: "active", rewardType: "wallet_credit",  referrerReward: 50, referreeReward: 30, referrals: 47,   paid: 2350,  conversion: 72.3 },
-  { name: "Doctor Referral",       type: "standard",     status: "active", rewardType: "gift_card",      referrerReward: 75, referreeReward: 25, referrals: 129,  paid: 9675,  conversion: 64.1 },
-  { name: "Diwali Double Rewards", type: "double_reward",status: "draft",  rewardType: "wallet_credit",  referrerReward: 50, referreeReward: 30, referrals: 0,    paid: 0,     conversion: 0 },
-];
-
-const REWARDS_PENDING = [
-  { id: "rr-001", referral: "ref-002", referrer: "Raj Kumar",    type: "wallet_credit",  value: 25,  campaign: "Teacher Drive", flags: [] },
-  { id: "rr-002", referral: "ref-004", referrer: "Dr. Gupta",    type: "gift_card",       value: 75,  campaign: "Doctor Referral", flags: [] },
-  { id: "rr-003", referral: "ref-005", referrer: "TechCorp HR",  type: "wallet_credit",  value: 250, campaign: "Corporate Q3", flags: ["dup-domain"] },
-];
 
 const MCP_TOOLS = [
   { name: "create_referral_code", tier: "auto",             desc: "Generate unique code for referrer" },
@@ -122,6 +91,51 @@ type Tab = typeof TABS[number];
 
 export default function ReferralAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [referrals, setReferrals] = useState<ReferralRow[] | null>(null);
+  const [codes, setCodes] = useState<CodeRow[] | null>(null);
+  const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
+  const [rewards, setRewards] = useState<RewardRow[] | null>(null);
+  const [error, setError] = useState('');
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
+
+  const refetch = () => {
+    Promise.all([
+      fetch('/api/admin/referral/summary', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/admin/referral/list', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/admin/referral/codes', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/admin/referral/campaigns', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/admin/referral/rewards', { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([s, r, c, cam, rw]) => {
+      if (s.error) throw new Error(s.error);
+      setSummary(s); setReferrals(r.referrals); setCodes(c.codes); setCampaigns(cam.campaigns); setRewards(rw.rewards);
+    }).catch(e => setError(e.message));
+  };
+
+  useEffect(refetch, []);
+
+  const handleReward = async (id: string, action: 'approve' | 'reject') => {
+    if (action === 'reject' && !confirm('Reject this reward? This is recorded as a real status change.')) return;
+    const reason = action === 'reject' ? prompt('Rejection reason (required):') : undefined;
+    if (action === 'reject' && !reason?.trim()) return;
+    setActionBusy(id);
+    try {
+      const res = await fetch(`/api/admin/referral/rewards/${id}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, reason }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      refetch();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Action failed');
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
+  if (error) return <div className="mx-auto max-w-5xl p-6"><div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div></div>;
+  if (!summary || !referrals || !codes || !campaigns || !rewards) return <div className="p-6 text-sm text-gray-500">Loading…</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -152,7 +166,14 @@ export default function ReferralAdminPage() {
         {activeTab === "overview" && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {KPI.map(k => (
+              {[
+                { label: "Total Referrals", value: summary.totalReferrals.toLocaleString(), sub: `${summary.conversionRatePct}% conversion`, color: "text-blue-600" },
+                { label: "Successful", value: summary.successful.toLocaleString(), sub: "reward_paid", color: "text-green-600" },
+                { label: "Pending Rewards", value: summary.pendingRewards.toLocaleString(), sub: `$${summary.pendingRewardValue.toLocaleString()} awaiting approval`, color: "text-yellow-600" },
+                { label: "Rewards Paid", value: `$${summary.rewardsPaid.toLocaleString()}`, sub: "lifetime", color: "text-purple-600" },
+                { label: "Active Campaigns", value: String(summary.activeCampaigns), sub: "status=active", color: "text-indigo-600" },
+                { label: "Revenue Generated", value: `$${summary.revenueGenerated.toLocaleString()}`, sub: "from referrals", color: "text-emerald-600" },
+              ].map(k => (
                 <div key={k.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <p className="text-xs text-gray-500">{k.label}</p>
                   <p className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</p>
@@ -161,47 +182,36 @@ export default function ReferralAdminPage() {
               ))}
             </div>
 
-            {/* Funnel */}
+            {/* Real lifecycle-status breakdown */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h2 className="font-semibold text-gray-800 mb-4">Referral Funnel (Last 30 Days)</h2>
+              <h2 className="font-semibold text-gray-800 mb-4">Referrals by Status (all-time)</h2>
               <div className="flex items-end gap-2">
-                {[
-                  { label: "Codes Issued", n: 312, pct: 100 },
-                  { label: "Clicked",      n: 248, pct: 80 },
-                  { label: "Registered",   n: 174, pct: 56 },
-                  { label: "Verified",     n: 141, pct: 45 },
-                  { label: "Purchased",    n: 108, pct: 35 },
-                  { label: "Rewarded",     n: 93,  pct: 30 },
-                ].map(f => (
-                  <div key={f.label} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs font-semibold text-gray-700">{f.n}</span>
-                    <div
-                      className="w-full bg-blue-500 rounded-t"
-                      style={{ height: `${f.pct * 1.5}px` }}
-                    />
-                    <span className="text-xs text-gray-500 text-center">{f.label}</span>
-                  </div>
-                ))}
+                {Object.entries(summary.statusBreakdown).length === 0
+                  ? <p className="text-sm text-gray-400">No referrals recorded yet.</p>
+                  : Object.entries(summary.statusBreakdown).map(([status, n]) => {
+                      const max = Math.max(1, ...Object.values(summary.statusBreakdown));
+                      return (
+                        <div key={status} className="flex-1 flex flex-col items-center gap-1">
+                          <span className="text-xs font-semibold text-gray-700">{n}</span>
+                          <div className="w-full bg-blue-500 rounded-t" style={{ height: `${Math.max(4, (n / max) * 150)}px` }} />
+                          <span className="text-xs text-gray-500 text-center">{status.replace(/_/g, " ")}</span>
+                        </div>
+                      );
+                    })}
               </div>
             </div>
 
             {/* Top Referrers */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h2 className="font-semibold text-gray-800 mb-3">Top Referrers (Monthly)</h2>
+              <h2 className="font-semibold text-gray-800 mb-3">Top Referrers (real, v_top_referrers)</h2>
               <div className="space-y-2">
-                {[
-                  { name: "Priya Sharma",    refs: 42, revenue: "$6,258",  reward: "$1,050" },
-                  { name: "Dr. Gupta",       refs: 31, revenue: "$9,269",  reward: "$2,325" },
-                  { name: "Raj Kumar",       refs: 28, revenue: "$4,172",  reward: "$700" },
-                  { name: "TechCorp HR",     refs: 25, revenue: "$7,475",  reward: "$1,250" },
-                  { name: "Ananya Iyer",     refs: 19, revenue: "$2,831",  reward: "$475" },
-                ].map((r, i) => (
-                  <div key={r.name} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                {summary.topReferrers.length === 0 ? <p className="text-sm text-gray-400">No referrers yet.</p> : summary.topReferrers.map((r, i) => (
+                  <div key={r.referrerId} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                     <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center font-bold">{i + 1}</span>
-                    <span className="flex-1 text-sm font-medium text-gray-800">{r.name}</span>
-                    <span className="text-sm text-gray-600">{r.refs} refs</span>
-                    <span className="text-sm text-green-600">{r.revenue}</span>
-                    <span className="text-sm text-purple-600">{r.reward}</span>
+                    <span className="flex-1 text-sm font-medium text-gray-800">{r.referrerName}</span>
+                    <span className="text-sm text-gray-600">{r.totalReferrals} refs</span>
+                    <span className="text-sm text-green-600">${r.totalRevenueGenerated.toLocaleString()}</span>
+                    <span className="text-sm text-purple-600">{r.conversionRatePct}%</span>
                   </div>
                 ))}
               </div>
@@ -209,24 +219,21 @@ export default function ReferralAdminPage() {
 
             {/* Reward distribution */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h2 className="font-semibold text-gray-800 mb-3">Reward Type Distribution</h2>
+              <h2 className="font-semibold text-gray-800 mb-3">Reward Type Distribution (real counts)</h2>
               <div className="space-y-2">
-                {[
-                  { type: "Wallet Credit",        pct: 42, color: "bg-blue-500" },
-                  { type: "Gift Card",             pct: 22, color: "bg-purple-500" },
-                  { type: "Reward Points",         pct: 18, color: "bg-yellow-500" },
-                  { type: "Free Class",            pct: 10, color: "bg-green-500" },
-                  { type: "Discount Coupon",       pct: 5,  color: "bg-orange-500" },
-                  { type: "Membership Extension",  pct: 3,  color: "bg-pink-500" },
-                ].map(r => (
-                  <div key={r.type} className="flex items-center gap-3">
-                    <span className="w-32 text-xs text-gray-600">{r.type}</span>
-                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full ${r.color} rounded-full`} style={{ width: `${r.pct}%` }} />
+                {summary.rewardTypeDistribution.length === 0 ? <p className="text-sm text-gray-400">No rewards issued yet.</p> : summary.rewardTypeDistribution.map(r => {
+                  const total = summary.rewardTypeDistribution.reduce((s, x) => s + x.count, 0);
+                  const pct = total > 0 ? Math.round((r.count / total) * 100) : 0;
+                  return (
+                    <div key={r.type} className="flex items-center gap-3">
+                      <span className="w-40 text-xs text-gray-600">{r.type.replace(/_/g, " ")}</span>
+                      <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs text-gray-500 w-16">{r.count} ({pct}%)</span>
                     </div>
-                    <span className="text-xs text-gray-500 w-8">{r.pct}%</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -237,7 +244,7 @@ export default function ReferralAdminPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100">
             <div className="p-4 border-b border-gray-100 flex items-center gap-3">
               <h2 className="font-semibold text-gray-800">All Referrals</h2>
-              <span className="text-sm text-gray-500">({REFERRALS.length} shown)</span>
+              <span className="text-sm text-gray-500">({referrals.length} shown, most recent 100)</span>
               <div className="ml-auto flex gap-2">
                 <select className="text-sm border border-gray-200 rounded px-2 py-1 text-gray-600">
                   <option>All Status</option>
@@ -259,7 +266,10 @@ export default function ReferralAdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {REFERRALS.map(r => (
+                  {referrals.length === 0 && (
+                    <tr><td colSpan={8} className="px-4 py-6 text-center text-sm text-gray-400">No referrals recorded yet.</td></tr>
+                  )}
+                  {referrals.map(r => (
                     <tr key={r.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800">{r.referrer}</td>
                       <td className="px-4 py-3 text-gray-600">{r.referree}</td>
@@ -273,19 +283,11 @@ export default function ReferralAdminPage() {
                           {r.status.replace(/_/g, " ")}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 capitalize">{r.channel?.replace(/_/g, " ")}</td>
+                      <td className="px-4 py-3 text-gray-500 capitalize">{r.channel?.replace(/_/g, " ") ?? "—"}</td>
                       <td className="px-4 py-3 text-gray-700">{r.amount ? `$${r.amount}` : "—"}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{r.campaign}</td>
-                      <td className="px-4 py-3">
-                        {r.status === "reward_pending" && (
-                          <div className="flex gap-1">
-                            <button className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">Approve</button>
-                            <button className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Reject</button>
-                          </div>
-                        )}
-                        {r.status === "clicked" && (
-                          <button className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">View Fraud</button>
-                        )}
+                      <td className="px-4 py-3 text-gray-600 text-xs">{r.campaign ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-gray-400">
+                        {r.status === "reward_pending" ? "See Rewards tab" : "—"}
                       </td>
                     </tr>
                   ))}
@@ -299,23 +301,24 @@ export default function ReferralAdminPage() {
         {activeTab === "codes" && (
           <div className="space-y-4">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="p-4 border-b border-gray-100">
                 <h2 className="font-semibold text-gray-800">Referral Codes</h2>
-                <button className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  + Generate Code
-                </button>
+                <p className="text-xs text-gray-500 mt-0.5">Real referral_code rows — code generation/pause is an MCP tool call (see Integrations tab), not wired to a UI button in this pass.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      {["Code","Referrer","Type","Status","Clicks","Uses","Max Uses","Campaign","Expiry","Actions"].map(h => (
+                      {["Code","Referrer","Type","Status","Clicks","Uses","Max Uses","Campaign","Expiry"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {CODES.map(c => (
+                    {codes.length === 0 && (
+                      <tr><td colSpan={9} className="px-4 py-6 text-center text-sm text-gray-400">No referral codes issued yet.</td></tr>
+                    )}
+                    {codes.map(c => (
                       <tr key={c.code} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-mono font-bold text-blue-700">{c.code}</td>
                         <td className="px-4 py-3 text-gray-700">{c.referrer}</td>
@@ -334,17 +337,8 @@ export default function ReferralAdminPage() {
                         <td className="px-4 py-3 text-gray-600">{c.clicks}</td>
                         <td className="px-4 py-3 text-gray-600">{c.uses}</td>
                         <td className="px-4 py-3 text-gray-500">{c.maxUses ?? "∞"}</td>
-                        <td className="px-4 py-3 text-gray-600 text-xs">{c.campaign}</td>
+                        <td className="px-4 py-3 text-gray-600 text-xs">{c.campaign ?? "—"}</td>
                         <td className="px-4 py-3 text-gray-500 text-xs">{c.expiry ?? "No expiry"}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1">
-                            <button className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">QR</button>
-                            <button className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Copy</button>
-                            {c.status === "active" && (
-                              <button className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200">Pause</button>
-                            )}
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -357,12 +351,10 @@ export default function ReferralAdminPage() {
         {/* ── CAMPAIGNS ── */}
         {activeTab === "campaigns" && (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <button className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                + New Campaign
-              </button>
-            </div>
-            {CAMPAIGNS.map(c => (
+            {campaigns.length === 0 && (
+              <div className="rounded-xl border bg-white p-6 text-center text-sm text-gray-400">No referral campaigns configured yet.</div>
+            )}
+            {campaigns.map(c => (
               <div key={c.name} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -382,11 +374,6 @@ export default function ReferralAdminPage() {
                       Referee: <strong>${c.referreeReward}</strong>
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    {c.status === "active" && <button className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Pause</button>}
-                    {c.status === "draft"  && <button className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Activate</button>}
-                    <button className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Edit</button>
-                  </div>
                 </div>
                 <div className="grid grid-cols-4 gap-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -395,7 +382,7 @@ export default function ReferralAdminPage() {
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-green-600">{c.conversion}%</p>
-                    <p className="text-xs text-gray-500">Conversion</p>
+                    <p className="text-xs text-gray-500">Conversion (reward_paid)</p>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-purple-600">${c.paid.toLocaleString()}</p>
@@ -403,7 +390,7 @@ export default function ReferralAdminPage() {
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-lg font-bold text-blue-600">
-                      {c.referrals > 0 ? `${Math.round(c.paid / c.referrals * 10) / 10}` : "—"}
+                      {c.referrals > 0 ? `$${Math.round(c.paid / c.referrals * 10) / 10}` : "—"}
                     </p>
                     <p className="text-xs text-gray-500">Avg Reward</p>
                   </div>
@@ -422,7 +409,10 @@ export default function ReferralAdminPage() {
                 <p className="text-xs text-gray-500 mt-0.5">Requires staff_approval (confirmApprovalId)</p>
               </div>
               <div className="divide-y divide-gray-50">
-                {REWARDS_PENDING.map(r => (
+                {rewards.length === 0 && (
+                  <p className="p-4 text-center text-sm text-gray-400">No rewards pending approval.</p>
+                )}
+                {rewards.map(r => (
                   <div key={r.id} className="p-4 flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -434,19 +424,24 @@ export default function ReferralAdminPage() {
                         )}
                       </div>
                       <p className="text-sm text-gray-500 mt-0.5">
-                        {r.type.replace(/_/g," ")} · ${r.value} · {r.campaign}
+                        {r.type.replace(/_/g," ")} · ${r.value} · {r.campaign ?? "no campaign"}
                       </p>
                       <p className="text-xs text-gray-400">Referral: {r.referral}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800">
+                      <button
+                        disabled={actionBusy === r.id}
+                        onClick={() => handleReward(r.id, 'approve')}
+                        className="px-3 py-1.5 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 disabled:opacity-50"
+                      >
                         Approve
                       </button>
-                      <button className="px-3 py-1.5 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200">
+                      <button
+                        disabled={actionBusy === r.id}
+                        onClick={() => handleReward(r.id, 'reject')}
+                        className="px-3 py-1.5 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200 disabled:opacity-50"
+                      >
                         Reject
-                      </button>
-                      <button className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200">
-                        Fraud Check
                       </button>
                     </div>
                   </div>
