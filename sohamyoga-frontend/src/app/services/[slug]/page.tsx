@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import type { Service } from '@/lib/api';
 import SafeHtml from '@/components/SafeHtml';
 import { SERVER_API_URL as API_URL } from '@/lib/server-api';
+import ViewTracker from '@/components/analytics/ViewTracker';
+import TrackedLink from '@/components/analytics/TrackedLink';
 
 interface ServicePageProps {
   params: { slug: string };
@@ -79,6 +81,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
 
   return (
     <>
+      <ViewTracker name="service_viewed" properties={{ slug: service.slug, title: service.title, category: service.category }} />
       {/* Hero Section */}
       <section className="gradient-bg pt-32 pb-20 relative overflow-hidden">
         {/* Background decoration */}
@@ -112,15 +115,15 @@ export default async function ServicePage({ params }: ServicePageProps) {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/contact" className="btn-accent">
+              <TrackedLink href="/contact" eventName="service_cta_click" properties={{ slug: service.slug, cta: 'get_started', position: 'hero' }} className="btn-accent">
                 Get Started
                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
-              </Link>
-              <Link href="/contact" className="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300">
+              </TrackedLink>
+              <TrackedLink href="/contact" eventName="service_cta_click" properties={{ slug: service.slug, cta: 'request_demo', position: 'hero' }} className="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300">
                 Request a Demo
-              </Link>
+              </TrackedLink>
             </div>
           </div>
         </div>
@@ -197,9 +200,9 @@ export default async function ServicePage({ params }: ServicePageProps) {
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-dark-200">
-                  <Link href="/contact" className="btn-primary w-full text-center text-sm">
+                  <TrackedLink href="/contact" eventName="service_cta_click" properties={{ slug: service.slug, cta: 'request_consultation', position: 'sidebar' }} className="btn-primary w-full text-center text-sm">
                     Request a Consultation
-                  </Link>
+                  </TrackedLink>
                   <p className="text-xs text-dark-400 text-center mt-3">
                     Free initial consultation for your project
                   </p>
@@ -220,15 +223,17 @@ export default async function ServicePage({ params }: ServicePageProps) {
             Let our experts help you leverage {service.title.toLowerCase()} to drive innovation and growth for your organization.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/contact" className="btn-accent">
+            <TrackedLink href="/contact" eventName="service_cta_click" properties={{ slug: service.slug, cta: 'start_project', position: 'footer' }} className="btn-accent">
               Start Your Project
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href="/contact"
+              eventName="service_cta_click"
+              properties={{ slug: service.slug, cta: 'schedule_call', position: 'footer' }}
               className="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300"
             >
               Schedule a Call
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>
@@ -246,9 +251,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedServices.map((s) => (
-                <Link
+                <TrackedLink
                   key={s.id}
                   href={`/services/${s.slug}`}
+                  eventName="related_service_click"
+                  properties={{ fromSlug: service.slug, toSlug: s.slug, toTitle: s.title }}
                   className="group bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-dark-100"
                 >
                   <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary-600 transition-colors">
@@ -264,7 +271,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
                     {s.title}
                   </h3>
                   <p className="text-sm text-dark-500 line-clamp-2">{s.shortDescription}</p>
-                </Link>
+                </TrackedLink>
               ))}
             </div>
           </div>

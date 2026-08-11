@@ -1,6 +1,7 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAnalyticsContext } from "@/components/analytics/AnalyticsProvider";
 
 const CLASS_DATA: Record<string, { title: string; teacher: string; dateTime: string; duration: number; level: string; style: string; price: number; description: string }> = {
   "1": { title: "Morning Flow", teacher: "Priya Sharma", dateTime: "2026-08-06T07:00:00", duration: 60, level: "Beginner", style: "Hatha", price: 15, description: "Gentle morning sequence to awaken the body and set a peaceful tone for your day." },
@@ -12,6 +13,7 @@ const CLASS_DATA: Record<string, { title: string; teacher: string; dateTime: str
 export default function ClassDetailPage() {
   const { classId } = useParams<{ classId: string }>();
   const router = useRouter();
+  const { trackConversion } = useAnalyticsContext();
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
 
@@ -20,9 +22,11 @@ export default function ClassDetailPage() {
 
   async function handleBook() {
     setBooking(true);
+    trackConversion('booking_started', { classId, title: cls.title, style: cls.style, level: cls.level, price: cls.price });
     await new Promise(r => setTimeout(r, 800));
     setBooked(true);
     setBooking(false);
+    trackConversion('booking_completed', { classId, title: cls.title, style: cls.style, level: cls.level, price: cls.price });
     setTimeout(() => router.push("/booking/confirmation"), 1000);
   }
 

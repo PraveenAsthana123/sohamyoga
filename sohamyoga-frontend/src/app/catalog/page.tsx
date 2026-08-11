@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useAnalyticsContext } from "@/components/analytics/AnalyticsProvider";
 
 interface ClassCard {
   id: string;
@@ -93,6 +94,7 @@ const LEVEL_COLOR: Record<string, string> = {
 };
 
 export default function CatalogPage() {
+  const { track } = useAnalyticsContext();
   const [styleFilter, setStyleFilter] = useState("All");
   const [levelFilter, setLevelFilter] = useState("All");
   const [search, setSearch] = useState("");
@@ -197,6 +199,7 @@ export default function CatalogPage() {
                     <div className="text-right shrink-0">
                       <div className="font-bold text-gray-900">${cls.priceCAD} <span className="text-xs text-gray-700 font-normal">CAD</span></div>
                       <Link href={`/booking/${cls.id}`}
+                        onClick={() => track({ name: 'catalog_book_now_click', eventType: 'click', properties: { classId: cls.id, title: cls.title, style: cls.style, level: cls.level, priceCAD: cls.priceCAD } })}
                         className={`mt-1 inline-block px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                           cls.spotsLeft > 0
                             ? "bg-green-800 hover:bg-green-900 text-white"

@@ -154,9 +154,15 @@ export default function AnalyticsProvider({ children }: { children: React.ReactN
     [consentLevel],
   );
 
+  // Deliberately NOT consent-gated, unlike track()/trackPageView()/identify()
+  // above. Conversions (booking/payment/subscription) are business-critical
+  // operational records, not behavioral analytics — the server side
+  // (api/analytics/events/route.ts) already always collects these
+  // regardless of consent (ESSENTIAL_EVENT_TYPES), but that server-side
+  // allowance was silently unreachable for any visitor who hadn't granted
+  // analytics consent, because the client never even sent the request.
   const trackConversion = useCallback(
     (type: string, properties: Record<string, unknown> = {}) => {
-      if (!meetsLevel(consentLevel, 'analytics')) return;
       sendEvent({
         eventType: type,
         name: type,
@@ -165,7 +171,7 @@ export default function AnalyticsProvider({ children }: { children: React.ReactN
         anonymousId: anonymousId(),
       });
     },
-    [consentLevel],
+    [],
   );
 
   const trackPageView = useCallback(

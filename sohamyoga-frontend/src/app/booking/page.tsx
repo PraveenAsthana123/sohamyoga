@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useAnalyticsContext } from "@/components/analytics/AnalyticsProvider";
 
 interface YogaClass {
   id: string;
@@ -15,6 +16,7 @@ interface YogaClass {
 }
 
 export default function BookingPage() {
+  const { track } = useAnalyticsContext();
   const [classes, setClasses] = useState<YogaClass[]>([]);
   const [filter, setFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
@@ -85,6 +87,7 @@ export default function BookingPage() {
                 <div className="ml-4 text-right">
                   <div className="text-xl font-bold text-gray-900">${cls.price}</div>
                   <a href={`/booking/${cls.id}`}
+                     onClick={() => track({ name: 'booking_list_book_now_click', eventType: 'click', properties: { classId: cls.id, title: cls.title, style: cls.style, level: cls.level, price: cls.price } })}
                      className={`mt-2 block px-4 py-2 rounded-lg text-sm font-medium text-center transition-colors ${
                        cls.spotsLeft > 0
                          ? "bg-green-700 text-white hover:bg-green-800"

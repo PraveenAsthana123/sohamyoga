@@ -52,7 +52,13 @@ export default function ConsentBanner() {
       role="dialog"
       aria-modal="false"
       aria-label="Cookie and analytics consent"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 shadow-2xl"
+      // z-[1100]: the floating ChatWidget is position:fixed with z-index:1000
+      // (globals.css .chat-widget) and sits bottom-right — the same corner
+      // this banner's rightmost button ("Accept All") occupies. At z-50 the
+      // chat button's icon rendered on top and silently ate the click,
+      // confirmed live (Playwright: "element intercepts pointer events").
+      // A compliance-critical consent control must never be unclickable.
+      className="fixed bottom-0 left-0 right-0 z-[1100] bg-white border-t border-gray-100 shadow-2xl"
     >
       <div className="max-w-7xl mx-auto p-4">
         {!detailed ? (

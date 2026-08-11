@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import type { IndustrySolution } from '@/lib/api';
 import SafeHtml from '@/components/SafeHtml';
 import { SERVER_API_URL as API_URL } from '@/lib/server-api';
+import ViewTracker from '@/components/analytics/ViewTracker';
+import TrackedLink from '@/components/analytics/TrackedLink';
 
 interface IndustryPageProps {
   params: { slug: string };
@@ -79,6 +81,7 @@ export default async function IndustryPage({ params }: IndustryPageProps) {
 
   return (
     <>
+      <ViewTracker name="industry_viewed" properties={{ slug: industry.slug, title: industry.title }} />
       {/* Hero Section */}
       <section className="bg-dark-900 pt-32 pb-20 relative overflow-hidden">
         {/* Background decoration */}
@@ -121,15 +124,15 @@ export default async function IndustryPage({ params }: IndustryPageProps) {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-4">
-                <Link href="/contact" className="btn-accent">
+                <TrackedLink href="/contact" eventName="industry_cta_click" properties={{ slug: industry.slug, cta: 'discuss_needs', position: 'hero' }} className="btn-accent">
                   Discuss Your Needs
                   <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                </Link>
-                <Link href="/contact" className="inline-flex items-center justify-center px-6 py-3 border-2 border-dark-600 text-white font-semibold rounded-lg hover:bg-dark-800 transition-all duration-300">
+                </TrackedLink>
+                <TrackedLink href="/contact" eventName="industry_cta_click" properties={{ slug: industry.slug, cta: 'learn_more', position: 'hero' }} className="inline-flex items-center justify-center px-6 py-3 border-2 border-dark-600 text-white font-semibold rounded-lg hover:bg-dark-800 transition-all duration-300">
                   Learn More
-                </Link>
+                </TrackedLink>
               </div>
             </div>
 
@@ -240,15 +243,17 @@ export default async function IndustryPage({ params }: IndustryPageProps) {
             Let us help you build solutions that drive real results.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/contact" className="btn-accent">
+            <TrackedLink href="/contact" eventName="industry_cta_click" properties={{ slug: industry.slug, cta: 'get_in_touch', position: 'footer' }} className="btn-accent">
               Get in Touch
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href="/about"
+              eventName="industry_cta_click"
+              properties={{ slug: industry.slug, cta: 'learn_about_us', position: 'footer' }}
               className="inline-flex items-center justify-center px-6 py-3 border-2 border-dark-600 text-white font-semibold rounded-lg hover:bg-dark-800 transition-all duration-300"
             >
               Learn About Us
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>
@@ -266,9 +271,11 @@ export default async function IndustryPage({ params }: IndustryPageProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {otherIndustries.map((ind) => (
-                <Link
+                <TrackedLink
                   key={ind.id}
                   href={`/industries/${ind.slug}`}
+                  eventName="related_industry_click"
+                  properties={{ fromSlug: industry.slug, toSlug: ind.slug, toTitle: ind.title }}
                   className="group bg-dark-50 rounded-xl p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-dark-100"
                 >
                   {ind.iconSvg && (
@@ -280,7 +287,7 @@ export default async function IndustryPage({ params }: IndustryPageProps) {
                     {ind.title}
                   </h3>
                   <p className="text-sm text-dark-500 line-clamp-2">{ind.shortDescription}</p>
-                </Link>
+                </TrackedLink>
               ))}
             </div>
           </div>
