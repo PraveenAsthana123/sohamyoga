@@ -55,6 +55,7 @@ schemas=(
   "072-module-boundary-report|sohamyoga-frontend/src/domain/assurance/db-schema-boundary-quality.sql"
   "073-seo-report|sohamyoga-frontend/src/domain/marketing/db-schema-seo-report.sql"
   "074-voice-of-customer|sohamyoga-frontend/src/domain/marketing/db-schema-voice-of-customer.sql"
+  "075-teacher-profile|sohamyoga-frontend/src/domain/teacher/db-schema-teacher-profile.sql"
 )
 
 psql_cmd=(docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME")

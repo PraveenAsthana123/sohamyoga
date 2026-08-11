@@ -47,7 +47,7 @@ public class UsersController : ControllerBase
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ILogger<UsersController> _logger;
 
-    private static readonly string[] ValidRoles = { "Admin", "Editor", "HR", "Sales" };
+    private static readonly string[] ValidRoles = { "Admin", "Editor", "HR", "Sales", "Teacher" };
 
     public UsersController(
         UserManager<IdentityUser> userManager,

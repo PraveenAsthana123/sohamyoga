@@ -72,6 +72,52 @@ public class CustomerAuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Admin-only: creates a Customer-role account on behalf of someone
+    /// being enrolled by staff (e.g. front-desk sign-up), without signing
+    /// in as that user. Mirrors Register but does not call SignInAsync.
+    /// </summary>
+    [HttpPost("admin-create")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminCreate([FromBody] CustomerRegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name) ||
+            string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest(new { detail = "Name, email and password are required.", error_code = "VALIDATION_ERROR" });
+        }
+
+        var existing = await _userManager.FindByEmailAsync(request.Email);
+        if (existing != null)
+            return Conflict(new { detail = "An account with this email already exists.", error_code = "EMAIL_TAKEN" });
+
+        var user = new IdentityUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            EmailConfirmed = true
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description);
+            return BadRequest(new { detail = string.Join(" ", errors), error_code = "REGISTRATION_FAILED" });
+        }
+
+        await _userManager.AddToRoleAsync(user, "Customer");
+        await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("DisplayName", request.Name));
+
+        _logger.LogInformation("Customer {Email} created by admin {Admin}", request.Email, User.Identity?.Name);
+
+        return Ok(new
+        {
+            detail = "Customer account created.",
+            user = new { id = user.Id, email = user.Email, name = request.Name, roles = new[] { "Customer" } }
+        });
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
