@@ -23,7 +23,18 @@ const PROVIDERS = [
   { name: 'TikTok',     priority: 11,vars: ['TIKTOK_CLIENT_ID', 'TIKTOK_CLIENT_SECRET'],        setupUrl: 'developers.tiktok.com → Content Posting API',reviewRequired: true  },
   { name: 'Pinterest',  priority: 12,vars: ['PINTEREST_CLIENT_ID', 'PINTEREST_CLIENT_SECRET'], setupUrl: 'developers.pinterest.com',                     reviewRequired: false },
   { name: 'Mastodon',   priority: 13,vars: ['MASTODON_CLIENT_ID', 'MASTODON_CLIENT_SECRET'],   setupUrl: 'YOUR_INSTANCE/settings/applications',          reviewRequired: false },
+  // Verified 2026-08-11 against Postiz's real .env.example and source
+  // (gitroomhq/postiz-app) — not assumed. Medium and Twitch have no
+  // developer-app env vars in Postiz at all (see PROVIDERS_NO_DEV_APP
+  // below); registering them here with invented var names would be wrong.
+  { name: 'Tumblr',     priority: 14,vars: ['TUMBLR_CLIENT_ID', 'TUMBLR_CLIENT_SECRET'],       setupUrl: 'tumblr.com/oauth/apps',                        reviewRequired: false },
+  { name: 'Dribbble',   priority: 15,vars: ['DRIBBBLE_CLIENT_ID', 'DRIBBBLE_CLIENT_SECRET'],   setupUrl: 'dribbble.com/account/applications/new',       reviewRequired: false },
 ];
+
+// Real Postiz providers confirmed to need NO separate developer-app
+// registration (no env vars exist for them in Postiz's own .env.example)
+// — connected directly through the Postiz UI instead.
+const PROVIDERS_NO_DEV_APP = ['Medium', 'Twitch'];
 
 interface ProviderStatus {
   name:             string;
@@ -51,7 +62,7 @@ function checkProviders(): ProviderStatus[] {
 const SYSTEM = `You are a technical setup assistant for a yoga studio's social media system.
 Given a list of unconfigured social media providers, write a SHORT admin notification (max 200 words).
 Format:
-- First line: summary (X of 13 providers configured)
+- First line: summary (X of N providers configured)
 - Then: numbered list of next 3 to set up (simplest first)
 - Last line: encouragement
 Plain text only. No markdown. No secret values.`;
@@ -60,6 +71,7 @@ export async function run(): Promise<void> {
   const statuses = checkProviders();
   const configured = statuses.filter(s => s.isConfigured);
   const missing    = statuses.filter(s => !s.isConfigured).sort((a, b) => a.priority - b.priority);
+  const totalTracked = statuses.length + PROVIDERS_NO_DEV_APP.length;
 
   // Store status in DB (no secret values stored)
   for (const s of statuses) {
@@ -70,6 +82,18 @@ export async function run(): Promise<void> {
       ON CONFLICT (provider_name) DO UPDATE SET
         is_configured=$2, missing_vars=$3, checked_at=NOW()
     `, [s.name, s.isConfigured, s.missingVars, s.reviewRequired]);
+  }
+
+  // Providers needing no developer-app env vars — always "configured" at
+  // the app level; connecting an actual account still happens in Postiz.
+  for (const name of PROVIDERS_NO_DEV_APP) {
+    await db.query(`
+      INSERT INTO postiz_provider_status
+        (provider_name, is_configured, missing_vars, review_required, checked_at)
+      VALUES ($1, true, '{}', false, NOW())
+      ON CONFLICT (provider_name) DO UPDATE SET
+        is_configured=true, missing_vars='{}', checked_at=NOW()
+    `, [name]);
   }
 
   // Only notify if something changed or weekly
@@ -110,7 +134,7 @@ export async function run(): Promise<void> {
     );
   }
 
-  console.log(`[postiz-health] ${configured.length}/13 configured, ${missing.length} missing — guidance queued`);
+  console.log(`[postiz-health] ${configured.length + PROVIDERS_NO_DEV_APP.length}/${totalTracked} configured, ${missing.length} missing — guidance queued`);
   // Do NOT db.end() here — runner.ts caches this module across every
   // scheduled invocation in the long-lived cron container; ending the pool
   // breaks every run after the first.

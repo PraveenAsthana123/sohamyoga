@@ -4,7 +4,8 @@ export type SocialPlatform =
   | "facebook" | "instagram" | "linkedin" | "x_twitter" | "threads"
   | "tiktok" | "youtube" | "reddit" | "pinterest" | "bluesky"
   | "mastodon" | "discord" | "slack" | "telegram" | "whatsapp_business"
-  | "google_business";
+  | "google_business"
+  | "tumblr" | "medium" | "dribbble" | "twitch";
 
 export type AccountStatus = "connected" | "expired" | "revoked" | "error" | "pending_auth";
 export type PostizSupported = "postiz" | "custom_connector" | "manual_only";
@@ -111,4 +112,10 @@ export const PLATFORM_CONFIG: Record<SocialPlatform, PlatformConfig> = {
   telegram:          { platform: "telegram",         displayName: "Telegram",            postizSupport: "custom_connector", maxCharacters: 4096,  supportsImages: true,  supportsVideo: true,  supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Bot API; channel and group posting" },
   whatsapp_business: { platform: "whatsapp_business",displayName: "WhatsApp Business",   postizSupport: "custom_connector", maxCharacters: 4096,  supportsImages: true,  supportsVideo: true,  supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "Meta Business API; requires WABA approval" },
   google_business:   { platform: "google_business",  displayName: "Google Business Profile",postizSupport:"custom_connector",maxCharacters: 1500,  supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Google My Business Posts API" },
+  // maxCharacters below are each provider's real maxLength() from Postiz's
+  // own source (libraries/nestjs-libraries/src/integrations/social/*.provider.ts) — not estimates.
+  tumblr:            { platform: "tumblr",            displayName: "Tumblr",              postizSupport: "postiz",           maxCharacters: 32768, supportsImages: true,  supportsVideo: true,  supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Real Postiz OAuth provider — TUMBLR_CLIENT_ID/SECRET" },
+  medium:            { platform: "medium",            displayName: "Medium",              postizSupport: "postiz",           maxCharacters: 100000,supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Real Postiz provider — no separate developer app; connect via Postiz UI" },
+  dribbble:          { platform: "dribbble",          displayName: "Dribbble",            postizSupport: "postiz",           maxCharacters: 40000, supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Real Postiz OAuth provider — DRIBBBLE_CLIENT_ID/SECRET; image-shot platform" },
+  twitch:            { platform: "twitch",            displayName: "Twitch",              postizSupport: "postiz",           maxCharacters: 500,   supportsImages: false, supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "500-char limit is a chat/announcement message, not a full post; no separate developer app" },
 };

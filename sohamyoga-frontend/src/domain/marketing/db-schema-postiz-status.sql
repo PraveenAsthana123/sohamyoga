@@ -26,5 +26,9 @@ INSERT INTO postiz_provider_status (provider_name, review_required) VALUES
   ('X',         false),
   ('TikTok',    true ),
   ('Pinterest', false),
-  ('Mastodon',  false)
+  ('Mastodon',  false),
+  ('Tumblr',    false),
+  ('Dribbble',  false),
+  ('Medium',    false),
+  ('Twitch',    false)
 ON CONFLICT (provider_name) DO NOTHING;

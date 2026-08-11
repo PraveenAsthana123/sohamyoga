@@ -12,6 +12,9 @@ const DATABASE_URL  = process.env.DATABASE_URL        ?? '';
 const ALLOWED_PROVIDERS = new Set([
   'telegram', 'discord', 'bluesky', 'reddit', 'youtube', 'pinterest',
   'facebook', 'instagram', 'threads', 'linkedin', 'x', 'tiktok', 'mastodon',
+  // Verified real Postiz OAuth providers (tumblr.com/oauth/apps,
+  // dribbble.com/account/applications/new) — see PostizProviderHealthJob.ts.
+  'tumblr', 'dribbble',
 ]);
 
 async function writeToOpenBao(provider: string, appId: string, appSecret: string): Promise<void> {

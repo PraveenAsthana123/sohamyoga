@@ -237,29 +237,29 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   // ── Social Platforms ─────────────────────────────────
+  // Data-driven: every real Postiz "postiz"-connector platform in
+  // ref_social_platform (migration 020 + 083) gets its own left-nav entry
+  // and its own /admin/social/[platform] page — the same generic page
+  // ViralDetectionJob's Phase E generalization already serves for any of
+  // them, so this list only needs to name the platform, not build a page.
   { href: 'divider', label: 'Social Platforms', icon: null, requiredRoles: [] as string[] },
-  {
-    href: '/admin/social/facebook',
-    label: 'Facebook',
+  ...([
+    ['facebook', 'Facebook'], ['instagram', 'Instagram'], ['linkedin', 'LinkedIn'],
+    ['x_twitter', 'X / Twitter'], ['threads', 'Threads'], ['tiktok', 'TikTok'],
+    ['youtube', 'YouTube'], ['reddit', 'Reddit'], ['pinterest', 'Pinterest'],
+    ['bluesky', 'Bluesky'], ['mastodon', 'Mastodon'], ['discord', 'Discord'],
+    ['slack', 'Slack'], ['tumblr', 'Tumblr'], ['medium', 'Medium'],
+    ['dribbble', 'Dribbble'], ['twitch', 'Twitch'],
+  ] as const).map(([key, label]) => ({
+    href: `/admin/social/${key}`,
+    label,
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342a4 4 0 100-2.684m0 2.684a4 4 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a4 4 0 105.368-5.368 4 4 0 00-5.368 5.368zm0 9.316a4 4 0 105.368 5.368 4 4 0 00-5.368-5.368z" />
       </svg>
     ),
     requiredRoles: ['Admin'],
-  },
-  {
-    href: '/admin/social/instagram',
-    label: 'Instagram',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="18" height="18" rx="5" strokeWidth={2} />
-        <circle cx="12" cy="12" r="4" strokeWidth={2} />
-        <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
-      </svg>
-    ),
-    requiredRoles: ['Admin'],
-  },
+  })),
   // ── Operations ─────────────────────────────────
   { href: 'divider', label: 'Operations', icon: null, requiredRoles: [] as string[] },
   {

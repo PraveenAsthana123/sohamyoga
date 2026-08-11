@@ -146,6 +146,8 @@ test.describe('REF-004 referral admin page renders real data', () => {
     await loginAsAdmin(page.request);
     await page.goto('/admin/referral');
     await expect(page.getByRole('heading', { name: 'Referral Management' })).toBeVisible();
-    await expect(page.getByText('Total Referrals')).toBeVisible();
+    // This page fires 5 parallel API calls on mount — under heavy concurrent
+    // load (full-suite runs) each can take several seconds; give it room.
+    await expect(page.getByText('Total Referrals')).toBeVisible({ timeout: 15000 });
   });
 });

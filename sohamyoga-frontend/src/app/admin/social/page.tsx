@@ -14,7 +14,7 @@ const PLATFORM_ICONS: Record<string, string> = {
   threads: "Th", tiktok: "Tk", youtube: "YT", reddit: "Re",
   pinterest: "Pi", bluesky: "Bk", mastodon: "Ma", discord: "Di",
   slack: "Sl", telegram: "Tg", whatsapp_business: "WA", google_business: "GB",
-  quora_manual: "Qu",
+  quora_manual: "Qu", tumblr: "Tu", medium: "Md", dribbble: "Dr", twitch: "Tw",
 };
 
 // postiz_provider_status.provider_name (display case) → SocialPlatform key
@@ -22,7 +22,7 @@ const PROVIDER_TO_PLATFORM: Record<string, string> = {
   telegram: "telegram", discord: "discord", bluesky: "bluesky", reddit: "reddit",
   youtube: "youtube", facebook: "facebook", instagram: "instagram", threads: "threads",
   linkedin: "linkedin", x: "x_twitter", tiktok: "tiktok", pinterest: "pinterest",
-  mastodon: "mastodon",
+  mastodon: "mastodon", tumblr: "tumblr", dribbble: "dribbble", medium: "medium", twitch: "twitch",
 };
 
 const QUEUE_STATUS_COLORS: Record<string, string> = {
@@ -123,7 +123,7 @@ export default function SocialPortalPage() {
   }, [tenantId]);
 
   const configuredCount = providers.filter(p => p.is_configured).length;
-  const totalProviders = providers.length || 13;
+  const totalProviders = providers.length || 17;
   const pending = useMemo(() => queue.filter(q => q.status === "review_required"), [queue]);
   const inProgress = queue.filter(q => q.status === "queued" || q.status === "generating").length;
   const published = queue.filter(q => q.status === "published").length;
@@ -206,7 +206,7 @@ export default function SocialPortalPage() {
               <div className="bg-indigo-50 rounded p-3">
                 <div className="font-medium text-indigo-800 mb-1">Scheduling Layer</div>
                 <div className="text-indigo-700 text-xs space-y-0.5">
-                  <div>Postiz — 13 platforms via OAuth</div>
+                  <div>Postiz — 17 platforms via OAuth/direct connect</div>
                   <div>OpenBao — protected app credentials</div>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default function SocialPortalPage() {
       {/* ─── Platforms ──────────────────────────────────────────────────────── */}
       {tab === "platforms" && (
         <div className="space-y-3">
-          <div className="text-sm text-gray-500 mb-2">Platform coverage: 13 via Postiz · 3 custom connectors · 1 manual-only</div>
+          <div className="text-sm text-gray-500 mb-2">Platform coverage: 17 via Postiz · 3 custom connectors · 1 manual-only</div>
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
