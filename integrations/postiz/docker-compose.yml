@@ -23,17 +23,19 @@ services:
       FRONTEND_URL: "${POSTIZ_FRONTEND_URL:-http://localhost:15080}"
       IS_GENERAL: "true"
 
-      # No Temporal server is deployed in this stack (would need its own
-      # Postgres/Elasticsearch cluster — real infra project, not a bug fix).
-      # Most Temporal usage in this image already degrades gracefully to a
-      # WARN (TemporalConnectionFactory returns null on connect failure), but
-      # TemporalRegister.onModuleInit's listSearchAttributes() call is NOT
-      # wrapped and was fatally crashing backend startup. The app has a
-      # built-in early-return for exactly this case, guarded by this flag
-      # (temporal.register.js: `if TEMPORAL_TLS==='true' return`) — not an
-      # actual TLS toggle in our case, since there's still no server to talk
-      # to either way, just the documented way to skip that one hard call.
-      TEMPORAL_TLS: "true"
+      # A real Temporal server (postiz_temporal, below) is now deployed —
+      # Temporal's own official `server start-dev` mode, embedded SQLite,
+      # zero external Postgres/Elasticsearch dependency. This unblocks
+      # account registration for real (POST /auth/register signals a
+      # Temporal workflow; it previously failed outright with "Failed to
+      # signalWithStart Workflow" because nothing was listening on
+      # TEMPORAL_ADDRESS at all). TEMPORAL_TLS must NOT be "true" now: that
+      # flag makes TemporalRegister.onModuleInit skip registering the
+      # organizationId/postId custom search attributes the app needs — it
+      # was only ever a workaround for the "no server exists" case, which
+      # no longer applies.
+      TEMPORAL_ADDRESS: "postiz_temporal:7233"
+      TEMPORAL_TLS: "false"
 
       # --- Database ---
       DATABASE_URL: "postgresql://postiz:${POSTGRES_PASSWORD:-postizpass}@postiz_db:5432/postiz"
@@ -79,6 +81,28 @@ services:
         condition: service_healthy
       postiz_redis:
         condition: service_started
+      postiz_temporal:
+        condition: service_healthy
+
+  postiz_temporal:
+    image: temporalio/temporal:latest
+    container_name: sohamyoga_postiz_temporal
+    restart: unless-stopped
+    # Temporal's own officially-supported single-process dev mode — embedded
+    # SQLite persistence, no separate Postgres/Elasticsearch cluster needed.
+    # Real Temporal server software, just configured for local/dev use
+    # instead of a production multi-node deployment.
+    command: server start-dev --ip 0.0.0.0 --port 7233 --http-port 7243 --ui-port 8233 --db-filename /data/temporal.db
+    ports:
+      - "127.0.0.1:${SOHAM_TEMPORAL_UI_PORT:-18233}:8233"
+    volumes:
+      - postiz_temporal_data:/data
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "127.0.0.1:7233"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   postiz_db:
     image: postgres:16-alpine
@@ -107,11 +131,26 @@ volumes:
   postiz_uploads:
   postiz_pg_data:
   postiz_redis_data:
+  postiz_temporal_data:
 
 # ── How to start ──────────────────────────────────────────────
 # 1. Copy .env.example → .env and fill in secrets + OAuth keys
-# 2. docker compose up -d
-# 3. Open http://localhost:5000 → create admin account
-# 4. Connect social accounts via OAuth in Postiz UI
-# 5. Set POSTIZ_URL and POSTIZ_SECRET in sohamyoga-frontend/.env.local
+# 2. On a BRAND NEW volume only: the temporalio/temporal image runs as
+#    uid 1000, but a freshly-created named Docker volume is root-owned,
+#    which makes the embedded SQLite open fail ("out of memory (14)" —
+#    actually a permissions error, not memory). One-time fix:
+#      docker run --rm -v postiz_postiz_temporal_data:/data alpine \
+#        chown -R 1000:1000 /data
+#    Not needed on a volume that already has data (this repo's dev volume
+#    has already been fixed once).
+# 3. docker compose up -d
+# 4. Register a real account: POST /auth/register to the API port (15081
+#    by default) — or via the UI at http://localhost:15080. Log in, then
+#    GET /user/self returns your real "publicApi" key.
+# 5. Set POSTIZ_PUBLIC_API_URL (http://<host>:<api-port>/public/v1) and
+#    POSTIZ_PUBLIC_API_KEY (that publicApi value) wherever
+#    sohamyoga-frontend reads its runtime env from.
+# 6. Connect social accounts via OAuth in the Postiz UI — this is the one
+#    step that genuinely can't be automated (needs real platform app
+#    credentials + a human completing the OAuth consent screen).
 # ──────────────────────────────────────────────────────────────

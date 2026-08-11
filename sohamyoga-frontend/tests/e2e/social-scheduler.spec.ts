@@ -6,11 +6,13 @@
 // depend on, and the approval workflow could create a pending request but
 // nothing anywhere could ever approve one. All three are real, fixed here.
 //
-// Full publish still correctly fails today — Postiz needs its own account
-// (blocked on Temporal not being deployed, a pre-existing separate gap)
-// and a connected social account (the same OAuth blocker already
-// established elsewhere this session) — SOC-004/005 assert that failure
-// is the CORRECT, honest one, not evidence the feature doesn't work.
+// A real Postiz account + API key now exist (the Temporal blocker that
+// prevented registration is fixed — see integrations/postiz/docker-
+// compose.yml), so requests now genuinely reach Postiz. Full publish still
+// correctly fails: zero social accounts are connected through Postiz's own
+// OAuth flow, which needs real platform app credentials and a human
+// completing the consent screen. SOC-004 asserts that failure is the
+// CORRECT, honest one, not evidence the feature doesn't work.
 
 import { test, expect } from 'playwright/test';
 import { Pool } from 'pg';

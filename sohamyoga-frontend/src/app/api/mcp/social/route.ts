@@ -16,11 +16,16 @@ import {classifySentiment} from '@/lib/sentiment';
 // the backend's Public API, mounted only at /public/v1 and guarded by
 // PublicAuthMiddleware (verified directly against the running container's
 // compiled source: apps/backend/dist/.../public.auth.middleware.js) — it
-// checks a plain `Authorization: <api-key>` header, NOT `X-Secret`. The
-// API key itself must be generated from inside Postiz's own UI (Settings →
-// Public API) after creating a Postiz account, which requires zero
-// external cost (self-hosted) but is a real action outside what this code
-// can do on its own — POSTIZ_PUBLIC_API_KEY is unset until that happens.
+// checks a plain `Authorization: <api-key>` header, NOT `X-Secret`. A real
+// account + API key now exist (registration was blocked by no Temporal
+// server being deployed — fixed via a real Temporal dev-server service in
+// integrations/postiz/docker-compose.yml, embedded SQLite, no separate
+// Postgres/Elasticsearch needed) — POSTIZ_PUBLIC_API_KEY is configured and
+// verified live end to end (list_social_accounts returns a real 200 []).
+// The one remaining real blocker is unchanged: zero social accounts are
+// connected through Postiz's own OAuth flow, which needs real platform app
+// credentials and a human completing the consent screen — see
+// createPostizPost()'s error below for exactly where that surfaces.
 const POSTIZ_PUBLIC_API_BASE = process.env.POSTIZ_PUBLIC_API_URL || "http://127.0.0.1:15081/public/v1";
 const POSTIZ_API_KEY = process.env.POSTIZ_PUBLIC_API_KEY || "";
 
