@@ -98,5 +98,7 @@ export async function run(): Promise<void> {
   }
 
   console.log(`[campaign-adaptation] adapted=${adapted}/${variants.rows.length}`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts caches this module across every
+  // scheduled invocation in the long-lived cron container; ending the pool
+  // breaks every run after the first.
 }

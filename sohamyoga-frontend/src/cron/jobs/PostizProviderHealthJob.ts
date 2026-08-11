@@ -75,7 +75,6 @@ export async function run(): Promise<void> {
   // Only notify if something changed or weekly
   if (missing.length === 0) {
     console.log(`[postiz-health] All ${configured.length} providers configured ✓`);
-    await db.end();
     return;
   }
 
@@ -90,27 +89,29 @@ export async function run(): Promise<void> {
     tier: 'fast', system: SYSTEM, maxTokens: 300, timeoutMs: 30_000,
   });
 
-  // Queue admin notification
-  const tenants = await db.query<{ id: string }>(`SELECT DISTINCT tenant_id AS id FROM student WHERE role='admin' AND status='active' LIMIT 1`);
-  for (const t of tenants.rows) {
-    await db.query(`
-      INSERT INTO notification_queue
-        (tenant_id, recipient_id, channel, template_slug, payload, idempotency_key)
-      SELECT $1, s.id, 'in_app', 'postiz_setup_reminder',
-        jsonb_build_object(
-          'configured_count', $2,
-          'missing_count',    $3,
-          'guidance',         $4,
-          'next_provider',    $5,
-          'next_setup_url',   $6
-        ),
-        'postiz_health_' || TO_CHAR(NOW(),'IYYY-IW')
-      FROM student s WHERE s.tenant_id=$1 AND s.role='admin' LIMIT 1
-      ON CONFLICT (idempotency_key) DO NOTHING
-    `, [t.id, configured.length, missing.length, guidance,
-        missing[0]?.name ?? '', missing[0]?.setupUrl ?? '']);
+  // Queue admin notification — `student` has no role column at all; admin
+  // identity lives on app_user (role enum: owner/admin/staff/teacher/
+  // student/guest).
+  const admins = await db.query<{ id: string; tenant_id: string; email: string }>(
+    `SELECT DISTINCT ON (tenant_id) id, tenant_id, email FROM app_user WHERE role='admin' AND status='active'`,
+  );
+  for (const a of admins.rows) {
+    await db.query(
+      `INSERT INTO notification_queue
+         (tenant_id, template_slug, channel, type, recipient_user_id, recipient_address, payload, idempotency_key)
+       VALUES ($1,'postiz_setup_reminder','in_app','alert',$2,$3,$4,$5)
+       ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
+      [a.tenant_id, a.id, a.email,
+        JSON.stringify({
+          configuredCount: configured.length, missingCount: missing.length, guidance,
+          nextProvider: missing[0]?.name ?? '', nextSetupUrl: missing[0]?.setupUrl ?? '',
+        }),
+        `postiz_health_${a.tenant_id}_${new Date().toISOString().slice(0, 10)}`],
+    );
   }
 
   console.log(`[postiz-health] ${configured.length}/13 configured, ${missing.length} missing — guidance queued`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts caches this module across every
+  // scheduled invocation in the long-lived cron container; ending the pool
+  // breaks every run after the first.
 }

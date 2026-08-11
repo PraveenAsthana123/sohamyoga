@@ -49,6 +49,11 @@ schemas=(
   "066-ad-campaign-health|sohamyoga-frontend/src/domain/ads/db-schema-campaign-health.sql"
   "067-nps-pipeline|sohamyoga-frontend/src/domain/survey/db-schema-nps-pipeline.sql"
   "068-contact-capture|sohamyoga-frontend/src/domain/marketing/db-schema-contact-capture.sql"
+  "069-student-status-default-fix|sohamyoga-frontend/src/domain/student/db-schema-status-default-fix.sql"
+  "070-ai-recommendation|sohamyoga-frontend/src/domain/gamification/db-schema-ai-recommendation.sql"
+  "071-feature-gap-report|sohamyoga-frontend/src/domain/assurance/db-schema-feature-gap.sql"
+  "072-module-boundary-report|sohamyoga-frontend/src/domain/assurance/db-schema-boundary-quality.sql"
+  "073-seo-report|sohamyoga-frontend/src/domain/marketing/db-schema-seo-report.sql"
 )
 
 psql_cmd=(docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME")

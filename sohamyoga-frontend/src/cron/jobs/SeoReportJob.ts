@@ -45,14 +45,18 @@ export async function run(): Promise<void> {
     tier: 'fast', system: SYSTEM, maxTokens: 500, timeoutMs: 45_000,
   });
 
-  // Store report in local DB as a draft document
+  // Store report in local DB as a draft document. tenant's primary key
+  // column is `id`, not `tenant_id` — that name is only used on the many
+  // tables that reference it as a foreign key.
   await db.query(`
     INSERT INTO seo_report (tenant_id, report_date, report_text, status)
-    SELECT tenant_id, $1, $2, 'draft'
+    SELECT id, $1, $2, 'draft'
     FROM tenant LIMIT 1
     ON CONFLICT (report_date) DO UPDATE SET report_text=$2, status='draft', updated_at=NOW()
   `, [weekOf, report]);
 
   console.log(`[seo-report] week=${weekOf} report saved`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts caches this module across every
+  // scheduled invocation in the long-lived cron container; ending the pool
+  // breaks every run after the first.
 }

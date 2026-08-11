@@ -35,7 +35,6 @@ export async function run(): Promise<void> {
     gap = extractJson<Gap>(report);
   } catch (error) {
     console.error(`[feature-gap-advisor] module=${mod.key} parse failed:`, error);
-    await db.end();
     return;
   }
   const effortTier = ['S', 'M', 'L'].includes(gap.effort_tier) ? gap.effort_tier : 'M';
@@ -47,21 +46,24 @@ export async function run(): Promise<void> {
     [mod.key, mod.label, gap.gap_title, gap.gap_why, effortTier, mod.files, report],
   );
 
-  const admin = await db.query<{ tenant_id: string; id: string }>(
-    `SELECT tenant_id, id FROM student WHERE role='admin' AND status='active' LIMIT 1`,
+  // `student` has no role column — admin identity lives on app_user.
+  const admin = await db.query<{ tenant_id: string; id: string; email: string }>(
+    `SELECT tenant_id, id, email FROM app_user WHERE role='admin' AND status='active' LIMIT 1`,
   );
   if (admin.rows[0]) {
     await db.query(
       `INSERT INTO notification_queue
-         (tenant_id, recipient_id, channel, template_slug, payload, idempotency_key)
-       VALUES ($1,$2,'in_app','feature_gap_advisory',$3,$4)
-       ON CONFLICT (idempotency_key) DO NOTHING`,
-      [admin.rows[0].tenant_id, admin.rows[0].id,
+         (tenant_id, template_slug, channel, type, recipient_user_id, recipient_address, payload, idempotency_key)
+       VALUES ($1,'feature_gap_advisory','in_app','alert',$2,$3,$4,$5)
+       ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
+      [admin.rows[0].tenant_id, admin.rows[0].id, admin.rows[0].email,
         JSON.stringify({ module_key: mod.key, module_label: mod.label, gap_title: gap.gap_title, effort_tier: effortTier }),
         `feature_gap_${mod.key}_` + new Date().toISOString().slice(0, 10)],
     );
   }
 
   console.log(`[feature-gap-advisor] module=${mod.key} gap="${gap.gap_title}" effort=${effortTier}`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts caches this module across every
+  // scheduled invocation in the long-lived cron container; ending the pool
+  // breaks every run after the first.
 }

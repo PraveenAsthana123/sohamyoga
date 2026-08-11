@@ -58,7 +58,7 @@ CREATE TABLE student (
   preferred_language    VARCHAR(8)    NOT NULL DEFAULT 'en',
   timezone              VARCHAR(64)   NOT NULL DEFAULT 'UTC',
   -- Journey & gamification
-  status                VARCHAR(16)   NOT NULL DEFAULT 'onboarding' REFERENCES ref_student_status(code),
+  status                VARCHAR(16)   NOT NULL DEFAULT 'active' REFERENCES ref_student_status(code),
   journey_phase         VARCHAR(32)   NOT NULL DEFAULT 'onboarding' REFERENCES ref_student_journey_phase(code),
   -- Yoga profile
   yoga_style_preference VARCHAR(64)[], -- 'hatha', 'vinyasa', 'yin', 'restorative', 'kundalini', ...

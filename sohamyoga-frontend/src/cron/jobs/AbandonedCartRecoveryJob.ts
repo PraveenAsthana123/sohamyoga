@@ -66,5 +66,7 @@ Return ONLY valid JSON: {"subject": "<=60 chars", "message": "2-3 short sentence
   }
 
   console.log(`[abandoned-cart-recovery] scanned=${stalled.rows.length} drafted=${drafted}`);
-  await db.end();
+  // Do NOT db.end() here — runner.ts caches this module across every
+  // scheduled invocation in the long-lived cron container; ending the pool
+  // breaks every run after the first.
 }
