@@ -22,7 +22,10 @@ for(const story of publicStories){
 }
 test('ADMIN-AUTH-001 | anonymous admin access is redirected',async({page})=>{const response=await page.goto('/admin/operations-center');expect(response?.status()).toBeLessThan(400);await expect(page).toHaveURL(/\/auth\/login/)});
 test('CUSTOMER-AUTH-001 | negative malformed login remains unauthenticated',async({page})=>{
- await page.goto('/customer/login');const email=page.locator('input[type="email"]');const password=page.locator('input[type="password"]');
+ // Two real, legitimate email inputs exist on this page — the login form
+ // and the site-wide footer newsletter signup — so input[type="email"]
+ // alone is ambiguous. Scope to the login form's own field by placeholder.
+ await page.goto('/customer/login');const email=page.getByPlaceholder('you@example.com');const password=page.locator('input[type="password"]');
  if(await email.count()&&await password.count()){await email.fill("not-an-email' OR 1=1 --");await password.fill('<script>alert(1)</script>');await page.locator('button[type="submit"]').click();await expect(page).not.toHaveURL(/customer\/(dashboard|portal)/)}
 });
 test('global UI contract | keyboard focus, landmarks and non-colour status cues',async({page})=>{await page.goto('/');await page.keyboard.press('Tab');await expect(page.locator(':focus')).toBeVisible();expect(await page.locator('main,#main-content').count()).toBeGreaterThan(0);expect(await page.locator('h1').count()).toBeGreaterThan(0);const statuses=page.locator('[data-status]');for(let i=0;i<await statuses.count();i++)await expect(statuses.nth(i)).toHaveAttribute('aria-label',/.+/)});

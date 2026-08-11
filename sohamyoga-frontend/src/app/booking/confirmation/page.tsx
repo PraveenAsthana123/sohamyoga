@@ -14,7 +14,7 @@ export default function BookingConfirmationPage() {
           A WhatsApp reminder will be sent 1 hour before class.
         </div>
         <div className="flex flex-col gap-3">
-          <Link href="/booking" className="block bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+          <Link href="/booking" className="block bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-semibold transition-colors">
             Browse More Classes
           </Link>
           <Link href="/student/dashboard" className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition-colors">

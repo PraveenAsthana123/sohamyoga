@@ -85,7 +85,7 @@ Give 5-8 poses appropriate for the duration.`
               {GOALS.map(g => (
                 <button key={g} onClick={() => setGoal(g)}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    goal === g ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    goal === g ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}>{g}</button>
               ))}
             </div>
@@ -97,7 +97,7 @@ Give 5-8 poses appropriate for the duration.`
                 {DURATIONS.map(d => (
                   <button key={d} onClick={() => setDuration(d)}
                     className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
-                      duration === d ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      duration === d ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                     }`}>{d}m</button>
                 ))}
               </div>

@@ -120,7 +120,7 @@ function HealthTab() {
                 {f.status === 'open' && (
                   <div className="flex gap-2 flex-shrink-0">
                     <button onClick={() => decide(f.id, 'acknowledge')} className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50">Acknowledge</button>
-                    <button onClick={() => decide(f.id, 'resolve')} className="rounded bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700">Resolve</button>
+                    <button onClick={() => decide(f.id, 'resolve')} className="rounded bg-green-700 px-3 py-1 text-xs font-medium text-white hover:bg-green-800">Resolve</button>
                   </div>
                 )}
               </div>

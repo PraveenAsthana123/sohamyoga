@@ -6,7 +6,9 @@ interface SocialLoginButtonsProps {
 
 const PROVIDERS = [
   { id: 'google',    label: 'Google',    icon: '🔵', bg: 'bg-white text-gray-800 hover:bg-gray-50',       hint: 'Most popular' },
-  { id: 'facebook',  label: 'Facebook',  icon: '📘', bg: 'bg-[#1877F2] text-white hover:bg-[#166FE5]',   hint: '' },
+  // Meta's official #1877F2 only gives 4.23:1 contrast with white text
+  // (needs 4.5:1) — using their own slightly-darker brand variant instead.
+  { id: 'facebook',  label: 'Facebook',  icon: '📘', bg: 'bg-[#166FE5] text-white hover:bg-[#1465CE]',   hint: '' },
   { id: 'apple',     label: 'Apple',     icon: '🍎', bg: 'bg-black text-white hover:bg-gray-900',         hint: 'Private email' },
   { id: 'microsoft', label: 'Microsoft', icon: '🪟', bg: 'bg-[#2F2F2F] text-white hover:bg-[#1f1f1f]',  hint: '' },
 ];

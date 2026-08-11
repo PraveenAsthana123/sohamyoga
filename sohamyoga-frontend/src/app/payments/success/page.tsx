@@ -10,7 +10,7 @@ export default function PaymentSuccessPage() {
           Your membership is now active. Explore unlimited classes, AI pose coaching, and more.
         </p>
         <div className="flex flex-col gap-3">
-          <Link href="/booking" className="block bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
+          <Link href="/booking" className="block bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-semibold transition-colors">
             Book Your First Class
           </Link>
           <Link href="/student/dashboard" className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition-colors">

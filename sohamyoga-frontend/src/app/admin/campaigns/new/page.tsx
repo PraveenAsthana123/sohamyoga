@@ -112,7 +112,7 @@ export default function NewCampaignPage() {
                   {CHANNELS.map(ch => (
                     <button key={ch} onClick={() => toggleChannel(ch)}
                       className={`px-3 py-2 rounded-xl text-sm transition-colors ${
-                        form.channels.includes(ch) ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                        form.channels.includes(ch) ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                       }`}>{CHANNEL_ICON[ch]} {ch}</button>
                   ))}
                 </div>

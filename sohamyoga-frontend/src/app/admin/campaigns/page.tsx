@@ -103,7 +103,7 @@ export default function CampaignsPage() {
           {(["ALL", "DRAFT", "SCHEDULED", "RUNNING", "PAUSED", "COMPLETED"] as const).map(s => (
             <button key={s} onClick={() => setFilter(s)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                filter === s ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                filter === s ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
               }`}>{s === "ALL" ? "All" : s}</button>
           ))}
         </div>

@@ -85,7 +85,7 @@ export default function PreferencesPage() {
               {LEVELS.map(l => (
                 <button key={l} onClick={() => setPrefs(p => ({ ...p, preferredLevel: l }))}
                   className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
-                    prefs.preferredLevel === l ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    prefs.preferredLevel === l ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}>{l}</button>
               ))}
             </div>
@@ -109,7 +109,7 @@ export default function PreferencesPage() {
               {TIMES.map(t => (
                 <button key={t} onClick={() => toggle("preferredTimes", t)}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    prefs.preferredTimes.includes(t) ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    prefs.preferredTimes.includes(t) ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}>{t}</button>
               ))}
             </div>

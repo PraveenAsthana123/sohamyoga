@@ -63,7 +63,7 @@ function AbandonedCartPanel() {
               <p className="text-xs text-gray-600 mt-1">{d.message}</p>
             </div>
             <div className="flex gap-1 flex-shrink-0">
-              <button onClick={() => act(d.id, "sent")} className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">Mark Sent</button>
+              <button onClick={() => act(d.id, "sent")} className="text-xs px-2 py-1 bg-green-700 text-white rounded hover:bg-green-800">Mark Sent</button>
               <button onClick={() => act(d.id, "dismissed")} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Dismiss</button>
             </div>
           </div>

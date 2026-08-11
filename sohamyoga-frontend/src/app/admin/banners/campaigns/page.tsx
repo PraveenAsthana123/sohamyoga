@@ -142,7 +142,7 @@ export default function BannerCampaignsPage() {
                   </div>
                   <div className="flex gap-2">
                     {c.status === "active"   && <button className="text-xs px-3 py-1.5 border rounded text-orange-600 border-orange-300 hover:bg-orange-50">Pause</button>}
-                    {c.status === "approved" && <button className="text-xs px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">Activate</button>}
+                    {c.status === "approved" && <button className="text-xs px-3 py-1.5 bg-green-700 text-white rounded hover:bg-green-800">Activate</button>}
                     <button className="text-xs px-3 py-1.5 border rounded text-gray-600 hover:bg-gray-50">View Details</button>
                   </div>
                 </div>

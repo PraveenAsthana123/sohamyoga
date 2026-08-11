@@ -78,7 +78,7 @@ export default function StudentCalendarPage() {
           {(["all", "upcoming", "attended", "cancelled"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
-                filter === f ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                filter === f ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
               }`}>{f}</button>
           ))}
         </div>
@@ -107,7 +107,7 @@ export default function StudentCalendarPage() {
                   <>
                     {cls.joinLink
                       ? <a href={cls.joinLink} target="_blank" rel="noopener noreferrer"
-                          className="block px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition-colors">
+                          className="block px-3 py-1.5 bg-green-700 hover:bg-green-800 text-white rounded-lg text-xs font-medium transition-colors">
                           Join Online
                         </a>
                       : <span className="block text-xs text-gray-400">In Studio</span>

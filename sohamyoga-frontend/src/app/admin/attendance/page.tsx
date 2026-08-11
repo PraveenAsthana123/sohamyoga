@@ -183,7 +183,7 @@ function MonthlyTab() {
         <div className="grid grid-cols-7 gap-1 text-xs text-center">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => <div key={d} className="text-gray-400 py-1">{d}</div>)}
           {[null, null, null, null, null, 78, 71, 83, 91, 88, 96, 93, 101, 98, 104, 112, 108, 116, 113, 119, 116, 121, 118, 125, 122, 128, 125, null, null, null, null].map((v, i) => (
-            <div key={i} className={`py-2 rounded text-xs font-medium ${!v ? '' : v < 85 ? 'bg-green-100 text-green-800' : v < 100 ? 'bg-green-200 text-green-800' : v < 115 ? 'bg-green-400 text-white' : 'bg-green-600 text-white'}`}>
+            <div key={i} className={`py-2 rounded text-xs font-medium ${!v ? '' : v < 85 ? 'bg-green-100 text-green-800' : v < 100 ? 'bg-green-200 text-green-800' : v < 115 ? 'bg-green-400 text-white' : 'bg-green-700 text-white'}`}>
               {v ?? ''}
             </div>
           ))}

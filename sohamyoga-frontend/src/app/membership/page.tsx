@@ -45,7 +45,7 @@ export default function MembershipPage() {
           <h3 className="text-2xl font-bold text-gray-900">Ready to start?</h3>
           <p className="text-gray-500">Try 7 days free on any paid plan. Cancel anytime.</p>
           <Link href="/payments"
-            className="block bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-xl transition-colors">
+            className="block bg-green-700 hover:bg-green-800 text-white font-semibold py-4 rounded-xl transition-colors">
             See Pricing
           </Link>
           <Link href="/booking"

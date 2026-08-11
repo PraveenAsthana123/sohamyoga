@@ -87,12 +87,12 @@ export default function AdminFAQPage() {
         {/* Scope filter */}
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setFilter("all")}
-            className={`px-3 py-1.5 rounded-full text-sm ${filter === "all" ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300"}`}>
+            className={`px-3 py-1.5 rounded-full text-sm ${filter === "all" ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300"}`}>
             All ({faqs.length})
           </button>
           {(Object.keys(SCOPE_LABELS) as FAQScope[]).map(s => (
             <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-full text-sm ${filter === s ? "bg-green-600 text-white" : "bg-gray-800 text-gray-300"}`}>
+              className={`px-3 py-1.5 rounded-full text-sm ${filter === s ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300"}`}>
               {SCOPE_LABELS[s]} ({faqs.filter(f => f.scope === s).length})
             </button>
           ))}

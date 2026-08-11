@@ -364,7 +364,7 @@ function CohortsTab() {
   useEffect(() => { fetchJson<CohortData>("/api/analytics/cohorts").then(d => { setData(d); setLoading(false); }); }, []);
 
   function heat(pct: number) {
-    if (pct >= 80) return "bg-green-600 text-white";
+    if (pct >= 80) return "bg-green-700 text-white";
     if (pct >= 50) return "bg-green-400 text-white";
     if (pct >= 30) return "bg-amber-300 text-gray-900";
     if (pct >= 15) return "bg-orange-200 text-gray-900";

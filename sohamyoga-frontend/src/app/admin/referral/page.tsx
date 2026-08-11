@@ -439,7 +439,7 @@ export default function ReferralAdminPage() {
                       <p className="text-xs text-gray-400">Referral: {r.referral}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">
+                      <button className="px-3 py-1.5 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800">
                         Approve
                       </button>
                       <button className="px-3 py-1.5 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200">

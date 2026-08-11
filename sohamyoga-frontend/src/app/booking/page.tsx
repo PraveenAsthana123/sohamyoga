@@ -46,7 +46,7 @@ export default function BookingPage() {
           {levels.map(lvl => (
             <button key={lvl} onClick={() => setFilter(lvl)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filter === lvl ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:bg-green-50 border"
+                filter === lvl ? "bg-green-700 text-white" : "bg-white text-gray-600 hover:bg-green-50 border"
               }`}>
               {lvl === "all" ? "All Levels" : lvl}
             </button>
@@ -87,7 +87,7 @@ export default function BookingPage() {
                   <a href={`/booking/${cls.id}`}
                      className={`mt-2 block px-4 py-2 rounded-lg text-sm font-medium text-center transition-colors ${
                        cls.spotsLeft > 0
-                         ? "bg-green-600 text-white hover:bg-green-700"
+                         ? "bg-green-700 text-white hover:bg-green-800"
                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
                      }`}>
                     {cls.spotsLeft > 0 ? "Book Now" : "Full"}
