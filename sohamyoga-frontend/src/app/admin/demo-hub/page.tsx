@@ -36,6 +36,7 @@ const DEMO_CREDENTIALS = [
 ];
 
 const RELATED_TOOLS = [
+  { title: 'Guided Simulation', href: '/admin/simulation', description: 'Live step-by-step walkthrough — inspect real data, trigger the real job, inspect the real result.' },
   { title: 'AI Governance', href: '/admin/ai-governance', description: 'Eleven audit dimensions (responsible, explainable, fairness, risk, etc.) grounded in real job data.' },
   { title: 'Use Case & Test Matrix', href: '/admin/quality-center', description: 'Actor/route/objective user stories with live positive/negative Playwright status.' },
   { title: 'Module Assurance', href: '/admin/module-assurance', description: 'Feature, integration, model and test-failure matrix, grouped by sales/customer/admin stakeholder.' },
