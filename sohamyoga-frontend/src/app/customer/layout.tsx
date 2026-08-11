@@ -54,6 +54,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
         <nav className="flex-1 p-4 space-y-1">
           {[
             { href: '/customer/dashboard', label: 'Dashboard', icon: '📊' },
+            { href: '/customer/features', label: 'All Features', icon: '🧭' },
             { href: '/customer/blog', label: 'Blog & Resources', icon: '📖' },
             { href: '/customer/chat', label: 'My Chats', icon: '💬' },
           ].map((item) => (

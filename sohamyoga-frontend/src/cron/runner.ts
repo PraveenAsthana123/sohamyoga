@@ -14,36 +14,7 @@
 import cron from 'node-cron';
 import { CRON_JOBS, CRON_SCHEDULE_SUMMARY } from './CronRegistry';
 import { ollama } from './OllamaClient';
-
-// Dynamic job imports
-const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void> }>> = {
-  MarketingAutomationJob: () => import('./jobs/MarketingAutomationJob'),
-  NotificationDispatchJob: () => import('./jobs/NotificationDispatchJob'),
-  LeaderboardRefreshJob:   () => import('./jobs/LeaderboardRefreshJob'),
-  NotificationRetryJob:    () => import('./jobs/NotificationRetryJob'),
-  CampaignAdaptationJob:   () => import('./jobs/CampaignAdaptationJob'),
-  AnalyticsAggregationJob: () => import('./jobs/AnalyticsAggregationJob'),
-  StreakUpdateJob:         () => import('./jobs/StreakUpdateJob'),
-  WellnessScoringJob:      () => import('./jobs/WellnessScoringJob'),
-  MilestoneCheckJob:       () => import('./jobs/MilestoneCheckJob'),
-  BadgeAwardJob:           () => import('./jobs/BadgeAwardJob'),
-  AiCoachJob:              () => import('./jobs/AiCoachJob'),
-  CampaignCopyDraftJob:    () => import('./jobs/CampaignCopyDraftJob'),
-  ChurnPredictionJob:      () => import('./jobs/ChurnPredictionJob'),
-  NewsletterDraftJob:      () => import('./jobs/NewsletterDraftJob'),
-  CommunityDigestJob:      () => import('./jobs/CommunityDigestJob'),
-  LeadNurturingJob:           () => import('./jobs/LeadNurturingJob'),
-  SeoReportJob:               () => import('./jobs/SeoReportJob'),
-  PostizProviderHealthJob:    () => import('./jobs/PostizProviderHealthJob'),
-  FeatureGapAdvisorJob:       () => import('./jobs/FeatureGapAdvisorJob'),
-  ModuleBoundaryQualityJob:   () => import('./jobs/ModuleBoundaryQualityJob'),
-  AbandonedCartRecoveryJob:   () => import('./jobs/AbandonedCartRecoveryJob'),
-  CampaignHealthAuditJob:     () => import('./jobs/CampaignHealthAuditJob'),
-  NpsInvitationJob:           () => import('./jobs/NpsInvitationJob'),
-  NpsCalculationJob:          () => import('./jobs/NpsCalculationJob'),
-  SocialContentIdeaJob:       () => import('./jobs/SocialContentIdeaJob'),
-  VoiceOfCustomerJob:         () => import('./jobs/VoiceOfCustomerJob'),
-};
+import { JOB_MODULES } from './jobModules';
 
 async function runJob(name: string, moduleName: string): Promise<void> {
   const start = Date.now();

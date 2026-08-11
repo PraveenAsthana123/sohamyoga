@@ -18,6 +18,7 @@ public static class SeedData
 
         await SeedRolesAsync(roleManager);
         await SeedAdminUserAsync(userManager, config);
+        await SeedDemoAccountsAsync(userManager);
         await SeedSiteSettingsAsync(context);
         await SeedYogaProductsAsync(context);
 
@@ -30,7 +31,7 @@ public static class SeedData
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
     {
-        string[] roles = { "Admin", "Editor", "HR", "Sales", "Customer" };
+        string[] roles = { "Admin", "Editor", "HR", "Sales", "Customer", "Teacher" };
 
         foreach (var role in roles)
         {
@@ -64,6 +65,34 @@ public static class SeedData
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
+        }
+    }
+
+    // Fixed-credential demo accounts for the end-to-end showcase (Demo
+    // Showcase Hub): a real Admin-role login and a real Customer-role login,
+    // both authenticated through the same Identity pipeline as production
+    // accounts — not a separate mock auth path. Idempotent: skipped if the
+    // account already exists, so re-deploys never reset a demo password an
+    // operator may have since rotated.
+    private static async Task SeedDemoAccountsAsync(UserManager<IdentityUser> userManager)
+    {
+        await SeedRoleUserAsync(userManager, "admin_demo@sohamyoga.ca", "AdminDemo@123456", "Admin", null);
+        await SeedRoleUserAsync(userManager, "customer_demo@sohamyoga.ca", "CustomerDemo@123456", "Customer", "Demo Customer");
+    }
+
+    private static async Task SeedRoleUserAsync(
+        UserManager<IdentityUser> userManager, string email, string password, string role, string? displayName)
+    {
+        if (await userManager.FindByEmailAsync(email) != null) return;
+
+        var user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+        var result = await userManager.CreateAsync(user, password);
+        if (!result.Succeeded) return;
+
+        await userManager.AddToRoleAsync(user, role);
+        if (displayName != null)
+        {
+            await userManager.AddClaimAsync(user, new System.Security.Claims.Claim("DisplayName", displayName));
         }
     }
 
