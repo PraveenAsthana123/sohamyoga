@@ -60,6 +60,14 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   60_000,
   },
   {
+    name:        'complaint-alert',
+    schedule:    '5 * * * *',
+    description: 'Alert staff (notification_queue) on unalerted negative-sentiment entries in sentiment_log — real-time complement to the weekly Voice of Customer digest',
+    module:      'ComplaintAlertJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
+  {
     name:        'campaign-adaptation',
     schedule:    '15 * * * *',
     description: 'AI-adapt pending campaign content variants for each platform using Ollama (strong model)',
@@ -279,5 +287,5 @@ Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
 Fri    10:00  voice-of-customer (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 26 jobs | 16 use Ollama | 0 cloud AI tokens
+Total: 27 jobs | 16 use Ollama | 0 cloud AI tokens
 `;

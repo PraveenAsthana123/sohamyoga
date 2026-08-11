@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
     fairness: FAIRNESS_AUDIT,
     ethical: ETHICAL_GUARDRAILS,
     responsible: {
-      totalJobs: 26,
+      totalJobs: 27,
       ollamaJobs: 16,
       draftGatedJobs: DECISION_AUTONOMY.filter(d => d.autonomy === 'draft-requires-approval').length,
       advisoryJobs: DECISION_AUTONOMY.filter(d => d.autonomy === 'advisory-informational').length,

@@ -9,6 +9,7 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   NotificationDispatchJob:    () => import('./jobs/NotificationDispatchJob'),
   LeaderboardRefreshJob:      () => import('./jobs/LeaderboardRefreshJob'),
   NotificationRetryJob:       () => import('./jobs/NotificationRetryJob'),
+  ComplaintAlertJob:          () => import('./jobs/ComplaintAlertJob'),
   CampaignAdaptationJob:      () => import('./jobs/CampaignAdaptationJob'),
   AnalyticsAggregationJob:    () => import('./jobs/AnalyticsAggregationJob'),
   StreakUpdateJob:            () => import('./jobs/StreakUpdateJob'),
