@@ -1,6 +1,7 @@
 /**
  * MCP Gateway Registry
- * Unified catalog of all 15 domain MCP servers + policy engine + tool routing.
+ * Unified catalog of all 29 domain MCP servers (15 internal + 14 external
+ * platform) + policy engine + tool routing.
  *
  * Architecture rule: 20-30% existing MCP servers, 50-60% wrap existing APIs,
  *                    10-20% custom yoga-specific tools.
@@ -34,6 +35,7 @@ import { ADMIN_MCP        } from './admin-mcp-registry';
 import { STUDENT_MCP      } from './student-mcp-registry';
 import { NOTIFICATION_MCP } from './notification-mcp-registry';
 import { CAMPAIGN_MCP     } from './campaign-mcp-registry';
+import { EXTERNAL_PLATFORM_MCP_SERVERS } from './external-platform-mcp';
 
 export const ALL_MCP_SERVERS: McpServerManifest[] = [
   SOCIAL_MCP,
@@ -51,6 +53,7 @@ export const ALL_MCP_SERVERS: McpServerManifest[] = [
   STUDENT_MCP,
   NOTIFICATION_MCP,
   CAMPAIGN_MCP,
+  ...EXTERNAL_PLATFORM_MCP_SERVERS,
 ];
 
 export interface ToolRoute {
