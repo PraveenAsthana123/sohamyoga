@@ -21,8 +21,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/products', label: 'Products' },
-    { href: '/categories', label: 'Categories' },
+    { href: '/services', label: 'Services' },
     { href: '/blog', label: 'Blog' },
     { href: '/monitoring', label: 'Monitoring' },
     { href: '/about', label: 'About' },
@@ -64,8 +63,8 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link href="/products" className="ml-3 inline-flex items-center px-5 py-2.5 bg-accent-600 hover:bg-accent-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg shadow-accent-500/30 hover:shadow-accent-500/50">
-              Shop Now
+            <Link href="/booking" className="ml-3 inline-flex items-center px-5 py-2.5 bg-accent-600 hover:bg-accent-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg shadow-accent-500/30 hover:shadow-accent-500/50">
+              Book a Class
               <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -105,8 +104,8 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <Link href="/products" className="px-4 py-2.5 bg-accent-600 hover:bg-accent-700 text-white text-sm font-semibold rounded-lg text-center mt-2">
-                Shop Now
+              <Link href="/booking" className="px-4 py-2.5 bg-accent-600 hover:bg-accent-700 text-white text-sm font-semibold rounded-lg text-center mt-2">
+                Book a Class
               </Link>
             </div>
           </div>

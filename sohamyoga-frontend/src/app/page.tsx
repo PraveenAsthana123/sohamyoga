@@ -14,25 +14,25 @@ import NewsletterSection from '@/components/home/NewsletterSection';
 import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
-  title: 'Soham Yoga - Premium Yoga Products & Wellness Accessories',
+  title: 'Soham Yoga Studio - Classes, Teachers & Wellness Programs',
   description:
-    'Soham Yoga offers premium yoga mats, meditation cushions, yoga props, and wellness accessories. Eco-friendly products for yogis of all levels.',
+    'Soham Yoga is a yoga studio offering Hatha, Vinyasa, Ashtanga, Yin, and more, taught by certified instructors. Book a class, meet the team, or start with a free first class.',
   keywords: [
-    'Yoga Products',
-    'Yoga Mats',
-    'Meditation Cushions',
-    'Yoga Props',
-    'Yoga Accessories',
-    'Wellness Products',
-    'Eco-Friendly Yoga',
-    'Yoga Blocks',
-    'Yoga Straps',
-    'Meditation Supplies',
+    'Yoga Studio',
+    'Yoga Classes',
+    'Hatha Yoga',
+    'Vinyasa Yoga',
+    'Ashtanga Yoga',
+    'Yin Yoga',
+    'Yoga Teacher Training',
+    'Yoga Membership',
+    'Beginner Yoga Classes',
+    'Wellness Studio',
   ],
   openGraph: {
-    title: 'Soham Yoga - Premium Yoga Products & Wellness Accessories',
+    title: 'Soham Yoga Studio - Classes, Teachers & Wellness Programs',
     description:
-      'Discover premium yoga products, meditation supplies, and wellness accessories for your practice.',
+      'Book a real yoga class, meet our certified teachers, and find the right program for your practice.',
     type: 'website',
     locale: 'en_US',
     siteName: 'Soham Yoga',
@@ -45,7 +45,7 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'hero-1',
     type: 'gradient',
-    gradientClass: 'bg-gradient-to-br from-stone-900 via-amber-950 to-stone-800',
+    gradientClass: 'bg-gradient-to-br from-accent-700 via-accent-600 to-primary-600',
     heading: 'Find Your Inner Balance',
     subheading: 'Soham Yoga Studio',
     description:
@@ -58,20 +58,20 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'hero-2',
     type: 'gradient',
-    gradientClass: 'bg-gradient-to-br from-teal-900 via-emerald-900 to-stone-900',
+    gradientClass: 'bg-gradient-to-br from-accent-600 via-accent-500 to-primary-500',
     heading: 'Elevate Your Practice',
     subheading: 'Expert Teachers',
     description:
       'Learn from certified instructors with decades of experience across Hatha, Vinyasa, and Yin traditions.',
     ctaText: 'Meet Our Teachers',
-    ctaUrl: '/team',
+    ctaUrl: '/about',
     secondaryCtaText: 'Class Schedule',
     secondaryCtaUrl: '/services',
   },
   {
     id: 'hero-3',
     type: 'gradient',
-    gradientClass: 'bg-gradient-to-br from-indigo-950 via-purple-900 to-stone-900',
+    gradientClass: 'bg-gradient-to-br from-primary-600 via-primary-500 to-accent-600',
     heading: 'Mind, Body & Soul',
     subheading: 'Complete Wellness',
     description:
@@ -84,7 +84,7 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'hero-4',
     type: 'gradient',
-    gradientClass: 'bg-gradient-to-br from-rose-950 via-orange-900 to-stone-900',
+    gradientClass: 'bg-gradient-to-br from-accent-500 via-primary-400 to-primary-500',
     heading: 'Begin Your Journey Today',
     subheading: 'First Class Free',
     description:

@@ -44,8 +44,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-dark-400 text-sm leading-relaxed mb-6">
-              Premium yoga products, meditation supplies, and wellness accessories
-              for yogis of all levels. Sustainably sourced and thoughtfully designed.
+              A yoga studio offering real classes across every tradition — Hatha, Vinyasa,
+              Ashtanga, Yin, and more — taught by certified instructors for every level.
             </p>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-lg bg-dark-800 hover:bg-primary-600 flex items-center justify-center text-dark-400 hover:text-white transition-all duration-200" aria-label="LinkedIn">
@@ -60,15 +60,22 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Products */}
+          {/* Classes */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-dark-300 mb-5">Products</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-dark-300 mb-5">Classes</h3>
             <ul className="space-y-3">
-              {['Yoga Mats', 'Meditation Cushions', 'Yoga Blocks', 'Yoga Straps', 'Bolsters', 'Essential Oils'].map((s) => (
-                <li key={s}>
-                  <Link href={`/products/${s.toLowerCase().replace(/\s+/g, '-')}`} className="text-dark-400 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 group">
+              {[
+                { href: '/services#hatha-yoga', label: 'Hatha Yoga' },
+                { href: '/services#vinyasa-flow', label: 'Vinyasa Flow' },
+                { href: '/services#ashtanga-yoga', label: 'Ashtanga Yoga' },
+                { href: '/services#yin-yoga', label: 'Yin Yoga' },
+                { href: '/services#prenatal-yoga', label: 'Prenatal Yoga' },
+                { href: '/services', label: 'All Classes' },
+              ].map((s) => (
+                <li key={s.href}>
+                  <Link href={s.href} className="text-dark-400 hover:text-white text-sm transition-colors duration-200 flex items-center gap-2 group">
                     <span className="w-1 h-1 rounded-full bg-dark-600 group-hover:bg-accent-400 transition-colors" />
-                    {s}
+                    {s.label}
                   </Link>
                 </li>
               ))}
@@ -82,7 +89,7 @@ export default function Footer() {
               {[
                 { href: '/about', label: 'About Us' },
                 { href: '/blog', label: 'Wellness Blog' },
-                { href: '/categories', label: 'Categories' },
+                { href: '/membership', label: 'Membership' },
                 { href: '/contact', label: 'Contact Us' },
               ].map((link) => (
                 <li key={link.href}>
