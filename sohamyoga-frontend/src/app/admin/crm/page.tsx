@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-const TABS = ['Overview', 'Leads', 'Pipeline', 'Segmentation', 'CLV', 'Churn', 'Campaigns'] as const;
+const TABS = ['Overview', 'Leads', 'Pipeline', 'Segmentation', 'CLV', 'Churn', 'Voice of Customer', 'Campaigns'] as const;
 type Tab = typeof TABS[number];
 
 function KpiCard({ label, value, sub, color = 'blue' }: { label: string; value: string; sub?: string; color?: string }) {
@@ -262,6 +262,80 @@ function ChurnTab() {
   );
 }
 
+const VOC_FLOW = [
+  { label: '1. Real inbound text', sub: 'Contact-form messages + comment sentiment_log', color: 'bg-gray-50 border-gray-200 text-gray-800' },
+  { label: '2. Weekly job', sub: 'VoiceOfCustomerJob — skips if zero real messages', color: 'bg-blue-50 border-blue-200 text-blue-800' },
+  { label: '3. Ollama clusters', sub: 'Themes/complaints/requests grounded only in given text', color: 'bg-amber-50 border-amber-200 text-amber-800' },
+  { label: '4. Digest stored', sub: "status='draft', one per tenant per week", color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  { label: '5. Staff reviews', sub: 'Read here — no auto-action taken', color: 'bg-green-50 border-green-200 text-green-800' },
+];
+
+interface VocTheme { label: string; count: number; sentiment: string }
+interface VocDigest {
+  id: string; periodStart: string; periodEnd: string; sourceMessageCount: number;
+  themes: VocTheme[]; topComplaints: string[]; topRequests: string[]; overallSummary: string; status: string;
+}
+
+function VoiceOfCustomerTab() {
+  const [digests, setDigests] = useState<VocDigest[] | null>(null);
+  useEffect(() => { fetchJson<{ digests: VocDigest[] }>('/api/marketing/voice-of-customer').then(d => setDigests(d?.digests ?? [])); }, []);
+
+  return (
+    <div className="space-y-4">
+      <div className="border rounded-lg p-5 bg-white">
+        <h3 className="font-semibold text-gray-800 mb-4 text-sm">Process Flow</h3>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm text-center">
+          {VOC_FLOW.map((n, i) => (
+            <div key={n.label} className="flex flex-col items-center gap-1">
+              <div className={`w-full border rounded-xl p-3 ${n.color}`}>
+                <p className="font-semibold text-xs">{n.label}</p>
+                <p className="text-xs opacity-70 mt-0.5">{n.sub}</p>
+              </div>
+              {i < VOC_FLOW.length - 1 && <span className="text-gray-300 hidden md:block text-xs">→</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {!digests ? <EmptyState message="Loading…" /> : digests.length === 0 ? (
+        <EmptyState message="No digests yet — the weekly job skips creating one when there's no real inbound customer text that week." />
+      ) : (
+        <div className="space-y-3">
+          {digests.map(d => (
+            <div key={d.id} className="border rounded-lg p-4 bg-white">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-800">
+                  {new Date(d.periodStart).toLocaleDateString()} – {new Date(d.periodEnd).toLocaleDateString()}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">{d.sourceMessageCount} real message{d.sourceMessageCount === 1 ? '' : 's'}</span>
+                  <Badge color={d.status === 'draft' ? 'amber' : 'gray'}>{d.status}</Badge>
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">{d.overallSummary}</p>
+              {d.themes.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {d.themes.map(t => (
+                    <Badge key={t.label} color={t.sentiment === 'positive' ? 'green' : t.sentiment === 'negative' ? 'red' : 'gray'}>
+                      {t.label} ({t.count})
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {d.topComplaints.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1"><span className="font-medium text-gray-600">Complaints:</span> {d.topComplaints.join('; ')}</p>
+              )}
+              {d.topRequests.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1"><span className="font-medium text-gray-600">Requests:</span> {d.topRequests.join('; ')}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface CampaignRow { id: string; name: string; status: string; segment: string; sent: number; ctrPct: number; conversions: number }
 
 function CampaignsTab() {
@@ -315,6 +389,7 @@ export default function CRMAdminPage() {
       {tab === 'Segmentation'  && <SegmentationTab />}
       {tab === 'CLV'           && <CLVTab />}
       {tab === 'Churn'         && <ChurnTab />}
+      {tab === 'Voice of Customer' && <VoiceOfCustomerTab />}
       {tab === 'Campaigns'     && <CampaignsTab />}
     </div>
   );

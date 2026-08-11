@@ -239,6 +239,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   180_000,
   },
+  {
+    name:        'voice-of-customer',
+    schedule:    '0 10 * * 5',
+    description: 'Clusters real inbound customer text (contact-form messages + comment sentiment) from the past 7 days into themes/complaints/requests via Ollama — skips entirely if there is no real signal that week',
+    module:      'VoiceOfCustomerJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -269,6 +277,7 @@ Fri    06:00  lead-nurturing
 Fri    07:00  seo-report (Ollama)
 Fri    08:00  feature-gap-advisor (Ollama)
 Fri    08:30  module-boundary-quality (Ollama)
+Fri    10:00  voice-of-customer (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 25 jobs | 15 use Ollama | 0 cloud AI tokens
+Total: 26 jobs | 16 use Ollama | 0 cloud AI tokens
 `;
