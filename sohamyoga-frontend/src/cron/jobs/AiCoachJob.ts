@@ -9,21 +9,34 @@
 // -> class_session.class_name); notification_queue needs recipient_user_id;
 // ai_recommendation didn't exist as a table at all (added this session,
 // see db-schema-ai-recommendation.sql).
+//
+// focus_poses/avoid_poses were previously open-ended Ollama text generation
+// with nothing to validate against — the asana table existed (real schema,
+// Sanskrit names, difficulty, contraindications) but had zero rows, so the
+// model was effectively inventing pose names every run. Migration 084
+// seeded 15 real, traditional asanas; this job now constrains the model to
+// choose only from that real list (given by name in the prompt) and
+// defensively filters the response against it after the fact — "LLM
+// explains/selects, validated data supplies the canon," not the reverse.
 
 import { Pool } from 'pg';
 import { ollama } from '../OllamaClient';
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
-const SYSTEM = `You are an expert yoga coach AI. Given a student profile,
+function buildSystemPrompt(availablePoseNames: string[]): string {
+  return `You are an expert yoga coach AI. Given a student profile and a list of REAL available poses,
 return ONLY valid JSON — no markdown, no explanation:
 {
   "recommended_class_types": ["string", ...],   // max 3
-  "focus_poses": ["Sanskrit name", ...],         // max 5
-  "avoid_poses": ["Sanskrit name", ...],         // max 3 (contraindications)
+  "focus_poses": ["Sanskrit name", ...],         // max 5 — MUST be chosen only from the Available Poses list given below, verbatim
+  "avoid_poses": ["Sanskrit name", ...],         // max 3 — MUST be chosen only from the Available Poses list given below, verbatim
   "practice_tip": "one motivational sentence",
   "session_duration_min": 30|45|60|90
-}`;
+}
+Available Poses (choose focus_poses/avoid_poses ONLY from this list — do not invent a pose name that isn't here):
+${availablePoseNames.join(', ')}`;
+}
 
 function extractJson<T>(text: string): T {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1] || text;
@@ -34,6 +47,17 @@ function extractJson<T>(text: string): T {
 }
 
 export async function run(): Promise<void> {
+  const poseRows = await db.query<{ sanskrit_name: string }>(
+    `SELECT sanskrit_name FROM asana WHERE is_active = true ORDER BY sanskrit_name`,
+  );
+  const availablePoseNames = poseRows.rows.map(r => r.sanskrit_name);
+  if (availablePoseNames.length === 0) {
+    console.log('[ai-coach] no active asana rows — skipping (nothing real to recommend from)');
+    return;
+  }
+  const availablePoseSet = new Set(availablePoseNames);
+  const SYSTEM = buildSystemPrompt(availablePoseNames);
+
   const students = await db.query<{
     student_id: string; tenant_id: string; user_id: string;
     yoga_goals: string[]; current_streak: number; last_class_name: string | null;
@@ -80,6 +104,20 @@ export async function run(): Promise<void> {
       try { rec = extractJson(raw); } catch (parseErr) {
         console.error(`[ai-coach] student ${s.student_id}: unparseable Ollama response:`, parseErr);
         continue;
+      }
+
+      // Defensive filter, on top of the prompt constraint above — never
+      // let a hallucinated pose name (one not in the real seeded asana
+      // table) reach a student, even in a draft.
+      for (const field of ['focus_poses', 'avoid_poses'] as const) {
+        const value = rec[field];
+        if (Array.isArray(value)) {
+          const filtered = value.filter((p): p is string => typeof p === 'string' && availablePoseSet.has(p));
+          if (filtered.length !== value.length) {
+            console.warn(`[ai-coach] student ${s.student_id}: dropped ${value.length - filtered.length} non-real pose name(s) from ${field}`);
+          }
+          rec[field] = filtered;
+        }
       }
 
       await db.query(
