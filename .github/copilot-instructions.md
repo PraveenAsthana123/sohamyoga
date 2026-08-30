@@ -5,8 +5,8 @@
 This file contains project context and decisions. AI assistants should read this file for context. MCP tools are an optional enhancement for richer interaction when connected.
 
 ## Project Context
-- **Total Decisions:** 183
-- **Known Topics:** how, api, bug-fix, security, migration, verification, architecture, ollama, testing, ai, postgres, auth, audit, docker, typescript
+- **Total Decisions:** 184
+- **Known Topics:** how, api, bug-fix, security, migration, verification, architecture, ollama, testing, ai, postgres, auth, audit, typescript, docker
 
 ## Current State
 **Repository:** sohamyoga
@@ -22,21 +22,16 @@ This file contains project context and decisions. AI assistants should read this
 - `9c7e366 fix: wire real customer self-registration — was a fake stub, backend created no Postgres row at all`
 
 **Working Tree:**
-- M .continuity/SESSION_NOTES.md
-- M .continuity/decisions.json
-- M .continuity/decisions.jsonl
-- M .cursorrules
-- M .github/workflows/ci.yml
-- M .github/workflows/deploy.yml
-- M .gitignore
-- M AGENTS.md
-- M GEMINI.md
-- M ai-agents/mautic/deep/scripts/install.sh
-- M docker-compose.yml
-- M scripts/migrate-domain-schemas.sh
-- M scripts/setup_ai_agent_stack.sh
-- M sohamyoga-frontend/Dockerfile
-- M sohamyoga-frontend/Dockerfile.cron
+- M agentic-ollama-platform/data/ecc_source/package.json
+- M agentic-ollama-platform/data/ecc_source/.opencode/package.json
+- M market-research-portal/.next/types/package.json
+- M market-research-portal/package.json
+- M market-research-portal/.next/package.json
+- M integrations/paperclip/package.json
+- M integrations/paperclip/ui/package.json
+- M integrations/paperclip/packages/plugins/plugin-llm-wiki/package.json
+- M integrations/paperclip/packages/shared/package.json
+- M integrations/paperclip/packages/plugins/plugin-workspace-diff/package.json
 
 
 ## Decision Freshness
@@ -82,25 +77,25 @@ Describe how this repository prefers to work with AI assistants.
 ---
 
 ## Recent Decisions
-1. **decision-7cf76755** (8/30/2026) [deployment, git]
+1. **decision-a1356c82** (8/30/2026) [commit-43a5558, git]
+   - Q: What was released in commit 43a5558?
+   - A: Commit 43a5558 records the complete first-party SohamYoga platform release: main frontend/backend changes plus AI orchestrator, market-research portal, password=[REDACTED] voice-agent platform, shared backend, infrastructure, tools, schemas, tests, and documentation. It excludes secrets, virtual environments, generated test/build output, large datasets, and the nested third-party Skyvern checkout. Validation before commit 43a5558: frontend lint passed with warnings only, 123 Jest suites/4,203 tests passed, Next production build passed across 153 static pages, sequential TypeScript check pas...
+
+2. **decision-7cf76755** (8/30/2026) [deployment, git]
    - Q: What belongs in the all-module SohamYoga GitHub release?
    - A: Include first-party source modules, schemas, tests, documentation, examples, and deployment configuration. Exclude populated environments, virtual environments, node_modules, generated build/test artifacts, TypeScript build state, databases/datasets, and the nested third-party Skyvern checkout; those are reproducible runtime/vendor state rather than SohamYoga source.
 
-2. **decision-170621da** (8/30/2026) [api, bug-fix]
+3. **decision-170621da** (8/30/2026) [api, bug-fix]
    - Q: How was the production build failure for the shared TypeScript backend package corrected?
    - A: Configured Next.js to transpile @sohamyoga/shared-backend, moved outputFileTracingRoot into the Next 14 experimental configuration where its schema accepts it, and normalized remaining fallback API origins to backend port 5070. The earlier standalone build parsed raw TypeScript from the linked package and failed.
 
-3. **decision-d3014a40** (8/30/2026) [configuration, git]
+4. **decision-d3014a40** (8/30/2026) [configuration, git]
    - Q: Which GitHub repository is the canonical SohamYoga origin?
    - A: Changed origin from the legacy PraveenAsthana123/yoga.git repository to the user-specified PraveenAsthana123/sohamyoga.git repository before the all-module release push.
 
-4. **decision-7da92961** (8/30/2026) [build, ci]
+5. **decision-7da92961** (8/30/2026) [build, ci]
    - Q: What Node runtime is required for reproducible SohamYoga frontend builds?
    - A: Standardized local guidance, CI, frontend Docker build/runtime, and cron on Node 22, with package.json enforcing Node >=22.13.0. The dependency tree includes packages that reject Node 18 and some that require Node 22, so the host's Node 18 cannot be treated as a supported build environment.
-
-5. **decision-e68e120b** (8/30/2026) [api, bug-fix]
-   - Q: How were the immediate SohamYoga build, lint, deploy, and local database exposure blockers corrected?
-   - A: Repointed CI and deploy workflows from obsolete SLPSystems/slp-frontend paths to SohamYoga/sohamyoga-frontend, aligned the public API build default with backend port 5070, added the missing Next.js ESLint configuration, renamed the image prefix to sohamyoga, and changed PostgreSQL publishing to loopback by default with an explicit POSTGRES_BIND_ADDRESS override.
 
 *3 unreviewed drafts from auto-capture pending review — `continuity log` the real rationale or update_decision to expand them.*
 
