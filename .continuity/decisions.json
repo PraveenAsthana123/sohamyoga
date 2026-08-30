@@ -9891,5 +9891,66 @@
       "source": "cli",
       "timestamp": "2026-08-30T22:44:26.814Z"
     }
+  },
+  {
+    "id": "a1356c82-9c5f-4220-8dfb-a15113d24120",
+    "question": "What was released in commit 43a5558?",
+    "answer": "Commit 43a5558 records the complete first-party SohamYoga platform release: main frontend/backend changes plus AI orchestrator, market-research portal, password manager, voice-agent platform, shared backend, infrastructure, tools, schemas, tests, and documentation. It excludes secrets, virtual environments, generated test/build output, large datasets, and the nested third-party Skyvern checkout. Validation before commit 43a5558: frontend lint passed with warnings only, 123 Jest suites/4,203 tests passed, Next production build passed across 153 static pages, sequential TypeScript check passed, and .NET Release build passed with zero warnings/errors.",
+    "timestamp": "2026-08-30T22:45:59.759Z",
+    "tags": [
+      "commit-43a5558",
+      "git",
+      "github",
+      "jest",
+      "release",
+      "typescript",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "commitHash": "43a5558",
+      "autoLink": {
+        "checkedAt": "2026-08-30T22:45:59.759Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [
+      "43a5558"
+    ],
+    "history": [
+      {
+        "timestamp": "2026-08-30T22:45:59.761Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "typescript",
+        "jest"
+      ],
+      "patterns": [],
+      "concepts": [
+        "schema"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-30T22:45:59.613Z"
+    }
   }
 ]
