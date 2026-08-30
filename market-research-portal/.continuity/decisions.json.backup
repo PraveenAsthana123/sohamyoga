@@ -1,0 +1,263 @@
+[
+  {
+    "id": "83d7a246-0c1a-4d22-8115-fb8cf9e8a96c",
+    "question": "What validation artifacts were retained after digital-marketing testing?",
+    "answer": "Removed five explicit temporary WAV/ASS files left by pre-cleanup render attempts. Retained the approved checksummed MP4 as the real validation asset; no external publication occurred.",
+    "timestamp": "2026-08-20T20:58:38.339Z",
+    "tags": [
+      "cleanup",
+      "privacy",
+      "testing",
+      "verification",
+      "video"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-20T20:58:38.339Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-20T20:58:38.341Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-20T20:58:38.320Z"
+    }
+  },
+  {
+    "id": "1f8fa568-a96c-4695-9f7a-d87c9c691ff0",
+    "question": "How does the Voice AI operator UI manage advanced telephony?",
+    "answer": "Expanded the authenticated single-window Voice AI API/UI with PBX/PSTN readiness, call totals and duration, safe SIP trunk records, versioned inbound/outbound workflows, disabled-by-default inbound routes, bounded modulation profiles and detailed call/event views. Raw passwords are rejected by the API.",
+    "timestamp": "2026-08-20T21:48:45.176Z",
+    "tags": [
+      "api",
+      "how",
+      "monitoring",
+      "security",
+      "ui",
+      "voice-ai",
+      "workflow"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-20T21:48:45.175Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-20T21:48:45.178Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-20T21:48:45.117Z"
+    }
+  },
+  {
+    "id": "00d16815-e8ec-4f6e-a964-94df1042ee1c",
+    "question": "How is Asterisk health reflected in the portal, including local execution?",
+    "answer": "Added a reusable voice:health probe that loads the ignored .env.local like the migration runner, verifies Docker health, queries live Asterisk channel and PJSIP endpoint state, counts queued calls and persists an evidence snapshot. The initial missing-DATABASE_URL launch failure was fixed before any healthy status was recorded.",
+    "timestamp": "2026-08-20T21:55:01.254Z",
+    "tags": [
+      "asterisk",
+      "bug-fix",
+      "docker",
+      "evidence",
+      "how",
+      "migration",
+      "monitoring",
+      "voice-ai"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-20T21:55:01.254Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-20T21:55:01.256Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "docker"
+      ],
+      "patterns": [],
+      "concepts": [
+        "migration",
+        "database",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-20T21:55:01.144Z"
+    }
+  },
+  {
+    "id": "d9edbd06-5371-485e-bd66-babfc26e126f",
+    "question": "What executable construction digital-twin slice was added?",
+    "answer": "Added an authenticated Construction Twin page/API with a real Three.js orbitable/click-selectable scene, persisted common object transforms, direct dimension/position editing, starter-site creation, deterministic natural-language change proposals, explicit approval before apply, revision tracking and honest technology readiness cards.",
+    "timestamp": "2026-08-20T22:08:05.759Z",
+    "tags": [
+      "api",
+      "automation",
+      "construction",
+      "digital-twin",
+      "threejs",
+      "ui"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-20T22:08:05.758Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-20T22:08:05.762Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-20T22:08:05.672Z"
+    }
+  },
+  {
+    "id": "9348f045-d908-44b7-8a5d-eee3aee00776",
+    "question": "What first executable hybrid media and spatial-learning experience was added?",
+    "answer": "Content Factory now exposes proposed Standard/Premium/Studio routing based on content, privacy, GPU and urgency. Spatial Learning adds a persisted neural-network lesson, real Three.js selectable neurons, object-grounded tutor responses, learner sessions, correctness/mastery updates, speech playback, WebXR capability reporting and an evidence timeline.",
+    "timestamp": "2026-08-20T23:01:14.754Z",
+    "tags": [
+      "assessment",
+      "hybrid-router",
+      "spatial-learning",
+      "threejs",
+      "video"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-20T23:01:14.754Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-20T23:01:14.757Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-20T23:01:14.645Z"
+    }
+  }
+]

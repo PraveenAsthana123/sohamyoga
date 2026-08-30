@@ -81,10 +81,6 @@ export class ClassSequence {
   isPublished() { return this.props.status === 'published'; }
   isArchived()  { return this.props.status === 'archived'; }
 
-  private clone(patch: Partial<ClassSequenceProps>): ClassSequence {
-    return new ClassSequence({ ...this.props, ...patch });
-  }
-
   // ── Items ──────────────────────────────────────────────────────────────────
 
   addItem(item: SequenceItem, now: Date): ClassSequence {

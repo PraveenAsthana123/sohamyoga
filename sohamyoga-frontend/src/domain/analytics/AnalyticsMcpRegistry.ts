@@ -28,7 +28,7 @@ export class AnalyticsMcpRegistry {
   }
 
   allTools(): McpToolSpec[] {
-    return [...this.tools.values()];
+    return Array.from(this.tools.values());
   }
 
   toolsByTier(tier: McpTier): McpToolSpec[] {

@@ -35,7 +35,10 @@ export default function AOSInit({
         import('aos/dist/aos.css' as string),
       ]);
       void AOSCss;
-      AOS.init({ duration, easing, once, offset });
+      // easing is a loose string prop on this component by design (callers
+      // pass raw data-aos-easing-style values); @types/aos's easingOptions
+      // union is stricter than AOS actually enforces at runtime.
+      AOS.init({ duration, easing: easing as import('aos').easingOptions, once, offset });
     };
     init();
   }, [duration, easing, once, offset]);

@@ -1,7 +1,17 @@
+const path = require('node:path');
+
 /** @type {import('next').NextConfig} */
-const apiOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:15070').origin; } catch { return ''; } })();
+const apiOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5070').origin; } catch { return ''; } })();
 const nextConfig = {
   output: 'standalone',
+  // @sohamyoga/shared-backend lives at ../packages/shared-backend, a
+  // sibling directory outside this app's tree — confirmed this session
+  // (market-research-portal) that standalone output file tracing silently
+  // drops such symlinked packages without this set to the monorepo root.
+  transpilePackages: ['@sohamyoga/shared-backend'],
+  experimental: {
+    outputFileTracingRoot: path.join(__dirname, '..'),
+  },
   images: {
     remotePatterns: [
       {
@@ -52,7 +62,7 @@ const nextConfig = {
       fallback: [
         {
           source: '/api/:path*',
-          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5062'}/api/:path*`,
+          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5070'}/api/:path*`,
         },
       ],
     };

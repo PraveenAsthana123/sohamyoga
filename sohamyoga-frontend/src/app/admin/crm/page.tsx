@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 const TABS = ['Overview', 'Leads', 'Pipeline', 'Segmentation', 'CLV', 'Churn', 'Voice of Customer', 'Campaigns'] as const;
 type Tab = typeof TABS[number];
@@ -161,26 +161,82 @@ function PipelineTab() {
   );
 }
 
-interface SegmentRow { name: string; count: number; desc: string }
+interface SegmentRow { name: string; count: number; desc: string; computed: boolean; id?: string }
+
+const SEGMENT_FIELDS = [
+  'membership_plan', 'class_count', 'last_active_days', 'pose_score_avg', 'preferred_style',
+  'location', 'signup_days_ago', 'total_spend_cad', 'challenge_completed', 'has_referrals', 'birthday_month',
+] as const;
+const SEGMENT_OPERATORS = ['eq', 'ne', 'gt', 'lt', 'gte', 'lte', 'in', 'not_in', 'contains'] as const;
+
+function NewSegmentForm({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(''); const [description, setDescription] = useState('');
+  const [field, setField] = useState<typeof SEGMENT_FIELDS[number]>('last_active_days');
+  const [operator, setOperator] = useState<typeof SEGMENT_OPERATORS[number]>('lte');
+  const [value, setValue] = useState('');
+  const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
+
+  async function handleCreate() {
+    setBusy(true); setError(null);
+    const res = await fetch('/api/crm/segments', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description, criteria: [{ field, operator, value }], logic: 'AND' }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setOpen(false); setName(''); setDescription(''); setValue(''); onCreated(); }
+    else setError(body.error ?? 'Failed to create segment.');
+  }
+
+  if (!open) return <button onClick={() => setOpen(true)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Create Segment</button>;
+  return (
+    <div className="bg-white border rounded-lg p-4 space-y-2 w-full">
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Segment name" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <div className="flex gap-2">
+        <select value={field} onChange={e => setField(e.target.value as typeof field)} className="border rounded px-2 py-1.5 text-sm flex-1">
+          {SEGMENT_FIELDS.map(f => <option key={f} value={f}>{f}</option>)}
+        </select>
+        <select value={operator} onChange={e => setOperator(e.target.value as typeof operator)} className="border rounded px-2 py-1.5 text-sm">
+          {SEGMENT_OPERATORS.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <input value={value} onChange={e => setValue(e.target.value)} placeholder="value" className="border rounded px-2 py-1.5 text-sm w-28" />
+      </div>
+      <p className="text-xs text-gray-400">Single-criterion segments only for now — edit the row directly in the database for multi-criteria logic.</p>
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2 pt-2">
+        <button onClick={handleCreate} disabled={busy || !name || !value} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create</button>
+        <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+      </div>
+    </div>
+  );
+}
 
 function SegmentationTab() {
   const [segments, setSegments] = useState<SegmentRow[]>([]);
-  useEffect(() => { fetchJson<{ segments: SegmentRow[] }>('/api/crm/segments').then(d => setSegments(d?.segments ?? [])); }, []);
+  const [customSegments, setCustomSegments] = useState<SegmentRow[]>([]);
+  const load = () => fetchJson<{ segments: SegmentRow[]; customSegments: SegmentRow[] }>('/api/crm/segments').then(d => {
+    setSegments(d?.segments ?? []); setCustomSegments(d?.customSegments ?? []);
+  });
+  useEffect(() => { load(); }, []);
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
         <h3 className="text-sm font-semibold text-gray-700">Customer Segments</h3>
-        <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Create Segment</button>
+        <NewSegmentForm onCreated={load} />
       </div>
       <div className="grid md:grid-cols-2 gap-3">
-        {segments.map(seg => (
-          <div key={seg.name} className="border rounded-lg p-4">
+        {[...segments, ...customSegments].map(seg => (
+          <div key={seg.id ?? seg.name} className="border rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div>
                 <div className="font-semibold text-sm">{seg.name}</div>
                 <div className="text-xs text-gray-500 mt-0.5">{seg.desc}</div>
               </div>
-              <span className="text-lg font-bold text-blue-600">{seg.count}</span>
+              {seg.computed
+                ? <span className="text-lg font-bold text-blue-600">{seg.count}</span>
+                : <span className="text-xs text-gray-400 italic">not yet computed</span>}
             </div>
             <div className="flex gap-2 mt-3">
               <button className="text-xs text-blue-600 hover:underline">View</button>
@@ -337,20 +393,139 @@ function VoiceOfCustomerTab() {
 }
 
 interface CampaignRow { id: string; name: string; status: string; segment: string; sent: number; ctrPct: number; conversions: number }
+interface BrandKitOption { id: string; name: string; isDefault: boolean }
+
+const OBJECTIVES = ['awareness', 'lead', 'registration', 'booking', 'sale', 'retention'] as const;
+const OFFER_TYPES = ['trial', 'membership', 'workshop', 'retreat', 'referral', 'promotional', 'educational'] as const;
+const CHANNEL_OPTIONS = ['instagram', 'facebook', 'email', 'sms', 'banner', 'blog', 'youtube'] as const;
+
+const CAMPAIGN_ACTIONS: Record<string, { action: string; label: string; color: string }[]> = {
+  draft:     [{ action: 'approve', label: 'Approve', color: 'text-green-600' }],
+  approved:  [{ action: 'launch', label: 'Launch', color: 'text-indigo-600' }],
+  active:    [{ action: 'pause', label: 'Pause', color: 'text-amber-600' }, { action: 'complete', label: 'Complete', color: 'text-blue-600' }],
+  paused:    [{ action: 'resume', label: 'Resume', color: 'text-green-600' }, { action: 'complete', label: 'Complete', color: 'text-blue-600' }],
+  completed: [{ action: 'archive', label: 'Archive', color: 'text-gray-500' }],
+  archived:  [],
+};
+
+function NewCampaignForm({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [brandKits, setBrandKits] = useState<BrandKitOption[]>([]);
+  const [name, setName] = useState('');
+  const [objective, setObjective] = useState<typeof OBJECTIVES[number]>('awareness');
+  const [offerType, setOfferType] = useState<typeof OFFER_TYPES[number]>('promotional');
+  const [channels, setChannels] = useState<string[]>(['email']);
+  const [targetPersona, setTargetPersona] = useState('');
+  const [budgetPlannedCAD, setBudgetPlannedCAD] = useState('0');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [brandKitId, setBrandKitId] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) fetchJson<{ brandKits: BrandKitOption[] }>('/api/brand-kits').then(d => setBrandKits(d?.brandKits ?? []));
+  }, [open]);
+
+  function toggleChannel(ch: string) {
+    setChannels(prev => prev.includes(ch) ? prev.filter(c => c !== ch) : [...prev, ch]);
+  }
+
+  async function handleCreate() {
+    setBusy(true); setError(null);
+    const res = await fetch('/api/crm/campaigns', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, objective, offerType, channels,
+        targetPersona: targetPersona.split(',').map(p => p.trim()).filter(Boolean),
+        budgetPlannedCAD: Number(budgetPlannedCAD) || 0,
+        startDate, endDate, brandKitId: brandKitId || undefined,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setOpen(false); setName(''); setStartDate(''); setEndDate(''); onCreated(); }
+    else setError(body.error ?? 'Failed to create campaign.');
+  }
+
+  if (!open) return <button onClick={() => setOpen(true)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ New Campaign</button>;
+  return (
+    <div className="bg-white border rounded-lg p-4 space-y-2 w-full max-w-lg">
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Campaign name" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <div className="flex gap-2">
+        <select value={objective} onChange={e => setObjective(e.target.value as typeof objective)} className="flex-1 border rounded px-2 py-1.5 text-sm">
+          {OBJECTIVES.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <select value={offerType} onChange={e => setOfferType(e.target.value as typeof offerType)} className="flex-1 border rounded px-2 py-1.5 text-sm">
+          {OFFER_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
+      <div>
+        <p className="text-xs text-gray-500 mb-1">Channels</p>
+        <div className="flex flex-wrap gap-1.5">
+          {CHANNEL_OPTIONS.map(ch => (
+            <button key={ch} type="button" onClick={() => toggleChannel(ch)}
+              className={`text-xs px-2 py-1 rounded-full ${channels.includes(ch) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{ch}</button>
+          ))}
+        </div>
+      </div>
+      <input value={targetPersona} onChange={e => setTargetPersona(e.target.value)} placeholder="target persona, comma separated (e.g. beginner, adult)" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <div className="flex gap-2">
+        <input type="number" min={0} value={budgetPlannedCAD} onChange={e => setBudgetPlannedCAD(e.target.value)} placeholder="Budget (CAD)" className="flex-1 border rounded px-2 py-1.5 text-sm" />
+        <select value={brandKitId} onChange={e => setBrandKitId(e.target.value)} className="flex-1 border rounded px-2 py-1.5 text-sm">
+          <option value="">No brand kit</option>
+          {brandKits.map(b => <option key={b.id} value={b.id}>{b.name}{b.isDefault ? ' (default)' : ''}</option>)}
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <label className="flex-1 text-xs text-gray-500">Start
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm" />
+        </label>
+        <label className="flex-1 text-xs text-gray-500">End
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm" />
+        </label>
+      </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2 pt-2">
+        <button onClick={handleCreate} disabled={busy || !name || !channels.length || !startDate || !endDate} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create</button>
+        <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+      </div>
+    </div>
+  );
+}
 
 function CampaignsTab() {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
-  useEffect(() => { fetchJson<{ campaigns: CampaignRow[] }>('/api/crm/campaigns').then(d => setCampaigns(d?.campaigns ?? [])); }, []);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    fetchJson<{ campaigns: CampaignRow[] }>('/api/crm/campaigns').then(d => setCampaigns(d?.campaigns ?? []));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function transition(id: string, action: string) {
+    setBusyId(id); setError(null);
+    const res = await fetch(`/api/crm/campaigns/${id}/status`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusyId(null);
+    if (!res.ok) setError(body.error ?? `Failed to ${action} campaign.`);
+    load();
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-start">
         <h3 className="text-sm font-semibold">CRM Campaigns</h3>
-        <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ New Campaign</button>
+        <NewCampaignForm onCreated={load} />
       </div>
-      {campaigns.length === 0 ? <EmptyState message="No campaigns yet — create one in Marketing Automation." /> : (
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      {campaigns.length === 0 ? <EmptyState message="No campaigns yet — create one above." /> : (
       <div className="border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Campaign', 'Segment', 'Impressions', 'Click Rate', 'Conversions', 'Status'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Campaign', 'Segment', 'Impressions', 'Click Rate', 'Conversions', 'Status', 'Actions'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-gray-100">
             {campaigns.map(c => (
               <tr key={c.id} className="hover:bg-gray-50">
@@ -360,6 +535,15 @@ function CampaignsTab() {
                 <td className="px-3 py-2">{c.ctrPct}%</td>
                 <td className="px-3 py-2 font-bold text-green-700">{c.conversions}</td>
                 <td className="px-3 py-2"><Badge color={c.status === 'active' ? 'green' : c.status === 'completed' ? 'blue' : 'gray'}>{c.status}</Badge></td>
+                <td className="px-3 py-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {(CAMPAIGN_ACTIONS[c.status] ?? []).map(a => (
+                      <button key={a.action} disabled={busyId === c.id} onClick={() => transition(c.id, a.action)} className={`text-xs hover:underline disabled:opacity-50 ${a.color}`}>
+                        {busyId === c.id ? '…' : a.label}
+                      </button>
+                    ))}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

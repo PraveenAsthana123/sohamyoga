@@ -1,0 +1,21 @@
+services:
+  skyvern:
+    ports: !override
+      - "127.0.0.1:${SOHAM_SKYVERN_API_PORT:-18000}:8000"
+      - "127.0.0.1:${SOHAM_SKYVERN_STREAM_PORT:-16080}:6080"
+    environment:
+      - ENABLE_OLLAMA=true
+      - LLM_KEY=OLLAMA
+      - OLLAMA_MODEL=${SOHAM_SKYVERN_OLLAMA_MODEL:-phi4-mini:latest}
+      - OLLAMA_SERVER_URL=http://host.docker.internal:11434
+      - OLLAMA_SUPPORTS_VISION=false
+      - SKYVERN_TELEMETRY=false
+  skyvern-ui:
+    ports: !override
+      - "127.0.0.1:${SOHAM_SKYVERN_UI_PORT:-18080}:8080"
+      - "127.0.0.1:${SOHAM_SKYVERN_ARTIFACT_PORT:-19090}:9090"
+    environment:
+      - VITE_API_BASE_URL=http://127.0.0.1:${SOHAM_SKYVERN_API_PORT:-18000}/api/v1
+      - VITE_WSS_BASE_URL=ws://127.0.0.1:${SOHAM_SKYVERN_API_PORT:-18000}/api/v1
+      - VITE_ARTIFACT_API_BASE_URL=http://127.0.0.1:${SOHAM_SKYVERN_ARTIFACT_PORT:-19090}
+

@@ -4,6 +4,13 @@ import { databaseConfigured, query } from './postgres';
 type RunStart = { componentKey: string; operationType: string; operationName: string; tenantId?: string | null; organizationId?: string | null; correlationId?: string; actorType?: string; actorId?: string; source?: string; requestSummary?: string; input?: Record<string, unknown> };
 type RunHandle = { id: string; traceId: string; startedAt: number };
 
+export class CircuitOpenError extends Error {
+  constructor(public readonly circuitKey: string, public readonly retryAt: Date | null) {
+    super(`Circuit ${circuitKey} is open${retryAt ? ` until ${retryAt.toISOString()}` : ''}.`);
+    this.name = 'CircuitOpenError';
+  }
+}
+
 const safe = (value: unknown) => JSON.stringify(value ?? {}).slice(0, 100_000);
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
 
@@ -49,11 +56,41 @@ export async function recordCircuit(componentKey: string, circuitKey: string, su
     ON CONFLICT(tenant_id,component_id,circuit_key) DO UPDATE SET
       failure_count=CASE WHEN $3 THEN 0 ELSE circuit_breaker_state.failure_count+1 END,
       success_count=CASE WHEN $3 THEN circuit_breaker_state.success_count+1 ELSE circuit_breaker_state.success_count END,
-      state=CASE WHEN NOT $3 AND circuit_breaker_state.failure_count+1 >= circuit_breaker_state.failure_threshold THEN 'open' ELSE CASE WHEN $3 THEN 'closed' ELSE circuit_breaker_state.state END END,
+      state=CASE WHEN $3 THEN 'closed' WHEN circuit_breaker_state.state='half_open' OR circuit_breaker_state.failure_count+1 >= circuit_breaker_state.failure_threshold THEN 'open' ELSE circuit_breaker_state.state END,
       opened_at=CASE WHEN NOT $3 AND circuit_breaker_state.failure_count+1 >= circuit_breaker_state.failure_threshold THEN now() ELSE circuit_breaker_state.opened_at END,
       next_attempt_at=CASE WHEN NOT $3 AND circuit_breaker_state.failure_count+1 >= circuit_breaker_state.failure_threshold THEN now()+make_interval(secs=>$5) ELSE circuit_breaker_state.next_attempt_at END,
       last_success_at=CASE WHEN $3 THEN now() ELSE circuit_breaker_state.last_success_at END,last_failure_at=CASE WHEN NOT $3 THEN now() ELSE circuit_breaker_state.last_failure_at END,updated_at=now()`,
     [componentKey,circuitKey,success,failureThreshold,recoverySeconds]); } catch { /* non-fatal */ }
+}
+
+/**
+ * Enforce the persistent breaker before an external call. Once the cooldown
+ * expires, exactly one caller atomically claims the half-open recovery probe;
+ * concurrent callers continue to fail fast until that probe records success.
+ */
+export async function assertCircuitAllows(componentKey: string, circuitKey: string): Promise<void> {
+  if (!databaseConfigured()) return;
+  const result = await query<{ state: 'closed'|'open'|'half_open'; next_attempt_at: Date | string | null; probe_claimed: boolean }>(`
+    WITH candidate AS (
+      SELECT s.id,s.state,s.next_attempt_at
+      FROM circuit_breaker_state s
+      JOIN platform_component c ON c.id=s.component_id
+      WHERE c.component_key=$1 AND s.circuit_key=$2 AND s.tenant_id IS NULL
+      FOR UPDATE
+    ), claimed AS (
+      UPDATE circuit_breaker_state s SET state='half_open',updated_at=now()
+      FROM candidate c
+      WHERE s.id=c.id AND c.state='open' AND c.next_attempt_at<=now()
+      RETURNING s.state,s.next_attempt_at,TRUE AS probe_claimed
+    )
+    SELECT state,next_attempt_at,probe_claimed FROM claimed
+    UNION ALL
+    SELECT state,next_attempt_at,FALSE AS probe_claimed FROM candidate
+    WHERE NOT EXISTS (SELECT 1 FROM claimed)
+    LIMIT 1`, [componentKey,circuitKey]);
+  const row = result.rows[0];
+  if (!row || row.state === 'closed' || row.probe_claimed) return;
+  throw new CircuitOpenError(circuitKey, row.next_attempt_at ? new Date(row.next_attempt_at) : null);
 }
 
 export async function recordModelInvocation(run: RunHandle, modelName: string, input: { status: 'succeeded'|'failed'|'timeout'; purpose?: string; promptChars?: number; outputChars?: number; latencyMs?: number }) {

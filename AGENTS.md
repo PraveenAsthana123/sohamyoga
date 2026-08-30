@@ -5,47 +5,51 @@
 This file contains project context and decisions. AI assistants should read this file for context. MCP tools are an optional enhancement for richer interaction when connected.
 
 ## Project Context
-- **Total Decisions:** 40
-- **Known Topics:** ollama, ai, api, how, architecture, auth, cli, security, auto-seeded, seeded, monitoring, observability, testing, bug-fix, deployment
+- **Total Decisions:** 183
+- **Known Topics:** how, api, bug-fix, security, migration, verification, architecture, ollama, testing, ai, postgres, auth, audit, docker, typescript
 
 ## Current State
 **Repository:** sohamyoga
 **Project Type:** Python Project | Python
 **Branch:** main
-**Tracking:** ahead 1, behind 0
+**Tracking:** ahead 8, behind 0
 
 **Recent Commits:**
-- `c7a4f55 fix: consistent always-blue navbar across all pages`
-- `c5cf942 fix: portable frontend — relative API paths for tunnel + remote access`
-- `668ca4d test: extend matrix to 83/83 — UsersController CRUD + bootstrap-artifact ignores`
-- `ec4b5ea test: add comprehensive API matrix — 74/74 endpoints inc. CRUD lifecycles`
-- `59cd6bd test: add advanced API + Playwright matrix; fix frontend healthcheck IPv4`
+- `35dedf9 feat: real asana library (15 poses) + constrain AiCoachJob to real poses, not open generation`
+- `748bb54 feat: real software-readiness audit script for the AI video factory architecture`
+- `af67de3 fix: public site was a "yoga products" e-commerce shell, not a yoga studio — real dead-link bugs found live via browser`
+- `0345f38 feat: MCP gateway for the 14 non-Postiz platforms — real registry + 2 live tools + admin UI`
+- `9c7e366 fix: wire real customer self-registration — was a fake stub, backend created no Postgres row at all`
 
 **Working Tree:**
-- M .env.template
+- M .continuity/SESSION_NOTES.md
+- M .continuity/decisions.json
+- M .continuity/decisions.jsonl
+- M .cursorrules
+- M .github/workflows/ci.yml
+- M .github/workflows/deploy.yml
 - M .gitignore
-- D SLPSystems/SLPSystems.Web/.dockerignore
-- D SLPSystems/SLPSystems.Web/Controllers/AdminMonitoringController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/AdminDashboardController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/AuthController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/BlogController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/CaseStudiesController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/ContactController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/CustomerAuthController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/HomeController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/IndustriesController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/JobsController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/LiveChatController.cs
-- D SLPSystems/SLPSystems.Web/Controllers/Api/NewsletterController.cs
+- M AGENTS.md
+- M GEMINI.md
+- M ai-agents/mautic/deep/scripts/install.sh
+- M docker-compose.yml
+- M scripts/migrate-domain-schemas.sh
+- M scripts/setup_ai_agent_stack.sh
+- M sohamyoga-frontend/Dockerfile
+- M sohamyoga-frontend/Dockerfile.cron
 
 
 ## Decision Freshness
-**0 stale decisions** · 1 need review · Oldest unreviewed: 2026-03-06
+**0 stale decisions** · 3 need review · 1 superseded ready to archive · Oldest unreviewed: 2026-03-03
 
 Stale decisions requiring attention:
-1. **msdz1udw-9800qd** (score 35) — "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate lim" — 22 weeks old, status: outdated, never reviewed
+1. **msdz1udw-9800qd** (score 36) — "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate lim" — 25 weeks old, status: outdated, never reviewed
+2. **msdz1uhn-ieufsg** (score 36) — "Why: fix: resolve slug URLs, add admin pages, polish UI, add new services?" — 25 weeks old, status: outdated, never reviewed
+3. **msdz1usr-q3kbhy** (score 30) — "Why: feat: initial project commit — SLP Systems Portal?" — 26 weeks old, never reviewed
 
 When referencing these decisions, note their staleness. Verify they still reflect current project state before recommending based on them.
+
+1 decisions are eligible for Dream consolidation. Suggest running the Dream tool to archive stale decisions, merge duplicates, and resolve contradictions.
 
 ## Operating Contract
 1. **Load context, then search before you change.** MCP-capable agents: call `get_quick_context` at session start, then `search_decisions` before proposing changes. Shell/CLI-only agents (e.g. Copilot): run `continuity context`, then `continuity search "<topic>"` (`grep -i "<topic>" .continuity/decisions.jsonl` if the CLI is unavailable). Name any conflict with a prior decision and let the user choose. **When a prior decision informs your answer, cite it inline — "per decision-abc123, we chose X because Y" — so the user can see the memory being used, not just trust that it was.** `search_decisions` returns a `sourceTag` per result; use it.
@@ -70,28 +74,30 @@ Describe how this repository prefers to work with AI assistants.
 ---
 
 ## Recent Decisions
-1. **decision-b5bf3d7b** (8/8/2026) [facebook, how]
-   - Q: How should Meta developer-app setup be represented in SohamYoga?
-   - A: Added an admin Meta Setup Assistant with copyable domain/privacy/terms/deletion/callback values, secret-clearing credential submission, permissions/review checklist and links to compose/all providers. Added public privacy, terms and data-deletion pages and a Facebook callback handoff to Postiz. Secured social credential GET/POST with requireAdmin; anonymous writes now return 401.
+1. **decision-7cf76755** (8/30/2026) [deployment, git]
+   - Q: What belongs in the all-module SohamYoga GitHub release?
+   - A: Include first-party source modules, schemas, tests, documentation, examples, and deployment configuration. Exclude populated environments, virtual environments, node_modules, generated build/test artifacts, TypeScript build state, databases/datasets, and the nested third-party Skyvern checkout; those are reproducible runtime/vendor state rather than SohamYoga source.
 
-2. **decision-ab3df2d6** (8/8/2026) [cli, how]
-   - Q: How should an operator collect social developer-app setup data from the command line?
-   - A: Added global soham-social-setup interactive CLI. It prompts for organization/email/domain/policy URLs/providers, opens official portals optionally, displays exact callbacks, reads secrets silently, writes permission-0600 local files, backs up prior config, registers only non-secret status in integration_master and validates provider completeness. It cannot bypass legal/identity/app review.
+2. **decision-170621da** (8/30/2026) [api, bug-fix]
+   - Q: How was the production build failure for the shared TypeScript backend package corrected?
+   - A: Configured Next.js to transpile @sohamyoga/shared-backend, moved outputFileTracingRoot into the Next 14 experimental configuration where its schema accepts it, and normalized remaining fallback API origins to backend port 5070. The earlier standalone build parsed raw TypeScript from the linked package and failed.
 
-3. **decision-766569d9** (8/8/2026) [accessibility, bug-fix]
-   - Q: Which initial accessibility defects were repaired?
-   - A: Added an accessible newsletter-submit name, promoted login page title to h1, strengthened consent controls, catalogue filters/tags/capacity/CTA contrast, and footer legal-link contrast. Remaining axe failures stay in the report for subsequent repairs.
+3. **decision-d3014a40** (8/30/2026) [configuration, git]
+   - Q: Which GitHub repository is the canonical SohamYoga origin?
+   - A: Changed origin from the legacy PraveenAsthana123/yoga.git repository to the user-specified PraveenAsthana123/sohamyoga.git repository before the all-module release push.
 
-4. **decision-8988fdc8** (8/8/2026) [accessibility, auth]
-   - Q: What global policy governs end-to-end product quality?
-   - A: Added OLLAMA_GLOBAL_POLICY section 15: every change maps to actor/story and positive, negative, data, role, auth, accessibility and observability tests; deterministic Playwright/Chrome CDP/axe is authoritative; Stagehand/CUA is optional and time-bounded; failed evidence cannot be hidden; self-heal cannot silently rewrite or publish.
+4. **decision-7da92961** (8/30/2026) [build, ci]
+   - Q: What Node runtime is required for reproducible SohamYoga frontend builds?
+   - A: Standardized local guidance, CI, frontend Docker build/runtime, and cron on Node 22, with package.json enforcing Node >=22.13.0. The dependency tree includes packages that reject Node 18 and some that require Node 22, so the host's Node 18 cannot be treated as a supported build environment.
 
-5. **decision-4ca3b07d** (8/8/2026) [how, monitoring]
-   - Q: How should automated self-healing react to quality failures?
-   - A: Added a 30-minute user systemd quality timer. It may restart only known unhealthy Soham frontend/backend services, retains failure artifacts and queues an Ollama repair-review plan. It never silently edits code, publishes externally or performs destructive operations. Stagehand is capped at 60 seconds.
+5. **decision-e68e120b** (8/30/2026) [api, bug-fix]
+   - Q: How were the immediate SohamYoga build, lint, deploy, and local database exposure blockers corrected?
+   - A: Repointed CI and deploy workflows from obsolete SLPSystems/slp-frontend paths to SohamYoga/sohamyoga-frontend, aligned the public API build default with backend port 5070, added the missing Next.js ESLint configuration, renamed the image prefix to sohamyoga, and changed PostgreSQL publishing to loopback by default with an explicit POSTGRES_BIND_ADDRESS override.
+
+*3 unreviewed drafts from auto-capture pending review — `continuity log` the real rationale or update_decision to expand them.*
 
 ---
 
-*Auto-generated by Continuity | Updated: 2026-08-09*
+*Auto-generated by Continuity | Updated: 2026-08-30*
 
 <!-- END CONTINUITY AUTO-GENERATED CONTENT -->

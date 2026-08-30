@@ -50,13 +50,16 @@ export default function PlyrVideo({
       }
 
       if (videoRef.current) {
+        // title isn't a Plyr Options property (checked @types/plyr) — set
+        // it as a real HTML attribute on the underlying <video> element,
+        // which is the standard accessible-name mechanism Plyr itself reads.
+        videoRef.current.title = title ?? '';
         playerRef.current = new Plyr(videoRef.current, {
           controls: [
             'play-large', 'play', 'progress', 'current-time',
             'mute', 'volume', 'captions', 'settings', 'fullscreen',
           ],
           autoplay,
-          title: title ?? '',
         });
       }
     };

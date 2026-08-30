@@ -13,10 +13,10 @@ export interface CampaignProps {
   name: string;
   description: string;
   type: CampaignType;
-  channels: CampaignChannel[];
+  channels: readonly CampaignChannel[];
   status: CampaignStatus;
   audienceSegmentId: string;
-  contentVariantIds: string[];     // 1 for standard, 2 for A/B
+  contentVariantIds: readonly string[];     // 1 for standard, 2 for A/B
   couponId?: string;               // optional promo code attached
   scheduledAt?: Date;
   startedAt?: Date;
@@ -34,7 +34,7 @@ export class CampaignCreatedEvent {
 }
 export class CampaignLaunchedEvent {
   readonly type = "CampaignLaunched" as const;
-  constructor(public readonly campaignId: string, public readonly channels: CampaignChannel[]) {}
+  constructor(public readonly campaignId: string, public readonly channels: readonly CampaignChannel[]) {}
 }
 
 export class Campaign {

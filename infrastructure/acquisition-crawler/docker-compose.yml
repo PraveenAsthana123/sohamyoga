@@ -1,0 +1,18 @@
+services:
+  crawler:
+    build: .
+    image: sohamyoga-acquisition-crawler:latest
+    environment:
+      CRAWL_MAX_PAGES: "${CRAWL_MAX_PAGES:-50}"
+      CRAWL_DELAY_MS: "${CRAWL_DELAY_MS:-1500}"
+      CRAWL_RUN_ID: "${CRAWL_RUN_ID:-manual}"
+    volumes:
+      - ./data:/data
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

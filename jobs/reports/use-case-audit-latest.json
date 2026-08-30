@@ -1,0 +1,2509 @@
+{
+  "summary": {
+    "generated_at": "2026-08-30T18:54:48.268044+00:00",
+    "total_stubs": 48,
+    "fully_present": 48,
+    "avg_completion_pct": 42.9,
+    "total_todo_count": 1536,
+    "total_lines": 26880,
+    "stubs_with_22_headers": 48
+  },
+  "stubs": [
+    {
+      "stub_id": "a1-deep-learning-photo-triage",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "a2-cv-classification-property-risk",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "a3-gan-synthetic-fraud-augmentation",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "a4-vae-network-anomaly",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "a5-content-based-policy-recommender",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "b1-cv-segmentation-roof-damage",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "b2-collaborative-agent-skill-routing",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "b3-anomaly-accounting-journal",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "b4-claims-total-loss-determination",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "b5-underwriting-ft-transformer-uncertainty",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "c1-cnn-1d-audio-call-fnol",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "c2-transformer-long-doc-policy-clause",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "c3-lstm-payment-failure-sequence",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "c4-tft-catastrophe-loss-forecast",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "c5-autoencoder-customer-feature-compression",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d1-rl-treaty-allocation-ppo",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d10-speech-bilingual-stt-tts",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d11-vector-similar-claim-retrieval",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d12-reranker-regulation-search",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d13-topic-drift-customer-complaints",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d14-time-series-dl-revenue-forecast",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d15-counterfactual-denial-explanation",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d16-deep-ocr-handwriting-policy",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d17-nlu-intent-classification-routing",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d18-explainability-as-service",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d2-gnn-fraud-ring-detection",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d3-causal-pricing-uplift-econml",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d4-federated-cross-tenant-fraud",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d5-survival-time-to-claim-reactivation",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d6-self-supervised-customer-embedding",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d7-active-learning-adjudication",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d8-knowledge-graph-regulation-reasoner",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "d9-multimodal-accident-report-clip",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e1-rlhf-chatbot-tuning",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e10-mpc-portfolio-optimal-control",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e2-statistical-ai-hypothesis-engine",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e3-probability-ai-bayesian-loss-cost",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e4-conformal-prediction-uncertainty",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e5-mixture-density-network-cat-loss",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e6-bayesian-optimization-hp-search",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e7-neural-ode-irregular-time-series",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e8-adversarial-robustness-evaluator",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "e9-active-inference-pomdp-adjudication",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "f1-hybrid-ml-rag-claim-adjudication",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "f2-hybrid-dl-rag-damage-photo-repair",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "f3-hybrid-cv-rag-roof-cost",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "f4-hybrid-ml-cv-nlp-rag-multimodal",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    },
+    {
+      "stub_id": "f5-hybrid-agentic-rag-mcp-workflow",
+      "files_present": 8,
+      "files_total": 8,
+      "total_todo": 32,
+      "total_lines": 560,
+      "completion_pct": 42.9,
+      "headers_22_present": 22,
+      "headers_22_total": 22,
+      "per_file": {
+        "use-case.md": {
+          "present": true,
+          "todo": 21,
+          "lines": 158
+        },
+        "data-quality-checklist.md": {
+          "present": true,
+          "todo": 11,
+          "lines": 82
+        },
+        "analysis-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 43
+        },
+        "responsible-ai-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 61
+        },
+        "pipeline-checklist.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 52
+        },
+        "evaluation-metrics.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 72
+        },
+        "testing-coverage.json": {
+          "present": true,
+          "todo": 0,
+          "lines": 67
+        },
+        "README.md": {
+          "present": true,
+          "todo": 0,
+          "lines": 25
+        }
+      }
+    }
+  ]
+}

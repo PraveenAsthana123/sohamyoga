@@ -1,16 +1,37 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-const PLAN_DETAILS: Record<string, { name: string; price: number; interval: string }> = {
-  monthly: { name: "Monthly Membership", price: 49, interval: "month" },
-  annual:  { name: "Annual Membership",  price: 399, interval: "year"  },
-};
+interface PlanPrice { amount: number; currency: string; billingCycle: string }
+interface Plan { slug: string; name: string; planType: string; description: string; prices: PlanPrice[] }
 
 function CheckoutForm() {
   const params = useSearchParams();
-  const planId = params.get("plan") || "monthly";
-  const plan = PLAN_DETAILS[planId] ?? PLAN_DETAILS.monthly;
+  const planSlug = params.get("plan") || "gold";
+  const cycle = params.get("cycle") || "monthly";
+
+  const [plans, setPlans] = useState<Plan[] | null>(null);
+  useEffect(() => {
+    fetch('/api/plans', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setPlans(d?.plans ?? []));
+  }, []);
+
+  if (plans === null) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-400 text-sm">Loading plan details…</div>;
+  }
+
+  const plan = plans.find(p => p.slug === planSlug) ?? plans[0];
+  const price = plan?.prices.find(p => p.billingCycle === cycle) ?? plan?.prices[0];
+  const interval = price?.billingCycle === 'annual' ? 'year' : price?.billingCycle === 'monthly' ? 'month' : price?.billingCycle ?? '';
+
+  if (!plan || !price) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-6 flex items-start justify-center pt-16">
+        <div className="w-full max-w-lg bg-white rounded-2xl shadow-sm p-6 text-center text-gray-500">
+          No active membership plans are configured yet.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-6 flex items-start justify-center pt-16">
@@ -25,11 +46,11 @@ function CheckoutForm() {
           <h2 className="font-semibold text-gray-900">Order Summary</h2>
           <div className="flex justify-between text-gray-600">
             <span>{plan.name}</span>
-            <span>${plan.price}/{plan.interval}</span>
+            <span>${price.amount}/{interval}</span>
           </div>
           <div className="border-t pt-3 flex justify-between font-bold text-gray-900">
             <span>Total today</span>
-            <span>${plan.price}</span>
+            <span>${price.amount}</span>
           </div>
         </div>
 
@@ -47,10 +68,10 @@ function CheckoutForm() {
             </div>
           </div>
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm text-yellow-800">
-            Stripe integration coming soon. You will be charged ${plan.price} after setup.
+            Stripe integration coming soon. You will be charged ${price.amount} after setup.
           </div>
           <button disabled className="w-full bg-purple-600 text-white py-4 rounded-xl font-semibold opacity-50 cursor-not-allowed">
-            Pay ${plan.price} — {plan.name}
+            Pay ${price.amount} — {plan.name}
           </button>
           <p className="text-center text-xs text-gray-400">Secured by Stripe · Cancel anytime</p>
         </div>

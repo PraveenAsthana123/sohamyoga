@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: "${POSTGRES_USER:-sohamyoga}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me-before-production}"
     ports:
-      - "${POSTGRES_PORT:-5437}:5432"
+      - "${POSTGRES_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-5437}:5432"
     volumes:
       - sohamyoga-postgres-data:/var/lib/postgresql/data
       - ./sohamyoga-frontend/src/domain/core/db-foundation.sql:/docker-entrypoint-initdb.d/001-foundation.sql:ro
@@ -63,7 +63,7 @@ services:
       context: ./sohamyoga-frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:5062}"
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:5070}"
     image: sohamyoga-frontend:latest
     container_name: sohamyoga-frontend
     restart: unless-stopped
@@ -117,6 +117,11 @@ services:
       OLLAMA_MODEL_FAST: "${OLLAMA_MODEL_FAST:-phi4-mini:latest}"
       OLLAMA_MODEL_CODE: "${OLLAMA_MODEL_CODE:-qwen2.5-coder:latest}"
       OLLAMA_MODEL_STRONG: "${OLLAMA_MODEL_STRONG:-qwen2.5:latest}"
+      # Generate/copy this from the authenticated Postiz UI (Settings -> Public API).
+      # Empty is intentionally fail-closed: FacebookAutoPublishJob logs a blocker and
+      # publishes nothing until a real organization key is supplied.
+      POSTIZ_PUBLIC_API_KEY: "${POSTIZ_PUBLIC_API_KEY:-}"
+      POSTIZ_PUBLIC_API_BASE: "${POSTIZ_PUBLIC_API_BASE:-http://127.0.0.1:15081/public/v1}"
     depends_on:
       postgres:
         condition: service_healthy

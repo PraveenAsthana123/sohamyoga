@@ -1,0 +1,29 @@
+name: voiceagent
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: voiceagent-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-voiceagent}"
+      POSTGRES_USER: "${POSTGRES_USER:-voiceagent}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me-before-production}"
+    ports:
+      - "${POSTGRES_PORT:-5438}:5432"
+    volumes:
+      - voiceagent-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-voiceagent} -d ${POSTGRES_DB:-voiceagent}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - voiceagent-network
+
+volumes:
+  voiceagent-postgres-data:
+
+networks:
+  voiceagent-network:
+    driver: bridge

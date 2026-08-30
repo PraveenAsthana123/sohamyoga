@@ -1,0 +1,38 @@
+# .github/workflows/audits.yml — block PRs that regress audit invariants.
+# Per global §47.6 (DevSecOps shift-left) + §70 (cron audit pattern).
+#
+# Runs 3 audits on every push + PR. Any non-zero exit fails the build.
+
+name: Audits
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: §64.22 RECOMMENDATION audit (21 cells)
+        run: python3 scripts/audit_recommender_flavors.py
+
+      - name: §64.29 GENERAL §64 audit (315 cells)
+        run: python3 scripts/audit_dept_artifacts.py
+
+      - name: §58 + §63 FOLDER-README audit (50 tools × 4 invariants)
+        run: python3 scripts/audit_folder_readmes.py
+      - name: §90 L15 VOICE AI E2E audit (7 checks)
+        run: python3 scripts/audit_voice_ai_artifacts.py

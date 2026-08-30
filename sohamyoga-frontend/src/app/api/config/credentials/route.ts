@@ -3,6 +3,7 @@
 // NEVER stored in: database, .env, logs, or git.
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/admin-auth';
 
 const OPENBAO_BASE  = process.env.OPENBAO_ADDR       ?? 'http://localhost:8200';
 const OPENBAO_TOKEN = process.env.OPENBAO_ROOT_TOKEN ?? '';
@@ -12,12 +13,13 @@ const ALLOWED_PORTALS = new Set([
   'tiktok_biz', 'pinterest', 'reddit', 'discord', 'telegram',
   'fb_developers', 'google_cloud', 'x_developer', 'linkedin_dev', 'tiktok_dev', 'discord_dev',
   'postiz', 'mautic', 'matomo', 'n8n', 'activepieces', 'keycloak',
+  'openai',
   'custom',
 ]);
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  // TODO: verify admin session — Keycloak JWT check
-  // const token = req.headers.get('Authorization');
+export async function POST(req: NextRequest): Promise<Response> {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
 
   let body: unknown;
   try { body = await req.json(); } catch {
@@ -70,7 +72,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // GET /api/config/credentials — list which portals have saved credentials (names only, no values)
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+
   try {
     const res = await fetch(`${OPENBAO_BASE}/v1/secret/metadata/sohamyoga-portal/portals?list=true`, {
       headers: { 'X-Vault-Token': OPENBAO_TOKEN },

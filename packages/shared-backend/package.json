@@ -1,0 +1,8 @@
+{
+  "name": "@sohamyoga/shared-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real backend code shared between sohamyoga-frontend and market-research-portal — Ollama client with circuit breaker, and the API-error-log wrapper. Deduplicated 2026-08-24 after both apps independently grew the same logic.",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

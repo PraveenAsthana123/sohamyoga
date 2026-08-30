@@ -7,17 +7,24 @@
 
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query, transaction } from '@/lib/postgres';
+import { detectQuality } from '@/domain/survey/QualityDetector';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-interface SurveyRow { id: string; status: string; confirmation_message: string | null }
+function clientIp(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || '0.0.0.0';
+}
+
+interface SurveyRow { id: string; status: string; confirmation_message: string | null; consent_required: boolean; consent_text: string }
 interface QuestionRow { id: string; type: string; text: string; is_required: boolean; rating_min: number | null; rating_max: number | null }
 
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message FROM survey WHERE slug = $1`, [params.slug]);
+  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message, consent_required, consent_text FROM survey WHERE slug = $1`, [params.slug]);
   if (!survey.rows.length) return Response.json({ error: 'Survey not found.' }, { status: 404 });
   if (survey.rows[0].status !== 'active') return Response.json({ error: 'This survey is not currently accepting responses.' }, { status: 410 });
 
@@ -29,6 +36,8 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
 
   return Response.json({
     confirmationMessage: survey.rows[0].confirmation_message,
+    consentRequired: survey.rows[0].consent_required,
+    consentText: survey.rows[0].consent_text,
     questions: questions.rows.map(q => ({
       id: q.id, type: q.type, text: q.text, required: q.is_required,
       ratingMin: q.rating_min ?? undefined, ratingMax: q.rating_max ?? undefined,
@@ -36,7 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
   });
 }
 
-interface RespondBody { token?: string; npsScore?: number; reasonText?: string }
+interface RespondBody { token?: string; npsScore?: number; reasonText?: string; consent?: boolean }
 
 export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
@@ -49,8 +58,11 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
     return Response.json({ error: 'reasonText must be 4000 characters or fewer.' }, { status: 400 });
   }
 
-  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message FROM survey WHERE slug = $1`, [params.slug]);
+  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message, consent_required, consent_text FROM survey WHERE slug = $1`, [params.slug]);
   if (!survey.rows.length) return Response.json({ error: 'Survey not found.' }, { status: 404 });
+  if (survey.rows[0].consent_required && !body.consent) {
+    return Response.json({ error: 'Consent is required to submit this survey.' }, { status: 400 });
+  }
   const surveyRow = survey.rows[0];
   if (surveyRow.status !== 'active') return Response.json({ error: 'This survey is not currently accepting responses.' }, { status: 410 });
 
@@ -82,11 +94,23 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
     invitationId = invitation.rows[0].id;
   }
 
+  const ip = clientIp(req);
+  const recentIp = await query<{ count: string }>(
+    `SELECT count(*)::text FROM survey_response
+     WHERE survey_id = $1 AND ip_address = $2::inet AND submitted_at > now() - interval '10 minutes'`,
+    [surveyRow.id, ip],
+  );
+  const quality = await detectQuality({
+    npsScore: body.npsScore,
+    reasonText: body.reasonText,
+    recentSameIpCount: Number(recentIp.rows[0]?.count ?? 0),
+  });
+
   const responseId = await transaction(async client => {
     const response = await client.query<{ id: string }>(
-      `INSERT INTO survey_response (survey_id, respondent_email, status, completion_percent, submitted_at)
-       VALUES ($1,$2,'submitted',100,now()) RETURNING id`,
-      [surveyRow.id, respondentEmail],
+      `INSERT INTO survey_response (survey_id, respondent_email, status, completion_percent, submitted_at, ip_address, consent_given, quality_flags, quality_score)
+       VALUES ($1,$2,'submitted',100,now(),$3::inet,$4,$5,$6) RETURNING id`,
+      [surveyRow.id, respondentEmail, ip, Boolean(body.consent), quality.flags, quality.score],
     );
     const rid = response.rows[0].id;
 

@@ -1,0 +1,43 @@
+{
+  "name": "market-research-portal",
+  "version": "1.0.0",
+  "description": "Standalone 17-phase market research & forecasting pipeline portal",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p ${MRP_PORT:-8086}",
+    "build": "next build",
+    "start": "next start -p ${MRP_PORT:-8086}",
+    "lint": "next lint",
+    "cron": "tsx src/cron/runner.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:tracked": "playwright test; tsx scripts/ingest-test-results.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "voice:health": "tsx scripts/sync-asterisk-health.ts"
+  },
+  "dependencies": {
+    "@sohamyoga/shared-backend": "file:../packages/shared-backend",
+    "@types/three": "^0.179.0",
+    "next": "^14.2.35",
+    "node-cron": "^4.6.0",
+    "pg": "^8.22.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.179.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.21.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.24",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.35",
+    "playwright": "^1.62.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.11",
+    "typescript": "^5.9.3"
+  }
+}

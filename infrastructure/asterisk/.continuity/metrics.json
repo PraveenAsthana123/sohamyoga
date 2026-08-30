@@ -1,0 +1,24 @@
+{
+  "totalDecisions": 2,
+  "totalSearches": 0,
+  "totalEdits": 0,
+  "totalDeletes": 0,
+  "totalExports": 0,
+  "totalHandoffs": 0,
+  "firstUse": "2026-08-20T21:52:44.331Z",
+  "lastUse": "2026-08-20T21:53:48.550Z",
+  "tags": {
+    "why": 1,
+    "how": 1,
+    "cache": 1,
+    "voice-ai": 2,
+    "asterisk": 2,
+    "bug-fix": 2,
+    "security": 1,
+    "ubuntu": 1
+  },
+  "questionsAskedTwice": 0,
+  "decisionsIgnored": 0,
+  "contextReexplained": 0,
+  "searchesWithNoResults": 0
+}

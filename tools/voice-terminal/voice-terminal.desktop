@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Voice Terminal — Codex
+Comment=Record, transcribe locally, confirm, and send a prompt to Codex
+Icon=/usr/share/icons/Humanity/devices/48/audio-input-microphone.svg
+Terminal=true
+Exec=/home/praveen/.local/bin/voice-terminal --agent codex --cwd /mnt/deepa/sohamyoga
+Categories=Development;Utility;
+StartupNotify=true

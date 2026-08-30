@@ -66,6 +66,7 @@ export class NotificationJob {
   get status()            { return this.props.status; }
   get scheduledAt()       { return this.props.scheduledAt; }
   get sentAt()            { return this.props.sentAt; }
+  get failedAt()          { return this.props.failedAt; }
   get retryCount()        { return this.props.retryCount; }
   get lastRetryAt()       { return this.props.lastRetryAt; }
   get failureReason()     { return this.props.failureReason; }

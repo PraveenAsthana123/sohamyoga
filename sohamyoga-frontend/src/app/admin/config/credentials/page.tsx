@@ -62,6 +62,11 @@ const PORTALS: PortalDef[] = [
   { key: 'discord_dev',   label: 'Discord Developers',  icon: 'D⚙', color: 'bg-indigo-100 text-indigo-600',category: 'Developer', url: 'discord.com/developers',
     fields: [{ key: 'email', label: 'Email', type: 'email', placeholder: 'your@email.com', required: true }, { key: 'password', label: 'Password', type: 'password', placeholder: '••••••••', required: true }] },
 
+  // ── AI / API ──────────────────────────────────────────────────────────────
+  { key: 'openai',        label: 'OpenAI (ChatGPT API)', icon: 'AI', color: 'bg-emerald-100 text-emerald-700', category: 'AI',      url: 'platform.openai.com/api-keys',
+    fields: [{ key: 'api_key', label: 'API Key', type: 'password', placeholder: 'sk-...', required: true }],
+    note: 'Used for real 2-way ChatGPT feedback via the official OpenAI API (Chat Completions) — not the chatgpt.com consumer site, which has no supported automation API.' },
+
   // ── Internal tools ────────────────────────────────────────────────────────
   { key: 'postiz',        label: 'Postiz',               icon: 'Pz', color: 'bg-violet-100 text-violet-700',category: 'Tools',     url: 'localhost:3000',
     fields: [{ key: 'email', label: 'Admin Email', type: 'email', placeholder: 'admin@yourdomain.com', required: true }, { key: 'password', label: 'Password', type: 'password', placeholder: '••••••••', required: true }] },
@@ -87,7 +92,7 @@ const PORTALS: PortalDef[] = [
   },
 ];
 
-const CATEGORIES = ['All', 'Social', 'Developer', 'Tools', 'Custom'];
+const CATEGORIES = ['All', 'Social', 'Developer', 'AI', 'Tools', 'Custom'];
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 

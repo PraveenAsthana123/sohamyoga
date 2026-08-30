@@ -29,6 +29,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   60_000,
   },
+  {
+    name:        'postiz-social-auto-publish',
+    schedule:    '*/5 * * * *',
+    description: 'Publish approved due Facebook and LinkedIn variants through connected Postiz integrations; complete the master draft only after all variants finish',
+    module:      'PostizSocialAutoPublishJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
 
   // ── Every 10 minutes ─────────────────────────────────────────────────────
   {
@@ -108,6 +116,60 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   30_000,
   },
 
+  // ── Every 15 minutes ─────────────────────────────────────────────────────
+  {
+    name:        'local-folder-scan',
+    schedule:    '*/15 * * * *',
+    description: 'Scan WATCHED_FOLDER_PATH for new/changed .txt/.md files; honest no-op until the env var is configured',
+    module:      'LocalFolderScanJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Every 30 minutes ─────────────────────────────────────────────────────
+  {
+    name:        'connector-token-refresh',
+    schedule:    '*/30 * * * *',
+    description: 'Proactively refresh OAuth access tokens nearing expiry for any active connector credential; honest no-op until a real connection exists',
+    module:      'ConnectorTokenRefreshJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'cta-health-check',
+    schedule:    '0 */6 * * *',
+    description: 'Re-check every non-archived CTA\'s destination URL; broken CTAs fall back to their fallback_url on the next real click',
+    module:      'CtaHealthCheckJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'google-drive-scan',
+    schedule:    '15,45 * * * *',
+    description: 'Scan connected Google Drive for new/changed Docs & Sheets; honest no-op until Google Drive is connected',
+    module:      'GoogleDriveScanJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'slack-scan',
+    schedule:    '5,35 * * * *',
+    description: 'Scan connected Slack channels for new/changed message history; honest no-op until Slack is connected',
+    module:      'SlackScanJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+
+  // ── Every 6 hours ────────────────────────────────────────────────────────
+  {
+    name:        'ingestion-source-refresh',
+    schedule:    '0 */6 * * *',
+    description: 'Re-check every registered chatgpt_shared_snapshot source for content changes, recording a new source_version when the snapshot has grown or changed',
+    module:      'IngestionSourceRefreshJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+
   // ── Daily 01:00 UTC ───────────────────────────────────────────────────────
   {
     name:        'analytics-aggregation',
@@ -178,6 +240,15 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   300_000,
   },
 
+  {
+    name:        'video-script-draft',
+    schedule:    '0 6 * * *',
+    description: 'Draft AI video script + hook lines for catalog videos with no script yet, using Ollama strong model',
+    module:      'VideoScriptDraftJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+
   // ── Daily 06:30 UTC ───────────────────────────────────────────────────────
   {
     name:        'postiz-provider-health',
@@ -204,6 +275,14 @@ export const CRON_JOBS: CronJobDef[] = [
     module:      'NewsletterDraftJob',
     enabled:     true,
     timeoutMs:   300_000,
+  },
+  {
+    name:        'market-research-pricing-digest',
+    schedule:    '0 8 * * 1',
+    description: 'Refreshes the Market Research module\'s "pricing" topic (17-layer framework) output tab with the real live pricing_plan_price snapshot plus an Ollama advisory sentence contextualizing it against the documented $30-$120/month competitor benchmark — a deterministic fact-check discards any draft that states a dollar figure not in the real snapshot',
+    module:      'MarketResearchPricingDigestJob',
+    enabled:     true,
+    timeoutMs:   60_000,
   },
   {
     name:        'community-digest',
@@ -346,6 +425,7 @@ Daily  06:00  campaign-copy-draft (Ollama)
 Daily  06:30  postiz-provider-health (Ollama)
 Mon    07:00  churn-prediction (Ollama)
 Mon    08:00  newsletter-draft (Ollama)
+Mon    08:00  market-research-pricing-digest (Ollama)
 Mon    09:00  community-digest (Ollama)
 Fri    06:00  lead-nurturing
 Fri    07:00  seo-report (Ollama)
@@ -360,5 +440,5 @@ Daily  07:00  viral-detection (Ollama)
 Thu    09:00  influencer-value (Ollama)
 1st    06:00  github-repo-scout (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 34 jobs | 23 use Ollama | 0 cloud AI tokens
+Total: 35 jobs | 24 use Ollama | 0 cloud AI tokens
 `;

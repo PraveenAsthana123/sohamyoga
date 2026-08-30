@@ -1,0 +1,1 @@
+{"name":"sohamyoga-acquisition-crawler","private":true,"type":"module","scripts":{"crawl":"node src/crawl.mjs"},"dependencies":{"crawlee":"3.18.1","robots-parser":"3.0.1"}}

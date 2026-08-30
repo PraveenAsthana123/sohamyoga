@@ -230,7 +230,7 @@ describe('NotificationJob — retry()', () => {
 
   it('clears failedAt on retry', () => {
     const j2 = makeJob({ status: 'failed', retryCount: 0 }).retry(T1);
-    expect((j2 as NotificationJob & { props: any }).props?.failedAt).toBeUndefined();
+    expect(j2.failedAt).toBeUndefined();
   });
 
   it('allows retry up to MAX-1 times', () => {

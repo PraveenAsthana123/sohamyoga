@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
        WHERE survey_id = $1 ORDER BY sent_at DESC LIMIT 100`,
       [surveyId],
     ),
-    query<{ id: string; respondent_email: string | null; status: string; submitted_at: string | null; nps_score: string | null }>(
-      `SELECT r.id, r.respondent_email, r.status, r.submitted_at,
+    query<{ id: string; respondent_email: string | null; status: string; submitted_at: string | null; nps_score: string | null; consent_given: boolean; quality_flags: string[]; quality_score: string | null }>(
+      `SELECT r.id, r.respondent_email, r.status, r.submitted_at, r.consent_given, r.quality_flags, r.quality_score,
               (SELECT a.value_number FROM survey_answer a WHERE a.response_id = r.id AND a.question_type = 'nps') AS nps_score
        FROM survey_response r WHERE r.survey_id = $1 ORDER BY r.created_at DESC LIMIT 100`,
       [surveyId],
@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
     responses: responses.rows.map(r => ({
       id: r.id, respondent: r.respondent_email ?? 'Anonymous', status: r.status,
       submittedAt: r.submitted_at ?? undefined, npsScore: r.nps_score !== null ? Number(r.nps_score) : undefined,
+      consentGiven: r.consent_given, qualityFlags: r.quality_flags, qualityScore: r.quality_score !== null ? Number(r.quality_score) : undefined,
     })),
   });
 }

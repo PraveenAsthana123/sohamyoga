@@ -12,7 +12,8 @@
 //
 // This module runs on the Node.js runtime only (uses AbortController + fetch
 // streaming). Do not import it into client components.
-import { finishOperation, recordCircuit as persistCircuit, recordError, recordModelInvocation, startOperation } from './operation-ledger';
+import { assertCircuitAllows, finishOperation, recordCircuit as persistCircuit, recordError, recordModelInvocation, startOperation } from './operation-ledger';
+import { OllamaCircuitBreaker } from '@sohamyoga/shared-backend';
 
 export const OLLAMA_URL = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
 export const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:latest';
@@ -29,25 +30,20 @@ export const FIRST_TOKEN_TIMEOUT_MS = num(process.env.OLLAMA_FIRST_TOKEN_TIMEOUT
 export const IDLE_TIMEOUT_MS = num(process.env.OLLAMA_IDLE_TIMEOUT_MS, 25000);
 export const DEADLINE_MS = num(process.env.OLLAMA_DEADLINE_MS, 300000);
 
-// Lightweight in-process circuit breaker: after repeated failures, fast-fail
-// for a cooldown instead of hanging every request on a dead daemon.
-const breaker = { failures: 0, openUntil: 0 };
-const BREAKER_THRESHOLD = 3;
-const BREAKER_COOLDOWN_MS = 30000;
+// Deduplicated 2026-08-24: this was a hand-rolled copy of the exact same
+// state machine market-research-portal's OllamaClient.ts independently
+// built — both now share packages/shared-backend's OllamaCircuitBreaker.
+// Same threshold/cooldown as before this change; behavior unchanged.
+const breaker = new OllamaCircuitBreaker(3, 30000);
 
 export function circuitOpen(): boolean {
-  return Date.now() < breaker.openUntil;
+  return breaker.isOpen();
 }
 function recordSuccess() {
-  breaker.failures = 0;
-  breaker.openUntil = 0;
+  breaker.recordSuccess();
 }
 function recordFailure() {
-  breaker.failures += 1;
-  if (breaker.failures >= BREAKER_THRESHOLD) {
-    breaker.openUntil = Date.now() + BREAKER_COOLDOWN_MS;
-    breaker.failures = 0;
-  }
+  breaker.recordFailure();
 }
 
 export interface ChatMessage {
@@ -121,6 +117,13 @@ export async function* streamOllamaChat(
   if (circuitOpen()) {
     await finishOperation(run,'blocked');
     throw new Error('Local AI is temporarily unavailable (circuit open) — retry shortly.');
+  }
+  try {
+    await assertCircuitAllows('soham-next','ollama-daemon');
+  } catch (error) {
+    await recordError(run,'soham-next',error,{ model:selectedModel, blockedByCircuit:true });
+    await finishOperation(run,'blocked',{ reason:'circuit_open' });
+    throw error;
   }
 
   const body = {

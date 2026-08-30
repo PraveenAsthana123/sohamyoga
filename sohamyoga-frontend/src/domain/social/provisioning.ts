@@ -1,0 +1,46 @@
+export const PROVISIONING_STATES = [
+  'DRAFT', 'PROFILE_READY', 'VALIDATION_PASSED', 'SIGNUP_STARTED',
+  'WAITING_EMAIL_OTP', 'EMAIL_VERIFIED', 'WAITING_PHONE_OTP', 'PHONE_VERIFIED',
+  'WAITING_CAPTCHA', 'CAPTCHA_COMPLETED', 'WAITING_2FA', 'TWO_FACTOR_CONFIGURED',
+  'ACCOUNT_CREATED', 'BUSINESS_VERIFICATION_PENDING', 'BUSINESS_VERIFIED',
+  'DEVELOPER_APP_PENDING', 'DEVELOPER_APP_CREATED', 'OAUTH_PENDING',
+  'OAUTH_CONNECTED', 'API_TESTED', 'PUBLISH_TESTED', 'ACTIVE',
+  'FAILED', 'BLOCKED', 'REVIEW_REQUIRED', 'DOCUMENT_REQUIRED', 'ACCESS_DENIED',
+  'API_PERMISSION_PENDING', 'TOKEN_EXPIRED', 'SUSPENDED', 'CANCELLED',
+] as const;
+
+export type ProvisioningState = typeof PROVISIONING_STATES[number];
+
+const happyPath: ProvisioningState[] = [
+  'DRAFT', 'PROFILE_READY', 'VALIDATION_PASSED', 'SIGNUP_STARTED',
+  'ACCOUNT_CREATED', 'DEVELOPER_APP_PENDING', 'DEVELOPER_APP_CREATED',
+  'OAUTH_PENDING', 'OAUTH_CONNECTED', 'API_TESTED', 'PUBLISH_TESTED', 'ACTIVE',
+];
+
+const checkpoints: Partial<Record<ProvisioningState, ProvisioningState>> = {
+  WAITING_EMAIL_OTP: 'EMAIL_VERIFIED',
+  WAITING_PHONE_OTP: 'PHONE_VERIFIED',
+  WAITING_CAPTCHA: 'CAPTCHA_COMPLETED',
+  WAITING_2FA: 'TWO_FACTOR_CONFIGURED',
+  BUSINESS_VERIFICATION_PENDING: 'BUSINESS_VERIFIED',
+};
+
+const exceptions = new Set<ProvisioningState>([
+  'FAILED', 'BLOCKED', 'REVIEW_REQUIRED', 'DOCUMENT_REQUIRED', 'ACCESS_DENIED',
+  'API_PERMISSION_PENDING', 'TOKEN_EXPIRED', 'SUSPENDED', 'CANCELLED',
+]);
+
+export function canTransition(from: ProvisioningState, to: ProvisioningState): boolean {
+  if (from === to) return false;
+  if (exceptions.has(to)) return from !== 'CANCELLED';
+  if (checkpoints[from] === to) return true;
+  if (exceptions.has(from)) return to === 'REVIEW_REQUIRED' || to === 'CANCELLED';
+  const index = happyPath.indexOf(from);
+  return index >= 0 && happyPath[index + 1] === to;
+}
+
+export const HUMAN_TASK_TYPES = [
+  'CAPTCHA', 'EMAIL_OTP', 'PHONE_OTP', 'TWO_FACTOR_SETUP', 'OAUTH_APPROVAL',
+  'IDENTITY_VERIFICATION', 'BUSINESS_VERIFICATION', 'TERMS_ACCEPTANCE',
+] as const;
+

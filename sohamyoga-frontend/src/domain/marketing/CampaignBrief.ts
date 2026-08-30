@@ -150,4 +150,8 @@ export class CampaignBrief {
     if (amountCAD < 0) throw new Error('spend amount must be >= 0');
     return this.clone({ budgetActualCAD: this.props.budgetActualCAD + amountCAD, updatedAt: at });
   }
+
+  toJSON(): CampaignBriefProps {
+    return { ...this.props };
+  }
 }

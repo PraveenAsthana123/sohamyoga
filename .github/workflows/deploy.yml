@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/slp
+  IMAGE_PREFIX: ${{ github.repository_owner }}/sohamyoga
 
 jobs:
   # ─── Build & Push Docker Images ───────────────────────────────────────────
@@ -55,8 +55,8 @@ jobs:
       - name: Build & push backend
         uses: docker/build-push-action@v5
         with:
-          context: ./SLPSystems/SLPSystems.Web
-          file: ./SLPSystems/SLPSystems.Web/Dockerfile
+          context: ./SohamYoga/SohamYoga.Web
+          file: ./SohamYoga/SohamYoga.Web/Dockerfile
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
@@ -76,8 +76,8 @@ jobs:
       - name: Build & push frontend
         uses: docker/build-push-action@v5
         with:
-          context: ./slp-frontend
-          file: ./slp-frontend/Dockerfile
+          context: ./sohamyoga-frontend
+          file: ./sohamyoga-frontend/Dockerfile
           push: true
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}

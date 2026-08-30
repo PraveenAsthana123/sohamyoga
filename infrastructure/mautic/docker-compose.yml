@@ -1,0 +1,52 @@
+x-mautic: &mautic
+  image: mautic/mautic:6.0.6-apache
+  env_file: .env
+  volumes: [mautic_config:/var/www/html/config, mautic_logs:/var/www/html/var/logs, mautic_files:/var/www/html/docroot/media/files, mautic_images:/var/www/html/docroot/media/images]
+  restart: unless-stopped
+  networks: [mautic]
+services:
+  db:
+    image: mysql:8.4
+    container_name: sohamyoga-mautic-db
+    env_file: .env
+    volumes: [mautic_mysql:/var/lib/mysql]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks: [mautic]
+  web:
+    <<: *mautic
+    container_name: sohamyoga-mautic
+    ports: ["127.0.0.1:18090:80"]
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 60s
+  cron:
+    <<: *mautic
+    container_name: sohamyoga-mautic-cron
+    environment: {DOCKER_MAUTIC_ROLE: mautic_cron}
+    depends_on:
+      web: {condition: service_healthy}
+  worker:
+    <<: *mautic
+    container_name: sohamyoga-mautic-worker
+    environment: {DOCKER_MAUTIC_ROLE: mautic_worker}
+    depends_on:
+      web: {condition: service_healthy}
+volumes:
+  mautic_mysql:
+  mautic_config:
+  mautic_logs:
+  mautic_files:
+  mautic_images:
+networks:
+  mautic: {name: sohamyoga-mautic-network}

@@ -89,7 +89,7 @@ describe("TeacherAvailability", () => {
   it("upcomingBlocks — excludes past blocks", () => {
     const past = { ...block1, id: "bp2", startAt: new Date("2020-01-01"), endAt: new Date("2020-01-07") };
     const a = new TeacherAvailability({ ...base, blockedPeriods: [block1, past] });
-    expect(a.upcomingBlocks(new Date())).toHaveLength(1);
+    expect(a.upcomingBlocks(new Date("2026-07-01"))).toHaveLength(1);
   });
 
   it("upcomingBlocks — sorted by start", () => {

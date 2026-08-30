@@ -341,11 +341,14 @@ for tool in "${SELECTED_TOOLS[@]}"; do
 
     skyvern)
       log_step "skyvern · production RPA browser agent (AGPL-3.0)"
-      local SKY_DIR="$REPO_ROOT/vendor/skyvern"
+      SKY_DIR="$REPO_ROOT/vendor/skyvern"
       if [ -d "$SKY_DIR" ]; then
         log "  ✓ Skyvern already cloned"
       else
-        run_cmd git clone https://github.com/Skyvern-AI/skyvern.git "$SKY_DIR"
+        # Runtime integration does not need the project's full multi-year Git
+        # history. A shallow clone is faster and makes setup reproducible on
+        # constrained CI/development networks.
+        run_cmd git clone --depth 1 https://github.com/Skyvern-AI/skyvern.git "$SKY_DIR"
       fi
       if [ -f "$SKY_DIR/docker-compose.yml" ]; then
         log "  Skyvern docker-compose.yml present · start with:"

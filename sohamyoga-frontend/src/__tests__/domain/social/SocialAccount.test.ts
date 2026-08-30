@@ -106,8 +106,8 @@ describe("SocialAccount", () => {
 });
 
 describe("PLATFORM_CONFIG", () => {
-  it("has all 16 platforms", () => {
-    expect(Object.keys(PLATFORM_CONFIG)).toHaveLength(16);
+  it("has all 20 supported and custom-connector platforms", () => {
+    expect(Object.keys(PLATFORM_CONFIG)).toHaveLength(20);
   });
 
   it("all platforms require approval", () => {

@@ -3,7 +3,7 @@
 // The gateway plans a goal into tasks with a local Ollama model and queues them;
 // a cron worker executes them locally. Kept server-only so the gateway URL is
 // never exposed to the browser — the portal calls same-origin /api/ai/agent/*.
-import { finishOperation, recordCircuit, recordError, startOperation } from './operation-ledger';
+import { assertCircuitAllows, finishOperation, recordCircuit, recordError, startOperation } from './operation-ledger';
 //
 // Env AGENT_API_URL — base URL of the gateway. In docker use
 // http://host.docker.internal:8091 to reach the host process.
@@ -13,6 +13,13 @@ const TIMEOUT_MS = 120000; // planning calls Ollama; allow for a cold model load
 
 async function agentFetch(path: string, init?: RequestInit) {
   const run = await startOperation({ componentKey: 'soham-next', operationType: 'integration_call', operationName: `ollama-director ${init?.method || 'GET'} ${path}`, source: 'next-server', input: { path, method: init?.method || 'GET' } });
+  try {
+    await assertCircuitAllows('soham-next','ollama-director');
+  } catch (error) {
+    await recordError(run,'soham-next',error,{ path, blockedByCircuit: true });
+    await finishOperation(run,'blocked',{ path, reason: 'circuit_open' });
+    throw error;
+  }
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {

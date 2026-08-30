@@ -109,7 +109,7 @@ export class ChatMcpRegistry {
     this.tools = new Map(TOOLS.map(t => [t.name, t]));
   }
 
-  getAll(): McpToolSpec[] { return [...this.tools.values()]; }
+  getAll(): McpToolSpec[] { return Array.from(this.tools.values()); }
 
   get(name: string): McpToolSpec {
     const tool = this.tools.get(name);
@@ -118,7 +118,7 @@ export class ChatMcpRegistry {
   }
 
   byTier(tier: McpTier): McpToolSpec[] {
-    return [...this.tools.values()].filter(t => t.tier === tier);
+    return Array.from(this.tools.values()).filter(t => t.tier === tier);
   }
 
   execute(

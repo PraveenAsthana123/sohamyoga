@@ -35,6 +35,18 @@ export async function run(): Promise<void> {
     matomoGet('VisitsSummary.get',   'week', 'last1'),
   ]);
 
+  // Matomo is not deployed in every environment. Previously this fell
+  // through to "No overview data./No page data./No referrer data." as the
+  // Ollama prompt context and still stored whatever the model invented from
+  // that as a real draft report — a fabricated report, exactly what this
+  // codebase's honesty policy forbids. Skip entirely (no row, no AI call)
+  // when there is zero real Matomo data; the Demo Hub already renders an
+  // honest "blocked" state for an empty seo_report table.
+  if (!overview && !pages && !sources) {
+    console.log(`[seo-report] week=${weekOf} skipped — Matomo unreachable at ${MATOMO}, no real data to report on`);
+    return;
+  }
+
   const context = [
     overview ? `Visits: ${overview.nb_visits ?? 0}, Unique: ${overview.nb_uniq_visitors ?? 0}, Bounce: ${overview.bounce_rate ?? 'n/a'}` : 'No overview data.',
     pages    ? `Top pages: ${(pages.slice?.(0,5) ?? []).map((p: { label: string; nb_visits: number }) => `${p.label} (${p.nb_visits} visits)`).join(', ')}` : 'No page data.',

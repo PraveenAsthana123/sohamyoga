@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
 import { ConsentRecord, type ConsentLevel } from '@/domain/analytics/ConsentRecord';
+import { maskProperties } from '@/lib/analytics-masking';
 
 // Conversion/reliability events are recorded regardless of analytics consent —
 // they're needed for the booking/payment flow to function and be auditable,
@@ -40,25 +41,11 @@ async function currentConsent(anonymousId: string): Promise<{ level: ConsentLeve
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Mirror of SENSITIVE_KEY_FRAGMENTS — server-side defence-in-depth
-const SENSITIVE = [
-  'name', 'email', 'phone', 'password', 'card', 'cvv', 'health',
-  'diagnosis', 'message', 'address', 'dob', 'ssn', 'payment',
-];
-
 const EVENT_TYPES = new Set([
   'page_view', 'click', 'form_start', 'form_submit', 'download',
   'booking_started', 'booking_completed', 'payment_initiated', 'payment_completed',
   'subscription_started', 'error', 'scroll_depth', 'custom',
 ]);
-
-function ensureMasked(props: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(props)) {
-    out[k] = SENSITIVE.some(f => k.toLowerCase().includes(f)) ? '***' : v;
-  }
-  return out;
-}
 
 interface EventBody {
   eventType?: string;
@@ -136,7 +123,7 @@ export async function POST(req: NextRequest) {
     const essential = ESSENTIAL_EVENT_TYPES.has(eventType);
     const allowed = essential || consent.canCollectAnalytics;
     const status = allowed ? 'collected' : 'dropped';
-    const properties = allowed ? ensureMasked(body.properties ?? {}) : {};
+    const properties = allowed ? maskProperties(body.properties ?? {}) : {};
 
     await query(
       `INSERT INTO tracking_event (session_id, anonymous_id, user_id, event_type, name, url, referrer, properties, status, consent_level)

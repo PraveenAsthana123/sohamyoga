@@ -1,8 +1,4 @@
-/** Mirror of SENSITIVE_KEY_FRAGMENTS from domain/analytics/TrackingEvent.ts */
-const SENSITIVE_FRAGMENTS = [
-  'name', 'email', 'phone', 'password', 'card', 'cvv', 'health',
-  'diagnosis', 'message', 'address', 'dob', 'ssn', 'payment',
-] as const;
+import { SENSITIVE_KEY_FRAGMENTS as SENSITIVE_FRAGMENTS } from '@/domain/analytics/TrackingEvent';
 
 /**
  * Returns a shallow copy of props with sensitive key values replaced by "***".

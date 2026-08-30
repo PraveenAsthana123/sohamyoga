@@ -5,9 +5,9 @@
 const OLLAMA_BASE = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 
 export const OLLAMA_MODELS = {
-  fast:   process.env.OLLAMA_MODEL_FAST   ?? 'phi3:mini',
-  code:   process.env.OLLAMA_MODEL_CODE   ?? 'deepseek-coder:6.7b',
-  strong: process.env.OLLAMA_MODEL_STRONG ?? 'llama3.2:latest',
+  fast:   process.env.OLLAMA_MODEL_FAST   ?? 'phi4-mini:latest',
+  code:   process.env.OLLAMA_MODEL_CODE   ?? 'deepseek-coder:6.7b-instruct',
+  strong: process.env.OLLAMA_MODEL_STRONG ?? 'llama3.2:3b',
 } as const;
 
 export type OllamaModelTier = keyof typeof OLLAMA_MODELS;

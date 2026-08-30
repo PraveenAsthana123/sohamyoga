@@ -46,7 +46,7 @@ export const GITHUB_MCP = server(
       tags: ['read_only', 'executable'],
     },
     {
-      name: 'create_issue', description: 'Open a new issue on a repository this project owns.',
+      name: 'github_create_issue', description: 'Open a new issue on a repository this project owns.',
       tier: 'staff_approval', riskLevel: 3,
       inputSchema: { type: 'object', required: ['repo', 'title', 'body'], properties: { repo: { type: 'string' }, title: { type: 'string' }, body: { type: 'string' } } },
       safetyNote: 'Needs GITHUB_TOKEN with repo write scope — not configured in this environment.',
@@ -66,7 +66,7 @@ export const GITLAB_MCP = server(
       safetyNote: 'Needs GITLAB_TOKEN — not configured in this environment.',
     },
     {
-      name: 'create_issue', description: 'Open a new issue on a GitLab project this project owns.',
+      name: 'gitlab_create_issue', description: 'Open a new issue on a GitLab project this project owns.',
       tier: 'staff_approval', riskLevel: 3,
       inputSchema: { type: 'object', required: ['project', 'title', 'description'], properties: { project: { type: 'string' }, title: { type: 'string' }, description: { type: 'string' } } },
       safetyNote: 'Needs GITLAB_TOKEN with write scope — not configured in this environment.',
@@ -108,7 +108,7 @@ export const TRIPADVISOR_MCP = server(
   'tripadvisor-mcp', 'Tripadvisor MCP', 'Read business reviews and ratings from Tripadvisor.',
   [
     {
-      name: 'read_reviews', description: 'Read public reviews for a claimed Tripadvisor listing.',
+      name: 'tripadvisor_read_reviews', description: 'Read public reviews for a claimed Tripadvisor listing.',
       tier: 'auto', riskLevel: 1,
       inputSchema: { type: 'object', required: ['locationId'], properties: { locationId: { type: 'string' } } },
       safetyNote: 'Tripadvisor Content API access is granted by partner application, not self-serve API-key signup — this environment has neither an approved partner account nor an API key.',
@@ -122,7 +122,7 @@ export const TRUSTPILOT_MCP = server(
   'trustpilot-mcp', 'Trustpilot MCP', 'Read and respond to Trustpilot reviews via the real Business API.',
   [
     {
-      name: 'read_reviews', description: 'Read reviews for this business\'s Trustpilot profile.',
+      name: 'trustpilot_read_reviews', description: 'Read reviews for this business\'s Trustpilot profile.',
       tier: 'auto', riskLevel: 1,
       inputSchema: { type: 'object', required: ['businessUnitId'], properties: { businessUnitId: { type: 'string' } } },
       safetyNote: 'Needs a Trustpilot Business API OAuth app — not configured in this environment.',
@@ -142,7 +142,7 @@ export const VIMEO_MCP = server(
   'vimeo-mcp', 'Vimeo MCP', 'Upload and manage video content on Vimeo.',
   [
     {
-      name: 'upload_video', description: 'Upload a video file to this account\'s Vimeo library.',
+      name: 'vimeo_upload_video', description: 'Upload a video file to this account\'s Vimeo library.',
       tier: 'staff_approval', riskLevel: 3,
       inputSchema: { type: 'object', required: ['filePath', 'title'], properties: { filePath: { type: 'string' }, title: { type: 'string' }, description: { type: 'string' } } },
       safetyNote: 'Needs a Vimeo API access token — not configured in this environment.',
@@ -156,7 +156,7 @@ export const DAILYMOTION_MCP = server(
   'dailymotion-mcp', 'Dailymotion MCP', 'Upload and manage video content on Dailymotion.',
   [
     {
-      name: 'upload_video', description: 'Upload a video file to this account\'s Dailymotion library.',
+      name: 'dailymotion_upload_video', description: 'Upload a video file to this account\'s Dailymotion library.',
       tier: 'staff_approval', riskLevel: 3,
       inputSchema: { type: 'object', required: ['filePath', 'title'], properties: { filePath: { type: 'string' }, title: { type: 'string' } } },
       safetyNote: 'Needs a Dailymotion Partner API OAuth app — not configured in this environment.',

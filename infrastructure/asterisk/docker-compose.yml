@@ -1,0 +1,31 @@
+services:
+  asterisk:
+    build: .
+    restart: unless-stopped
+    environment:
+      ASTERISK_SIP_SECRET: ${ASTERISK_SIP_SECRET:?Run ./setup.sh first}
+      ASTERISK_ARI_SECRET: ${ASTERISK_ARI_SECRET:?Run ./setup.sh first}
+    ports:
+      - "127.0.0.1:15060:5060/udp"
+      - "127.0.0.1:15060:5060/tcp"
+      - "127.0.0.1:16000-16049:10000-10049/udp"
+    volumes:
+      - asterisk-logs:/var/log/asterisk
+      - asterisk-spool:/var/spool/asterisk
+    healthcheck:
+      test: ["CMD-SHELL", "asterisk -rx 'core show uptime' >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+    networks:
+      voice:
+        ipv4_address: 10.230.92.10
+networks:
+  voice:
+    ipam:
+      config:
+        - subnet: 10.230.92.0/24
+volumes:
+  asterisk-logs:
+  asterisk-spool:
+

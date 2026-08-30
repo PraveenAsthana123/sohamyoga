@@ -13,8 +13,8 @@ import { requiresApproval } from '../../../domain/mcp/types';
 // ── Registry completeness ─────────────────────────────────────────────────────
 
 describe('ALL_MCP_SERVERS — registry completeness', () => {
-  it('registers exactly 15 domain MCP servers', () => {
-    expect(ALL_MCP_SERVERS).toHaveLength(15);
+  it('registers 15 internal and 14 external-platform MCP manifests', () => {
+    expect(ALL_MCP_SERVERS).toHaveLength(29);
   });
 
   it('all servers have a non-empty id, slug, name, and version', () => {
@@ -28,12 +28,12 @@ describe('ALL_MCP_SERVERS — registry completeness', () => {
 
   it('all slugs are unique', () => {
     const slugs = ALL_MCP_SERVERS.map(s => s.slug);
-    expect(new Set(slugs).size).toBe(15);
+    expect(new Set(slugs).size).toBe(ALL_MCP_SERVERS.length);
   });
 
   it('all ids are unique', () => {
     const ids = ALL_MCP_SERVERS.map(s => s.id);
-    expect(new Set(ids).size).toBe(15);
+    expect(new Set(ids).size).toBe(ALL_MCP_SERVERS.length);
   });
 
   const expectedSlugs = [
@@ -47,9 +47,9 @@ describe('ALL_MCP_SERVERS — registry completeness', () => {
     expect(ALL_MCP_SERVERS.some(s => s.slug === slug)).toBe(true);
   });
 
-  it('every server has at least one backing service', () => {
+  it('every executable server has at least one backing service', () => {
     ALL_MCP_SERVERS.forEach(s => {
-      expect(s.backingServices.length).toBeGreaterThan(0);
+      if (s.availability !== 'none') expect(s.backingServices.length).toBeGreaterThan(0);
     });
   });
 
@@ -90,9 +90,9 @@ describe('per-server tool counts', () => {
     });
   });
 
-  it('total tool count across all servers is 134', () => {
+  it('total tool count across all internal and external servers is 148', () => {
     const total = ALL_MCP_SERVERS.reduce((sum, s) => sum + s.tools.length, 0);
-    expect(total).toBe(134);
+    expect(total).toBe(148);
   });
 });
 
@@ -139,9 +139,9 @@ describe('tool catalog integrity', () => {
 // ── Approval policy ───────────────────────────────────────────────────────────
 
 describe('approval policy classification', () => {
-  it('total approval-required tools is 24', () => {
+  it('total approval-required tools is 31', () => {
     const routes = getAllApprovalRequiredTools();
-    expect(routes).toHaveLength(24);
+    expect(routes).toHaveLength(31);
   });
 
   it('all returned routes have requiresApproval = true', () => {
@@ -299,16 +299,16 @@ describe('buildGatewaySummary()', () => {
   let summary: ReturnType<typeof buildGatewaySummary>;
   beforeEach(() => { summary = buildGatewaySummary(); });
 
-  it('serverCount is 15', () => {
-    expect(summary.serverCount).toBe(15);
+  it('serverCount is 29', () => {
+    expect(summary.serverCount).toBe(29);
   });
 
-  it('totalTools is 134', () => {
-    expect(summary.totalTools).toBe(134);
+  it('totalTools is 148', () => {
+    expect(summary.totalTools).toBe(148);
   });
 
-  it('approvalRequiredTools is 24', () => {
-    expect(summary.approvalRequiredTools).toBe(24);
+  it('approvalRequiredTools is 31', () => {
+    expect(summary.approvalRequiredTools).toBe(31);
   });
 
   it('highRiskToolCount is greater than 0', () => {
@@ -320,15 +320,15 @@ describe('buildGatewaySummary()', () => {
     expect(sumTiers).toBe(summary.totalTools);
   });
 
-  it('servers array has 15 entries', () => {
-    expect(summary.servers).toHaveLength(15);
+  it('servers array has 29 entries', () => {
+    expect(summary.servers).toHaveLength(29);
   });
 
   it('each server entry has id, name, toolCount, approvalRequiredCount', () => {
     summary.servers.forEach(s => {
       expect(s.id.length).toBeGreaterThan(0);
       expect(s.name.length).toBeGreaterThan(0);
-      expect(s.toolCount).toBeGreaterThan(0);
+      expect(s.toolCount).toBeGreaterThanOrEqual(0);
       expect(s.approvalRequiredCount).toBeGreaterThanOrEqual(0);
     });
   });

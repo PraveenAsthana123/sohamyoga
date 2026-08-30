@@ -18,6 +18,10 @@ services:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - OLLAMA_MODEL_FAST=${OLLAMA_MODEL_FAST:-phi3:mini}
       - OLLAMA_MODEL_STRONG=${OLLAMA_MODEL_STRONG:-llama3.2:latest}
+      # Retrieved by an organization admin in Postiz Settings -> Public API.
+      # Leaving it empty keeps automated social publishing safely disabled.
+      - POSTIZ_PUBLIC_API_KEY=${POSTIZ_PUBLIC_API_KEY:-}
+      - POSTIZ_PUBLIC_API_BASE=${POSTIZ_PUBLIC_API_BASE:-http://host.docker.internal:15081/public/v1}
       - NOTIFICATION_BATCH_SIZE=50
     networks:
       - sohamyoga-net

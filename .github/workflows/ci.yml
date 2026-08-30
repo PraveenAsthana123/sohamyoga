@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: slp-frontend
+        working-directory: sohamyoga-frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -21,9 +21,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-          cache-dependency-path: slp-frontend/package-lock.json
+          cache-dependency-path: sohamyoga-frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -37,7 +37,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:5062
+          NEXT_PUBLIC_API_URL: http://localhost:5070
           NODE_ENV: production
 
       - name: Upload build artifact
@@ -45,7 +45,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           name: nextjs-build
-          path: slp-frontend/.next/
+          path: sohamyoga-frontend/.next/
           retention-days: 7
 
   # ─── Backend ──────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: SLPSystems
+        working-directory: SohamYoga
 
     steps:
       - uses: actions/checkout@v4
@@ -75,14 +75,14 @@ jobs:
 
       - name: Publish
         if: github.ref == 'refs/heads/main'
-        run: dotnet publish SLPSystems.Web/SLPSystems.Web.csproj -c Release -o ./publish --no-restore
+        run: dotnet publish SohamYoga.Web/SohamYoga.Web.csproj -c Release -o ./publish --no-restore
 
       - name: Upload publish artifact
         uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/main'
         with:
           name: dotnet-publish
-          path: SLPSystems/publish/
+          path: SohamYoga/publish/
           retention-days: 7
 
   # ─── Security Scan ────────────────────────────────────────────────────────

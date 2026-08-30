@@ -58,8 +58,9 @@ CLAUDE.md
 *.tmp
 __pycache__
 *.pyc
+venv/
+*.tsbuildinfo
 .next
-.github
 
 # ─── Local agent / bootstrap artifacts (§80 global bootstrap) ────────────────
 .agent/
@@ -72,9 +73,11 @@ __pycache__
 # integrations/paperclip: vendored third-party, github.com/paperclipai/paperclip.
 /agentic-ollama-platform/
 /integrations/paperclip/
+/vendor/skyvern/
 
 # ─── Test run output ──────────────────────────────────────────────────────────
 # Keep the run_*.{py,js} scripts under jobs/reports/ tracked, ignore their output.
+**/test-results/
 jobs/reports/api_test_*.json
 jobs/reports/api_test_*.md
 jobs/reports/api_audit_*.json
@@ -101,3 +104,6 @@ SESSION_HANDOFF.md
 !.continuity/.gitattributes
 !.continuity/SESSION_NOTES.md
 !.continuity/INSTRUCTIONS.md
+
+# Raw Kaggle datasets — real data, but large/binary; documented in data/kaggle/README.md, not committed
+data/kaggle/*/

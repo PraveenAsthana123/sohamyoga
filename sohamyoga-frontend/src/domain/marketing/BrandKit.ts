@@ -119,4 +119,8 @@ export class BrandKit {
     if (!HEX_RE.test(accent))    throw new Error('accent must be a valid hex color');
     return this.clone({ primaryColor: primary, secondaryColor: secondary, accentColor: accent, updatedBy, updatedAt: at });
   }
+
+  toJSON(): BrandKitProps {
+    return { ...this.props };
+  }
 }

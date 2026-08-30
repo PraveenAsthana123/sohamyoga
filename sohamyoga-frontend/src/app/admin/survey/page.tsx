@@ -24,7 +24,7 @@ function useNpsSummary() {
 }
 
 interface NpsInvitationRecord { id: string; email: string; status: string; sentAt: string; completedAt?: string }
-interface NpsResponseRecord { id: string; respondent: string; status: string; submittedAt?: string; npsScore?: number }
+interface NpsResponseRecord { id: string; respondent: string; status: string; submittedAt?: string; npsScore?: number; consentGiven?: boolean; qualityFlags?: string[]; qualityScore?: number }
 
 function useNpsRecords() {
   const [data, setData] = useState<{ invitations: NpsInvitationRecord[]; responses: NpsResponseRecord[] } | null>(null);
@@ -106,7 +106,7 @@ function NpsRecordsSection() {
           ) : (
             <table className="w-full text-sm mt-3">
               <thead className="bg-gray-50 border-y">
-                <tr>{['Respondent', 'Score', 'Status', 'Submitted'].map(h => <th key={h} className="px-4 py-2 text-left font-medium text-gray-600">{h}</th>)}</tr>
+                <tr>{['Respondent', 'Score', 'Status', 'Submitted', 'Consent', 'Quality'].map(h => <th key={h} className="px-4 py-2 text-left font-medium text-gray-600">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y">
                 {data.responses.map(r => (
@@ -115,6 +115,12 @@ function NpsRecordsSection() {
                     <td className="px-4 py-2 font-bold">{r.npsScore ?? '—'}</td>
                     <td className="px-4 py-2"><Badge label={r.status} colorClass={NPS_STATUS_COLORS[r.status] || 'bg-gray-100 text-gray-600'} /></td>
                     <td className="px-4 py-2 text-xs text-gray-500">{r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—'}</td>
+                    <td className="px-4 py-2 text-xs">{r.consentGiven ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}</td>
+                    <td className="px-4 py-2 text-xs">
+                      {r.qualityFlags && r.qualityFlags.length > 0
+                        ? <span className="text-amber-600" title={r.qualityFlags.join(', ')}>⚠ {r.qualityScore ?? '—'}</span>
+                        : <span className="text-gray-400">{r.qualityScore ?? '—'}</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
