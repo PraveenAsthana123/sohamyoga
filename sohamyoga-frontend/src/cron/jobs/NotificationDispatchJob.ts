@@ -1,6 +1,19 @@
 // NotificationDispatchJob — Every 5 minutes
 // Dispatches due notifications from notification_queue.
 // External providers receive: rendered text + recipient address + token ONLY.
+//
+// FOLLOW-UP (documented, not wired, 2026-09-03): a real 'push' channel now
+// exists (push_subscription table, src/lib/web-push.ts's sendPushToUser(),
+// public/sw.js push handler) but is deliberately NOT branched into this job
+// yet. This job never renders notification_template.body anywhere -- it
+// forwards template_slug + raw payload variables to Novu, which does the
+// mustache interpolation externally. Web Push has no such external renderer,
+// so a real push branch here needs its own template lookup + interpolation
+// added first; faking it with e.g. `payload.title/body` would silently
+// break the moment a real template starts using variables. Until template
+// rendering exists locally, treat push as request-driven only (an explicit
+// caller building its own title/body and calling sendPushToUser directly),
+// not queue-driven.
 
 import { Pool } from 'pg';
 
@@ -50,6 +63,40 @@ export async function run(): Promise<void> {
 
     if (suppressed.rows.length > 0) {
       await db.query(`UPDATE notification_queue SET status='cancelled', updated_at=NOW() WHERE id=$1`, [job.id]);
+      continue;
+    }
+
+    // Real consent enforcement -- customer.email_opt_in/sms_opt_in were
+    // stored and editable at /customer/preferences but nothing ever checked
+    // them before sending (found live 2026-09-02: a customer could opt out
+    // and still receive marketing email/SMS). Transactional/alert/otp
+    // always send regardless -- consent only gates non-essential marketing.
+    if (job.type === 'marketing' && (job.channel === 'email' || job.channel === 'sms')) {
+      const consentColumn = job.channel === 'email' ? 'email_opt_in' : 'sms_opt_in';
+      const consent = await db.query<{ opted_in: boolean }>(
+        `SELECT ${consentColumn} AS opted_in FROM customer WHERE user_id = $1`,
+        [job.recipient_user_id],
+      );
+      if (consent.rowCount && !consent.rows[0].opted_in) {
+        await db.query(`UPDATE notification_queue SET status='cancelled', failure_reason='customer_opted_out', updated_at=NOW() WHERE id=$1`, [job.id]);
+        continue;
+      }
+    }
+
+    // in_app has no external provider to dispatch through -- appearing in
+    // the customer's own inbox (/api/customer/inbox) IS the delivery,
+    // exactly as /api/bookings' own notification insert already treats it.
+    // Routing it through Novu anyway was a real bug: every in_app row
+    // (community_digest, alerts, etc.) 404'd against Novu and was marked
+    // 'failed' despite never actually failing to reach its recipient.
+    if (job.channel === 'in_app') {
+      await db.query(`UPDATE notification_queue SET status='sent', sent_at=NOW(), updated_at=NOW() WHERE id=$1`, [job.id]);
+      await db.query(`
+        INSERT INTO notification_history
+          (tenant_id, job_id, template_slug, channel, type, recipient_user_id, recipient_address, status, sent_at)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,'sent',NOW())
+      `, [job.tenant_id, job.id, job.template_slug, job.channel, job.type, job.recipient_user_id, job.recipient_address]);
+      sent++;
       continue;
     }
 
