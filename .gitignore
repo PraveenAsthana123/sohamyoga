@@ -3,6 +3,7 @@
 .env.local
 .env.production
 .env.*.local
+deploy/contextforge/.env.contextforge.local
 *.key
 *.pem
 *.p12
@@ -107,3 +108,6 @@ SESSION_HANDOFF.md
 
 # Raw Kaggle datasets — real data, but large/binary; documented in data/kaggle/README.md, not committed
 data/kaggle/*/
+
+# Overnight automation logs — operational output, not source
+.overnight-logs/
