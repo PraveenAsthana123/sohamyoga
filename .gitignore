@@ -34,6 +34,8 @@ node_modules/
 out/
 sohamyoga-frontend/.env
 sohamyoga-frontend/.env.local
+sohamyoga-frontend/public/generated/
+sohamyoga-frontend/public/uploads/
 
 # ─── Docker ───────────────────────────────────────────────────────────────────
 # (docker-compose.yml is committed, .env is not)

@@ -96,6 +96,17 @@ function AssetLibraryPanel({ brandKitId }: { brandKitId: string }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', assetType: 'photo', url: '', notes: '' });
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadFile(file: File) {
+    setUploading(true); setError('');
+    const body = new FormData(); body.append('file', file);
+    const res = await fetch('/api/admin/brand-kits/upload', { method: 'POST', body });
+    const b = await res.json().catch(() => ({}));
+    setUploading(false);
+    if (!res.ok) { setError(b.error ?? 'Upload failed.'); return; }
+    setForm(f => ({ ...f, url: b.url, name: f.name || file.name.replace(/\.[^.]+$/, '') }));
+  }
 
   const load = () => {
     fetch(`/api/admin/brand-kits/${brandKitId}/assets`, { cache: 'no-store' })
@@ -147,7 +158,12 @@ function AssetLibraryPanel({ brandKitId }: { brandKitId: string }) {
         <select value={form.assetType} onChange={e => setForm(f => ({ ...f, assetType: e.target.value }))} className="rounded border px-2 py-1 text-xs">
           {ASSET_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="URL" className="rounded border px-2 py-1 text-xs flex-1 min-w-[100px]" />
+        <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="URL, or upload a file →" className="rounded border px-2 py-1 text-xs flex-1 min-w-[100px]" />
+        <label className="rounded border px-2 py-1 text-xs text-gray-600 cursor-pointer hover:bg-gray-50">
+          {uploading ? 'Uploading…' : 'Upload file'}
+          <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading}
+            onChange={e => { const f = e.target.files?.[0]; if (f) void uploadFile(f); e.target.value = ''; }} />
+        </label>
         <button onClick={add} className="rounded bg-indigo-600 px-2 py-1 text-xs text-white">Add</button>
       </div>
     </div>
@@ -271,6 +287,17 @@ function NewBrandKitForm({ onCreated }: { onCreated: () => void }) {
   const [toneWords, setToneWords] = useState<string[]>(['warm']);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadLogo(file: File) {
+    setUploading(true); setError(null);
+    const body = new FormData(); body.append('file', file);
+    const res = await fetch('/api/admin/brand-kits/upload', { method: 'POST', body });
+    const b = await res.json().catch(() => ({}));
+    setUploading(false);
+    if (!res.ok) { setError(b.error ?? 'Upload failed.'); return; }
+    setLogoUrl(b.url);
+  }
 
   function toggleTone(word: string) {
     setToneWords(prev => prev.includes(word) ? prev.filter(w => w !== word) : prev.length < 5 ? [...prev, word] : prev);
@@ -303,7 +330,14 @@ function NewBrandKitForm({ onCreated }: { onCreated: () => void }) {
           <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-full h-8 border rounded" />
         </label>
       </div>
-      <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Logo URL" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <div className="flex gap-2">
+        <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Logo URL, or upload a file →" className="flex-1 border rounded px-2 py-1.5 text-sm" />
+        <label className="border rounded px-3 py-1.5 text-sm text-gray-600 cursor-pointer hover:bg-gray-50 whitespace-nowrap">
+          {uploading ? 'Uploading…' : 'Upload'}
+          <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading}
+            onChange={e => { const f = e.target.files?.[0]; if (f) void uploadLogo(f); e.target.value = ''; }} />
+        </label>
+      </div>
       <input value={fontPrimary} onChange={e => setFontPrimary(e.target.value)} placeholder="Primary font (e.g. Inter)" className="w-full border rounded px-2 py-1.5 text-sm" />
       <div>
         <p className="text-xs text-gray-500 mb-1">Tone words (1-5)</p>
