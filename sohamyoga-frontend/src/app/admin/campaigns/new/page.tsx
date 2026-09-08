@@ -80,6 +80,7 @@ export default function NewCampaignPage() {
         audienceLabel: selectedSegment?.name, audienceSize: selectedSegment?.size,
         goalType: form.goalType, goalTarget: form.goalTarget,
         isImmediate: form.isImmediate, scheduledAt: form.scheduledAt,
+        subject: form.subject, body: form.body,
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -284,6 +285,16 @@ export default function NewCampaignPage() {
                   </div>
                 ))}
               </div>
+              {form.body.trim() && (form.channels.includes("email") || form.channels.includes("push")) ? (
+                <p className="text-xs text-green-400 bg-green-950/40 border border-green-900 rounded-lg p-3">
+                  This message will be saved as a real notification template and queued to every real customer with marketing consent on Launch
+                  ({form.channels.includes("email") ? "email" : "push"}).
+                </p>
+              ) : (
+                <p className="text-xs text-amber-400 bg-amber-950/40 border border-amber-900 rounded-lg p-3">
+                  No content written, or no email/push channel selected -- Launch will only update this campaign&apos;s status, nothing will be sent.
+                </p>
+              )}
             </>
           )}
         </div>

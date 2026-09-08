@@ -64,7 +64,11 @@ export default function CampaignsPage() {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: nextStatus }),
     });
-    if (res.ok) load();
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (data.dispatch?.note) window.alert(data.dispatch.note);
+      load();
+    }
   }
 
   return (
