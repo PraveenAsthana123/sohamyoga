@@ -1,10 +1,24 @@
 # Repository Reality Matrix — Phase 1 Audit
 
-**Status:** IN PROGRESS. This document is being built incrementally and committed in checkpoints,
-per this workspace's [GitHub Push & Engineering Audit Standard](../../.git) (evidence-based, no
-status inflation). Sections below are complete for the portals listed; the remaining portals are
-under active investigation and will be appended in a follow-up commit, not fabricated here to hit a
-deadline.
+**Status:** Phase 1 coverage complete — all 6 real portals in this repository have a section below.
+Built incrementally across 6 commits, per this workspace's GitHub Push & Engineering Audit Standard
+(evidence-based, no status inflation, small logical commits). Phases 2-18 of the full audit
+framework are separate, not-yet-started work — see [Known limitations](#known-limitations-of-this-checkpoint).
+
+## 🔴 Two P0 findings surfaced during this audit (read first)
+
+1. **ai-orchestrator-platform backend has been down 4+ days** while its frontend + public Cloudflare
+   tunnel keep running and advertising the app to the internet, with no alerting on this failure
+   mode. Confirmed live: `curl 127.0.0.1:8100/health` refused, tunnel path returns HTTP 502. See the
+   [ai-orchestrator-platform](#ai-orchestrator-platform-praveenchatbot) section.
+2. **market-research-portal's production build is currently broken** — `/login` and `/api/voice-ai`
+   return HTTP 500 live, traced to a missing `BUILD_ID` in `.next/` (an incomplete/corrupted build
+   is what's actually being served). Separately, its own cron job runner is not running as a
+   process — the 7 registered jobs last executed automatically 2026-08-24 to 2026-08-31, i.e. 8+
+   days stale as of this audit. See the [market-research-portal deep-dive](#market-research-portal-deep-dive-beyond-registry-rows) section.
+
+Neither of these was previously flagged anywhere in this repo's existing docs — both are new,
+live, currently-reproducible findings from this Phase 1 pass, not historical/hypothetical gaps.
 
 **Methodology:** every row's `built_status`/UI columns come directly from the live `module_registry`
 Postgres table (`docker exec sohamyoga-postgres psql -U sohamyoga -d sohamyoga`), queried at
@@ -16,14 +30,13 @@ separate write-up — its `built_status` still reflects the registry's `has_user
 booleans, which per [ADR-0003](../architecture/sohamyoga-frontend/ADR/0003-explicit-ui-flags-over-inference.md)
 are explicit manually-set flags, not text-inferred.
 
-**Coverage in this checkpoint:**
-- ✅ sohamyoga-frontend (188 modules) — full registry-sourced table below
-- ✅ market-research-portal, registry-tracked modules only (8 modules) — full registry-sourced table below
-- ⏳ voice-agent-platform — investigation in progress, not yet in this file
-- ⏳ market-research-portal — deeper backend/API pass beyond the 8 registry rows, in progress
-- ✅ ai-orchestrator-platform — full table below (this checkpoint)
-- ✅ SohamYoga (.NET backend) — full table below (this checkpoint)
-- ✅ password-manager — full column set below (this checkpoint)
+**Coverage — all complete:**
+- ✅ sohamyoga-frontend (188 modules) — registry-sourced table
+- ✅ market-research-portal — 8 registry rows + a 25-module backend deep-dive (own dedicated 78-table Postgres DB)
+- ✅ voice-agent-platform — full table
+- ✅ ai-orchestrator-platform — full table
+- ✅ SohamYoga (.NET backend) — full table
+- ✅ password-manager — full column set
 
 **Column note:** the user-specified Reality Matrix schema (Portal, Domain, Module, Business purpose,
 User persona, Entry point, UI exists?, API exists?, DB schema exists?, DB writes verified?, DB reads
@@ -450,19 +463,79 @@ finding is operational, not architectural: **the backend process has been down f
 public tunnel keeps serving it, with no alerting to catch that specific failure mode** — a real,
 current production incident, not a historical or hypothetical gap. Zero test coverage anywhere.
 
+## market-research-portal deep-dive (beyond registry rows)
+
+Verified 2026-09-08 via direct file reads and live queries against the app's own **dedicated**
+Postgres database `market_research_portal` (78 tables, port 5437 — same physical instance as
+`sohamyoga` but a fully separate database), plus one narrowly-scoped read-only cross-DB pool
+(`SOHAMYOGA_RO_DATABASE_URL`, role `sohamyoga_ro`, GRANT SELECT only, used by exactly 2 jobs).
+
+**Deployment fact-check:** the app's Next.js process is live on port 8086, but currently returns
+**HTTP 500** on `/login` and `/api/voice-ai` — `.next/BUILD_ID` is missing, meaning an
+incomplete/corrupted production build is what's actually being served right now. The app's own cron
+runner (`src/cron/runner.ts`) is **not currently running** as a process — `job_run` history shows
+the 7 registered jobs last executed automatically 2026-08-24 to 2026-08-31 (8+ days stale).
+
+| Domain | Module | DB writes verified | External integration | AI/LLM | Maturity | Known issue |
+|---|---|---|---|---|---|---|
+| Pipeline Core | 17-Phase Research Pipeline Engine | yes — live: `study`=7, `phase_run`=119 rows | none | no | REAL_END_TO_END | prod build incomplete (live 500s) |
+| AI/Automation | Research-AI Draft Job (Ollama + fact-check gate) | yes — live: 62 succeeded/16 fact-check-rejected/41 failed | local Ollama | **yes, real** — single prompt + deterministic regex fact-check guardrail, not multi-step | REAL_BUT_PARTIAL | 41/119 historical calls failed (Ollama unreachable at those times) |
+| Voice AI | Voice Agent/Call Platform (inbound+outbound) | yes — schema/API/UI real | **confirmed NOT wired** — grep for twilio/vapi/plivo/telnyx = zero hits | real local TTS (espeak-ng) + STT (faster-whisper); **no LLM/conversational agent in the call path** | REAL_BUT_PARTIAL | **business-critical gap confirmed real and accurately self-documented**: the one real `voice_call` row is honestly `status='blocked', blocker='Telephony provider/account/number is not connected'` — not faked as scheduled/sent |
+| CRM | Lead Capture + Lead Scoring | yes — live: `lead`=1 | none | no — deterministic rule scoring, explicitly "never a black-box" | REAL_END_TO_END | none found |
+| Marketing | Campaign Management + Send | yes — live: `campaign`=7 | Email/SMS provider — **honestly none configured**, route always returns `NOT_CONFIGURED`, never fakes success | no | REAL_BUT_PARTIAL | zero delivery providers configured — a real no-op by design, not hidden |
+| Marketing | Competitor Tracking | yes — live: `competitor`=7 | none | no | REAL_END_TO_END | none found |
+| Content | Content Factory (video/asset pipeline) | yes — live: 1 project | provider status self-reported (`placeholder`/`configured`/`connected`) | no | REAL_BUT_PARTIAL | low real data volume |
+| Content | Content Hooks + A/B Test Engine (real two-proportion z-test) | yes — live: 0 rows currently | none | no — real statistics (Abramowitz-Stegun normal-CDF), not ML | CODE_EXISTS_NOT_INTEGRATED | zero rows populated yet; min-sample-per-arm=30 gate before any significance claim |
+| Video/Marketing | Video Renderer (TTS + FFmpeg) | yes — live: 3 assets, real checksum/duration via ffprobe | local espeak-ng + ffmpeg, real subprocess pipeline | local rule-based TTS, no LLM | REAL_END_TO_END | none found |
+| Meeting Intelligence | Meeting Reports + PDF Export | yes — live: 0 reports currently | none | no | CODE_EXISTS_NOT_INTEGRATED | real code, no populated data yet |
+| Spatial/3D Learning | Neural-Network 3D Lesson | yes — live: 1 lesson | real faster-whisper STT | **"ask_tutor" is templated/canned off static text, NOT an LLM** — could read as "AI tutor" in UI but is deterministic | REAL_BUT_PARTIAL | flagged: real generative tutoring would need an LLM if that's the intended UX |
+| Construction/3D Twin | Digital Twin + Floor-Plan Import (OpenCV+Tesseract) | yes — live: 1 project | real local OpenCV (Hough/contour) + Tesseract OCR subprocess | **no LLM — real classical computer vision**, not generative AI | REAL_BUT_PARTIAL | none found |
+| Service Catalog | Public Service Catalog | yes — live: 2 items | none | no | REAL_END_TO_END | admin `(app)/service-catalog/` folder is empty — real UI actually lives at public `/services` |
+| CRM | Email Template Library | yes — live: 1 template | none (no send provider) | no | REAL_BUT_PARTIAL | depends on Campaign Send, which is honestly not_configured |
+| Intake | Public Intake Form | yes — live: 0 rows, rate-limited | none | no | REAL_END_TO_END (mechanism real, unused yet) | zero submissions yet |
+| Cross-Portal | Pricing Cross-Portal Job (reads sohamyoga's real pricing tables, read-only) | yes — live: 9 executions recorded | `sohamyoga_ro` role, INSERT/CREATE denied (verified) | no | REAL_BUT_PARTIAL | last real execution 2026-08-26 — stale, cron runner not live |
+| Cross-Portal | Reviews Cross-Portal Job | yes — live: 8 executions | `sohamyoga_ro` role | no | REAL_BUT_PARTIAL | correctly reports "Not yet automated" since source tables are genuinely empty — honest degrade, not a bug |
+| Observability | Operations Alert Sweep | yes — live: 6 real alert rows | none (internal sweep) | checks `ollama.circuitOpen()` as one signal only | REAL_BUT_PARTIAL | scheduled cadence stale (no live cron), page-load sweep compensates; self-caught-and-fixed a prior bug where resolved alerts were silently reopened |
+| Reliability | Self-Heal Job (race-safe retry via `FOR UPDATE SKIP LOCKED`) | yes | none (Postiz/YouTube publish client confirmed absent) | no | REAL_BUT_PARTIAL | self-caught-and-fixed a real cron-overlap race via atomic claim |
+| Signal Intelligence | Topic Intelligence Job | yes — live: 1 signal | none — explicitly documented as "no social-listening API or credential" | no — keyword frequency extraction, not ML | REAL_BUT_PARTIAL | stale cron |
+| Auth | Admin Session Auth | yes | none | no | **BROKEN (currently, build state)** | live app serves 500 on `/login` itself — code is sound, deployed build is not |
+| Job Infrastructure | Job Registry / Job Run Tracking | yes — live: 139 job_run rows | none | no | REAL_END_TO_END | none found |
+| Agency Client Portal | Agency Client Self-Service | **no — zero rows, zero write code found anywhere** | none | no | **SCHEMA_ONLY** | not in the original registry at all; 4 tables exist, zero API/UI/auth flow — `grep` for the 4 table names across `src` matches only the `.sql` file |
+| Testing | E2E Test Suite (`pipeline.spec.ts`) | writes real `test_run` rows | n/a | n/a | REAL_BUT_PARTIAL | 8 real test blocks, but last recorded run (2026-08-24, 8/8 passing) is 15 days stale — no CI hook keeps it fresh |
+
+**Summary:** the registry's 8 tracked rows significantly understate this app's real surface — it's a
+genuinely large (78-table), single-tenant Next.js app with its own dedicated database, and the
+codebase is unusually disciplined about refusing to fabricate success when a real integration is
+absent (Campaign Send, Reviews Cross-Portal, Voice Call Dispatch, and Self-Heal's publish-job
+relabeling all contain code whose explicit purpose is honest degradation, independently confirmed
+live here — e.g. `marketing_channel_connection` shows `missing_credentials` for all 8 channels).
+The registry's Voice AI claim ("schema/API/UI real, no PSTN provider connected") is **confirmed
+accurate**. Two things this pass found that the registry did not previously capture: the **Agency
+Client Portal is schema-only** (4 tables, zero implementation), and the **app's own build and cron
+runner are not currently healthy** (P0 findings above) — both new, real, currently-reproducible
+operational issues distinct from the code-level honesty findings.
+
 ## Known limitations of this checkpoint
 
-1. **15 of 27 requested columns are not populated per-row** for the 196 registry-tracked modules
-   (persona, entry point, DB writes/reads verified as booleans, AI/LLM used, agentic workflow used,
-   tests exist, E2E demo verified, security controls, observability, deployment status, source
-   origin, known dependency as a separate field from known issue). Populating these honestly for 196
-   rows requires either querying additional registry columns not yet checked in this pass
-   (`user_flow`, `admin_flow`, `data_flow`, `job_name`, `report_location`, `dashboard_location` exist
-   in the schema but weren't exported here) or a real per-module code read. Flagged, not silently
-   dropped.
-2. **3 portals not yet covered**: ai-orchestrator-platform, SohamYoga .NET backend, and
-   market-research-portal's non-registry backend surface. Under active parallel investigation as of
-   this checkpoint. (voice-agent-platform and password-manager completed in this checkpoint.)
-3. **AI/Agentic workflow classification** (Phase 10 of the full audit) has not been applied to any
-   module yet — that requires a dedicated LEVEL 0-6 classification pass per the mandatory policy,
-   not a guess embedded in this Phase 1 matrix.
+1. **15 of 27 requested columns are not populated per-row** for the 196 registry-tracked
+   sohamyoga-frontend/market-research-portal modules specifically (persona, entry point, DB
+   writes/reads verified as booleans, AI/LLM used, agentic workflow used, tests exist, E2E demo
+   verified, security controls, observability, deployment status, source origin, known dependency as
+   a separate field). The 6 portal deep-dive sections (voice-agent-platform, ai-orchestrator-platform,
+   SohamYoga .NET, password-manager, market-research-portal deep-dive) DO carry the full column set.
+   Closing this gap for the remaining ~170 registry-only rows requires either querying additional
+   registry columns not yet exported here (`user_flow`, `admin_flow`, `data_flow`, `job_name`,
+   `report_location`, `dashboard_location` exist in the schema) or a real per-module code read —
+   flagged as real remaining work, not silently dropped.
+2. **AI/Agentic workflow classification (Phase 10 of the full audit) has not been formally applied.**
+   This Phase 1 pass did informally note, per-module, whether AI/LLM is used and whether any
+   autonomy/tool-use exists — and found **zero genuine multi-step agentic workflows** across all 6
+   portals investigated in depth: every AI interaction found (Research-AI Draft Job, chat completions
+   in ai-orchestrator-platform, Ollama calls) is a single prompt/completion call, several explicitly
+   self-documented in their own code comments as NOT agents (e.g. praveenchatbot's "personas are NOT
+   a multi-step pipeline," the router's "NOT an ML classifier"). A formal LEVEL 0-6 classification
+   pass (Phase 10) still needs to happen as its own deliverable, not inferred here.
+3. **Phases 2-18 of the full audit framework are not started** — this document is Phase 1 only.
+   Given the two P0 findings above, the natural next phase is Phase 8 (Reliability) or Phase 7
+   (Security/DevSecOps) rather than proceeding phase-by-phase in strict numeric order — worth
+   confirming with the user before continuing.
