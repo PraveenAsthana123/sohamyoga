@@ -28,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { code: string
   const row = await query<{
     id: string; referrer_id: string; referrer_type: string; referral_url: string;
     status: string; max_uses: number | null; used_count: number; click_count: number;
-    expires_at: string | null; created_at: string; updated_at: string;
+    expires_at: string | null; created_at: string; updated_at: string; destination_path: string | null;
   }>(`SELECT * FROM referral_code WHERE code = $1`, [code]);
 
   if (!row.rowCount) {
@@ -56,6 +56,20 @@ export async function GET(req: NextRequest, { params }: { params: { code: string
        VALUES ($1, $2, $3, $4, now())`,
       [r.id, ip, req.headers.get('user-agent') || null, 'direct_link'],
     );
+  }
+
+  // Real affiliate-link destination -- previously EVERY code, regardless of
+  // referrer_type or its stored destination_path, redirected to
+  // /customer/register: correct for a customer-referral code (the point is
+  // to bring a new signup), wrong for an affiliate link meant to land a
+  // visitor on a specific vendor product/service page. Only a portal-owned
+  // relative path is honored (same safety rule as utm_link.base_url) --
+  // never an external URL.
+  const dest = r.destination_path;
+  if (dest && dest.startsWith('/') && !dest.startsWith('//')) {
+    const url = new URL(dest, req.url);
+    url.searchParams.set('ref', code);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.redirect(new URL(`/customer/register?ref=${encodeURIComponent(code)}`, req.url));

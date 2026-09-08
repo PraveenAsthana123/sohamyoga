@@ -270,6 +270,73 @@ function VendorFormModal({ onClose, onCreated }: { onClose: () => void; onCreate
   );
 }
 
+interface AffiliateLink { id: string; code: string; destinationPath: string | null; trackingUrl: string; status: string; clickCount: number; usedCount: number; createdAt: string }
+
+function AffiliateLinksModal({ vendor, onClose }: { vendor: VendorRow; onClose: () => void }) {
+  const [links, setLinks] = useState<AffiliateLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [destinationPath, setDestinationPath] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    fetch(`/api/admin/vendors/${vendor.id}/affiliate-links`, { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null).then(d => setLinks(d?.links ?? [])).finally(() => setLoading(false));
+  };
+  useEffect(load, [vendor.id]);
+
+  async function create() {
+    setError("");
+    if (!destinationPath.trim()) { setError("Enter a destination path (e.g. /catalog/product-slug)."); return; }
+    setSaving(true);
+    const res = await fetch(`/api/admin/vendors/${vendor.id}/affiliate-links`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ destinationPath }),
+    });
+    setSaving(false);
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { setError(d.error ?? "Failed to create link."); return; }
+    setDestinationPath("");
+    load();
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Affiliate Links — {vendor.name}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Real click-tracked links (referral_code table) that redirect to a real product/service page, not customer registration.</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>}
+        <div className="flex gap-2">
+          <input value={destinationPath} onChange={e => setDestinationPath(e.target.value)} placeholder="/catalog/product-slug"
+            className="flex-1 border rounded-lg px-3 py-2 text-sm" />
+          <button onClick={create} disabled={saving} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            {saving ? "Creating…" : "+ New Link"}
+          </button>
+        </div>
+        <div className="space-y-2 max-h-72 overflow-y-auto">
+          {loading ? <p className="text-sm text-gray-400 text-center py-4">Loading…</p> : links.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">No affiliate links yet for this vendor.</p>
+          ) : links.map(l => (
+            <div key={l.id} className="border rounded-lg p-2.5 text-xs space-y-1">
+              <div className="flex justify-between items-center">
+                <a href={l.trackingUrl} target="_blank" rel="noreferrer" className="font-mono text-blue-600 hover:underline break-all">{l.trackingUrl}</a>
+                <span className="px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0 ml-2">{l.status}</span>
+              </div>
+              <p className="text-gray-500">→ {l.destinationPath}</p>
+              <p className="text-gray-400">Clicks: {l.clickCount} · Uses: {l.usedCount}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const ORDER_STATUS_STYLE: Record<string, string> = {
   draft:      "bg-gray-100 text-gray-500",
@@ -314,6 +381,7 @@ export default function EcommerceAdminPage() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [vendorFilter, setVendorFilter] = useState<string | null>(null);
+  const [affiliateLinksVendor, setAffiliateLinksVendor] = useState<VendorRow | null>(null);
 
   const reloadCore = () => Promise.all([
     fetchJson<DashboardData>("/api/ecommerce/dashboard"),
@@ -400,6 +468,9 @@ export default function EcommerceAdminPage() {
       {showVendorModal && (
         <VendorFormModal onClose={() => setShowVendorModal(false)}
           onCreated={() => { setShowVendorModal(false); reloadCore(); }} />
+      )}
+      {affiliateLinksVendor && (
+        <AffiliateLinksModal vendor={affiliateLinksVendor} onClose={() => setAffiliateLinksVendor(null)} />
       )}
 
       {/* KPI row */}
@@ -702,6 +773,7 @@ export default function EcommerceAdminPage() {
                 </div>
                 <div className="flex gap-1 pt-1 border-t">
                   <button onClick={() => { setVendorFilter(v.id); setTab("products"); }} className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">Products</button>
+                  <button onClick={() => setAffiliateLinksVendor(v)} className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded hover:bg-indigo-100">Affiliate Links</button>
                   {v.status === "pending" && (
                     <button
                       onClick={async () => { await fetch("/api/ecommerce/vendors", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: v.id, status: "active" }) }); reloadCore(); }}
