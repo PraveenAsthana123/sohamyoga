@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   const tenantId = await getPrimaryTenantId();
 
-  const [monthRate, today, streaks, perStudent, policy, lateArrivals] = await Promise.all([
+  const [monthRate, today, streaks, perStudent, policy, lateArrivals, teacherRatings] = await Promise.all([
     query<{ attended: string; total: string }>(`
       SELECT count(*) FILTER (WHERE b.status = 'checked_in')::text AS attended, count(*)::text AS total
       FROM booking b JOIN class_session cs ON cs.id = b.class_session_id
@@ -67,7 +67,22 @@ export async function GET(req: NextRequest) {
        ORDER BY ar.attended_at DESC LIMIT 50`,
       [tenantId],
     ),
+    // Real teacher-rating aggregation (migration 163) -- avg/count per
+    // teacher_name, plus the 5 most recent comments across all teachers.
+    query<{ teacher_name: string; avg_rating: string; rating_count: string }>(
+      `SELECT teacher_name, ROUND(AVG(rating)::numeric, 2)::text AS avg_rating, count(*)::text AS rating_count
+       FROM teacher_rating WHERE tenant_id = $1
+       GROUP BY teacher_name ORDER BY avg_rating DESC`,
+      [tenantId],
+    ),
   ]);
+
+  const recentComments = await query<{ teacher_name: string; rating: number; comment: string | null; created_at: string }>(
+    `SELECT teacher_name, rating, comment, created_at::text FROM teacher_rating
+     WHERE tenant_id = $1 AND comment IS NOT NULL AND comment <> ''
+     ORDER BY created_at DESC LIMIT 10`,
+    [tenantId],
+  );
 
   const attended = Number(monthRate.rows[0]?.attended ?? 0);
   const totalMonth = Number(monthRate.rows[0]?.total ?? 0);
@@ -84,6 +99,12 @@ export async function GET(req: NextRequest) {
     latePolicy: { thresholdMinutes: policy.rows[0]?.late_threshold_minutes ?? 10 },
     lateArrivals: lateArrivals.rows.map(r => ({
       studentName: r.display_name, className: r.class_name, sessionDate: r.session_date, minutesLate: r.minutes_late,
+    })),
+    teacherRatings: teacherRatings.rows.map(r => ({
+      teacherName: r.teacher_name, avgRating: Number(r.avg_rating), ratingCount: Number(r.rating_count),
+    })),
+    recentRatingComments: recentComments.rows.map(r => ({
+      teacherName: r.teacher_name, rating: r.rating, comment: r.comment, createdAt: r.created_at,
     })),
   });
 }

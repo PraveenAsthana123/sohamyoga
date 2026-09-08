@@ -21,10 +21,13 @@ export async function GET(req: NextRequest) {
   interface BookingRow {
     id: string; status: string; booked_at: string; checked_in_at: string | null;
     class_name: string; teacher_name: string; session_date: string; start_time: string; duration_minutes: number; location: string | null;
+    my_rating: number | null;
   }
   const bookings = await query<BookingRow>(
-    `SELECT b.id, b.status, b.booked_at, b.checked_in_at, cs.class_name, cs.teacher_name, cs.session_date::text AS session_date, cs.start_time, cs.duration_minutes, cs.location
+    `SELECT b.id, b.status, b.booked_at, b.checked_in_at, cs.class_name, cs.teacher_name, cs.session_date::text AS session_date, cs.start_time, cs.duration_minutes, cs.location,
+            tr.rating AS my_rating
      FROM booking b JOIN class_session cs ON cs.id = b.class_session_id
+     LEFT JOIN teacher_rating tr ON tr.booking_id = b.id
      WHERE b.student_id = $1 AND b.status <> 'cancelled'
      ORDER BY cs.session_date DESC, cs.start_time DESC LIMIT 100`,
     [student.id],

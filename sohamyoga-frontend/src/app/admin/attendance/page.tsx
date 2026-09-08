@@ -17,9 +17,11 @@
 // Late Check-in built 2026-09-08: attendance_record.attended_at and
 // class_session.session_date/start_time were already real -- only a
 // configurable threshold (new attendance_policy table) and the actual
-// minutes-late arithmetic were missing. Teacher ratings genuinely still
-// have no backing schema anywhere in this app -- honestly labeled "not
-// yet available" rather than left as convincing fake numbers.
+// minutes-late arithmetic were missing.
+//
+// Teachers tab built 2026-09-08: real teacher_rating table (migration
+// 163), submitted by customers from /customer/bookings on their own
+// checked-in bookings. Closes the last booking sub-gap.
 
 import { useEffect, useState } from 'react';
 
@@ -28,11 +30,15 @@ type Tab = typeof TABS[number];
 
 interface StudentRow { display_name: string; classes_attended: number; classes_booked: number; last_seen: string | null; current_streak: number }
 interface LateArrival { studentName: string; className: string; sessionDate: string; minutesLate: number }
+interface TeacherRating { teacherName: string; avgRating: number; ratingCount: number }
+interface RatingComment { teacherName: string; rating: number; comment: string | null; createdAt: string }
 interface OverviewData {
   kpis: { attendanceRateMonth: number; studentsPresentToday: number; noShowsToday: number; totalBookedToday: number; streakHolders7Plus: number };
   students: StudentRow[];
   latePolicy: { thresholdMinutes: number };
   lateArrivals: LateArrival[];
+  teacherRatings: TeacherRating[];
+  recentRatingComments: RatingComment[];
 }
 
 function KpiCard({ label, value, sub, color = 'blue' }: { label: string; value: string; sub?: string; color?: string }) {
@@ -143,6 +149,46 @@ function LateCheckinTab({ data, onPolicyChanged }: { data: OverviewData | null; 
   );
 }
 
+function TeachersTab({ data }: { data: OverviewData | null }) {
+  if (!data) return <p className="text-sm text-gray-400">Loading…</p>;
+  return (
+    <div className="space-y-6">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50"><h3 className="text-sm font-semibold">Real Teacher Ratings (from customer-submitted reviews)</h3></div>
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Teacher', 'Avg Rating', 'Ratings'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.teacherRatings.map(t => (
+              <tr key={t.teacherName} className="hover:bg-gray-50">
+                <td className="px-3 py-2 font-medium">{t.teacherName}</td>
+                <td className="px-3 py-2 text-amber-600">{'★'.repeat(Math.round(t.avgRating))}{'☆'.repeat(5 - Math.round(t.avgRating))} {t.avgRating.toFixed(2)}</td>
+                <td className="px-3 py-2 text-gray-500">{t.ratingCount}</td>
+              </tr>
+            ))}
+            {!data.teacherRatings.length && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-400">No teacher ratings submitted yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50"><h3 className="text-sm font-semibold">Recent Comments</h3></div>
+        <div className="divide-y divide-gray-100">
+          {data.recentRatingComments.map((c, i) => (
+            <div key={i} className="px-4 py-3 text-sm">
+              <div className="flex justify-between">
+                <span className="font-medium">{c.teacherName}</span>
+                <span className="text-amber-600 text-xs">{'★'.repeat(c.rating)}{'☆'.repeat(5 - c.rating)}</span>
+              </div>
+              <p className="mt-1 text-gray-600 text-xs">{c.comment}</p>
+              <p className="mt-0.5 text-gray-400 text-xs">{new Date(c.createdAt).toLocaleDateString()}</p>
+            </div>
+          ))}
+          {!data.recentRatingComments.length && <p className="px-4 py-6 text-center text-sm text-gray-400">No comments left yet.</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AttendanceAdminPage() {
   const [tab, setTab] = useState<Tab>('Overview');
   const [data, setData] = useState<OverviewData | null>(null);
@@ -154,7 +200,7 @@ export default function AttendanceAdminPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
-        <p className="text-sm text-gray-500 mt-1">Real student attendance from attendance_record/booking, real QR check-in (via /admin/classes), and a real late-arrival policy. Teacher ratings still need schema this app doesn't have yet.</p>
+        <p className="text-sm text-gray-500 mt-1">Real student attendance from attendance_record/booking, real QR check-in (via /admin/classes), a real late-arrival policy, and real customer-submitted teacher ratings.</p>
       </div>
       <div className="border-b flex gap-1 overflow-x-auto">
         {TABS.map(t => (
@@ -163,7 +209,7 @@ export default function AttendanceAdminPage() {
       </div>
       {tab === 'Overview' && <OverviewTab data={data} />}
       {tab === 'Students' && <StudentsTab data={data} />}
-      {tab === 'Teachers' && <NotYetAvailable reason="No teacher rating/coverage schema exists in this app yet." />}
+      {tab === 'Teachers' && <TeachersTab data={data} />}
       {tab === 'QR Scan' && (
         <div className="rounded-lg border border-dashed border-blue-300 bg-blue-50 p-8 text-center">
           <p className="text-sm font-medium text-blue-700">Real QR check-in is live -- just not on this page</p>
