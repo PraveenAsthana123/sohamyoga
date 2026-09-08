@@ -54,8 +54,8 @@ Everything marked ✅ has been tested against the real database and (where noted
 | Admin manages a business's profile/contacts/scripts | ✅ | Verified: admin-added contact appeared in that business's own portal |
 | Vapi assistant name traceable to business | ✅ | `[Business Name] Script Name`, truncated to Vapi's real 40-char limit |
 | Cal.com calendar (availability/book/reschedule/cancel) | ⛔ fail-closed | Code correct, needs your `CALCOM_API_KEY` + `CALCOM_EVENT_TYPE_ID` |
-| **Inbound/outbound call PLACEMENT** (actually ringing a phone) | ⛔ not built | `VoiceProviderAdapter.placeCall()` still throws `NotConfigured` |
-| **Webhook receiver** (auto-capture real call transcript/duration/cost) | ⛔ not built | Needs building before call_log fills in automatically |
+| **Inbound/outbound call PLACEMENT** (actually ringing a phone) | ✅ code+config real | CORRECTED 2026-09-08: `VapiCallAdapter.placeCall()` is a real POST /call implementation, `VAPI_API_KEY`/`VAPI_PHONE_NUMBER_ID` are both set, `/api/admin/calls/place` + `PlaceCallButton.tsx` exist. No live call has been placed to verify end-to-end (it rings a real phone by design) — that is the one remaining honest gap, not the code. |
+| **Webhook receiver** (auto-capture real call transcript/duration/cost) | ✅ real | CORRECTED 2026-09-08: `/api/webhooks/vapi/route.ts` is a real, secret-verified end-of-call-report + status-update handler, wired onto every synced assistant since `PUBLIC_BASE_URL`/`VAPI_WEBHOOK_SECRET` are both set. This row was stale when written on 2026-09-02. |
 | Billing / usage / cost dashboard | ⛔ not built | Needs real call data from the webhook above first |
 | Welcome/thank-you/payment note as distinct template fields | ⛔ not built | Only one generic `servicesDescription` field exists |
 | Email, WhatsApp, Google Pay/payment links | ⛔ not built | No provider credentials exist for any of these |
@@ -95,8 +95,8 @@ Everything marked ✅ has been tested against the real database and (where noted
 
 ## 6. To-do (priority order)
 
-1. Webhook receiver for real Vapi call events → auto-fill `call_log` (unblocks billing/usage/transcript views)
-2. `placeCall()` real implementation (currently only config sync exists, not call placement)
+1. ~~Webhook receiver for real Vapi call events~~ — DONE, corrected 2026-09-08 (see §2 above). Real next step: a billing/usage/cost dashboard over the now-auto-filling `call_log`, which was the actual point of this item.
+2. ~~`placeCall()` real implementation~~ — DONE, corrected 2026-09-08 (see §2 above). Not yet exercised with a real live call (deliberately, by design).
 3. Multi-business inbound routing (needs either per-business phone numbers or a real router)
 4. Cal.com credentials → wire real availability/booking
 5. Welcome/thank-you/payment note as distinct, business-editable template fields

@@ -13,6 +13,7 @@ interface Profile {
 interface Contact { id: string; fullName: string; email: string | null; phone: string | null; status: string; source: string; createdAt: string }
 interface CallRow { id: string; contactName: string | null; direction: string; status: string; durationSeconds: number | null; outcomeNotes: string | null; needsFollowUp: boolean; createdAt: string }
 interface ScriptRow { id: string; name: string; direction: 'inbound' | 'outbound'; scenarioKey: string | null; status: string; opening: string; discoveryQuestions: string[]; objectionHandling: string; closing: string }
+interface BillingSummary { monthToDateSpendUsd: number; monthlyCostCapUsd: number | null; callCount: number; totalDurationSeconds: number; avgCostPerCallUsd: number }
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   const res = await fetch(url, { cache: 'no-store' });
@@ -186,6 +187,39 @@ function CallsTab() {
   );
 }
 
+function BillingTab() {
+  const [summary, setSummary] = useState<BillingSummary | null>(null);
+  useEffect(() => { fetchJson<BillingSummary>('/api/customer/billing').then(setSummary); }, []);
+
+  if (!summary) return <p className="text-sm opacity-60">Loading…</p>;
+  const overCap = summary.monthlyCostCapUsd != null && summary.monthToDateSpendUsd >= summary.monthlyCostCapUsd;
+  return (
+    <div className="space-y-4 max-w-lg">
+      <p className="text-xs opacity-50">Real month-to-date spend, from what Vapi actually reported for each call — not an estimate.</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="border border-black/10 dark:border-white/10 rounded-lg p-3">
+          <p className="text-xs opacity-60">Month-to-date spend</p>
+          <p className={`text-xl font-semibold ${overCap ? 'text-red-600' : ''}`}>${summary.monthToDateSpendUsd.toFixed(2)}</p>
+        </div>
+        <div className="border border-black/10 dark:border-white/10 rounded-lg p-3">
+          <p className="text-xs opacity-60">Monthly cap</p>
+          <p className="text-xl font-semibold">{summary.monthlyCostCapUsd != null ? `$${summary.monthlyCostCapUsd.toFixed(2)}` : 'Not set'}</p>
+        </div>
+        <div className="border border-black/10 dark:border-white/10 rounded-lg p-3">
+          <p className="text-xs opacity-60">Calls this month</p>
+          <p className="text-xl font-semibold">{summary.callCount}</p>
+        </div>
+        <div className="border border-black/10 dark:border-white/10 rounded-lg p-3">
+          <p className="text-xs opacity-60">Avg cost / call</p>
+          <p className="text-xl font-semibold">${summary.avgCostPerCallUsd.toFixed(2)}</p>
+        </div>
+      </div>
+      {overCap && <p className="text-sm text-red-600">You are at or above your monthly cost cap.</p>}
+      <p className="text-xs opacity-50">To change your cap, contact our team — cap changes are admin-set to prevent accidental runaway spend.</p>
+    </div>
+  );
+}
+
 function ScriptsTab() {
   const [scripts, setScripts] = useState<ScriptRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -282,7 +316,7 @@ function ScriptsTab() {
 
 export default function CustomerDashboardPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<'profile' | 'contacts' | 'scripts' | 'calls'>('profile');
+  const [tab, setTab] = useState<'profile' | 'contacts' | 'scripts' | 'calls' | 'billing'>('profile');
 
   async function logout() {
     await fetch('/api/customer/auth/logout', { method: 'POST' });
@@ -300,7 +334,7 @@ export default function CustomerDashboardPage() {
         </div>
       </div>
       <div className="flex gap-2 border-b border-black/10 dark:border-white/10">
-        {(['profile', 'contacts', 'scripts', 'calls'] as const).map((t) => (
+        {(['profile', 'contacts', 'scripts', 'calls', 'billing'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`px-3 py-2 text-sm capitalize ${tab === t ? 'border-b-2 border-black dark:border-white font-medium' : 'opacity-60'}`}>{t}</button>
         ))}
       </div>
@@ -308,6 +342,7 @@ export default function CustomerDashboardPage() {
       {tab === 'contacts' && <ContactsTab />}
       {tab === 'scripts' && <ScriptsTab />}
       {tab === 'calls' && <CallsTab />}
+      {tab === 'billing' && <BillingTab />}
     </div>
   );
 }
