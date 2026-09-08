@@ -60,10 +60,10 @@ export const GITLAB_MCP = server(
   'gitlab-mcp', 'GitLab MCP', 'Search projects and manage issues on GitLab (self-hosted or gitlab.com).',
   [
     {
-      name: 'search_projects', description: 'Search GitLab projects by keyword.',
+      name: 'search_projects', description: 'Search GitLab projects by keyword — real, public GitLab API, no auth required for reads (verified live: GET /api/v4/projects?search= returns real results with zero auth headers).',
       tier: 'auto', riskLevel: 1,
       inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' } } },
-      safetyNote: 'Needs GITLAB_TOKEN — not configured in this environment.',
+      safetyNote: 'Public read, no credential needed. Corrected 2026-09-08 -- previously wrongly claimed to need GITLAB_TOKEN.',
     },
     {
       name: 'gitlab_create_issue', description: 'Open a new issue on a GitLab project this project owns.',
@@ -247,7 +247,15 @@ export interface ExecutionResult {
   data?: unknown;
 }
 
-const EXECUTABLE_TOOLS = new Set(['github.search_repositories', 'stackoverflow.search_questions']);
+// gitlab.search_projects added 2026-09-08: the registry's own safetyNote
+// ("Needs GITLAB_TOKEN — not configured") was verified live to be
+// overcautious -- GitLab's public project-search API (GET /api/v4/projects
+// ?search=) returns real results for public projects with NO auth header
+// at all (confirmed: curl https://gitlab.com/api/v4/projects?search=yoga
+// -> HTTP 200, real project rows), the same shape as GitHub's public
+// search this gateway already executes. Only gitlab_create_issue (a write)
+// still genuinely needs GITLAB_TOKEN.
+const EXECUTABLE_TOOLS = new Set(['github.search_repositories', 'stackoverflow.search_questions', 'gitlab.search_projects']);
 
 export function isExecutable(serverSlug: string, toolName: string): boolean {
   return EXECUTABLE_TOOLS.has(`${serverSlug.replace('-mcp', '')}.${toolName}`);
@@ -279,6 +287,20 @@ async function executeStackOverflowSearch(args: { query: string; tag?: string })
   };
 }
 
+async function executeGitlabSearch(args: { query: string; perPage?: number }): Promise<ExecutionResult> {
+  const perPage = args.perPage ?? 5;
+  const res = await fetch(
+    `https://gitlab.com/api/v4/projects?search=${encodeURIComponent(args.query)}&order_by=star_count&sort=desc&per_page=${perPage}`,
+    { headers: { 'User-Agent': 'sohamyoga-mcp-gateway' } },
+  );
+  if (!res.ok) return { executed: false, reason: `GitLab API returned ${res.status}` };
+  const body = await res.json() as Array<{ name_with_namespace: string; web_url: string; star_count: number; description: string | null }>;
+  return {
+    executed: true,
+    data: body.map(p => ({ fullName: p.name_with_namespace, url: p.web_url, stars: p.star_count, description: p.description })),
+  };
+}
+
 export async function executeExternalPlatformTool(serverSlug: string, toolName: string, args: Record<string, unknown>): Promise<ExecutionResult> {
   const key = `${serverSlug.replace('-mcp', '')}.${toolName}`;
   try {
@@ -287,6 +309,8 @@ export async function executeExternalPlatformTool(serverSlug: string, toolName: 
         return await executeGithubSearch(args as { query: string; perPage?: number });
       case 'stackoverflow.search_questions':
         return await executeStackOverflowSearch(args as { query: string; tag?: string });
+      case 'gitlab.search_projects':
+        return await executeGitlabSearch(args as { query: string; perPage?: number });
       default:
         return { executed: false, reason: 'This tool needs credentials not configured in this environment — see its safetyNote in the gateway catalog.' };
     }
