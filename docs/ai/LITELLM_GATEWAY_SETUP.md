@@ -63,3 +63,15 @@ LiteLLM overhead, the underlying Ollama load time.
 Wire ai-orchestrator-platform's chat calls through this gateway instead of calling Ollama directly —
 a real code change to `backend/app/providers.py`/`bridge.py`, not attempted in this pass per the
 explicit "start small, evaluate before going further" scoping decision.
+
+## 🔴 Discovered mid-setup: a second, pre-existing AI gateway already runs on this machine
+
+`omniroute.service` — a real, actively-published npm package (`omniroute` 3.8.50, 2.8GB installed,
+MIT licensed, 289 published versions, homepage `omniroute.online`) claiming 352 providers,
+MCP/A2A support, and its own OpenAI-compatible API — was already running on port 20128, started
+~2 hours before this LiteLLM setup began, by a different/parallel session, not this one. Health
+check confirms it's genuinely alive (`{"status":"ok"}`); its dashboard/model-list claims weren't
+independently verified (no credentials available to this session). See TD-27 in
+[TECHNICAL_DEBT_REGISTER.md](../governance/TECHNICAL_DEBT_REGISTER.md) — explicit decision made:
+**leave both running for now**, don't consolidate until it's clear what OmniRoute is actually
+configured for.
