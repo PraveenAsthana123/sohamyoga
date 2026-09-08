@@ -28,18 +28,19 @@ at all) on multiple other **sohamyoga-related** services:
 | Service | Restart policy | Currently active? | Risk |
 |---|---|---|---|
 | `praveenchatbot-backend.service` | **Fixed this session** → `Restart=always` | Yes | Closed |
-| `praveenchatbot-frontend.service` | `on-failure` | Yes | Same latent risk, not yet fixed |
+| `praveenchatbot-frontend.service` | **Fixed this session** → `Restart=always` | Yes | Closed |
 | `soham-backend.service` (alternate dev-mode launch of SohamYoga.Web, NOT the live Docker instance) | `on-failure` | **Inactive** — Docker is the live path | Latent, low current risk since dormant |
 | `soham-frontend.service` (alternate dev-mode launch, NOT the live Docker instance) | `on-failure` | **Inactive** | Latent, low current risk since dormant |
 | `soham-market-research-cron.service` | **Created this session** → `Restart=always` | Yes | Closed |
 
 Per this workspace's own Session Continuity & Automation Integrity Policy ("when fixing this failure
 mode in one project, sweep the whole crontab for the same bug elsewhere") — this sweep was done, and
-the finding is recorded here rather than silently fixed across every file, because several other
-matching units (`job-portal-*`, `insur-*`, `ggu-apa7-*`) belong to **other, unrelated projects on
-this machine**, out of scope for a sohamyoga engineering audit — fixing those would exceed this
-audit's boundary. `praveenchatbot-frontend.service` is in-scope and still open — recommend applying
-the same one-line fix (`Restart=always`) as a fast-follow.
+all in-scope, active occurrences were fixed (`praveenchatbot-backend`, `praveenchatbot-frontend`),
+plus one net-new persistent unit created for a service that had no restart policy at all
+(`soham-market-research-cron`). The two dormant `soham-backend`/`soham-frontend` dev-mode units were
+left as-is (inactive, not the live path — Docker is). Several other matching units
+(`job-portal-*`, `insur-*`, `ggu-apa7-*`) belong to **other, unrelated projects on this machine**,
+out of scope for a sohamyoga engineering audit — not touched.
 
 ## 4. Graceful degradation ("honest degradation" pattern, cross-referenced)
 
