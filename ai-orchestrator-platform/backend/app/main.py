@@ -104,19 +104,22 @@ class LoginRequest(BaseModel):
 
 
 @app.post("/auth/login")
-def auth_login(req: LoginRequest, response: Response):
+def auth_login(req: LoginRequest, request: Request, response: Response):
     if not secrets.compare_digest(req.password, config.AUTH_PASSWORD):
         raise HTTPException(401, "incorrect password")
     sid = auth.create_session()
-    # secure=False on purpose: this backend is always spoken to over plain
-    # http locally (by the Vite proxy or a direct localhost browser) even
-    # when the *browser's* connection to the tunnel is https -- a Secure
-    # cookie would still reach the browser fine over the tunnel, but would
-    # silently fail to be stored during local http://127.0.0.1 dev/testing.
-    # SameSite=Lax is enough on a single-origin app with no cross-site POSTs.
+    # secure is now derived per-request rather than hardcoded False
+    # (2026-09-08 audit fix). The backend itself is always spoken to over
+    # plain http locally (by the Vite proxy or a direct localhost browser),
+    # but when reached through the Cloudflare tunnel the tunnel terminates
+    # TLS and forwards X-Forwarded-Proto: https -- in that case the browser
+    # *is* on a secure origin and the cookie should carry Secure. Local
+    # http://127.0.0.1 dev/testing has no such header and still gets
+    # secure=False, so nothing breaks there.
+    is_https = request.headers.get("x-forwarded-proto", "").lower() == "https"
     response.set_cookie(
         auth.SESSION_COOKIE, sid, max_age=auth.SESSION_TTL_SECONDS,
-        httponly=True, samesite="lax", secure=False, path="/",
+        httponly=True, samesite="lax", secure=is_https, path="/",
     )
     return {"ok": True}
 

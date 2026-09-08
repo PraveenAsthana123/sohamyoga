@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import mammoth from 'mammoth'
+import DOMPurify from 'dompurify'
 
 // Real .docx rendering via mammoth (docx -> semantic HTML). Not
 // pixel-identical to Word, but a faithful, working read view of the actual
@@ -24,7 +25,9 @@ export function DocxViewer({ url }: { url: string }) {
       .then((buf) => mammoth.convertToHtml({ arrayBuffer: buf }))
       .then((result) => {
         if (cancelled) return
-        setHtml(result.value)
+        // mammoth's output is real content from an uploaded/scoped file, not
+        // trusted markup — sanitize before rendering (2026-09-08 audit fix).
+        setHtml(DOMPurify.sanitize(result.value))
         setWarnings(result.messages.map((m) => m.message))
         setLoading(false)
       })
