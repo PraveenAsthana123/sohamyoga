@@ -391,7 +391,7 @@ function NewSegmentForm({ onCreated }: { onCreated: () => void }) {
       <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" className="w-full border rounded px-2 py-1.5 text-sm" />
       <div className="flex gap-2">
         <select value={field} onChange={e => setField(e.target.value as typeof field)} className="border rounded px-2 py-1.5 text-sm flex-1">
-          {SEGMENT_FIELDS.map(f => <option key={f} value={f}>{f}</option>)}
+          {SEGMENT_FIELDS.map(f => <option key={f} value={f}>{f}{f === 'location' ? ' (not yet supported — no location data exists)' : ''}</option>)}
         </select>
         <select value={operator} onChange={e => setOperator(e.target.value as typeof operator)} className="border rounded px-2 py-1.5 text-sm">
           {SEGMENT_OPERATORS.map(o => <option key={o} value={o}>{o}</option>)}
