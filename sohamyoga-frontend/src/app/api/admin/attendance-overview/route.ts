@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { getAdminPrincipal } from '@/lib/admin-auth';
+import { getPrimaryTenantId } from '@/domain/ingestion/Connector';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,7 +17,9 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const [monthRate, today, streaks, perStudent] = await Promise.all([
+  const tenantId = await getPrimaryTenantId();
+
+  const [monthRate, today, streaks, perStudent, policy, lateArrivals] = await Promise.all([
     query<{ attended: string; total: string }>(`
       SELECT count(*) FILTER (WHERE b.status = 'checked_in')::text AS attended, count(*)::text AS total
       FROM booking b JOIN class_session cs ON cs.id = b.class_session_id
@@ -44,6 +47,26 @@ export async function GET(req: NextRequest) {
       HAVING count(b.id) > 0
       ORDER BY classes_attended DESC LIMIT 100
     `),
+    query<{ late_threshold_minutes: number }>(
+      `SELECT late_threshold_minutes FROM attendance_policy WHERE tenant_id = $1`,
+      [tenantId],
+    ),
+    // Real lateness computation -- attended_at and session_date/start_time
+    // were both already real columns; only the arithmetic and a
+    // configurable threshold were missing. minutes_late clamps at 0 (an
+    // early/on-time check-in is never "negative late").
+    query<{ display_name: string; class_name: string; session_date: string; minutes_late: number }>(
+      `SELECT s.display_name, cs.class_name, cs.session_date::text,
+              GREATEST(0, ROUND(EXTRACT(EPOCH FROM (ar.attended_at - (cs.session_date + cs.start_time)))/60))::int AS minutes_late
+       FROM attendance_record ar
+       JOIN class_session cs ON cs.id = ar.class_session_id
+       JOIN student s ON s.id = ar.student_id
+       WHERE ar.tenant_id = $1 AND ar.status = 'attended' AND ar.attended_at IS NOT NULL
+         AND ar.attended_at > (cs.session_date + cs.start_time)::timestamptz
+             + (COALESCE((SELECT late_threshold_minutes FROM attendance_policy WHERE tenant_id = $1), 10) || ' minutes')::interval
+       ORDER BY ar.attended_at DESC LIMIT 50`,
+      [tenantId],
+    ),
   ]);
 
   const attended = Number(monthRate.rows[0]?.attended ?? 0);
@@ -58,5 +81,30 @@ export async function GET(req: NextRequest) {
       streakHolders7Plus: Number(streaks.rows[0]?.count ?? 0),
     },
     students: perStudent.rows,
+    latePolicy: { thresholdMinutes: policy.rows[0]?.late_threshold_minutes ?? 10 },
+    lateArrivals: lateArrivals.rows.map(r => ({
+      studentName: r.display_name, className: r.class_name, sessionDate: r.session_date, minutesLate: r.minutes_late,
+    })),
   });
+}
+
+export async function PUT(req: NextRequest) {
+  const { principal, denied } = await getAdminPrincipal(req);
+  if (denied) return denied;
+  if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
+
+  const body = await req.json().catch(() => null) as { thresholdMinutes?: number } | null;
+  const threshold = Number(body?.thresholdMinutes);
+  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 120) {
+    return Response.json({ error: 'thresholdMinutes must be a number between 0 and 120.' }, { status: 400 });
+  }
+
+  const tenantId = await getPrimaryTenantId();
+  await query(
+    `INSERT INTO attendance_policy (tenant_id, late_threshold_minutes, updated_by)
+     VALUES ($1,$2,$3)
+     ON CONFLICT (tenant_id) DO UPDATE SET late_threshold_minutes = $2, updated_by = $3, updated_at = now()`,
+    [tenantId, Math.round(threshold), principal?.email ?? principal?.id ?? 'admin'],
+  );
+  return Response.json({ ok: true, thresholdMinutes: Math.round(threshold) });
 }

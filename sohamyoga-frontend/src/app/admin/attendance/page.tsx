@@ -12,9 +12,14 @@
 // already existed but was never wired into any page -- it's now live at
 // /admin/classes' QR Check-in tab, so this tab links there instead of
 // claiming "no QR code system" (which was true when first written, not
-// anymore). Teacher ratings and Late Check-in policy genuinely still have
-// no backing schema anywhere in this app -- honestly labeled "not yet
-// available" rather than left as convincing fake numbers.
+// anymore).
+//
+// Late Check-in built 2026-09-08: attendance_record.attended_at and
+// class_session.session_date/start_time were already real -- only a
+// configurable threshold (new attendance_policy table) and the actual
+// minutes-late arithmetic were missing. Teacher ratings genuinely still
+// have no backing schema anywhere in this app -- honestly labeled "not
+// yet available" rather than left as convincing fake numbers.
 
 import { useEffect, useState } from 'react';
 
@@ -22,9 +27,12 @@ const TABS = ['Overview', 'Students', 'Teachers', 'QR Scan', 'Late Check-in', 'M
 type Tab = typeof TABS[number];
 
 interface StudentRow { display_name: string; classes_attended: number; classes_booked: number; last_seen: string | null; current_streak: number }
+interface LateArrival { studentName: string; className: string; sessionDate: string; minutesLate: number }
 interface OverviewData {
   kpis: { attendanceRateMonth: number; studentsPresentToday: number; noShowsToday: number; totalBookedToday: number; streakHolders7Plus: number };
   students: StudentRow[];
+  latePolicy: { thresholdMinutes: number };
+  lateArrivals: LateArrival[];
 }
 
 function KpiCard({ label, value, sub, color = 'blue' }: { label: string; value: string; sub?: string; color?: string }) {
@@ -87,19 +95,66 @@ function StudentsTab({ data }: { data: OverviewData | null }) {
   );
 }
 
+function LateCheckinTab({ data, onPolicyChanged }: { data: OverviewData | null; onPolicyChanged: () => void }) {
+  const [threshold, setThreshold] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (data) setThreshold(String(data.latePolicy.thresholdMinutes)); }, [data?.latePolicy.thresholdMinutes]);
+
+  async function savePolicy() {
+    setSaving(true);
+    await fetch('/api/admin/attendance-overview', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ thresholdMinutes: Number(threshold) }),
+    });
+    setSaving(false);
+    onPolicyChanged();
+  }
+
+  if (!data) return <p className="text-sm text-gray-400">Loading…</p>;
+  return (
+    <div className="space-y-4">
+      <div className="border rounded-lg p-4 flex items-center gap-3">
+        <label className="text-sm font-medium">Late threshold:</label>
+        <input type="number" min={0} max={120} value={threshold} onChange={e => setThreshold(e.target.value)}
+          className="w-20 border rounded px-2 py-1 text-sm" />
+        <span className="text-sm text-gray-500">minutes after class start</span>
+        <button onClick={savePolicy} disabled={saving} className="ml-auto px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50"><h3 className="text-sm font-semibold">Real Late Arrivals (real attended_at vs. real class start_time)</h3></div>
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Student', 'Class', 'Date', 'Minutes Late'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.lateArrivals.map((r, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="px-3 py-2 font-medium">{r.studentName}</td>
+                <td className="px-3 py-2">{r.className}</td>
+                <td className="px-3 py-2 text-gray-500 text-xs">{new Date(r.sessionDate).toLocaleDateString()}</td>
+                <td className="px-3 py-2 font-medium text-rose-600">{r.minutesLate} min</td>
+              </tr>
+            ))}
+            {!data.lateArrivals.length && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-400">No late arrivals past the {data.latePolicy.thresholdMinutes}-minute threshold.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function AttendanceAdminPage() {
   const [tab, setTab] = useState<Tab>('Overview');
   const [data, setData] = useState<OverviewData | null>(null);
 
-  useEffect(() => {
-    fetch('/api/admin/attendance-overview', { cache: 'no-store' }).then(r => r.json()).then(setData);
-  }, []);
+  const loadData = () => fetch('/api/admin/attendance-overview', { cache: 'no-store' }).then(r => r.json()).then(setData);
+  useEffect(() => { loadData(); }, []);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
-        <p className="text-sm text-gray-500 mt-1">Real student attendance from attendance_record/booking. QR check-in, teacher ratings, and late-arrival policy need schema this app doesn't have yet.</p>
+        <p className="text-sm text-gray-500 mt-1">Real student attendance from attendance_record/booking, real QR check-in (via /admin/classes), and a real late-arrival policy. Teacher ratings still need schema this app doesn't have yet.</p>
       </div>
       <div className="border-b flex gap-1 overflow-x-auto">
         {TABS.map(t => (
@@ -118,7 +173,7 @@ export default function AttendanceAdminPage() {
           </p>
         </div>
       )}
-      {tab === 'Late Check-in' && <NotYetAvailable reason="No lateness-threshold policy or tracking exists yet -- checked_in_at is recorded, but nothing computes minutes-late against class start time." />}
+      {tab === 'Late Check-in' && <LateCheckinTab data={data} onPolicyChanged={loadData} />}
       {tab === 'Monthly' && <NotYetAvailable reason="A real monthly heatmap is buildable from attendance_record.attended_at but hasn't been wired up yet." />}
       {tab === 'Reports' && <NotYetAvailable reason="Report generation for this domain hasn't been built yet." />}
     </div>
