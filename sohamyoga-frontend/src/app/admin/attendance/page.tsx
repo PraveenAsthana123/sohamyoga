@@ -5,11 +5,16 @@
 // cause: attendance_record was structurally unreachable until that same
 // session fixed enrollment_id's NOT NULL constraint and wired the real
 // check-in route to actually write to it). Overview and Students are now
-// real, from real attendance_record/booking/streak data. QR Scan, Teacher
-// ratings, and Late Check-in policy need schema that doesn't exist in this
-// app (no QR code system, no teacher rating field, no lateness-threshold
-// tracking) -- honestly labeled "not yet available" rather than left as
-// convincing fake numbers.
+// real, from real attendance_record/booking/streak data.
+//
+// QR Scan corrected 2026-09-08: a real QR check-in system (registration_
+// token/registration_token_scan, /api/checkin/validate, QrCheckInScanner.tsx)
+// already existed but was never wired into any page -- it's now live at
+// /admin/classes' QR Check-in tab, so this tab links there instead of
+// claiming "no QR code system" (which was true when first written, not
+// anymore). Teacher ratings and Late Check-in policy genuinely still have
+// no backing schema anywhere in this app -- honestly labeled "not yet
+// available" rather than left as convincing fake numbers.
 
 import { useEffect, useState } from 'react';
 
@@ -104,7 +109,15 @@ export default function AttendanceAdminPage() {
       {tab === 'Overview' && <OverviewTab data={data} />}
       {tab === 'Students' && <StudentsTab data={data} />}
       {tab === 'Teachers' && <NotYetAvailable reason="No teacher rating/coverage schema exists in this app yet." />}
-      {tab === 'QR Scan' && <NotYetAvailable reason="No QR check-in system exists -- attendance is currently marked by staff via /admin/booking's Check In button." />}
+      {tab === 'QR Scan' && (
+        <div className="rounded-lg border border-dashed border-blue-300 bg-blue-50 p-8 text-center">
+          <p className="text-sm font-medium text-blue-700">Real QR check-in is live -- just not on this page</p>
+          <p className="mt-1 text-xs text-blue-600">
+            Scan students in per class session at <a href="/admin/classes" className="underline font-medium">/admin/classes</a> (QR Check-in tab) --
+            it writes to this same real attendance_record data.
+          </p>
+        </div>
+      )}
       {tab === 'Late Check-in' && <NotYetAvailable reason="No lateness-threshold policy or tracking exists yet -- checked_in_at is recorded, but nothing computes minutes-late against class start time." />}
       {tab === 'Monthly' && <NotYetAvailable reason="A real monthly heatmap is buildable from attendance_record.attended_at but hasn't been wired up yet." />}
       {tab === 'Reports' && <NotYetAvailable reason="Report generation for this domain hasn't been built yet." />}

@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import QrCheckInScanner from '@/components/auth/QrCheckInScanner';
 
 const TABS = ['Overview', 'Schedule', 'Classes', 'Waitlists', 'Cancellations', 'QR Check-in', 'Integrations'] as const;
 type Tab = typeof TABS[number];
@@ -197,31 +198,75 @@ function CancellationsTab() {
   );
 }
 
+interface QrSession { id: string; className: string; teacherName: string; startTime: string }
+interface QrScanLogRow { scannedBy: string; result: string; scannedAt: string; studentName: string }
+interface QrCheckinData {
+  sessions: QrSession[];
+  stats: { qrCheckins: number; manualCheckins: number; failedScans: number };
+  recentScans: QrScanLogRow[];
+}
+
+const SCAN_RESULT_COLOR: Record<string, string> = {
+  valid: 'green', already_scanned: 'amber', wrong_class: 'red', too_early: 'amber',
+  cancelled: 'red', unknown_token: 'red', manual_override: 'purple',
+};
+
+// Real QR check-in tab -- was 100% hardcoded mock data (fake "186" check-ins,
+// a fake scanner-status list, a fake manual-override log) despite a fully
+// real backend (/api/checkin/validate: registration_token/
+// registration_token_scan/attendance_record, with loyalty-points
+// integration) and a real camera-based QrCheckInScanner component already
+// existing -- neither was ever wired into any page (grep-confirmed: zero
+// imports of QrCheckInScanner anywhere in src/app before this).
 function QRCheckInTab() {
+  const [data, setData] = useState<QrCheckinData | null>(null);
+  const [selectedSession, setSelectedSession] = useState<string>('');
+
+  const load = () => {
+    fetch('/api/admin/classes/qr-checkin', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: QrCheckinData | null) => {
+        setData(d);
+        if (d?.sessions.length && !selectedSession) setSelectedSession(d.sessions[0].id);
+      });
+  };
+  useEffect(load, []);
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="QR Check-ins Today"  value="186" color="teal" />
-        <KpiCard label="Manual Check-ins"    value="12"  color="blue" />
-        <KpiCard label="Failed QR Scans"     value="3"   color="rose" />
+        <KpiCard label="QR Check-ins Today" value={String(data?.stats.qrCheckins ?? '—')} color="teal" />
+        <KpiCard label="Manual Check-ins" value={String(data?.stats.manualCheckins ?? '—')} color="blue" />
+        <KpiCard label="Failed QR Scans" value={String(data?.stats.failedScans ?? '—')} color="rose" />
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="border rounded-lg p-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">QR Scanner Status</h3>
-          {[['Studio A Scanner', 'online'], ['Studio B Scanner', 'online'], ['Entrance Kiosk', 'offline'], ['Mobile App QR', 'online']].map(([name, status]) => (
-            <div key={name} className="flex justify-between text-sm py-1.5 border-b border-gray-50">
-              <span>{name}</span><Badge color={status === 'online' ? 'green' : 'red'}>{status}</Badge>
-            </div>
-          ))}
-        </div>
-        <div className="border rounded-lg p-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Manual Override Log</h3>
-          {[['Priya S.', 'Aarav Shah', 'QR expired', '07:04'],['Anita M.', 'Kiran Mehta', 'No phone', '09:12'],['Front desk', 'Riya Gupta', 'App issue', '11:33']].map(([staff, student, reason, time]) => (
-            <div key={`${staff}-${time}`} className="text-xs py-1.5 border-b border-gray-50">
-              <span className="font-medium">{student}</span><span className="text-gray-500"> — {reason} ({time}, by {staff})</span>
-            </div>
-          ))}
-        </div>
+
+      <div className="border rounded-lg p-4">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Scan for a Session</h3>
+        {!data ? <p className="text-sm text-gray-400">Loading…</p> : data.sessions.length === 0 ? (
+          <p className="text-sm text-gray-400">No class sessions scheduled today -- nothing to scan into.</p>
+        ) : (
+          <>
+            <select value={selectedSession} onChange={e => setSelectedSession(e.target.value)} className="border rounded-lg px-3 py-2 text-sm mb-3 w-full max-w-sm">
+              {data.sessions.map(s => <option key={s.id} value={s.id}>{s.startTime} — {s.className} ({s.teacherName})</option>)}
+            </select>
+            {selectedSession && <QrCheckInScanner classId={selectedSession} />}
+          </>
+        )}
+      </div>
+
+      <div className="border rounded-lg p-4">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Recent Scans (real registration_token_scan log)</h3>
+        {!data?.recentScans.length ? (
+          <p className="text-sm text-gray-400">No scans recorded yet.</p>
+        ) : data.recentScans.map((r, i) => (
+          <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+            <span><span className="font-medium">{r.studentName}</span><span className="text-gray-500"> — scanned by {r.scannedBy}</span></span>
+            <span className="flex items-center gap-2">
+              <Badge color={SCAN_RESULT_COLOR[r.result] ?? 'blue'}>{r.result.replace(/_/g, ' ')}</Badge>
+              <span className="text-gray-400">{new Date(r.scannedAt).toLocaleTimeString()}</span>
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
