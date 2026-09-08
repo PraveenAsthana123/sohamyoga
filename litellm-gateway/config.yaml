@@ -1,0 +1,42 @@
+# LiteLLM Gateway config — real, minimal, scoped setup.
+# Added 2026-09-08 per the audit's "start small" decision: prove LiteLLM
+# can route to what's actually running (local Ollama, 3 real pulled models)
+# before layering Semantic Router or a custom policy engine on top.
+# Model names/tiers match ai-orchestrator-platform's existing OLLAMA_MODEL_*
+# env vars (fast/code/strong) so this can later stand in for that portal's
+# router.py without renaming anything downstream.
+#
+# IMPORTANT: use `ollama_chat/`, not `ollama/`. Found live during setup:
+# `ollama/` routes through LiteLLM's raw-completion translation, which sent
+# an unformatted prompt to Ollama's legacy /api/generate endpoint -- the
+# model then continued it as free text instead of following the instruction
+# (tested: asked for one word, got ~5,300 tokens of unrelated fiction).
+# `ollama_chat/` uses Ollama's real /api/chat endpoint with proper message
+# formatting, verified correct: same prompt, same model, real "OK" back,
+# 2 tokens. Confirmed against Ollama directly (curl /api/chat) before
+# concluding LiteLLM's provider prefix was the actual bug, not the model.
+model_list:
+  - model_name: fast
+    litellm_params:
+      model: ollama_chat/phi4-mini:latest
+      api_base: http://127.0.0.1:11434
+      max_tokens: 1024
+
+  - model_name: code
+    litellm_params:
+      model: ollama_chat/qwen2.5-coder:latest
+      api_base: http://127.0.0.1:11434
+      max_tokens: 1024
+
+  - model_name: strong
+    litellm_params:
+      model: ollama_chat/qwen2.5:latest
+      api_base: http://127.0.0.1:11434
+      max_tokens: 1024
+
+general_settings:
+  # No master key set yet -- this is bound to 127.0.0.1 only (see the
+  # systemd unit), matching this workspace's existing pattern of gating
+  # exposure at the network/tunnel layer rather than app-layer auth for
+  # single-operator local services. Revisit before any wider exposure.
+  disable_spend_logs: true
