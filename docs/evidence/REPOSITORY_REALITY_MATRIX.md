@@ -22,7 +22,7 @@ are explicit manually-set flags, not text-inferred.
 - ⏳ voice-agent-platform — investigation in progress, not yet in this file
 - ⏳ market-research-portal — deeper backend/API pass beyond the 8 registry rows, in progress
 - ⏳ ai-orchestrator-platform — investigation in progress, not yet in this file
-- ⏳ SohamYoga (.NET backend) — investigation in progress, not yet in this file
+- ✅ SohamYoga (.NET backend) — full table below (this checkpoint)
 - ✅ password-manager — full column set below (this checkpoint)
 
 **Column note:** the user-specified Reality Matrix schema (Portal, Domain, Module, Business purpose,
@@ -333,6 +333,62 @@ attached at all**, so a real inbound call today would ring unanswered. `docs/PLA
 is stale and overstates what's missing in one place while a separate live DB shows previously-claimed
 verification data (2 registered businesses) no longer exists. The app container itself is currently
 stopped — nothing above is reachable over HTTP without a restart. No automated tests exist anywhere.
+
+## SohamYoga.Web (.NET backend)
+
+Verified 2026-09-08 via direct file reads, grep, live `docker ps`, and live HTTP calls against the
+running `sohamyoga-backend` container (port 5070).
+
+| Domain | Module | DB writes verified | DB reads verified | Security | Maturity | Known issue |
+|---|---|---|---|---|---|---|
+| Identity/Auth | Staff Auth (Admin/Editor/HR/Sales/Teacher) | yes — `SignInManager`/`UserManager` writes | yes — live `/api/auth/me` → 401 confirmed | ASP.NET Identity, cookie HttpOnly/SameSite=Lax, lockout 5/30min | REAL_BUT_PARTIAL | no test project exists at all |
+| Identity/Auth | Customer Auth | yes — `CreateAsync`/`AddToRoleAsync` | yes — live `/api/customer/auth/me` → 401 confirmed | Role-gated to `Customer` | REAL_BUT_PARTIAL | none found |
+| Identity/Auth | User & Role Management | yes (code path; not independently re-verified live) | not re-verified this session | `[Authorize(Roles="Admin")]`, self-delete blocked, role whitelist | REAL_BUT_PARTIAL | none found |
+| Content/CMS | Home / Site Settings | yes, seeded | yes — live `curl /api/home` returned real seeded data | public read | REAL_BUT_PARTIAL | Services/Testimonials/CaseStudies etc. deliberately unseeded |
+| Content/CMS | Services/Testimonials/CaseStudies/Blog/Team/Industries/Videos | code path exists, not exercised live | yes — live curl on 3 endpoints confirmed real (empty) DB round-trip | role-gated writes, public reads | REAL_BUT_PARTIAL | **content deliberately not seeded** — `SeedData.cs:25-29` explicitly notes the prior seed data described an unrelated "SLP Systems" IT-consulting business and was intentionally removed (matches this workspace's documented SLP→SohamYoga rebrand) |
+| E-commerce | Yoga Products Catalog | yes — 12 real seeded rows | yes — live curl confirmed real product JSON | public reads, Admin writes | **REAL_END_TO_END** | only fully-seeded content module |
+| Lead Capture | Contact Form | code path present | yes, consumed by AdminDashboard | Admin,Sales gated | REAL_BUT_PARTIAL | triggers a **stub** notification email (logs "Would send", doesn't send) |
+| Lead Capture | Newsletter | code path present | not re-verified | Admin,Sales gated | REAL_BUT_PARTIAL | same email-stub pattern |
+| Lead Capture | Chat Requests (async callback) | yes — real `AddAsync`+`SaveChangesAsync` | yes | public submit, role-gated manage | REAL_END_TO_END | none found |
+| Live Chat | SignalR Chat Hub + REST history | **yes, real** — `SendMessage`/`AdminReply` both persist via `_uow.ChatMessages.AddAsync`+`SaveChangesAsync` *before* broadcasting — genuine persistence, not scaffolding | yes — history/session-list/unread-count read the same table | session-scoped GUIDs prevent enumeration, role-gated admin views | REAL_END_TO_END | not live-WebSocket-tested this pass, but code confirms real persist-then-broadcast pattern |
+| Careers | Job Postings & Applications | code path present | not re-verified | Admin,HR gated | REAL_BUT_PARTIAL | none found |
+| Admin Ops | Admin Dashboard | n/a (read-only) | yes — real parallel `Task.WhenAll` reads confirmed in code | Admin-only, 401 confirmed live | REAL_END_TO_END | none found |
+| Observability | Admin Monitoring (request/audit logs, DB size) | yes — populated by `ApiRequestTrackingMiddleware` on every request | yes — endpoint self-reports live DB provider as `"SQLite"` | Admin-only | REAL_END_TO_END | this module **is** the observability layer |
+| Infra | Background job — data cleanup (purges logs >30d/90d) | yes — real `ExecuteDeleteAsync` | n/a | n/a | REAL_END_TO_END | not verified live (would need a 24h wait or forced trigger) |
+| Infra | Email/SMTP | n/a | n/a | Admin-only test endpoint | **CODE_EXISTS_NOT_INTEGRATED** | split real/stub: contact/newsletter notifications are logging-only stubs; a genuinely real `SmtpClient.SendMailAsync` path exists at `/api/home/test-email` but `Smtp:Host` is empty, so it fails closed (503) rather than fabricating success |
+| Infra | Security middleware (rate limiting, headers, correlation IDs, exception handling) | n/a | live-verified: `X-Correlation-Id` echoed, `/api/health` returns structured JSON | 100 req/60s per-IP (prod), CSP/X-Frame-Options/nosniff, correlation ID in Serilog | REAL_END_TO_END | none found |
+| Infra | Health check endpoint | n/a | yes — live `curl /api/health` → `{"status":"Healthy","checks":[{"name":"database","status":"Healthy"}]}` | public, intentional for probes | REAL_END_TO_END | none found — also the Dockerfile `HEALTHCHECK` target |
+| Cross-cutting | Testing | n/a | n/a | n/a | **STUB/MISSING** | `SohamYoga.sln` contains only the single `SohamYoga.Web` project — no `.Tests.csproj` exists anywhere |
+
+### Critical cross-cutting findings
+
+1. **Database: a fully separate SQLite store, NOT the shared Postgres instance.** `SohamYoga.Web.csproj`
+   references only `Microsoft.EntityFrameworkCore.Sqlite` (zero Npgsql). `Program.cs:30-31` calls
+   `UseSqlite(...)`; the deployed `docker-compose.yml` points it at
+   `Data Source=/app/data/sohamyoga.db` on a named volume, confirmed live via `docker exec
+   sohamyoga-backend ls -la /app/data/` showing an actively-written `.db`/`.db-wal` today.
+   `AdminMonitoringController.GetSystemHealth()` self-reports `"provider": "SQLite"` at runtime.
+   **This backend has zero connection to the 496-table `sohamyoga-postgres` instance that
+   sohamyoga-frontend uses — they are two fully independent datastores in the same repo,
+   corrected here since the root README's "PostgreSQL migration path available" line could be
+   read as implying convergence that hasn't happened.**
+2. **Roles match the frontend's checks, no mismatch found.** Backend seeds 6 roles (Admin, Editor,
+   HR, Sales, Customer, Teacher); frontend's `admin-auth.ts` checks for `['Admin','Editor','Sales']`
+   — a correct subset, not a mismatch.
+3. **SignalR live chat is genuinely real**, not scaffolding — persistence-before-broadcast confirmed
+   in code (`ChatHub.cs`), backed by a real migration.
+4. **No test project exists anywhere in the .NET solution.**
+5. **Content seeding is deliberately partial** — only SiteSettings + 12 Yoga Products are real seeded
+   content; everything else is schema+API real but empty by design, tied to the documented
+   SLP→SohamYoga rebrand cleanup.
+6. **Email is split real/stub** — notification sends are logged-only; a real SMTP test endpoint
+   exists but fails closed (unconfigured host) rather than fabricating success.
+7. **JWT config in `appsettings.json` is vestigial/dead** — zero code usage found; auth is
+   exclusively cookie-based ASP.NET Identity, matching the README.
+
+**Live deployment confirmed:** `sohamyoga-backend` container `Up 5 days (healthy)` on port 5070,
+built from a non-root multi-stage Dockerfile with a real `HEALTHCHECK`, wired into root
+`docker-compose.yml` behind nginx and in front of the frontend.
 
 ## Known limitations of this checkpoint
 
