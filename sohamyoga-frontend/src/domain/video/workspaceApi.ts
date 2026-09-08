@@ -4,6 +4,7 @@ import { getCustomerPrincipal } from '@/lib/customer-auth';
 import { databaseConfigured, query, transaction } from '@/lib/postgres';
 import { getPrimaryTenantId } from '@/domain/ingestion/Connector';
 import { ASPECTS, safeMediaUrl, validateTracks } from './workspaceValidation';
+import { renderTimeline } from './VideoTimelineRenderer';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function videoWorkspace(req: NextRequest, admin: boolean): Promise<Response> {
@@ -52,6 +53,21 @@ export async function videoWorkspace(req: NextRequest, admin: boolean): Promise<
       return Response.json({ project }, { status: 201 });
     }
     if (req.method !== 'PATCH' || !uuid.test(body.id || '')) return Response.json({ error: 'Invalid project ID.' }, { status: 400 });
+
+    // Render runs its own internal transaction (VideoTimelineRenderer sets
+    // status='rendering' immediately, then 'review'/'failed' on completion)
+    // -- it must NOT run inside the generic transaction() below, which
+    // holds a FOR UPDATE lock on this same project row for the whole call;
+    // nesting them would self-deadlock across the two pool connections.
+    if (admin && body.action === 'render') {
+      const current = await query<{ status: string }>(`SELECT status FROM video_edit_project WHERE ${scope} AND id=$${scopeArgs.length + 1}`, [...scopeArgs, body.id]);
+      if (!current.rows[0]) return Response.json({ error: 'Project not found.' }, { status: 404 });
+      if (!['draft', 'failed'].includes(current.rows[0].status)) return Response.json({ error: `Cannot render from status "${current.rows[0].status}" -- request a revision first.` }, { status: 409 });
+      const outcome = await renderTimeline(body.id);
+      if (outcome.status === 'failed') return Response.json({ error: outcome.errorMessage ?? 'Render failed.' }, { status: 422 });
+      return Response.json({ ok: true, outputUri: outcome.outputUri, durationSeconds: outcome.durationSeconds, checksum: outcome.checksum });
+    }
+
     const result = await transaction(async client => {
       const current = await client.query(`SELECT * FROM video_edit_project WHERE ${scope} AND id=$${scopeArgs.length + 1} FOR UPDATE`, [...scopeArgs,body.id]);
       if (!current.rows[0]) return { error: 'Project not found.', code: 404 };
