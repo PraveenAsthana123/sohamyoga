@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
+import { findDuplicateLead, markAsDuplicate } from '@/domain/marketing/LeadDedup';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       [form.tenant_id, emailValue, JSON.stringify(body.data)],
     );
     leadId = leadResult.rows[0].id;
+
+    // Real dedup, same check used by the public contact form and event
+    // registration -- a repeat submission is flagged, not silently
+    // double-counted as a new lead.
+    const duplicateOf = await findDuplicateLead(form.tenant_id, emailValue);
+    if (duplicateOf && duplicateOf !== leadId) {
+      await markAsDuplicate(leadId, duplicateOf);
+    }
 
     // Real journey touchpoint — Customer Journey & Funnel module. Logged only
     // when we have a real contact identifier (email); never backfilled/fabricated.

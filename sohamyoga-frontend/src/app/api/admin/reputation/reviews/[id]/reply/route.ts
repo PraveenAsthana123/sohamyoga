@@ -33,7 +33,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     await replyToReview(accessToken, locationName, googleReviewId, body.comment.trim());
-    await query(`UPDATE business_review SET reply_text = $2, reply_updated_at = now() WHERE id = $1`, [params.id, body.comment.trim()]);
+    await query(`UPDATE business_review SET reply_text=$2,reply_updated_at=now(),workflow_status='responded' WHERE id=$1`, [params.id, body.comment.trim()]);
+    await query(`UPDATE marketing_response_work_item SET status='sent',sent_at=now(),updated_at=now()
+      WHERE tenant_id=$1 AND source_type='google_business_review' AND source_reference=$2`,[tenantId,params.id]);
+    await query(`INSERT INTO customer_channel_event
+      (tenant_id,thread_id,platform_key,external_event_id,direction,event_type,text_excerpt,occurred_at,metadata)
+      SELECT $1,t.id,'google_business',$2,'outbound','reply',$3,now(),$4::jsonb FROM customer_channel_thread t
+      WHERE t.tenant_id=$1 AND t.platform_key='google_business' AND t.external_thread_id=$5
+      ON CONFLICT(tenant_id,platform_key,external_event_id) DO NOTHING`,
+      [tenantId,`reply:${params.id}:${Date.now()}`,body.comment.trim(),JSON.stringify({reviewId:params.id,providerConfirmed:true}),`review:${googleReviewId}`]);
+    await query(`UPDATE customer_channel_thread SET status='waiting_customer',last_outbound_at=now(),updated_at=now()
+      WHERE tenant_id=$1 AND platform_key='google_business' AND external_thread_id=$2`,[tenantId,`review:${googleReviewId}`]);
     return Response.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

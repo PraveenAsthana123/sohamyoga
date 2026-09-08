@@ -1,0 +1,158 @@
+-- First real population of module_registry, 2026-08-31. Two tiers:
+-- (1) 6 modules with FULL detail — deeply audited/built this session, every
+--     field below is drawn from real verified code/docs, nothing invented.
+-- (2) 19 SUMMARY rows from the 25-item management-list audit — built_status
+--     and citation are real, but flow/schema/demo detail was not yet fully
+--     captured; missing_items says so honestly rather than backfilling a
+--     plausible-sounding flow that was never actually verified.
+-- Everything else in either app (booking, wellness, e-commerce, teacher/
+-- student onboarding, etc.) has NO row yet — the UI must show these as
+-- "not yet cataloged", not omit them.
+
+INSERT INTO module_registry (app, module_key, name, description, built_status,
+  user_flow, admin_flow, data_flow, flowchart, user_story, input_desc, process_desc, output_desc, final_outcome,
+  job_name, report_location, dashboard_location, schema_tables, demo_use_cases, integration_platforms, missing_items,
+  source_doc, last_verified_at, verified_by)
+VALUES
+('market-research-portal', 'voice-ai', 'Voice AI (inbound/outbound calling)',
+ 'Agents, scripts, SIP config, workflows, voice profiles, consent, calls, leads, transcripts.', 'partial',
+ 'A visitor/lead never sees this directly today — it acts on their behalf: once a lead is captured, an admin can queue a consented outbound call or (once enabled) receive a routed inbound call.',
+ 'Admin authors an agent + script, approves the script, optionally builds a SIP trunk/workflow/routing rule, then queues a call for a lead (or simulates an inbound call to test routing) from the CRM or Voice AI page.',
+ 'Lead capture (form/manual) -> voice_call row created (scheduled or blocked) -> voice-call-dispatch job enforces the schedule/connection boundary every 5 min -> (future) recording -> /api/voice-ai/transcribe -> real transcript -> lead.status advances.',
+ 'Lead -> Queue call (leadId) -> voice_call(status) -> voice-call-dispatch sweep -> blocked (no PSTN) | scheduled -> [real PSTN client, not built] -> transcript -> lead.status=contacted',
+ 'As an admin, I want to queue a consented follow-up call for a captured lead using an approved script, so the lead gets contacted without me dialing manually.',
+ 'Lead phone (E.164) + an approved voice_script + consent basis + DNC confirmation.',
+ 'Deterministic status machine (draft->scheduled/blocked->completed), enforced server-side, never fabricated as placed without a real telephony provider.',
+ 'A voice_call row with an honest status; lead.status auto-advances to contacted.',
+ 'Either a real completed call record (once a telephony provider exists) or an honestly labeled "blocked: no telephony provider connected" record — never a fake success.',
+ 'voice-call-dispatch', 'Voice AI page -> Report tab', 'Voice AI page -> Dashboard tab',
+ ARRAY['voice_agent','voice_script','voice_call','voice_call_event','voice_sip_trunk','voice_sip_endpoint','voice_modulation_profile','voice_workflow','voice_routing_rule','voice_monitor_snapshot'],
+ '[{"name":"Consented follow-up call","flow":"Lead submits form -> CRM captures lead -> admin queues call with approved script"},{"name":"Inbound routing simulation","flow":"Admin simulates an inbound call to verify agent/script/workflow matching before real PSTN exists"}]'::jsonb,
+ '[]'::jsonb,
+ 'No real PSTN telephony provider connected (schema/API/UI all real, calls stay honestly blocked); multi-language script support not built; LLM-drafted scripts (script_generate job type) unimplemented.',
+ 'docs/modules/voice-ai/README.md', now(), 'claude-session-339c0b70'),
+
+('sohamyoga-frontend', 'poll-management', 'Poll Management',
+ 'Single-question, single-choice audience polls with real-time vote counts.', 'real',
+ 'Customer sees active polls on /community/polls, votes once (or more if allowed), sees live results immediately after voting.',
+ 'Admin creates a poll with options and a target segment (all/students/enrolled_in_class) on /admin/polls, activates it, closes it when done.',
+ 'Admin creates poll+options -> customer votes -> poll_vote row (UNIQUE per option+voter, DB-enforced) -> live vote counts recomputed on every GET.',
+ 'Admin creates poll -> activates -> customer votes (DB unique-constraint blocks duplicate) -> /api/community/polls GET returns live counts -> admin closes',
+ 'As a student, I want to vote in a quick poll and see the live results, so I can see how my class feels about a topic.',
+ 'A question + 2+ options + target segment.',
+ 'Real-time vote tally via LEFT JOIN poll_option/poll_vote, grouped per option.',
+ 'Live vote counts per option, hasVoted flag for the current user.',
+ 'A closed poll with a final vote distribution admins can review.',
+ NULL, '/admin/polls (inline)', '/admin/polls',
+ ARRAY['poll','poll_option','poll_vote'],
+ '[{"name":"Class feedback poll","flow":"Teacher asks a quick single-choice question, students vote, results shown live"}]'::jsonb,
+ '[]'::jsonb,
+ 'No scheduled job (none needed — it is fully request-driven); no poll analytics/export beyond live counts.',
+ 'chat session correction 2026-08-31 (previously miscategorized as not found)', now(), 'claude-session-339c0b70'),
+
+('sohamyoga-frontend', 'experiments', 'Experiments (A/B Testing)',
+ 'Real deterministic variant assignment, sticky per subject, with live conversion stats and significance testing.', 'real',
+ 'A visitor is bucketed once (by anonymous_id or user_id) into a variant of a running experiment and sees that variant consistently; no visitor-facing UI beyond whatever the calling page renders differently per variant.',
+ 'Admin creates an experiment (name, hypothesis, target conversion event), adds 2+ variants summing to 100% with one marked control, starts it, reads live results on the Report tab, stops it when done.',
+ 'Admin defines experiment+variants -> /api/experiments/[key]/assign buckets a real subject on first request (sticky, DB UNIQUE-enforced) -> real tracking_event conversions are joined live per variant -> two-proportion z-test computed on read.',
+ 'Create experiment -> add variants (must sum to 100%) -> Start -> /assign buckets subject -> subject converts (real tracking_event) -> GET joins + computes significance -> Stop',
+ 'As a marketer, I want to test two CTA button colors and know, with real statistical confidence, which one converts better, so I do not roll out a change based on a guess.',
+ 'A target conversion event (from the real event_type enum) + 2+ variants with allocation percentages.',
+ 'Deterministic SHA-256 sticky bucketing; live SQL join against tracking_event for conversions; standard two-proportion z-test (30-sample-per-variant floor before reporting significance).',
+ 'Per-variant sample size, conversion count, conversion rate, and (once enough data) a real significance verdict with p-value and lift %.',
+ 'A completed experiment with an honest "significant" or "not significant" verdict a human reads and acts on.',
+ NULL, '/admin/experiments -> Report tab', '/admin/experiments -> Dashboard tab',
+ ARRAY['experiment','experiment_variant','experiment_assignment'],
+ '[{"name":"CTA button color test","flow":"Two variants split 50/50, conversion = booking_completed, real z-test on real bookings"}]'::jsonb,
+ '[]'::jsonb,
+ 'No scheduled job (none needed — fully request-driven); no multivariate (more than one factor) testing; no automatic winner rollout.',
+ 'chat session 2026-08-31 build', now(), 'claude-session-339c0b70'),
+
+('market-research-portal', 'hooks', 'Hook Management',
+ 'Reusable short attention-grabbing opener library with real performance tracking once attached to a published variant.', 'real',
+ 'No direct end-user surface — hooks are attached to content_factory_variant assets that eventually get published.',
+ 'Admin creates a hook (text + category + optional topic/platform), approves or archives it, sees real view/completion-rate stats once a variant using it has real content_factory_metric data.',
+ 'Admin creates hook -> optionally attached to a content_factory_variant via hook_id -> content_factory_metric accrues real views/completions -> /api/hooks GET joins and aggregates per hook.',
+ 'Create hook (draft) -> Approve -> Attach to a variant (hook_id FK) -> variant publishes and accrues real metrics -> hook shows real (not fabricated) performance',
+ 'As a content creator, I want a reusable library of proven hooks categorized by type, so I do not start every video from a blank page.',
+ 'Hook text + one of 14 categories (question/shock/curiosity/...).',
+ 'CRUD with draft/approved/archived lifecycle; performance is a live join, never a stored/fabricated number.',
+ 'A hook row with real (or honestly null/0) view/completion-rate stats.',
+ 'An approved, reusable hook with a track record once real variant data exists.',
+ NULL, '/hooks page (inline)', '/hooks page',
+ ARRAY['content_hook'],
+ '[{"name":"Hook library for a new video","flow":"Creator browses approved hooks by category, picks one, attaches it when creating a variant"}]'::jsonb,
+ '[]'::jsonb,
+ 'No scheduled job; no A/B comparison between hooks yet (would use the new Experiments framework pattern, not built for this module specifically).',
+ 'docs/chatgpt-extracts/digital-marketing-flow-video-hooks.md', now(), 'claude-session-339c0b70'),
+
+('market-research-portal', 'crm-leads', 'CRM — Leads & Email Templates',
+ 'Real lead capture (manual + public form submission) and reusable email templates.', 'real',
+ 'A public visitor submits a form (via marketing_form_link.slug) -> a real lead row is created; no other direct end-user surface.',
+ 'Admin views leads (with campaign/form attribution), updates lead status (new/contacted/qualified/converted/lost), can Queue call for a lead with a valid phone (wired to the Voice AI module), creates/approves email templates.',
+ 'Public form submit -> /api/leads/capture (unauthenticated) -> lead row + form_link.submissions++ -> admin reviews/updates status -> (optional) Queue call links to voice_call.',
+ 'Form link published -> visitor submits -> lead row created (source=form) -> admin reviews on /crm -> status progressed manually or via Queue call side-effect',
+ 'As a business owner, I want every form submission to become a real, trackable lead, so no inquiry is silently lost.',
+ 'name/email/phone/message via a public form, or manual admin entry.',
+ 'Straight CRUD with a status lifecycle; form capture is deliberately unauthenticated (public-facing) while list/update requires admin.',
+ 'A lead row with real campaign/form attribution.',
+ 'A lead that reaches "converted" or is honestly marked "lost".',
+ NULL, '/crm page (inline)', '/crm page',
+ ARRAY['lead','email_template'],
+ '[{"name":"Form-to-lead capture","flow":"Visitor submits public form -> real lead row -> admin follow-up"}]'::jsonb,
+ '[]'::jsonb,
+ 'No scheduled job; no lead scoring/enrichment (that exists separately and more fully in sohamyoga-frontend''s own campaign_lead system, deliberately not duplicated here).',
+ 'this session''s CRM build + docs/chatgpt-extracts/voice-agent-outbound-inbound-calling-platform.md (lead-call link)', now(), 'claude-session-339c0b70'),
+
+('market-research-portal', 'operations-alerts', 'Operations & Failure Tracking',
+ 'Deterministic, non-AI sweep of every tracked operational table for failures, with a timestamped alert lifecycle.', 'real',
+ 'No end-user surface — this is an internal operations tool.',
+ 'Admin reviews open alerts, acknowledges (investigating) or resolves them; the automatic sweep runs every 10 minutes regardless of whether anyone is watching.',
+ 'operations-alert-sweep job queries 7 tracked tables for failed/blocked rows every 10 min -> upserts operations_alert + operations_alert_event -> admin acts on open alerts.',
+ 'Sweep runs (cron or page view) -> queries ref_tracked_operation tables -> upserts alert (never reopens a human-resolved one) -> admin acknowledges/resolves -> event logged',
+ 'As an admin, I want every real operational failure across this portal surfaced automatically, so nothing fails silently.',
+ '7 tracked tables (marketing_production_job, marketing_event_log, voice_call, content_factory_project, job_run, and the Ollama circuit breaker).',
+ 'Deterministic SQL only, no AI/model in the loop — explicitly documented as such on its own AI Exp/Governance/Risk tabs.',
+ 'operations_alert rows with a real open/acknowledged/resolved lifecycle.',
+ 'Zero open critical alerts.',
+ 'operations-alert-sweep', '/operations-alerts -> Report tab', '/operations-alerts -> Dashboard tab',
+ ARRAY['ref_tracked_operation','operations_alert','operations_alert_event'],
+ '[]'::jsonb, '[]'::jsonb,
+ 'Does not yet cover Playwright/e2e results, API-route error rates, browser/UI console errors, or schema-migration failures (documented in its own Exclusion boundary tab).',
+ 'this session''s Operations & Failure Tracking build', now(), 'claude-session-339c0b70')
+ON CONFLICT (app, module_key) DO UPDATE SET
+  name = EXCLUDED.name, description = EXCLUDED.description, built_status = EXCLUDED.built_status,
+  user_flow = EXCLUDED.user_flow, admin_flow = EXCLUDED.admin_flow, data_flow = EXCLUDED.data_flow,
+  flowchart = EXCLUDED.flowchart, user_story = EXCLUDED.user_story, input_desc = EXCLUDED.input_desc,
+  process_desc = EXCLUDED.process_desc, output_desc = EXCLUDED.output_desc, final_outcome = EXCLUDED.final_outcome,
+  job_name = EXCLUDED.job_name, report_location = EXCLUDED.report_location, dashboard_location = EXCLUDED.dashboard_location,
+  schema_tables = EXCLUDED.schema_tables, demo_use_cases = EXCLUDED.demo_use_cases, integration_platforms = EXCLUDED.integration_platforms,
+  missing_items = EXCLUDED.missing_items, source_doc = EXCLUDED.source_doc, last_verified_at = EXCLUDED.last_verified_at,
+  verified_by = EXCLUDED.verified_by, updated_at = now();
+
+-- Tier 2: summary rows from the 25-item management-list audit. Real
+-- built_status + citation; flow/schema/demo detail intentionally left NULL
+-- and flagged in missing_items rather than fabricated.
+INSERT INTO module_registry (app, module_key, name, built_status, missing_items, source_doc, last_verified_at, verified_by)
+VALUES
+('sohamyoga-frontend', 'paid-ads', 'Paid Ads Management', 'real', 'Full flow/schema/demo detail not yet cataloged in this registry (code itself is real: /admin/ads, domain/ads/db-schema.sql).', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'banner-management', 'Banner & Display Management', 'real', 'Full flow/schema/demo detail not yet cataloged (code is real: /admin/banners, "Banner Studio" module).', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'survey-management', 'Survey Management', 'partial', 'Schema is mature (12 real tables) and NPS respond flow is real, but the admin UI''s surveys/questions/responses tabs are MOCK_* client constants, not wired to a create/list API.', 'docs/chatgpt-extracts (Poll investigation, 2026-08-31)', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'campaign-management', 'Campaign Management', 'real', 'Full flow/schema/demo detail not yet cataloged.', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'form-management', 'Form Management', 'partial', 'marketing_form_link + capture flow real; no generic multi-purpose form builder.', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'email-management', 'Email Management', 'real', 'Full flow/schema/demo detail not yet cataloged.', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'social-media-management', 'Social Media Management', 'partial', 'Scheduler UI real; actual publishing blocked — no Postiz client wired for most platforms.', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'post-management', 'Post Management', 'partial', 'Social scheduler exists; no unified generic "post" entity across content types.', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'video-management', 'Long-Form + Short-Video Management', 'real', 'Full flow/schema/demo detail not yet cataloged (code real: /admin/videos, espeak-ng+FFmpeg pipeline).', 'docs/advanced-management-feature-list-gap-analysis.md', now(), 'claude-session-339c0b70'),
+('market-research-portal', 'content-factory', 'Content Management (Content Factory)', 'partial', 'content_factory_project/variant/metric/stage real, but types are video-only — no blog/whitepaper/case-study content types.', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'seo-management', 'SEO Management', 'partial', 'seo_report/SeoReportJob real (Matomo-based); marketing_search_visibility_snapshot table exists but zero job writes to it; no backlink/local-SEO tracking.', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'geo-aeo-management', 'GEO/AEO Management (AI-search visibility)', 'not_built', 'geo_answer_visibility is a named, schema-reserved capability slot with zero implementation — no ChatGPT/Gemini/Perplexity citation tracking anywhere. Needs real API credentials to build honestly.', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'coupon-management', 'Offer & Promotion Management (Coupons)', 'real', 'Full flow/schema/demo detail not yet cataloged (code real: coupon/coupon_redemption, 19 types, /admin/coupons).', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'pricing-management', 'Pricing Management', 'real', 'Full flow/schema/demo detail not yet cataloged (code real: pricing_plan_master/price, /admin/pricing, cross-portal read job).', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'reputation-management', 'Review & Reputation Management', 'real', 'Full flow/schema/demo detail not yet cataloged (code real: business_review, google_business_connection, /admin/reputation).', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'referral-loyalty', 'Referral & Loyalty Management', 'real', 'Full flow/schema/demo detail not yet cataloged (code real: extensive referral_* schema + loyalty_transaction).', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'influencer-management', 'Influencer/Creator Management', 'real', 'Full flow/schema/demo detail not yet cataloged (code real: influencer_profile/collaboration/value_score); deliberately not linked to empty social analytics tables to avoid fabricating engagement numbers.', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70'),
+('sohamyoga-frontend', 'competitor-intelligence', 'Competitor & Market Intelligence', 'real', 'Full flow/schema/demo detail not yet cataloged (code real in both apps: competitor/competitor_feature, competitor/competitor_price_point).', 'docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md', now(), 'claude-session-339c0b70')
+ON CONFLICT (app, module_key) DO UPDATE SET
+  built_status = EXCLUDED.built_status, missing_items = EXCLUDED.missing_items,
+  source_doc = EXCLUDED.source_doc, last_verified_at = EXCLUDED.last_verified_at, updated_at = now();

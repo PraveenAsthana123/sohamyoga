@@ -24,9 +24,3 @@ export class NotConfiguredVoiceProvider implements VoiceProviderAdapter {
     );
   }
 }
-
-/** Resolves the active adapter. Currently always the fail-closed adapter —
- * update this the day a real provider's credentials and implementation exist. */
-export function getVoiceProviderAdapter(): VoiceProviderAdapter {
-  return new NotConfiguredVoiceProvider();
-}

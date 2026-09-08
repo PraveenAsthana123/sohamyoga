@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin-auth';
 import { getPrimaryTenantId } from '@/domain/ingestion/Connector';
 import { getValidAccessToken } from '@/domain/reputation/reputationCredentialOps';
 import { listAccounts, listLocations, fetchReviews, GoogleBusinessApiError } from '@/domain/reputation/GoogleBusinessReviewAdapter';
+import { processReview } from '@/domain/reputation/ReviewAutomation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -45,14 +46,15 @@ export async function POST(req: NextRequest) {
 
     const reviews = await fetchReviews(accessToken, locationName);
     for (const r of reviews) {
-      await query(
+      const saved = await query<{id:string}>(
         `INSERT INTO business_review (connection_id, google_review_id, reviewer_name, star_rating, comment, review_created_at, synced_at)
          VALUES ($1,$2,$3,$4,$5,$6,now())
          ON CONFLICT (connection_id, google_review_id) DO UPDATE SET
            reviewer_name = EXCLUDED.reviewer_name, star_rating = EXCLUDED.star_rating,
-           comment = EXCLUDED.comment, synced_at = now()`,
+           comment = EXCLUDED.comment, synced_at = now() RETURNING id`,
         [connectionId, r.googleReviewId, r.reviewerName, r.starRating, r.comment, r.createTime],
       );
+      await processReview(tenantId,{id:saved.rows[0].id,googleReviewId:r.googleReviewId,reviewerName:r.reviewerName,starRating:r.starRating,comment:r.comment,createdAt:r.createTime});
     }
     await query(`UPDATE google_business_connection SET last_synced_at = now(), updated_at = now() WHERE id = $1`, [connectionId]);
 

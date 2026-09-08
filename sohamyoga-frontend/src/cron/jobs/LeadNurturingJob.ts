@@ -75,14 +75,17 @@ export async function run(): Promise<void> {
         continue;
       }
 
-      // Update lead score locally
+      // Update lead score locally -- next_action was already in the Ollama
+      // response but discarded until now; it's the score's own explanation
+      // (real Lead Score Explainability, not a separate AI call).
       await db.query(`
         UPDATE campaign_lead SET
           lead_score = $1,
           lead_temperature = $2,
+          lead_score_reason = $3,
           updated_at = NOW()
-        WHERE id = $3
-      `, [Math.max(0, Math.min(100, score.score)), score.temperature, lead.id]);
+        WHERE id = $4
+      `, [Math.max(0, Math.min(100, score.score)), score.temperature, (score.next_action || '').slice(0, 500), lead.id]);
 
       // Trigger Mautic drip for warm/hot leads
       if (score.temperature === 'warm' && lead.mautic_contact_id) {

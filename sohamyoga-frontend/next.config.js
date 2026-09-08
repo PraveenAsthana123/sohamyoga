@@ -1,7 +1,8 @@
 const path = require('node:path');
 
 /** @type {import('next').NextConfig} */
-const apiOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5070').origin; } catch { return ''; } })();
+const apiOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_API_URL || '').origin; } catch { return ''; } })();
+const serverApiOrigin = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5070';
 const nextConfig = {
   output: 'standalone',
   // @sohamyoga/shared-backend lives at ../packages/shared-backend, a
@@ -62,7 +63,7 @@ const nextConfig = {
       fallback: [
         {
           source: '/api/:path*',
-          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5070'}/api/:path*`,
+          destination: `${serverApiOrigin}/api/:path*`,
         },
       ],
     };

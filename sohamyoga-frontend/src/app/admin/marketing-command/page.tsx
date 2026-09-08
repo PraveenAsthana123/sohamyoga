@@ -124,6 +124,26 @@ export default function MarketingAutomationPage() {
   const [message, setMessage] = useState('Enter a tenant UUID to load persistent settings.');
   const [busy, setBusy] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importNote, setImportNote] = useState('');
+
+  async function importFromWebsite() {
+    if (!profile.websiteUrl.trim()) { setImportNote('Enter a website URL first.'); return; }
+    setImporting(true); setImportNote('');
+    const res = await fetch('/api/marketing/automation/import-website', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ websiteUrl: profile.websiteUrl.trim() }),
+    });
+    const body = await res.json();
+    setImporting(false);
+    if (!res.ok) { setImportNote(body.error || 'Import failed.'); return; }
+    setProfile(p => ({
+      ...p,
+      businessName: body.businessName || p.businessName,
+      valueProposition: body.valueProposition || p.valueProposition,
+    }));
+    setImportNote(body.note);
+  }
 
   useEffect(() => setTenantId(localStorage.getItem('marketingTenantId') || ''), []);
   const configuredChannels = useMemo(() => Object.fromEntries(channelRows.map(c => [c.channel, c])), [channelRows]);
@@ -217,11 +237,16 @@ export default function MarketingAutomationPage() {
         <div className="grid gap-3 md:grid-cols-3">
           <select value={profile.industry} onChange={e => setProfile(p => ({ ...p, industry: e.target.value }))} className="rounded-lg border p-2 text-sm">{INDUSTRIES.map(v => <option key={v}>{v}</option>)}</select>
           <input value={profile.businessName} onChange={e => setProfile(p => ({ ...p, businessName: e.target.value }))} placeholder="Business name" className="rounded-lg border p-2 text-sm" />
-          <input value={profile.websiteUrl} onChange={e => setProfile(p => ({ ...p, websiteUrl: e.target.value }))} placeholder="Website URL" className="rounded-lg border p-2 text-sm" />
+          <div className="flex gap-1">
+            <input value={profile.websiteUrl} onChange={e => setProfile(p => ({ ...p, websiteUrl: e.target.value }))} placeholder="Website URL" className="flex-1 rounded-lg border p-2 text-sm" />
+            <button type="button" disabled={importing} onClick={importFromWebsite} className="rounded-lg border px-2 text-xs font-medium text-gray-600 disabled:opacity-40">{importing ? '…' : 'Import'}</button>
+          </div>
           <input value={profile.audience} onChange={e => setProfile(p => ({ ...p, audience: e.target.value }))} placeholder="Target audience" className="rounded-lg border p-2 text-sm" />
           <input value={profile.valueProposition} onChange={e => setProfile(p => ({ ...p, valueProposition: e.target.value }))} placeholder="Value proposition" className="rounded-lg border p-2 text-sm" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={profile.approvalRequired} onChange={e => setProfile(p => ({ ...p, approvalRequired: e.target.checked }))} /> Require admin approval</label>
-        </div><button disabled={!tenantId || busy} onClick={saveProfile} className="mt-4 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white disabled:opacity-40">Save profile</button>
+        </div>
+        {importNote && <p className="mt-2 text-xs text-gray-500">{importNote}</p>}
+        <button disabled={!tenantId || busy} onClick={saveProfile} className="mt-4 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white disabled:opacity-40">Save profile</button>
       </section>
 
       <section className="rounded-xl border bg-white p-5"><h2 className="font-semibold">2. Developer accounts and publishing channels</h2><p className="mb-4 text-xs text-gray-500">Enabling a channel allows campaign selection; publishing remains blocked until its OAuth/developer account is connected.</p>

@@ -85,13 +85,14 @@ function NewPricePointForm({ competitorId, onCreated }: { competitorId: string; 
 export default function CompetitorsAdmin() {
   const [competitors, setCompetitors] = useState<CompetitorRow[]>([]);
   const [ourPricing, setOurPricing] = useState<OurPrice[]>([]);
+  const [pricingDigest, setPricingDigest] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     setLoading(true);
     fetch('/api/competitors', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
-      .then(d => { setCompetitors(d?.competitors ?? []); setOurPricing(d?.ourPricing ?? []); })
+      .then(d => { setCompetitors(d?.competitors ?? []); setOurPricing(d?.ourPricing ?? []); setPricingDigest(d?.pricingDigest ?? null); })
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -99,9 +100,16 @@ export default function CompetitorsAdmin() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-bold text-gray-900">Competitor Price Tracker</h1><p className="text-sm text-gray-500">Real, admin-researched competitor pricing over time — compared against our own real plan pricing. No external scraper; no fabricated data.</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">Market Intelligence — Competitor & Pricing</h1><p className="text-sm text-gray-500">Real, admin-researched competitor pricing compared against our own real plan pricing, plus the weekly AI pricing advisory. No trend or opportunity-scoring layer exists yet — not fabricated here. No external scraper; no fabricated data.</p></div>
         <NewCompetitorForm onCreated={load} />
       </div>
+
+      {pricingDigest && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+          <p className="text-sm font-medium text-gray-800 mb-1">AI Pricing Advisory (weekly, fact-checked against our live pricing)</p>
+          <p className="text-sm text-gray-700 whitespace-pre-line">{pricingDigest}</p>
+        </div>
+      )}
 
       <div className="bg-white border rounded-lg p-4 mb-6">
         <p className="text-sm font-medium text-gray-800 mb-2">Our pricing (from pricing_plan_master)</p>

@@ -37,6 +37,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   60_000,
   },
+  {
+    name:        'first-wave-dispatch',
+    schedule:    '*/5 * * * *',
+    description: 'Publish approved due Telegram/Discord/Mastodon/Bluesky variants via the direct-API first-wave adapters (no Postiz dependency); honestly blocked per-account until real credentials are connected',
+    module:      'FirstWaveDispatchJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
 
   // ── Every 10 minutes ─────────────────────────────────────────────────────
   {
@@ -76,6 +84,30 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   30_000,
   },
   {
+    name:        'dunning-management',
+    schedule:    '20 8 * * *',
+    description: 'Send real dunning reminders (notification_queue) to subscriptions in grace_period at 3d/1d/final-day remaining, idempotent per subscription per bucket -- previously no reminder was ever sent during grace_period',
+    module:      'DunningManagementJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'campaign-trigger',
+    schedule:    '*/15 * * * *',
+    description: 'Fires real lifecycle_campaign rows of campaign_type=trigger against new journey_touchpoint events matching trigger_event -- previously trigger was a selectable label with zero execution behind it. Idempotent via lifecycle_campaign_trigger_log.',
+    module:      'CampaignTriggerJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'crisis-detection',
+    schedule:    '10 6 * * *',
+    description: 'Negative Virality / Crisis detection -- flags today as a crisis only when negative sentiment_log volume is a real z-score outlier (>=2 stddev) against its own 14-day baseline, mirroring ViralDetectionJob\'s methodology. Queues one real alert per crisis day.',
+    module:      'CrisisDetectionJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
+  {
     name:        'campaign-adaptation',
     schedule:    '15 * * * *',
     description: 'AI-adapt pending campaign content variants for each platform using Ollama (strong model)',
@@ -84,12 +116,44 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   300_000,
   },
   {
+    name:        'wellness-score-compute',
+    schedule:    '20 4 * * *',
+    description: 'Computes a real wellness_score row (mood_score/energy_score/composite) for any student-day that has a practice_journal entry but no score yet -- deterministic, no Ollama, only from data the app actually collects (mood_after, energy_level); sleep/activity/mindfulness stay null since nothing measures them',
+    module:      'WellnessScoreComputeJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
     name:        'campaign-health-audit',
     schedule:    '45 * * * *',
     description: 'Audit active ad campaigns for structural config problems (no ad groups/targeting, expired-but-active, bid exceeding daily budget) — Ollama drafts the explanation from given facts only, no performance data is fabricated',
     module:      'CampaignHealthAuditJob',
     enabled:     true,
     timeoutMs:   180_000,
+  },
+  {
+    name:        'provisioning-task-staleness',
+    schedule:    '30 * * * *',
+    description: 'Assigns a real due date to open provisioning_human_task rows that lack one, and raises/resolves provisioning_task_alert rows for tasks past due — closes the gap where 172 real human tasks had no SLA or alerting at all',
+    module:      'ProvisioningTaskStalenessJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'brand-profile-draft',
+    schedule:    '0 5 * * *',
+    description: 'Drafts the single tenant-level social_brand_profile row (tagline, 3 bio lengths, description, keywords, hashtags) via Ollama, grounded only in verified tenant facts — lands in draft status pending human approval; a table that had zero writers anywhere before this',
+    module:      'BrandProfileDraftJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'platform-bio-draft',
+    schedule:    '15 5 * * *',
+    description: 'For each of the 35 registered platforms, derives (via Ollama) a platform-fitted bio from the one approved social_brand_profile — never drafts platforms independently, so brand voice stays consistent; skips entirely if the master profile is not yet approved',
+    module:      'PlatformBioDraftJob',
+    enabled:     true,
+    timeoutMs:   300_000,
   },
   {
     name:        'nps-invitation',
@@ -108,6 +172,38 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   180_000,
   },
   {
+    name:        'csat-calculation',
+    schedule:    '55 * * * *',
+    description: 'Compute real CSAT (top-2-box) scores from submitted survey_answer rows on feedback-type surveys with a rating_scale question -- no AI, deterministic. Reuses the existing real survey/survey_analytics infrastructure, mirrors NpsCalculationJob.',
+    module:      'CsatCalculationJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'ces-calculation',
+    schedule:    '57 * * * *',
+    description: 'Compute real CES (Customer Effort Score, top-2-box) from submitted survey_answer rows on ces-type surveys with a rating_scale question -- no AI, deterministic. Mirrors CsatCalculationJob exactly, needed its own survey type (migration 151) to stay distinguishable from CSAT.',
+    module:      'CesCalculationJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'review-request',
+    schedule:    '0 9 * * *',
+    description: 'Real Review Request Campaign: finds checked_in bookings for completed classes with no review yet, queues a real email with a link to the real customer-facing review page (src/app/reviews/submit/[bookingId]) -- idempotent per booking, no AI.',
+    module:      'ReviewRequestJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'opportunity-scoring',
+    schedule:    '15 3 * * *',
+    description: 'Advisory-only AI scoring (0-100 urgency x value x momentum) for open CRM opportunities via Ollama, mirroring BacklogPrioritizationJob\'s ai_priority pattern -- writes opportunity.ai_score/ai_note only, never touches stage or probability_pct.',
+    module:      'OpportunityScoringJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
+  {
     name:        'social-content-idea',
     schedule:    '5 * * * *',
     description: 'Auto-enqueue an hourly campaign brief (rotating honest, non-fabricated angles) for every tenant with a configured business profile and at least one enabled channel — MarketingAutomationJob then generates real copy/banner-prompt content into the review queue; never publishes',
@@ -117,6 +213,14 @@ export const CRON_JOBS: CronJobDef[] = [
   },
 
   // ── Every 15 minutes ─────────────────────────────────────────────────────
+  {
+    name:        'appointment-reminder',
+    schedule:    '*/15 * * * *',
+    description: 'Real Appointment Reminder Engine -- queues a real in_app notification for confirmed bookings whose class starts within the customer\'s own reminder_minutes_before window (set at onboarding, previously never acted on). No AI, idempotent per booking.',
+    module:      'AppointmentReminderJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
   {
     name:        'local-folder-scan',
     schedule:    '*/15 * * * *',
@@ -142,6 +246,14 @@ export const CRON_JOBS: CronJobDef[] = [
     module:      'CtaHealthCheckJob',
     enabled:     true,
     timeoutMs:   120_000,
+  },
+  {
+    name:        'health-snapshot',
+    schedule:    '7 * * * *',
+    description: 'Capture one real health_snapshot row per tenant (revenue/leads/bookings last 24h + DB reachability/latency) so Business -> Technical Correlation has real history to compute against',
+    module:      'HealthSnapshotJob',
+    enabled:     true,
+    timeoutMs:   60_000,
   },
   {
     name:        'google-drive-scan',
@@ -400,6 +512,44 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   240_000,
   },
+
+  // ── Daily 05:30 UTC ──────────────────────────────────────────────────────
+  {
+    name:        'module-registry-drift-sweep',
+    schedule:    '30 5 * * *',
+    description: 'Mandatory Module Understanding Standard monitor: flags module_registry rows not reverified in 30 days, and rows claiming built_status real/partial but missing required user_flow/admin_flow fields. Deterministic, no AI.',
+    module:      'ModuleRegistryDriftSweepJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
+
+  // ── Every 15 minutes ─────────────────────────────────────────────────────
+  {
+    name:        'drip-sequence-processor',
+    schedule:    '*/15 * * * *',
+    description: 'Advances real multi-step drip-campaign enrollments whose next step is due, queuing each step in drip_send_log (real sequencing) — never marks a step "sent" since no SMTP/Novu is deployed in this environment.',
+    module:      'DripSequenceProcessorJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Daily 01:30 UTC ──────────────────────────────────────────────────────
+  {
+    name:        'security-scan',
+    schedule:    '30 1 * * *',
+    description: 'AI Control Tower nightly security scan: runs every real SAST (semgrep)/SCA (npm audit + trivy fs)/IaC (trivy config + checkov on Dockerfiles)/DAST (OWASP ZAP baseline) scanner and persists findings to security_scan_run/security_finding. No AI -- real static/dynamic analysis tools only.',
+    module:      'SecurityScanJob',
+    enabled:     true,
+    timeoutMs:   1_200_000,
+  },
+  {
+    name:        'backlog-prioritization',
+    schedule:    '30 2 * * *',
+    description: 'Ollama-assessed priority/buildability/recommendation for every not_built/partial use_case_registry domain (111 domains), 5 concurrent Ollama calls per batch. Advisory only -- never changes status or deletes a row.',
+    module:      'BacklogPrioritizationJob',
+    enabled:     true,
+    timeoutMs:   1_800_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -408,12 +558,15 @@ CRON JOB SCHEDULE (UTC):
 Every  2 min  marketing-automation (Ollama)
 Every  5 min  notification-dispatch
 Every 10 min  leaderboard-refresh
+Every 15 min  appointment-reminder (real, no AI)
 Every 30 min  abandoned-cart-recovery (Ollama)
 Hourly :00    notification-retry
 Hourly :15    campaign-adaptation (Ollama)
 Hourly :45    campaign-health-audit (Ollama)
 Hourly :20    nps-invitation
 Hourly :50    nps-calculation (Ollama)
+Hourly :55    csat-calculation (real, no AI)
+Daily  09:00  review-request (real, no AI)
 Hourly :05    social-content-idea
 Daily  01:00  analytics-aggregation
 Daily  02:00  streak-update
@@ -439,6 +592,9 @@ Thu    08:45  referral-invitation (Ollama)
 Daily  07:00  viral-detection (Ollama)
 Thu    09:00  influencer-value (Ollama)
 1st    06:00  github-repo-scout (Ollama)
+Daily  01:30  security-scan (real tools -- no AI)
+Daily  02:30  backlog-prioritization (Ollama)
+Daily  03:15  opportunity-scoring (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 35 jobs | 24 use Ollama | 0 cloud AI tokens
+Total: 41 jobs | 26 use Ollama | 0 cloud AI tokens
 `;

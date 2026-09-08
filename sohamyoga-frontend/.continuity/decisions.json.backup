@@ -1,0 +1,1359 @@
+[
+  {
+    "id": "026e3ae1-ad0a-457c-b8f8-88b972bd62f5",
+    "question": "Was the earlier 'Poll Management: Not found' finding accurate?",
+    "answer": "No — corrected 2026-08-31. Before building a new poll feature (recommended as 'cleanest gap to close' in an earlier doc), did a live verification pass and found Poll Management already fully real in sohamyoga-frontend: poll/poll_option/poll_vote tables (tenant-scoped, DB-level duplicate-vote prevention via UNIQUE constraint), confirmed live in Postgres (real table, 0 rows), /api/community/polls with real SQL joins and vote counting, /admin/polls and /community/polls UI both fetching the real API with zero MOCK_* constants. The original miss: earlier audits scoped 'poll management' checks to market-research-portal only and never checked the sibling sohamyoga-frontend app, where it turned out to live. Corrected both docs/advanced-management-feature-list-gap-analysis.md and docs/chatgpt-extracts/twenty-five-item-advanced-management-list.md in place rather than leaving the stale claim. Lesson: when a gap-check spans a multi-app repo, must explicitly check both apps before concluding 'not found', not just the app currently in focus.",
+    "timestamp": "2026-08-31T05:10:30.676Z",
+    "tags": [
+      "api",
+      "audit",
+      "correction",
+      "postgres",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T05:10:30.676Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T05:10:30.677Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "postgres"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T05:10:30.657Z"
+    }
+  },
+  {
+    "id": "15f68000-219b-4518-87c5-01ba9b1bb56c",
+    "question": "What replaced the fake *.ab_testing FeatureFlag entries?",
+    "answer": "Built a real Experimentation/A-B-testing framework in sohamyoga-frontend to close the confirmed gap from the 25-item management-list audit (only fake on/off FeatureFlag entries named *.ab_testing existed, referencing GrowthBook/PostHog as an undelivered promise, zero real variant assignment or lift measurement). New: src/domain/experimentation/db-schema.sql (experiment/experiment_variant/experiment_assignment, tenant-scoped, applied live to Postgres), Experiment.ts (deterministic SHA-256 sticky bucketing, real two-proportion z-test with an honest 30-sample-per-variant floor before reporting significance), /api/experiments (admin CRUD: create/add_variant/start/stop, server-enforced guardrails — rejects starting without allocations summing to exactly 100% or without a marked control), /api/experiments/[key]/assign (public, unauthenticated, sticky assignment keyed to the same anonymous_id/user_id tracking_event already uses), and /admin/experiments (full 8-tab Operational Portal Page & Tab Standard, added to admin nav). Verified live end-to-end: created an experiment, confirmed 409 on starting with 0 variants and on over-100% allocation, started successfully at exactly 100%, assigned 10 distinct subjects via the public endpoint and confirmed sticky re-assignment, inserted one real tracking_event conversion and confirmed the GET stats route correctly joined it to the right variant via a live SQL join (no fabricated lift). Confirmed all 8 tabs render on the live hydrated page via a headless-browser check (curl alone showed a loading gate, so used Playwright). Noted but did not fix: a pre-existing, unrelated duplicate React key warning from two identical '/admin/videos' nav entries in admin/layout.tsx (lines 76 and 260) — out of scope for this task. tsc --noEmit clean (only 3 pre-existing, unrelated ClassSequence.test.ts errors remain). All test data cleaned up.",
+    "timestamp": "2026-08-31T05:24:40.072Z",
+    "tags": [
+      "api",
+      "audit",
+      "experimentation",
+      "feature",
+      "postgres",
+      "react",
+      "testing",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T05:24:40.072Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T05:24:40.074Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "react",
+        "rails",
+        "postgres",
+        "playwright"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T05:24:39.975Z"
+    }
+  },
+  {
+    "id": "0c24021b-9c60-4bab-97ec-cb40ecdc4f46",
+    "question": "How was the 'I still don't have clarity on what's built vs missing' feedback addressed?",
+    "answer": "Saved a new mandatory global policy (policy_module_understanding_standard.md, referenced in ~/.claude/CLAUDE.md) requiring every module to have user/admin/data flow, job, report, dashboard, schema, flowchart, user story, I/P/O, final outcome, and built-vs-missing documented in one place — never scattered chat answers. Built the real backing: module_registry table (sohamyoga-frontend, app-scoped so it covers both apps), populated honestly in two tiers — 6 modules (Voice AI, Poll Management, Experiments, Hooks, CRM/Leads, Operations & Failure Tracking) with FULL verified detail from this session's actual builds, plus 18 summary rows from the 25-item management-list audit with real built_status + citations but explicitly flagged 'flow/schema detail not yet cataloged' rather than fabricated. Built /api/admin/module-registry (GET with live tally + an honest denominator: 24 cataloged vs an estimated 61 real admin-nav surfaces in sohamyoga-frontend alone, counted by parsing admin/layout.tsx, not guessed) and /admin/module-registry UI (filterable by app/status, full per-module detail panel). Added a real monitoring job (ModuleRegistryDriftSweepJob, daily 05:30 UTC, registered in CronRegistry+jobModules) that flags stale (>30d unverified) or incomplete (claimed real/partial but missing user_flow/admin_flow) registry rows — verified live via the real on-demand job runner, confirmed a real operation_run row with status=succeeded. Verified the full UI live via headless browser (login, API tally, page render, click-through detail panel showing real schema tables and job name). Explicitly did NOT fabricate flow/schema detail for the ~37 remaining uncataloged admin surfaces — they show as 'not yet cataloged', which is itself the honest answer to 'what's still missing.' Not yet built (deferred, communicated to user): Kaggle/synthetic tagged test-data generation for end-to-end module testing — flagged as next-phase work, not attempted this pass.",
+    "timestamp": "2026-08-31T05:37:05.483Z",
+    "tags": [
+      "api",
+      "audit",
+      "feature",
+      "how",
+      "module-registry",
+      "monitoring",
+      "policy",
+      "testing",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T05:37:05.483Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T05:37:05.485Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "deno"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "monitoring",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T05:37:05.301Z"
+    }
+  },
+  {
+    "id": "d5096e45-5473-4f04-b150-92f2903f6174",
+    "question": "What did the second module-cataloging batch (Booking, Wellness, E-commerce) find?",
+    "answer": "Real code/schema audit, no guessing: Booking (partial) — admin-side Overview/Today/Upcoming/Waitlist/No-shows/Rules/Reports is real and API-backed, but /booking and /booking/[classId] are pure mock UI with a fake setTimeout 'booking' — grep-confirmed zero INSERT INTO booking anywhere, so no customer can actually book a class end-to-end. Wellness (not_built) — health_profile/body_metrics/daily_wellness_log/wearable_sync tables have zero API routes at all; /admin/wellness is 100% mock (source literally commented '// Mock data'); the real wellness-scoring cron job doesn't even touch this schema, it scores a different domain (student.practice_journal) which is itself never populated by any app code either — a real job with no live input. E-commerce (partial) — admin product/vendor/inventory CRUD and the abandoned-cart-recovery job are real and DB-backed, but no storefront/checkout exists (/catalog is an unrelated hardcoded yoga-class list) and grep confirms zero INSERT INTO sales_order anywhere, so the abandoned-cart job has no live input in practice. All 3 added to module_registry with full detail (docs/domain/module-registry/seed-2026-08-31-batch2.sql). Registry now covers 27 modules (16 real, 9 partial, 2 not_built) of an estimated 61 sohamyoga-frontend admin surfaces. Verified live via API.",
+    "timestamp": "2026-08-31T05:43:33.846Z",
+    "tags": [
+      "api",
+      "audit",
+      "module-registry",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T05:43:33.846Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T05:43:33.848Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T05:43:33.818Z"
+    }
+  },
+  {
+    "id": "d81daf0a-3f10-490b-89fb-89e8a9f56558",
+    "question": "What was built to fix the real Booking gap found in the module audit?",
+    "answer": "Wired the actual booking-creation path that was previously entirely mock (grep-confirmed zero INSERT INTO booking anywhere before this). Added level/style/price columns to class_session (real extension the mock UI already implied but the schema never had). Seeded 4 real near-future class sessions (one deliberately capacity=2 to exercise the waitlist path). Built GET /api/classes (public, live spotsLeft computed from real bookings), GET /api/classes/[id], and POST /api/bookings (customer-authenticated, resolves student_id from student.user_id, row-locks class_session via a real transaction to prevent overbooking races, inserts a confirmed booking or falls back to a real waitlist_entry with correct position, rejects duplicate bookings with a clear 409). Rewired /booking and /booking/[classId] off their hardcoded CLASS_DATA/setTimeout mock onto these real APIs, with real error and waitlisted states surfaced to the customer. Verified live end-to-end as a real logged-in customer: confirmed booking succeeded, duplicate booking correctly rejected (409), filled a 2-capacity class and confirmed the 3rd booking correctly waitlisted (position 1), confirmed spotsLeft recalculated correctly after each, confirmed the real /booking page renders live class data with correct Book Now / Full states via headless browser. Found and fixed a real bug during this verification: the DATE column came back as a JS Date object from pg, producing a malformed dateTime string (e.g. 'Tue Sep 01 2026...T07:00:00') until formatted properly. All test student/booking/waitlist rows cleaned up afterward; the 4 real class_session rows were left as legitimate seed data. Updated the module_registry row for 'booking' from partial to real, with an honest remaining-gap note (no payment gateway, no customer-side cancellation, no auto waitlist-promotion job).",
+    "timestamp": "2026-08-31T05:56:48.351Z",
+    "tags": [
+      "api",
+      "audit",
+      "booking",
+      "feature",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T05:56:48.351Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T05:56:48.352Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T05:56:48.326Z"
+    }
+  },
+  {
+    "id": "dd8eec73-df66-495b-8b5d-fe095b7e1b15",
+    "question": "Deep re-audit of Ads Management + 8 platform/comms modules: what changed?",
+    "answer": "Applied the same skepticism that caught Booking/E-commerce's fake creation flows to Ads Management and found the same pattern: real schema + real reporting, but zero code path to create/launch a campaign (2 INSERT INTO ad_campaign hits total: a demo seeder and a health-audit job that never touches campaigns), zero real ad-platform API clients, and dead onClick-less 'New Campaign'/'AI Generate Ad' buttons. Extended the audit to 8 more modules and found ONE shared root cause explains most of them: PostizSocialAutoPublishJob.ts and NotificationDispatchJob.ts are both real, correct HTTP client code (POST to self-hosted Postiz/Novu instances) but neither backend is deployed in this repo and neither API key is set — so YouTube/Facebook/LinkedIn organic posting and email dispatch are all 'partial: real code, credential-gated, not mocked' rather than N separate problems. Telegram is a special case: a real, unit-tested bot-send function with zero production callers anywhere. Google Business Reviews is the one genuine surprise — fully real end-to-end with actual OAuth + real Google API calls, upgraded to full registry detail. Google Ads (the specific platform, distinct from generic ad_campaign schema) is confirmed not_built — zero client code, one disabled feature flag whose own description says it needs a developer token. CORRECTED two of my own earlier WRONG registry classifications from shallow checks: paid-ads and campaign-management were marked 'real' based on 'admin page exists'; deep audit found campaign launch is a pure UPDATE lifecycle_campaign SET status= with zero send-side-effect (identical dead-CTA pattern to Ads). Registry now at 32 modules (14 real, 15 partial, 3 not_built) — the partial count grew mainly from correcting over-generous earlier claims, which is the intended function of this registry, not a regression.",
+    "timestamp": "2026-08-31T06:04:20.099Z",
+    "tags": [
+      "ads-management",
+      "api",
+      "audit",
+      "correction",
+      "oauth",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T06:04:20.099Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T06:04:20.101Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "oauth"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T06:04:20.074Z"
+    }
+  },
+  {
+    "id": "879818b8-d011-4797-9eb1-4fc86ba32465",
+    "question": "Was a new BOT UI / RAG / job system built from scratch for the agent console?",
+    "answer": "No — discovered and reused already-real, already-built infrastructure instead of duplicating it (per user_working_style memory: 'agentic-ollama-platform has plan/schedule/execute/monitor/fallback, don't rebuild it'). Found sohamyoga-frontend already had a complete server-side bridge (src/lib/agent.ts: submitGoal/requestStatus/agentHealth, with circuit-breaker via operation-ledger) and API routes (/api/ai/agent, /api/ai/agent/[id]) wired to the agentic-ollama-platform gateway (port 8091, FastAPI, real planner -> task queue -> workers) — but the gateway process wasn't running and no UI page exposed it. Started the real gateway (serve.sh), verified /health returns real {ollama:true,service:up}, then built the one missing piece: /admin/agent-console, a real 'BOT UI' where an admin types a goal and it's genuinely planned by Ollama into tasks and executed by real workers. Verified live end-to-end via headless browser: submitted 'Say hello in one short sentence', watched real task decomposition appear (Retrieve greeting phrase template -> Fill in template), confirmed via network log that GET/POST /api/ai/agent and repeated polling GET /api/ai/agent/[id] all returned real 200/202 responses — genuine planning latency (~8-15s for Ollama to plan) caused two early false-negative test checks before the real behavior was confirmed with a longer wait. Also updated policy_module_understanding_standard.md with 3 new mandatory sections requested this turn: per-dimension tallies (User Flow UI / Admin UI / DB / Report / Dashboard counts), the 3-required-execution-paths rule (BOT/Manual/Pipeline, each verified independently), and RAG-backed data extraction for draft documentation + synthetic test data (grounded, never hallucinated, human-reviewed before being marked verified). Real Playwright e2e re-run also kicked off in background (was 7 days stale) — in progress, ~300+ tests through with some genuine NPS-related failures surfacing, not yet complete.",
+    "timestamp": "2026-08-31T06:31:20.678Z",
+    "tags": [
+      "agent-console",
+      "api",
+      "bot-ui",
+      "policy",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T06:31:20.678Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T06:31:20.679Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "playwright"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T06:31:20.633Z"
+    }
+  },
+  {
+    "id": "49c4baa7-0fab-41bd-80da-95c3e7e1f786",
+    "question": "Consolidated status: what got built in the late-session burst while the user was away?",
+    "answer": "Built and live-verified: (1) Module registry dimension tallies (userFlowUI/adminUI/database/report/dashboard counts) via explicit boolean columns rather than fragile text-pattern matching, exposed in /api/admin/module-registry and /admin/module-registry UI. (2) Real BOT UI at /admin/agent-console -- discovered and reused already-existing agentic-ollama-platform gateway (planner->queue->workers) plus already-coded but unwired bridge (src/lib/agent.ts, /api/ai/agent routes); started the real gateway process and built only the missing UI piece; verified live with a real submitted goal producing real Ollama-planned tasks. (3) Real service catalog (market-research-portal): service_catalog_item schema, /api/service-catalog, public /services page with category filter + inquiry modal reusing the existing real lead-capture path (extended with serviceItemId); verified live end-to-end including the resulting lead's FK link to the correct service. (4) Closed a previously-flagged adversarial-review gap while touching leads/capture: added rate limiting (5/min/IP) and email format validation, verified live (429 on 6th rapid request, 400 on malformed email). (5) Policy expanded with sections 6-9 (per-dimension tallies, 3 required execution paths [BOT/Manual/Pipeline], 'no demo counts as real without live proof' rule, RAG-backed drafting). Captured but NOT built, written into docs/session-plan-2026-08-31-customer-portal-and-bot-expansion.md rather than guessed at: real load testing for '1000 concurrent users' claim, Cal.com calendar integration, email campaign design/send (blocked same as before -- Novu undeployed), purchase/checkout/billing (blocked -- no payment gateway exists anywhere in either app, confirmed by grep). Real Playwright e2e re-run (was 7 days stale) ran in background through 500+ tests with some genuine failures surfacing (NPS boundary tests, several admin pages with real console errors) -- not yet fully complete/reported at time of this log.",
+    "timestamp": "2026-08-31T06:42:51.819Z",
+    "tags": [
+      "api",
+      "bot-ui",
+      "database",
+      "service-catalog",
+      "session-summary",
+      "testing",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T06:42:51.819Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T06:42:51.820Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "playwright"
+      ],
+      "patterns": [],
+      "concepts": [
+        "rate limiting",
+        "api",
+        "schema",
+        "database",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T06:42:51.781Z"
+    }
+  },
+  {
+    "id": "40e6a33a-f7a7-461f-9e3d-74989db81c63",
+    "question": "Real e2e re-run completed (was 7 days stale) — what did it find?",
+    "answer": "466 passed / 59 failed out of 525 (88.8%), 32.8 min runtime, across 3 browser projects (chrome-desktop/mobile-pwa/color-blind-protanopia). Root-caused and fixed the single largest failure cluster: CONSOLE-001/002/003 tests failed identically across all 3 browsers on the exact same 6 admin pages (demo-hub, ai-governance, teachers, students, social/scheduler, simulation) plus 2 detail-page tests — traced to a duplicate '/admin/videos' entry in admin/layout.tsx's nav array (found earlier this session while building Experiments, not fixed until now) causing a real React 'duplicate key' console.error on every single admin page render. Removed the duplicate (kept the simpler 'Videos' label entry, removed the redundant 'Video & Reel Management' one), verified live via headless browser that all 6 previously-failing pages now show zero console errors. This one-line fix likely resolves ~18-27 of the 59 total failures (6-8 distinct test cases x 3 browsers). Remaining failure clusters NOT yet investigated: NPS-003/004/006 (boundary score 0/10 rejected, invitation token reuse, nps-records — failing identically across all 3 browsers, looks like a real regression not flakiness), MCPG-005 (staff_approval 403 check), TRACKING-003 (consent-gate bypass check), DEMO-005/SIM-002 (Demo Hub reports), SPE-002 (Postiz provider health), VIR-002/004 and MR-002 (browser-specific, only 1 of 3 browsers, more likely flaky). Did not fix the remaining ~40 failures this pass — surfaced honestly rather than guessed at, since root-causing each needs real investigation the same way the console-error cluster did.",
+    "timestamp": "2026-08-31T06:47:57.272Z",
+    "tags": [
+      "bug-fix",
+      "e2e",
+      "governance",
+      "react",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T06:47:57.272Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T06:47:57.273Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "react"
+      ],
+      "patterns": [],
+      "concepts": [
+        "governance"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T06:47:57.228Z"
+    }
+  },
+  {
+    "id": "6e9f53a7-9929-45f1-a58a-e06d684d6ec9",
+    "question": "What was the real root cause of the NPS-003/004/006 e2e failures, and was it fixed?",
+    "answer": "Two distinct real causes, both fixed and verified live (45/45 tests passing across all 3 browser projects after fix). (1) Stale test code: the post-class-experience survey now has consent_required=true (a real compliance feature added later than these tests), but 5 POST call sites in nps-feedback.spec.ts never sent consent:true, so the API was correctly rejecting them -- not an API bug, the tests were outdated. Fixed by adding consent:true to all 5 call sites (score-0 boundary, score-10 boundary, both requests in the token-reuse-409 test, the NPS-004 end-to-end test, and the NPS-006 nps-records test). (2) Separately, while investigating, hit a real 500 unrelated to my fix: 'Cannot find module ./vendor-chunks/@opentelemetry.js' -- the sohamyoga-frontend dev server had been running continuously since Aug26 (5+ days, spanning this entire marathon session's huge number of file changes) and its .next webpack cache was corrupted, same failure pattern as an earlier session note for market-research-portal. Killed the stale process, cleared .next/cache, restarted clean, confirmed http 200 and clean compile. This fixes the NPS cluster (18 of the original 59 e2e failures: 6 test cases x 3 browsers) for real, verified with actual live Playwright runs against the freshly-restarted server, not just code review.",
+    "timestamp": "2026-08-31T14:03:50.957Z",
+    "tags": [
+      "api",
+      "bug-fix",
+      "cache",
+      "compliance",
+      "dev-server",
+      "e2e",
+      "verification",
+      "webpack"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T14:03:50.957Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T14:03:50.958Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "rest",
+        "webpack",
+        "playwright"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "cache",
+        "compliance"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T14:03:50.851Z"
+    }
+  },
+  {
+    "id": "982a9010-643c-4c25-8ca5-2338053420c0",
+    "question": "Final summary of 'fix all' pass on ads/email/seo/geo/branding/video/audio",
+    "answer": "Ads: fixed the dead 'New Campaign' button -- real POST /api/ads/campaigns, real form/modal, verified live (created via UI, appears in Campaigns tab). 'AI Generate Ad' honestly disabled (no ComfyUI connected) rather than left as a silent dead button. Email: found the 'Test SMTP' route (/api/home/test-email) never existed anywhere, including the .NET backend -- built the real endpoint (SmtpClient.SendMailAsync, fails closed with a clear SMTP_NOT_CONFIGURED error since Smtp:Host is empty), compiles clean (dotnet build succeeded), but NOT deployed -- deploying means restarting the sohamyoga-backend container that's been running 11 hours and may be live, flagged as a real risk decision rather than restarted blind. SEO: confirmed still correctly blocked on Matomo, not fabricated. GEO: confirmed not fixable without paid ChatGPT/Gemini/Perplexity API credentials -- explicitly not attempted. Branding: wired brand_kit primary/secondary colour into VideoRenderer.ts (previously brand_kit only ever reached text/copy tone, never video) -- verified live by rendering a real video and sampling its actual output pixel colour against the brand kit hex value (matched within H.264 compression tolerance). Audio: added real EBU R128 loudness normalization + fade-in/out (previously zero audio processing existed in either app) -- verified live via ffmpeg volumedetect showing real, present, correctly-normalized audio. Video editing: confirmed still not_built (no multi-clip/timeline capability) -- but while adding audio processing, found and fixed a genuine SELF-INTRODUCED bug: -shortest failed to terminate against the infinite lavfi colour source once loudnorm's buffering was in the filter chain, causing a render to run 20+ minutes instead of ~6 seconds before failing; fixed with an explicit -t duration cap from the real probed WAV length, verified live (1.5s render, correct output duration). Novu/Matomo full deployment: assessed Docker availability (present, but only ~2.6GB free RAM with a production-like deployment already running) -- flagged as a real resource/risk decision needing explicit confirmation, not deployed blind. All fixes verified live except the Email backend deployment, which is built+compiled but intentionally not activated pending confirmation.",
+    "timestamp": "2026-08-31T15:08:06.524Z",
+    "tags": [
+      "ads",
+      "api",
+      "audio",
+      "branding",
+      "bug-fix",
+      "deployment",
+      "docker",
+      "final-summary",
+      "fix-all",
+      "verification",
+      "video"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T15:08:06.524Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T15:08:06.525Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "docker",
+        "rest"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "normalization",
+        "async",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T15:08:06.423Z"
+    }
+  },
+  {
+    "id": "2812101a-1672-4c31-9661-b9d1770b3038",
+    "question": "Final summary: 'setup all missing' + 'fix all then only stop, with test' completion",
+    "answer": "Went through the full digital-marketing topic list. 6 items were WRONGLY assumed missing on first pass and turned out already real (Poll Management, Attribution Modeling, AI Chatbot, Blog CMS, Sales Pipeline, Newsletter partial) -- each verified live before being crossed off rather than trusted from a shallow grep. 5 genuinely missing items were built and verified live end-to-end: (1) Lead Scoring -- exact score matches (40, 95) through both creation paths. (2) Customer Segmentation evaluator -- real criteria-to-SQL builder for 6 confirmed-mappable fields, verified against independent SQL counts (380 students, 0 birthday-month matches), honestly errors on 5 unsupported fields rather than fabricating. (3) On-Page SEO Checker -- new capability, zero external dependency, verified against 2 real pages with correctly distinct extracted values (43 vs 40 char titles, 136 vs 730 words) plus a real 404 error path. (4) Landing Page A/B testing -- wired the existing-but-unused Experiments framework to a new real homepage CTA banner; verified with 8 real browser visitors producing a genuine variant split (2/6) persisted to experiment_assignment. (5) Drip Campaigns -- real internal multi-step sequencing engine (previously only a one-shot external Mautic push existed); verified live by enrolling a real lead, running the real job, confirming correct no-premature-fire behavior, then fast-forwarding time to prove step 2 fires and the sequence completes correctly. All builds typecheck clean (only 3 pre-existing unrelated ClassSequence.test.ts errors remain, present before this session). All test data cleaned up except legitimate permanent fixtures (the real homepage-final-cta experiment, which the live CtaExperimentBanner component now depends on). This closes out every item from the digital-marketing topic list requested this session.",
+    "timestamp": "2026-08-31T17:52:25.412Z",
+    "tags": [
+      "final-summary",
+      "fix-all",
+      "testing",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T17:52:25.412Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T17:52:25.412Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "rust"
+      ],
+      "patterns": [],
+      "concepts": [
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T17:52:25.376Z"
+    }
+  },
+  {
+    "id": "a909913f-ff46-44f2-8c75-070f58824a91",
+    "question": "Was the admin panel's client-side auth actually working in a real browser, and was the Wellness module built?",
+    "answer": "Built Health & Wellness admin (/admin/wellness): real health_profile/body_metrics/daily_wellness_log/wearable_sync CRUD (previously 100% mock), HIPAA/PIPEDA-compliant legal-basis gate + wellness_audit trail on profile access/delete, real analytics from the 3 pre-existing DB views. Found and fixed 2 real bugs: a Postgres param-type conflict blocking all wearable-status writes, and a wellness_audit FK with no ON DELETE action that blocked the admin_destructive delete_health_profile tool entirely (migration 129, ON DELETE SET NULL). SEPARATELY, and more significant: discovered the entire admin panel's client-side auth check (admin/layout.tsx calling authApi.getCurrentUser() cross-origin to the .NET backend at NEXT_PUBLIC_API_URL) has been silently broken in real browsers all session -- the backend's Cors:AllowedOrigins allowlist (SohamYoga.Web/appsettings.json) only ever listed localhost:3000/3001, never updated when this session moved the frontend dev port to 8095, so every admin page's auth check failed with a CORS error and silently bounced to the login screen. curl-based verification never caught this because curl does not enforce CORS. Fixed by adding http://127.0.0.1:8095 and http://localhost:8095 to the allowlist and restarting the backend (pid replaced, dotnet run --urls http://127.0.0.1:15070). Verified live: ai-governance.spec.ts GOV-003 (previously failing 3/3) and a new wellness page browser check both pass with zero console errors after the fix. Also fixed an unrelated real bug found investigating this: customer-self-service.spec.ts's top-level afterAll unconditionally deleted the shared customer_demo fixture every run, contradicting its own header comment about the fixture being shared/persistent -- removed the delete.",
+    "timestamp": "2026-09-01T16:48:04.317Z",
+    "tags": [
+      "architecture",
+      "auth",
+      "bug-fix",
+      "cors",
+      "feat",
+      "governance",
+      "hipaa",
+      "migration",
+      "postgres",
+      "security",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-01T16:48:04.317Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-01T16:48:04.320Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "postgres",
+        "rest"
+      ],
+      "patterns": [],
+      "concepts": [
+        "migration",
+        "cors",
+        "hipaa",
+        "governance",
+        "audit"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-01T16:48:04.248Z"
+    }
+  },
+  {
+    "id": "d62bce5d-9864-4edd-baeb-de48c6f257c9",
+    "question": "fix all pending -- closed the orphaned-navigation gap found during reconciliation",
+    "answer": "Added a real 'Business' nav section to admin/layout.tsx sidebar linking 5 already-real but completely unreachable admin pages (Executive Dashboard, Pricing & Plans, Notifications, Behavior Analytics, NPS/Survey) -- all 5 were fully data-wired, functioning pages with zero sidebar entry, discoverable only by typing the exact URL. Verified all 5 routes return HTTP 200 live and the full project type-check stays clean. Flipped the 5 corresponding 'Navigation' rows across Module 12/13/17/20/21 to real. This is the cheapest, highest-value fix surfaced by the whole reconciliation sweep -- a handful of missing <a> tags made 5 real feature sets invisible to any admin who doesn't already know the exact URL.",
+    "timestamp": "2026-09-02T05:06:03.268Z",
+    "tags": [
+      "architecture",
+      "fix"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-02T05:06:03.268Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-02T05:06:03.269Z",
+        "action": "created"
+      }
+    ],
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-02T05:06:03.195Z"
+    }
+  },
+  {
+    "id": "95ad8ad0-a922-4493-85a2-f9917f626045",
+    "question": "Found and wired an orphaned Subscription.scheduleDowngrade() domain method into a real customer self-service action",
+    "answer": "Same class of gap as NotificationPreference/SocialLead this session: Subscription.scheduleDowngrade(planId) was a fully-implemented, tested-shape domain method with a real invariant guard (only active/paused subs), but zero API route ever called it -- pending_downgrade_plan_id sat on subscription_master forever null. Wired it into PATCH /api/customer/subscription as a new self-service action, validates the target plan exists/is active, rejects choosing the current plan, persists pending_downgrade_plan_id. Extended GET /api/plans to also return each plan's id (previously only slug) so the customer UI could reference a real plan id. New UI on /customer/subscription: a plan-switch dropdown + a banner showing an already-scheduled downgrade. Verified live: domain-class test confirms correct state transition and the cancelled-subscription guard rejects it, confirmed the exact DB write and both plan-validation query outcomes (found/not-found), confirmed 401 on GET+PATCH, cleaned up test data, tsc clean. Marked status=PARTIAL, not real -- there is no immediate-upgrade action (only scheduled downgrade) and no billing/renewal cron job anywhere in this codebase to actually apply the pending downgrade at the next cycle (no payment gateway wired, so there's no real renewal event to hook into yet). Registry now: 353 real / 539 not_built / 40 partial / 7 n_a / 1 blocked.",
+    "timestamp": "2026-09-02T17:04:41.360Z",
+    "tags": [
+      "api",
+      "billing",
+      "fix",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-02T17:04:41.360Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-02T17:04:41.362Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-02T17:04:41.294Z"
+    }
+  },
+  {
+    "id": "bfd07eda-d2c9-4535-be53-079bceb1b9e6",
+    "question": "Built real Create Promotion feature (fixed a dead button), credited Promotion Types",
+    "answer": "Found the admin coupons page had a real list+transition UI (GET /api/coupons, PATCH for state transitions) backed by a rich Coupon.ts domain class, but the '+ New Coupon' button had literally zero onClick handler and no POST route existed anywhere -- coupons could never actually be created (found live 2026-09-02). Built POST /api/coupons (constructs a real Coupon domain object for validation before insert, starts at draft) + NewCouponForm modal wired to the previously-dead button. Verified live: domain validation correctly rejects a >100% percentage discount, real INSERT matches the GET route's exact query shape, real duplicate-code unique-constraint correctly rejects a repeat code, confirmed 401, cleaned up test data, tsc clean. Flipped Create Promotion to real. Also credited Promotion Types (coupon_type's real 19-value CHECK constraint, selectable in the new form). Left Price Calculation Example/Flow, Price List Concept/Screen, Price Rule Hierarchy, Pricing Context not_built -- all tied to PricingRule.ts's hierarchy/context classes, confirmed dead (imported for one constant only) earlier this session. Registry now: 402 real / 470 not_built / 41 partial / 26 n_a / 1 blocked.",
+    "timestamp": "2026-09-02T19:57:17.553Z",
+    "tags": [
+      "api",
+      "feat",
+      "pricing",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-02T19:57:17.553Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-02T19:57:17.554Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-02T19:57:17.510Z"
+    }
+  },
+  {
+    "id": "7d1ccf58-92e7-4bc6-a2b0-877920d0a607",
+    "question": "Inbound routing live + real webhooks for 3 of 14 external platforms, honest on the other 11",
+    "answer": "Set REAL inbound routing on the live Vapi phone number (+19435009474 -> General Clinic FAQ assistant, ccb25244-...), confirmed via a direct GET against the real Vapi phone-number API showing assistantId now populated -- any real inbound caller from this moment reaches the assistant. Also built real webhook receivers for the 14 external-platform MCP question: checked which of the 14 (GitHub, GitLab, StackOverflow, Yelp, TripAdvisor, Trustpilot, Vimeo, Dailymotion, Spotify, Apple Podcasts, SoundCloud, Patreon, Snapchat, Substack) actually have public third-party webhook systems -- only GitHub, GitLab, and Patreon do; the other 11 either have no webhook capability at all (Yelp, TripAdvisor, StackOverflow, SoundCloud, Spotify, Apple Podcasts, Substack) or require enterprise partnership access not available here (Trustpilot, Vimeo, Dailymotion, Snapchat). Built real receivers only for the 3 genuine ones: src/domain/mcp/webhookVerify.ts (verifyGithubSignature = HMAC-SHA256 per GitHub's real X-Hub-Signature-256 scheme, verifyGitlabToken = plain shared-secret compare per GitLab's real X-Gitlab-Token scheme, verifyPatreonSignature = HMAC-MD5 per Patreon's real X-Patreon-Signature scheme), 3 routes (/api/webhooks/{github,gitlab,patreon}), new external_webhook_event table. Verified all 3 live with correctly-signed synthetic payloads (accepted + logged) and incorrectly-signed payloads (correctly rejected 401) -- 6/6 test cases passed. Test rows cleaned up after. Registered as module_registry 'external-webhooks'=real. Explicitly did NOT fabricate receivers for the other 11 platforms -- doing so would misrepresent a capability that doesn't exist for them. Also: user gave an explicit standing instruction this session ('do not stop till all pending work get over', 'create the policy to work autonomous way') -- recorded as the 4th reinforcement of [[policy_no_stop_until_complete]], same ceiling unchanged (real credential/phone-number blockers still can't be fabricated away).",
+    "timestamp": "2026-09-03T04:28:50.771Z",
+    "tags": [
+      "api",
+      "hmac",
+      "mcp",
+      "sohamyoga-frontend",
+      "vapi",
+      "verification",
+      "webhook"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T04:28:50.770Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T04:28:50.772Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "rust",
+        "github",
+        "gitlab"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "hmac"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T04:28:50.665Z"
+    }
+  },
+  {
+    "id": "db313fdf-e4f1-4ed8-9cd5-a352738ff7be",
+    "question": "SEO/GEO domain: 2nd item built -- Broken Link & Redirect Management",
+    "answer": "sohamyoga-frontend. Built real broken-link checker (extracts internal links from own rendered HTML, real HTTP checks, no external crawler) + real redirect-rule CRUD (seo_redirect_rule table). Verified live: homepage shows 22 real internal links, 0 broken; full redirect create/list/delete lifecycle run against real DB. Domain now 4 real / 3 partial / 12 not_built (was 3/3/13 after Schema Generator). Continuing the SEO/GEO backlog per standing no-stop policy.",
+    "timestamp": "2026-09-03T04:33:58.815Z",
+    "tags": [
+      "feat",
+      "seo",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T04:33:58.815Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T04:33:58.816Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "schema",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T04:33:58.745Z"
+    }
+  },
+  {
+    "id": "f0f0f126-f5e3-455b-8b65-114c9ad5bc00",
+    "question": "SEO/GEO domain: 3rd item -- Keyword Intelligence (real Google Suggest data)",
+    "answer": "Built src/domain/seo/KeywordIntelligence.ts using the real free Google Suggest autocomplete API for related-keyword data, cross-checked against real page content -- explicitly does NOT fabricate volume/difficulty scores (needs a paid API this project lacks). Verified live: real query for 'yoga classes' against the real /services page found a genuine content gap (9 of 10 related local-search terms missing). Domain now 5 real / 3 partial / 11 not_built (was 2/3/14 at session start -- 3 real items shipped this session: Schema Generator, Broken Link & Redirect Management, Keyword Intelligence).",
+    "timestamp": "2026-09-03T04:36:33.004Z",
+    "tags": [
+      "api",
+      "feat",
+      "seo",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T04:36:33.004Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T04:36:33.005Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T04:36:32.949Z"
+    }
+  },
+  {
+    "id": "a86fe560-eced-43b5-b9d0-6c0221e4e8b5",
+    "question": "SEO/GEO domain: 4th item -- Internal Linking Engine, real bug caught+fixed during verification",
+    "answer": "Built src/domain/seo/InternalLinkingEngine.ts + GET /api/admin/seo/internal-linking + full UI on /admin/seo-checker. Real keyword-overlap analysis across the site's own real pages, no ML/LLM. First verification pass surfaced an honest bug: shared nav/footer boilerplate words (home, skip, soham) were polluting the 'topical relevance' signal since every page shares them. Fixed by filtering words appearing on 60%+ of pages before computing overlap -- re-verified live, now shows genuinely topical matches (postures, alignment, flexibility, gentle) between /services, /about and the 3 yoga-style subpages. Domain now 6 real / 3 partial / 10 not_built (started this session at 2/3/14 -- 4 real items shipped: Schema Generator, Broken Link & Redirect Management, Keyword Intelligence, Internal Linking Engine).",
+    "timestamp": "2026-09-03T04:40:47.545Z",
+    "tags": [
+      "api",
+      "bug-fix",
+      "feat",
+      "seo",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T04:40:47.545Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T04:40:47.546Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T04:40:47.477Z"
+    }
+  },
+  {
+    "id": "cc296c6d-af7f-4ff7-b000-f240cf4640ab",
+    "question": "SEO/GEO domain: 5th item -- Topic Cluster/Content Hub, 2nd real bug caught+fixed",
+    "answer": "Built src/domain/seo/TopicClusterEngine.ts. Caught and fixed a real clustering bug during verification: initial transitive union-find over-merged unrelated pages into one giant cluster. Fixed with non-transitive pillar-candidate assignment. Final verified result: the real site genuinely shows just 1 cluster centered on /services -- confirmed this is an honest finding (site isn't yet content-differentiated into multiple topics), not a placeholder or bug, and documented as such rather than fabricating multiple clusters to look more impressive. Domain now 7 real / 3 partial / 9 not_built (session start: 2/3/14). 5 real SEO/GEO items shipped this session, 2 real bugs caught and fixed during live verification (nav-boilerplate pollution in linking engine, transitive over-merge in cluster engine) -- both caught specifically BECAUSE of the live-verification discipline, not by code review alone.",
+    "timestamp": "2026-09-03T04:46:16.789Z",
+    "tags": [
+      "bug-fix",
+      "feat",
+      "seo",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T04:46:16.789Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T04:46:16.791Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T04:46:16.666Z"
+    }
+  },
+  {
+    "id": "d67c5dac-278a-4cec-89d2-cb63679e1c28",
+    "question": "SEO/GEO domain: 6th and 7th items -- SEO Issue Prioritization + Multi-Location Management",
+    "answer": "Built SEO Issue Prioritization (aggregates the 4 already-real checkers into one severity-ranked list, verified live: 11 real issues found on /services). Built Multi-Location Management (full CRUD over the real branch table + admin UI at /admin/locations, nav entry added) -- this is the exact table that had been empty all session, causing Schema Generator/Local SEO Checker to report address/phone as missing. Verified with a genuine cross-feature test: created a real branch row, confirmed Schema Generator immediately picked it up with zero missing fields, then cleaned up the test row. Domain now 9 real / 3 partial / 7 not_built (session start: 2/3/14 -- 7 real items shipped this session).",
+    "timestamp": "2026-09-03T05:09:51.328Z",
+    "tags": [
+      "feat",
+      "seo",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T05:09:51.328Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T05:09:51.329Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "schema",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T05:09:51.110Z"
+    }
+  },
+  {
+    "id": "2474b083-2271-4400-a4ed-d239761654e5",
+    "question": "SEO/GEO domain: 8th item -- Reviews to Local SEO, session summary",
+    "answer": "Built ReviewSeoSignal.ts joining the existing real business_review/reputation pipeline to compute aggregateRating for schema.org output. Verified with temporary real-shaped test data (2 reviews, 5-star+4-star -> correctly computed 4.5 avg), cleaned up after. Domain now 10 real / 3 partial / 6 not_built (session start: 2/3/14). 8 real SEO/GEO items shipped this session: Schema Generator, Broken Link & Redirect Management, Keyword Intelligence, Internal Linking Engine, Topic Cluster/Content Hub, SEO Issue Prioritization, Multi-Location Management, Reviews to Local SEO. 2 real bugs caught and fixed during live verification (boilerplate word pollution, transitive cluster over-merge). Full type-check clean across all new code (only 3 pre-existing unrelated test errors in ClassSequence.test.ts remain, untouched). Remaining 6 not_built (Customer Self-Service SEO Management, Keyword Opportunity Score, Local Landing Page Factory, Local Search Conversion, SEO Architecture, SEO Content Brief) -- Keyword Opportunity Score and Local Search Conversion genuinely need paid third-party APIs (search-volume/attribution data) this project has no credentials for.",
+    "timestamp": "2026-09-03T05:14:30.631Z",
+    "tags": [
+      "architecture",
+      "feat",
+      "seo",
+      "session-summary",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T05:14:30.631Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T05:14:30.633Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "schema",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T05:14:30.576Z"
+    }
+  },
+  {
+    "id": "1e7f93a9-35e9-48fd-bd45-af58c0fa2206",
+    "question": "SEO/GEO domain COMPLETE except 2 genuinely credential-blocked items: 2/3/14 -> 14 real / 3 partial / 2 not_built",
+    "answer": "Finished the SEO + LOCAL SEO + AI SEARCH / GEO MANAGEMENT domain backlog this session. Final 3 items built: Customer Self-Service SEO Management (real finding: requireAdmin already accepted Editor/Sales roles at the API layer -- the only gap was an over-restrictive nav requiredRoles:[Admin], fixed to match the existing [Admin,Editor] precedent already used elsewhere in admin/layout.tsx), SEO Architecture (real URL-depth/H1-uniqueness crawler, verified live: 10 pages, 0 issues), SEO Content Brief (grounded in real Google Suggest data, no fabricated word-count target), Local Landing Page Factory (deterministic templating over branch x service_master, verified BOTH the honest-empty-state path (0 pages, tables are really empty) AND the happy path with temporary real test data, cleaned up after). Domain went from 2 real/3 partial/14 not_built at session start to 14 real/3 partial/2 not_built. The 2 remaining not_built (Keyword Opportunity Score, Local Search Conversion) genuinely need paid third-party APIs (search-volume/competition data, attribution/analytics tracking) this project has zero credentials for -- explicitly left not_built rather than fabricated. Total this session: 11 real SEO/GEO features shipped, all live-verified against real data (not demos), 2 real bugs caught and fixed during verification (boilerplate-word pollution in Internal Linking Engine, transitive over-merge in Topic Cluster Engine), full tsc clean throughout (only 3 pre-existing unrelated ClassSequence.test.ts errors remain, never touched).",
+    "timestamp": "2026-09-03T05:24:34.919Z",
+    "tags": [
+      "api",
+      "architecture",
+      "feat",
+      "milestone",
+      "seo",
+      "sohamyoga-frontend",
+      "verification"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-09-03T05:24:34.919Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-09-03T05:24:34.921Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [
+        "rest"
+      ],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "seo"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-09-03T05:24:34.821Z"
+    }
+  }
+]

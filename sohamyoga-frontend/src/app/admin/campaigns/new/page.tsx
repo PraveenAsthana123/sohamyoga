@@ -1,28 +1,39 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const CHANNELS = ["email", "whatsapp", "sms", "push", "in_app", "social"];
 const CHANNEL_ICON: Record<string, string> = { email: "📧", whatsapp: "💬", sms: "📱", push: "🔔", in_app: "🏠", social: "📲" };
 
-const SEGMENTS = [
-  { id: "seg_free", name: "Free Plan Users", size: 512 },
-  { id: "seg_active", name: "Active Members", size: 284 },
-  { id: "seg_churn", name: "At-Risk Churn", size: 97 },
-  { id: "seg_annual", name: "High-Value Annual Members", size: 63 },
-  { id: "seg_bday", name: "Birthday This Month", size: 41 },
+// Real event types this product actually emits (journey_touchpoint_type
+// enum) -- an Event Trigger campaign fires against one of these, never a
+// fabricated event name with nothing behind it.
+const TRIGGER_EVENTS = [
+  { v: "form_submission", l: "Form submitted" },
+  { v: "event_registration", l: "Event registration" },
+  { v: "booking", l: "Class booked" },
+  { v: "campaign_email", l: "Campaign email opened" },
+  { v: "landing_page_view", l: "Landing page viewed" },
+  { v: "survey_response", l: "Survey response submitted" },
 ];
 
 const STEPS = ["Details", "Audience", "Content", "Schedule", "Review"];
 
+interface Segment { id: string; name: string; size: number }
+
 export default function NewCampaignPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const [segments, setSegments] = useState<Segment[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [launching, setLaunching] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     description: "",
     type: "one_time",
     channels: [] as string[],
+    triggerEvent: "",
     audienceSegmentId: "",
     goalType: "membership_conversions",
     goalTarget: 50,
@@ -34,6 +45,11 @@ export default function NewCampaignPage() {
     isImmediate: true,
   });
 
+  useEffect(() => {
+    fetch("/api/lifecycle-campaigns/segments", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null).then(d => setSegments(d?.segments ?? []));
+  }, []);
+
   function toggleChannel(ch: string) {
     setForm(f => ({
       ...f,
@@ -41,14 +57,45 @@ export default function NewCampaignPage() {
     }));
   }
 
+  async function generateWithAi() {
+    if (!form.name.trim()) return;
+    setGenerating(true);
+    const res = await fetch("/api/lifecycle-campaigns/generate-content", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brief: `${form.name}${form.description ? ` — ${form.description}` : ""}` }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setGenerating(false);
+    if (!res.ok) { setError(data.error ?? "Failed to generate content."); return; }
+    setForm(f => ({ ...f, subject: data.subject, body: data.body, aiGenerated: true }));
+  }
+
+  async function launchCampaign() {
+    setLaunching(true); setError("");
+    const res = await fetch("/api/lifecycle-campaigns", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name, type: form.type, channels: form.channels,
+        triggerEvent: form.type === "trigger" ? form.triggerEvent : undefined,
+        audienceLabel: selectedSegment?.name, audienceSize: selectedSegment?.size,
+        goalType: form.goalType, goalTarget: form.goalTarget,
+        isImmediate: form.isImmediate, scheduledAt: form.scheduledAt,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setLaunching(false);
+    if (!res.ok) { setError(data.error ?? "Failed to launch campaign."); return; }
+    router.push("/admin/campaigns");
+  }
+
   function canProceed(): boolean {
-    if (step === 0) return !!form.name.trim() && form.channels.length > 0;
+    if (step === 0) return !!form.name.trim() && form.channels.length > 0 && (form.type !== "trigger" || !!form.triggerEvent);
     if (step === 1) return !!form.audienceSegmentId;
     if (step === 2) return !!form.body.trim();
     return true;
   }
 
-  const selectedSegment = SEGMENTS.find(s => s.id === form.audienceSegmentId);
+  const selectedSegment = segments.find(s => s.id === form.audienceSegmentId);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -106,6 +153,17 @@ export default function NewCampaignPage() {
                 </div>
               </div>
 
+              {form.type === "trigger" && (
+                <div>
+                  <label className="text-sm text-gray-400 block mb-2">Fires when…</label>
+                  <select value={form.triggerEvent} onChange={e => setForm(f => ({ ...f, triggerEvent: e.target.value }))}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">
+                    <option value="">Select a real event…</option>
+                    {TRIGGER_EVENTS.map(te => <option key={te.v} value={te.v}>{te.l}</option>)}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="text-sm text-gray-400 block mb-2">Channels</label>
                 <div className="flex flex-wrap gap-2">
@@ -142,7 +200,8 @@ export default function NewCampaignPage() {
             <>
               <h2 className="font-semibold text-gray-200">Select Audience</h2>
               <div className="space-y-2">
-                {SEGMENTS.map(seg => (
+                {segments.length === 0 && <p className="text-sm text-gray-500">Loading real audience counts…</p>}
+                {segments.map(seg => (
                   <button key={seg.id} onClick={() => setForm(f => ({ ...f, audienceSegmentId: seg.id }))}
                     className={`w-full flex justify-between items-center p-4 rounded-xl border transition-colors ${
                       form.audienceSegmentId === seg.id ? "border-green-500 bg-green-900/30" : "border-gray-700 bg-gray-800 hover:border-gray-600"
@@ -173,9 +232,9 @@ export default function NewCampaignPage() {
               <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
                 placeholder="Message body…"
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 resize-none" rows={5} />
-              <button onClick={() => setForm(f => ({ ...f, body: "🧘 Ready to take your practice to the next level?\n\nUnlock unlimited classes, AI pose coaching, and personalised flows — all for just $49/month.\n\n🎉 Use code YOGA20 for 20% off your first month.\n\n👉 Join now: sohamyoga.com/membership\n\nNamaste,\nThe SohamYoga Team", aiGenerated: true }))}
-                className="w-full bg-purple-900/50 hover:bg-purple-900 border border-purple-700 rounded-xl py-2 text-sm text-purple-300 transition-colors">
-                ✨ Generate with AI (Ollama)
+              <button onClick={generateWithAi} disabled={generating || !form.name.trim()}
+                className="w-full bg-purple-900/50 hover:bg-purple-900 border border-purple-700 rounded-xl py-2 text-sm text-purple-300 transition-colors disabled:opacity-40">
+                {generating ? "Generating…" : "✨ Generate with AI (Ollama)"}
               </button>
               {form.aiGenerated && <p className="text-xs text-purple-400">AI-generated content — review before sending</p>}
               <input value={form.couponCode} onChange={e => setForm(f => ({ ...f, couponCode: e.target.value }))}
@@ -213,7 +272,7 @@ export default function NewCampaignPage() {
                   ["Name", form.name],
                   ["Type", form.type.replace("_", " ")],
                   ["Channels", form.channels.join(", ")],
-                  ["Audience", SEGMENTS.find(s => s.id === form.audienceSegmentId)?.name ?? "—"],
+                  ["Audience", selectedSegment?.name ?? "—"],
                   ["Goal", `${form.goalType.replace(/_/g, " ")} — target ${form.goalTarget}`],
                   ["Subject", form.subject || "—"],
                   ["Coupon", form.couponCode || "None"],
@@ -241,12 +300,13 @@ export default function NewCampaignPage() {
               Next →
             </button>
           ) : (
-            <button onClick={() => router.push("/admin/campaigns")}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-sm font-semibold transition-colors">
-              Launch Campaign 🚀
+            <button onClick={launchCampaign} disabled={launching}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+              {launching ? "Launching…" : "Launch Campaign 🚀"}
             </button>
           )}
         </div>
+        {error && <p className="text-sm text-red-400 text-center">{error}</p>}
       </div>
     </div>
   );

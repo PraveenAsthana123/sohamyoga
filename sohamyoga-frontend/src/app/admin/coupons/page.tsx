@@ -51,6 +51,64 @@ const TYPE_LABEL: Record<CouponType, string> = {
 
 const ALL_STATUSES: CouponStatus[] = ["active", "scheduled", "draft", "pending_approval", "paused", "exhausted", "expired", "revoked"];
 
+// Real coupon creation -- POST /api/coupons, backed by Coupon.ts's own
+// validation (normalizes code, checks dates/discount range). Previously
+// this "+ New Coupon" button had no onClick at all.
+function NewCouponForm({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState(""); const [name, setName] = useState("");
+  const [type, setType] = useState<CouponType>("percentage");
+  const [discountValue, setDiscountValue] = useState("");
+  const [validFrom, setValidFrom] = useState(new Date().toISOString().slice(0, 10));
+  const [validTo, setValidTo] = useState("");
+  const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
+
+  async function create() {
+    setBusy(true); setError(null);
+    const discountType = type === "fixed_amount" ? "fixed_amount" : type === "free_class" || type === "buy_x_get_y" ? "free_units" : "percentage";
+    const res = await fetch("/api/coupons", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code, name, type,
+        discount: { type: discountType, value: Number(discountValue), currency: discountType === "fixed_amount" ? "CAD" : undefined },
+        validFrom, validTo,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setOpen(false); setCode(""); setName(""); setDiscountValue(""); setValidTo(""); onCreated(); }
+    else setError(body.error ?? "Failed to create coupon.");
+  }
+
+  if (!open) return (
+    <button onClick={() => setOpen(true)} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+      + New Coupon
+    </button>
+  );
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-md space-y-2 rounded-xl bg-white p-5 shadow-lg">
+        <h3 className="font-semibold text-gray-900">New Coupon</h3>
+        <input value={code} onChange={e => setCode(e.target.value)} placeholder="Code (e.g. SUMMER25)" className="w-full border rounded px-2 py-1.5 text-sm font-mono" />
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Internal name" className="w-full border rounded px-2 py-1.5 text-sm" />
+        <select value={type} onChange={e => setType(e.target.value as CouponType)} className="w-full border rounded px-2 py-1.5 text-sm">
+          {Object.keys(TYPE_LABEL).map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <input value={discountValue} onChange={e => setDiscountValue(e.target.value)} type="number" min="0" placeholder="Discount value (e.g. 25 for 25% or $25)" className="w-full border rounded px-2 py-1.5 text-sm" />
+        <div className="flex gap-2">
+          <input value={validFrom} onChange={e => setValidFrom(e.target.value)} type="date" className="flex-1 border rounded px-2 py-1.5 text-sm" />
+          <input value={validTo} onChange={e => setValidTo(e.target.value)} type="date" className="flex-1 border rounded px-2 py-1.5 text-sm" />
+        </div>
+        {error && <p className="text-xs text-red-600">{error}</p>}
+        <div className="flex gap-2 pt-1">
+          <button onClick={create} disabled={busy || !code || !name || !discountValue || !validTo} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create draft</button>
+          <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CouponsAdminPage() {
   const [search, setSearch]           = useState("");
   const [filterStatus, setFilterStatus] = useState<CouponStatus | "all">("all");
@@ -100,9 +158,7 @@ export default function CouponsAdminPage() {
             className="px-3 py-1.5 text-xs bg-purple-50 text-purple-700 rounded-md border border-purple-200 hover:bg-purple-100">
             Medusa Admin
           </a>
-          <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            + New Coupon
-          </button>
+          <NewCouponForm onCreated={load} />
         </div>
       </div>
 

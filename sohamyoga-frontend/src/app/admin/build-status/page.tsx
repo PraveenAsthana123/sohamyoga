@@ -19,10 +19,15 @@ interface Capability {
   status: 'real' | 'partial' | 'not_built' | 'not_connected' | 'blocked';
   evidence: string;
 }
+interface DemoShowcase {
+  demoFamilies: string[];
+  lastRun: { at: string | null; passed: number; failed: number; stale: boolean };
+}
 interface BuildStatus {
   platforms: Platform[];
   notBuilt: string[];
   capabilities: Capability[];
+  demoShowcase: DemoShowcase;
   generatedAt: string;
 }
 
@@ -60,6 +65,29 @@ export default function BuildStatusPage() {
           Live-queried, not a static claim. Generated {new Date(data.generatedAt).toLocaleString()}.
         </p>
       </div>
+
+      <section>
+        <h2 className="mb-2 font-semibold">
+          End-to-end demo showcase — {data.demoShowcase.demoFamilies.length} real demo families
+        </h2>
+        <div className={`mb-3 rounded-lg border p-3 ${data.demoShowcase.lastRun.at ? (data.demoShowcase.lastRun.stale ? 'border-amber-300 bg-amber-50' : 'border-emerald-300 bg-emerald-50') : 'border-gray-300 bg-gray-50'}`}>
+          {data.demoShowcase.lastRun.at ? (
+            <>
+              <span className="font-semibold">{data.demoShowcase.lastRun.passed}</span> passed,{' '}
+              <span className="font-semibold">{data.demoShowcase.lastRun.failed}</span> failed — last real run{' '}
+              {new Date(data.demoShowcase.lastRun.at).toLocaleString()}
+              {data.demoShowcase.lastRun.stale && <span className="ml-2 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">STALE — re-run to confirm current state</span>}
+            </>
+          ) : (
+            <span className="text-gray-500">No recorded run yet — these are spec files on disk, not yet proven passing.</span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4">
+          {data.demoShowcase.demoFamilies.map(name => (
+            <div key={name} className="truncate rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700" title={name}>{name}</div>
+          ))}
+        </div>
+      </section>
 
       <section>
         <h2 className="mb-2 font-semibold">Core capabilities</h2>

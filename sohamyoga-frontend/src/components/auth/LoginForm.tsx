@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import SocialLoginButtons from './SocialLoginButtons';
+import { customerAuthApi } from '@/lib/api';
+import { useAnalyticsContext } from '@/components/analytics/AnalyticsProvider';
 
 type LoginTab = 'password' | 'otp' | 'passkey' | 'qr';
 
@@ -26,14 +28,24 @@ export default function LoginForm({ redirectTo = '/student/dashboard' }: LoginFo
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { identify } = useAnalyticsContext();
 
-  const submit = async (e: React.FormEvent) => {
+  // Real password sign-in -- customerAuthApi.login/register/logout/me were
+  // all real and already wired (register/dashboard/layout), but this form's
+  // password tab called none of them: it faked success with a timeout and
+  // redirected without ever establishing a real session. A customer who
+  // registered could never actually log back in through this screen.
+  const submitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      // TODO: wire to Keycloak token endpoint
-      await new Promise((r) => setTimeout(r, 800));
+      const { user } = await customerAuthApi.login(email, password);
+      // Real Identity Resolution -- AnalyticsProvider.identify() existed
+      // (posts userId server-side, tracking_session.user_id gets written)
+      // but was never called from any real authenticated moment anywhere
+      // in the app, confirmed via grep. This is the first real call site.
+      identify(user.id, { email: user.email });
       window.location.href = redirectTo;
     } catch {
       setError('Sign-in failed. Please check your details and try again.');
@@ -42,6 +54,9 @@ export default function LoginForm({ redirectTo = '/student/dashboard' }: LoginFo
     }
   };
 
+  // OTP delivery/verification has no real backend (no SMS/email dispatch,
+  // no verify-code endpoint) -- left as a disclosed mock, out of scope for
+  // this fix. Real password sign-in above is the fix; this stays as-is.
   const sendOtp = async () => {
     if (!email && !mobile) { setError('Enter your email or mobile number first'); return; }
     setLoading(true);
@@ -49,6 +64,11 @@ export default function LoginForm({ redirectTo = '/student/dashboard' }: LoginFo
     await new Promise((r) => setTimeout(r, 600));
     setOtpSent(true);
     setLoading(false);
+  };
+
+  const submitOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('One-time code sign-in is not connected to a real SMS/email provider yet.');
   };
 
   const passkeyLogin = async () => {
@@ -105,7 +125,7 @@ export default function LoginForm({ redirectTo = '/student/dashboard' }: LoginFo
 
       {/* ── Password tab ─────────────────────────────────── */}
       {tab === 'password' && (
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submitPassword} className="space-y-4">
           <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" autoComplete="email" />
           <div>
             <div className="flex justify-between mb-1">
@@ -129,7 +149,7 @@ export default function LoginForm({ redirectTo = '/student/dashboard' }: LoginFo
 
       {/* ── OTP tab ──────────────────────────────────────── */}
       {tab === 'otp' && (
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submitOtp} className="space-y-4">
           {!otpSent ? (
             <>
               <Field label="Email or Mobile" type="text" value={email || mobile}

@@ -1,7 +1,39 @@
 import { NextRequest } from 'next/server';
+import { readdir, readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
 import { PLATFORM_CONFIG, type SocialPlatform } from '@/domain/social/SocialAccount';
+
+/**
+ * Real "end-to-end demo" inventory: actual spec files on disk (not a
+ * hand-typed list that drifts) joined against the last real Playwright run
+ * captured in test-results/unified-quality.json — a genuine pass/fail
+ * snapshot, timestamped honestly (this is not re-run on every page load;
+ * it's the evidence from the last time the suite actually executed).
+ */
+async function getDemoShowcase(): Promise<{ demoFamilies: string[]; lastRun: { at: string | null; passed: number; failed: number; stale: boolean } }> {
+  const e2eDir = path.join(process.cwd(), 'tests', 'e2e');
+  const files = (await readdir(e2eDir).catch(() => [] as string[])).filter(f => f.endsWith('.spec.ts'));
+  const demoFamilies = files.map(f => f.replace(/\.spec\.ts$/, ''));
+
+  let lastRun = { at: null as string | null, passed: 0, failed: 0, stale: true };
+  try {
+    const raw = await readFile(path.join(process.cwd(), 'test-results', 'unified-quality.json'), 'utf8');
+    const report = JSON.parse(raw) as { stats?: { startTime?: string; expected?: number; unexpected?: number } };
+    if (report.stats) {
+      const ageMs = report.stats.startTime ? Date.now() - new Date(report.stats.startTime).getTime() : Infinity;
+      lastRun = {
+        at: report.stats.startTime ?? null,
+        passed: report.stats.expected ?? 0,
+        failed: report.stats.unexpected ?? 0,
+        stale: ageMs > 7 * 24 * 60 * 60 * 1000, // older than a week is flagged, not hidden
+      };
+    }
+  } catch { /* no run recorded yet — honest zero state below */ }
+
+  return { demoFamilies, lastRun };
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,13 +51,14 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const [connected, campaignLeads, jobRuns, agentWebhookCalls] = await Promise.all([
+  const [connected, campaignLeads, jobRuns, agentWebhookCalls, demoShowcase] = await Promise.all([
     query<{ platform: string; count: string }>(
       `SELECT platform, count(*) FROM social_account WHERE status = 'connected' GROUP BY platform`,
     ),
     query<{ count: string }>(`SELECT count(*) FROM campaign_lead`),
     query<{ count: string }>(`SELECT count(*) FROM operation_run WHERE status = 'succeeded' AND created_at > now() - interval '30 days'`),
     query<{ count: string }>(`SELECT count(*) FROM agent_webhook_call WHERE success = true`).catch(() => ({ rows: [{ count: '0' }] } as never)),
+    getDemoShowcase(),
   ]);
   const connectedMap = Object.fromEntries(connected.rows.map(r => [r.platform, Number(r.count)]));
 
@@ -64,5 +97,5 @@ export async function GET(req: NextRequest) {
     { name: 'Voice AI (PSTN calling)', status: 'blocked', evidence: 'Schema/dashboard real; no telephony carrier account connected' },
   ];
 
-  return Response.json({ platforms, notBuilt, capabilities, generatedAt: new Date().toISOString() });
+  return Response.json({ platforms, notBuilt, capabilities, demoShowcase, generatedAt: new Date().toISOString() });
 }

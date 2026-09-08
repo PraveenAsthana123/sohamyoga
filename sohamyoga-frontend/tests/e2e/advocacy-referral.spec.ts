@@ -7,6 +7,7 @@
 // though the schema and domain classes were real.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 
@@ -26,7 +27,7 @@ async function loginAsAdmin(request: import('playwright/test').APIRequestContext
 test.describe('ADV-001 GET /api/admin/growth/advocacy — auth gating', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/admin/growth/advocacy');
+    const res = await unauth.get(apiUrl('/api/admin/growth/advocacy'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -59,7 +60,7 @@ test.describe('REF-001 referral endpoints — auth gating', () => {
   for (const path of ['summary', 'list', 'codes', 'campaigns', 'rewards']) {
     test(`GET /api/admin/referral/${path} requires admin auth`, async ({ playwright }) => {
       const unauth = await playwright.request.newContext();
-      const res = await unauth.get(`http://127.0.0.1:8085/api/admin/referral/${path}`);
+      const res = await unauth.get(apiUrl(`/api/admin/referral/${path}`));
       expect(res.status()).toBe(401);
       await unauth.dispose();
     });

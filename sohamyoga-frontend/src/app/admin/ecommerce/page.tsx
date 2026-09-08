@@ -10,7 +10,7 @@ type Tab = "overview" | "products" | "orders" | "inventory" | "marketplace" | "f
 
 interface ProductRow { id: string; name: string; type: ProductType; sku: string; price: number; stock: number; status: string; rating: number; vendor?: string; vendorId?: string }
 interface OrderRow   { id: string; number: string; customer: string; status: OrderStatus; payment: string; total: number; items: number; date: string; tracking?: string }
-interface InventoryRow { id: string; product: string; sku: string; warehouse: string; qty: number; reserved: number; reorderPoint: number; batch?: string }
+interface InventoryRow { id: string; product: string; sku: string; warehouse: string; qty: number; reserved: number; reorderPoint: number; batch?: string; allowBackorder: boolean }
 interface VendorRow  { id: string; name: string; type: string; commission: string; sales: number; pending: number; status: string }
 interface DashboardData {
   kpis: { todayRevenue: number; pendingOrders: number; activeProducts: number; lowStock: number; outOfStock: number };
@@ -343,6 +343,29 @@ export default function EcommerceAdminPage() {
 
   const vendorFilterName = vendorFilter ? vendors.find(v => v.id === vendorFilter)?.name : undefined;
 
+  async function inventoryAction(id: string, action: "reserve" | "release" | "commit") {
+    const quantity = Number(window.prompt(`${action} how many units?`, "1"));
+    if (!quantity || quantity < 1) return;
+    const referenceId = window.prompt("Reference (order id / PO number):");
+    if (!referenceId?.trim()) return;
+    const res = await fetch(`/api/ecommerce/inventory/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, quantity, referenceId: referenceId.trim() }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) window.alert(body.error || "Action failed.");
+    else if (body.backordered) window.alert("Reserved as a backorder -- stock will be short until restocked.");
+    reloadCore();
+  }
+
+  async function toggleBackorder(id: string, allowBackorder: boolean) {
+    await fetch("/api/ecommerce/inventory", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, allowBackorder }),
+    });
+    reloadCore();
+  }
+
   const kpis = dashboard?.kpis;
 
   return (
@@ -519,7 +542,14 @@ export default function EcommerceAdminPage() {
                     <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs ${p.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>{p.status}</span></td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        <button className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">Edit</button>
+                        {p.status === "draft" && (
+                          <button onClick={async () => { await fetch(`/api/ecommerce/products/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }); reloadCore(); }}
+                            className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100">Publish</button>
+                        )}
+                        {p.status === "active" && (
+                          <button onClick={async () => { await fetch(`/api/ecommerce/products/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "archived" }) }); reloadCore(); }}
+                            className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">Archive</button>
+                        )}
                         <button className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded">Inventory</button>
                       </div>
                     </td>
@@ -602,7 +632,7 @@ export default function EcommerceAdminPage() {
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
-                <tr>{["Product","SKU","Warehouse","On Hand","Reserved","Available","Reorder Pt.","Status","Batch"].map(h => (
+                <tr>{["Product","SKU","Warehouse","On Hand","Reserved","Available","Reorder Pt.","Status","Batch","Backorder","Actions"].map(h => (
                   <th key={h} className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}</tr>
               </thead>
@@ -626,6 +656,17 @@ export default function EcommerceAdminPage() {
                         </span>
                       </td>
                       <td className="px-3 py-3 text-xs text-gray-400">{i.batch ?? "—"}</td>
+                      <td className="px-3 py-3">
+                        <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <input type="checkbox" checked={i.allowBackorder} onChange={e => toggleBackorder(i.id, e.target.checked)} />
+                          allowed
+                        </label>
+                      </td>
+                      <td className="px-3 py-3 text-xs space-x-2 whitespace-nowrap">
+                        <button onClick={() => inventoryAction(i.id, "reserve")} className="text-indigo-600 hover:underline">Reserve</button>
+                        <button onClick={() => inventoryAction(i.id, "release")} className="text-gray-500 hover:underline">Release</button>
+                        <button onClick={() => inventoryAction(i.id, "commit")} className="text-teal-600 hover:underline">Commit</button>
+                      </td>
                     </tr>
                   );
                 })}

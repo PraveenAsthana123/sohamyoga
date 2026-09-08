@@ -22,14 +22,10 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: fetch from /api/classes
-    setClasses([
-      { id: "1", title: "Morning Flow", teacher: "Priya Sharma", dateTime: "2026-08-06T07:00:00", duration: 60, level: "Beginner", spotsLeft: 8, totalSpots: 15, style: "Hatha", price: 15 },
-      { id: "2", title: "Power Vinyasa", teacher: "Raj Patel", dateTime: "2026-08-06T10:00:00", duration: 75, level: "Intermediate", spotsLeft: 3, totalSpots: 12, style: "Vinyasa", price: 18 },
-      { id: "3", title: "Yin & Restore", teacher: "Anita Mehta", dateTime: "2026-08-06T18:00:00", duration: 90, level: "Beginner", spotsLeft: 12, totalSpots: 15, style: "Yin", price: 15 },
-      { id: "4", title: "Advanced Inversions", teacher: "Priya Sharma", dateTime: "2026-08-07T08:00:00", duration: 60, level: "Advanced", spotsLeft: 5, totalSpots: 8, style: "Ashtanga", price: 22 },
-    ]);
-    setLoading(false);
+    fetch("/api/classes", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : { classes: [] })
+      .then(d => setClasses(d.classes ?? []))
+      .finally(() => setLoading(false));
   }, []);
 
   const levels = ["all", "Beginner", "Intermediate", "Advanced"];

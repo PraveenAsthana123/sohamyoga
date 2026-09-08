@@ -126,12 +126,12 @@ export default function AiAssistant() {
   }, [open]);
 
   useEffect(() => {
-    void loadModels();
-  }, [loadModels]);
+    if (open) void loadModels();
+  }, [loadModels, open]);
 
   useEffect(() => {
-    void checkHealth(selectedModel || undefined);
-  }, [checkHealth, selectedModel]);
+    if (open) void checkHealth(selectedModel || undefined);
+  }, [checkHealth, open, selectedModel]);
 
   const send = useCallback(
     async (text: string) => {

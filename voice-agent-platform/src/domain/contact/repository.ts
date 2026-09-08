@@ -42,6 +42,23 @@ export async function getContact(id: string): Promise<Contact | null> {
   return rows[0] ? toEntity(rows[0]) : null;
 }
 
+/** Used by the Vapi webhook receiver to match an inbound caller's number
+ * back to an existing contact -- returns null (not an error) if unknown. */
+export async function getContactByPhone(phone: string): Promise<Contact | null> {
+  const { rows } = await query<ContactRow>('SELECT * FROM contact WHERE phone = $1 LIMIT 1', [phone]);
+  return rows[0] ? toEntity(rows[0]) : null;
+}
+
+/** owner_customer_id is a real column (see customer/db-schema.sql) but the
+ * Contact entity never surfaces it -- a direct query avoids widening the
+ * entity's public shape just for this one internal cost-cap check. */
+export async function getContactOwnerCustomerId(contactId: string): Promise<string | null> {
+  const { rows } = await query<{ owner_customer_id: string | null }>(
+    'SELECT owner_customer_id FROM contact WHERE id = $1', [contactId]
+  );
+  return rows[0]?.owner_customer_id ?? null;
+}
+
 export interface CreateContactInput {
   fullName: string;
   email?: string | null;

@@ -11,6 +11,7 @@
 // local model and would make this suite slow.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -78,7 +79,7 @@ test.describe('DEMO-003 POST /api/admin/demo-hub/run-job — positive', () => {
 test.describe('DEMO-004 POST /api/admin/demo-hub/run-job — negative', () => {
   test('an unauthenticated request is rejected with 401', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.post('http://127.0.0.1:8085/api/admin/demo-hub/run-job', { data: { name: 'leaderboard-refresh' } });
+    const res = await unauth.post(apiUrl('/api/admin/demo-hub/run-job'), { data: { name: 'leaderboard-refresh' } });
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -111,6 +112,7 @@ test.describe('DEMO-005 Reports and Dashboard tabs', () => {
     expect(login.ok()).toBeTruthy();
 
     await page.goto('/admin/demo-hub');
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Demo Showcase Hub' })).toBeVisible();
     await page.getByRole('button', { name: 'Reports' }).click();
     await expect(page.getByRole('heading', { name: 'Voice of Customer' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Campaign Health' })).toBeVisible();
@@ -130,7 +132,7 @@ test.describe('DEMO-005 Reports and Dashboard tabs', () => {
 test.describe('DEMO-006 POST /api/admin/demo-hub/seed-demo-data', () => {
   test('rejects unauthenticated requests, then seeds real underlying rows once and is a safe no-op on re-run', async ({ playwright, request }) => {
     const unauth = await playwright.request.newContext();
-    const unauthRes = await unauth.post('http://127.0.0.1:8085/api/admin/demo-hub/seed-demo-data');
+    const unauthRes = await unauth.post(apiUrl('/api/admin/demo-hub/seed-demo-data'));
     expect(unauthRes.status()).toBe(401);
     await unauth.dispose();
 

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/requireAdmin';
 import { createScript, listScripts } from '@/domain/script/repository';
-import { ClinicServiceType } from '@/domain/script/CallScript';
+import { ClinicServiceType, CallScriptDirection, CLINIC_SERVICE_TYPES } from '@/domain/script/CallScript';
 
-const VALID_SERVICE_TYPES: ClinicServiceType[] = ['dental', 'chiropractic', 'physiotherapy', 'ent', 'massage_therapy'];
+const VALID_SERVICE_TYPES: ClinicServiceType[] = CLINIC_SERVICE_TYPES;
+const VALID_DIRECTIONS: CallScriptDirection[] = ['inbound', 'outbound'];
 
 export async function GET(req: NextRequest) {
   const auth = await requireAdmin(req);
@@ -27,9 +28,15 @@ export async function POST(req: NextRequest) {
   const slug = typeof body.slug === 'string' ? body.slug.trim() : '';
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const serviceType = body.serviceType as ClinicServiceType;
+  const direction = (typeof body.direction === 'string' ? body.direction : 'outbound') as CallScriptDirection;
+  const scenarioKey = typeof body.scenarioKey === 'string' ? body.scenarioKey : undefined;
+  const category = typeof body.category === 'string' ? body.category : undefined;
   if (!slug || !name) return NextResponse.json({ error: 'slug and name are required.' }, { status: 400 });
   if (!VALID_SERVICE_TYPES.includes(serviceType)) {
     return NextResponse.json({ error: `serviceType must be one of: ${VALID_SERVICE_TYPES.join(', ')}` }, { status: 400 });
+  }
+  if (!VALID_DIRECTIONS.includes(direction)) {
+    return NextResponse.json({ error: `direction must be one of: ${VALID_DIRECTIONS.join(', ')}` }, { status: 400 });
   }
 
   const sections = (body.sections ?? {}) as Record<string, unknown>;
@@ -45,6 +52,9 @@ export async function POST(req: NextRequest) {
       slug,
       name,
       serviceType,
+      direction,
+      scenarioKey,
+      category,
       sections: { opening, closing, objectionHandling, discoveryQuestions },
       createdBy: auth.principal.email,
     });

@@ -41,12 +41,12 @@ export async function GET(req: NextRequest) {
     query<{
       id: string; brief_id: string | null; brief_name: string | null;
       base_url: string; utm_source: string; utm_medium: string; utm_campaign: string;
-      utm_content: string | null; utm_term: string | null; full_url: string; click_count: number;
+      utm_content: string | null; utm_term: string | null; full_url: string; click_count: number; bot_click_count: number;
       created_by: string; created_at: string;
       leads_count: string; converted_count: string;
     }>(
       `SELECT u.id, u.brief_id, cb.name AS brief_name, u.base_url, u.utm_source, u.utm_medium,
-              u.utm_campaign, u.utm_content, u.utm_term, u.full_url, u.click_count, u.created_by, u.created_at,
+              u.utm_campaign, u.utm_content, u.utm_term, u.full_url, u.click_count, u.bot_click_count, u.created_by, u.created_at,
               COUNT(cl.id) AS leads_count,
               COUNT(cl.id) FILTER (WHERE cl.converted_at IS NOT NULL) AS converted_count
        FROM utm_link u
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
       id: l.id, briefId: l.brief_id, briefName: l.brief_name,
       baseUrl: l.base_url, utmSource: l.utm_source, utmMedium: l.utm_medium, utmCampaign: l.utm_campaign,
       utmContent: l.utm_content, utmTerm: l.utm_term, fullUrl: l.full_url,
-      trackingUrl: `/utm/${l.id}`, clickCount: l.click_count,
+      trackingUrl: `/utm/${l.id}`, clickCount: l.click_count, botClickCount: l.bot_click_count,
       leadsCount: Number(l.leads_count), convertedCount: Number(l.converted_count),
       createdBy: l.created_by, createdAt: l.created_at,
     })),

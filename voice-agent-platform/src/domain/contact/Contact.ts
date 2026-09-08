@@ -43,7 +43,14 @@ export class Contact {
   }
 
   updateDetails(patch: Partial<Pick<ContactProps, 'fullName' | 'email' | 'phone' | 'clinicName' | 'preferredLanguage' | 'notes'>>): Contact {
-    return new Contact({ ...this.props, ...patch, updatedAt: new Date() });
+    // `undefined` means "field not included in this PATCH, leave unchanged"
+    // -- must NOT overwrite existing data. `null` (explicitly clearing
+    // email/phone/etc) is a real value and must still apply. Same class of
+    // bug just fixed in BusinessCustomer.withProfile: a naive spread merge
+    // treats a key present-with-undefined the same as present-with-a-value,
+    // silently wiping fields on any partial update.
+    const defined = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+    return new Contact({ ...this.props, ...defined, updatedAt: new Date() });
   }
 
   toJSON(): ContactProps {

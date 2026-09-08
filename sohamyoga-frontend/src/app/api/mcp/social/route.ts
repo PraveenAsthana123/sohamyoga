@@ -79,6 +79,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ tool, result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    if (tool === 'list_social_accounts') {
+      return NextResponse.json({
+        tool,
+        result: { connected: false, accounts: [], blocker: msg },
+      });
+    }
     return NextResponse.json({ tool, error: msg }, { status: 500 });
   }
 }

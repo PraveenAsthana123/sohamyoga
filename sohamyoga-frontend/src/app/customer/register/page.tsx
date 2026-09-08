@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import { customerAuthApi } from '@/lib/api';
+import { useAnalyticsContext } from '@/components/analytics/AnalyticsProvider';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -38,6 +39,7 @@ export default function CustomerRegisterPage() {
   const [step,     setStep]    = useState<Step>(1);
   const [loading,  setLoading] = useState(false);
   const [error,    setError]   = useState('');
+  const { identify } = useAnalyticsContext();
 
   // Step 1
   const [name,        setName]        = useState('');
@@ -82,7 +84,10 @@ export default function CustomerRegisterPage() {
   const submit = async () => {
     setLoading(true);
     try {
-      await customerAuthApi.register({ name, email, password });
+      const { user } = await customerAuthApi.register({ name, email, password });
+      // Real Identity Resolution -- same identify() call as LoginForm, at
+      // this app's other real authenticated moment.
+      identify(user.id, { email: user.email });
       // Real account + session now exist (ASP.NET Identity, via the .NET
       // backend proxy) but no Postgres customer row yet — that, and real
       // referral attribution if a code was entered, happens here.

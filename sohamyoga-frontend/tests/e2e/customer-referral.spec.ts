@@ -6,6 +6,7 @@
 // and /r/[code] really tracks a click before redirecting to registration.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 
@@ -30,7 +31,7 @@ function id(prefix: string) {
 test.describe('CREF-001 GET /api/customer/referral — auth gating', () => {
   test('requires customer auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/customer/referral');
+    const res = await unauth.get(apiUrl('/api/customer/referral'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -44,10 +45,10 @@ test.describe('CREF-002 end to end — advocacy eligibility to a real issued cod
     // Real student + real ASP.NET Identity account via the same endpoint
     // TSO-002 uses, so this customer can genuinely log in afterward.
     const adminCtx = await playwright.request.newContext();
-    const adminLogin = await adminCtx.post('http://127.0.0.1:8085/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    const adminLogin = await adminCtx.post(apiUrl('/api/auth/login'), { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
     expect(adminLogin.ok()).toBeTruthy();
 
-    const studentRes = await adminCtx.post('http://127.0.0.1:8085/api/admin/students', {
+    const studentRes = await adminCtx.post(apiUrl('/api/admin/students'), {
       data: { displayName: 'CREF Student', email, password: 'StudentDemo@123456', experienceLevel: 'beginner' },
     });
     expect(studentRes.status()).toBe(201);
@@ -123,8 +124,8 @@ test.describe('CREF-003 self-service generate-code is idempotent', () => {
 
   test.beforeAll(async ({ playwright }) => {
     const adminCtx = await playwright.request.newContext();
-    await adminCtx.post('http://127.0.0.1:8085/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
-    const studentRes = await adminCtx.post('http://127.0.0.1:8085/api/admin/students', {
+    await adminCtx.post(apiUrl('/api/auth/login'), { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    const studentRes = await adminCtx.post(apiUrl('/api/admin/students'), {
       data: { displayName: 'CREF SelfService', email, password: 'StudentDemo@123456', experienceLevel: 'beginner' },
     });
     const studentBody = await studentRes.json();
@@ -170,8 +171,8 @@ test.describe('CREF-005 self-service page renders real data', () => {
 
   test.beforeAll(async ({ playwright }) => {
     const adminCtx = await playwright.request.newContext();
-    await adminCtx.post('http://127.0.0.1:8085/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
-    const studentRes = await adminCtx.post('http://127.0.0.1:8085/api/admin/students', {
+    await adminCtx.post(apiUrl('/api/auth/login'), { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    const studentRes = await adminCtx.post(apiUrl('/api/admin/students'), {
       data: { displayName: 'CREF Page', email, password: 'StudentDemo@123456', experienceLevel: 'beginner' },
     });
     const studentBody = await studentRes.json();

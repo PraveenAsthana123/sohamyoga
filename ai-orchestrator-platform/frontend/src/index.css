@@ -1,5 +1,64 @@
+/* Light is the default theme per explicit request (2026-09-02: "I need
+   background white"). Dark remains available via [data-theme="dark"] on
+   <html>, toggled from the sidebar. */
 :root {
+  color-scheme: light;
+
+  --bg-page: #ffffff;
+  --bg-sidebar: #f7f7f9;
+  --bg-input: #ffffff;
+  --bg-hover: #eef0f4;
+  --bg-darkest: #f0f1f4;
+  --border: #dcdee3;
+  --border-strong: #c5c8d0;
+  --text-primary: #16181d;
+  --text-muted: #5b5f6b;
+  --text-faint: #8a8d97;
+  --text-secondary: #33363f;
+  --accent: #2c56d6;
+  --accent-hover: #1e42b3;
+  --info: #0969da;
+  --info-bg: #ddf0ff;
+  --success: #1a7f37;
+  --success-bg: #dcfce7;
+  --error: #cf222e;
+  --error-bg: #ffebe9;
+  --error-bg-alt: #ffd7d5;
+  --warning: #9a6700;
+  --warning-bg: #fff8c5;
+  --warning-alt: #7d5b00;
+  --warning-bg-alt: #fef3c7;
+  --purple: #8250df;
+}
+
+:root[data-theme='dark'] {
   color-scheme: dark;
+
+  --bg-page: #0f1115;
+  --bg-sidebar: #14161c;
+  --bg-input: #1c1f27;
+  --bg-hover: #3a3d4a;
+  --bg-darkest: #0a0b0e;
+  --border: #23252d;
+  --border-strong: #2c2f3a;
+  --text-primary: #e6e6e6;
+  --text-muted: #8b8f9c;
+  --text-faint: #6b6f7c;
+  --text-secondary: #c7c9d1;
+  --accent: #2c56d6;
+  --accent-hover: #3a66e6;
+  --info: #7cc4ff;
+  --info-bg: #22364a;
+  --success: #4ade80;
+  --success-bg: #133d2b;
+  --error: #f87171;
+  --error-bg: #3d1717;
+  --error-bg-alt: #4a2020;
+  --warning: #fb923c;
+  --warning-bg: #3d2b17;
+  --warning-alt: #facc15;
+  --warning-bg-alt: #3d3417;
+  --purple: #c084fc;
 }
 
 body {

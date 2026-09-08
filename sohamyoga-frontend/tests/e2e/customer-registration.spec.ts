@@ -11,6 +11,7 @@
 // real referral_master row until now.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 
@@ -88,8 +89,8 @@ test.describe('REG-002 real referral attribution via ?ref= from a shared link', 
 
   test.beforeAll(async ({ playwright }) => {
     const adminCtx = await playwright.request.newContext();
-    await adminCtx.post('http://127.0.0.1:8085/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
-    const studentRes = await adminCtx.post('http://127.0.0.1:8085/api/admin/students', {
+    await adminCtx.post(apiUrl('/api/auth/login'), { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
+    const studentRes = await adminCtx.post(apiUrl('/api/admin/students'), {
       data: { displayName: 'Referrer', email: referrerEmail, password: 'StudentDemo@123456', experienceLevel: 'beginner' },
     });
     const studentBody = await studentRes.json();

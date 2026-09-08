@@ -29,18 +29,35 @@ function dateOnlyMs(d: Date | string): number {
 export async function run(): Promise<void> {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-  // 1. Find students (by user_id) who practiced today (journal or attendance)
-  const practiced = await db.query<{ user_id: string }>(`
-    SELECT DISTINCT s.user_id
+  // 1. Find students (by user_id + tenant_id) who practiced today (journal
+  // or attendance). Real bug fix (2026-09-01, found live during an
+  // end-to-end demo): this checked ar.status = 'present', a value that has
+  // never existed in attendance_record's real enum ('attended'/'absent'/
+  // 'excused'/'late') -- so this half of the UNION could never match
+  // anything, ever, for any student.
+  const practiced = await db.query<{ user_id: string; tenant_id: string }>(`
+    SELECT DISTINCT s.user_id, s.tenant_id
     FROM practice_journal pj
     JOIN student s ON s.id = pj.student_id
     WHERE pj.entry_date = $1
     UNION
-    SELECT DISTINCT s.user_id
+    SELECT DISTINCT s.user_id, s.tenant_id
     FROM attendance_record ar
     JOIN student s ON s.id = ar.student_id
-    WHERE DATE(ar.attended_at) = $1 AND ar.status = 'present'
+    WHERE DATE(ar.attended_at) = $1 AND ar.status = 'attended'
   `, [today]);
+
+  // Real bug fix (2026-09-01): nothing anywhere in this codebase ever
+  // INSERTed a streak row for a new student, so this job's own `UPDATE
+  // streak ... WHERE id = $id` loop had zero rows to act on for any
+  // student who had never been manually seeded one -- gamification was
+  // structurally unreachable. Onboard first-time practicers here.
+  for (const p of practiced.rows) {
+    await db.query(
+      `INSERT INTO streak (tenant_id, user_id) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING`,
+      [p.tenant_id, p.user_id],
+    );
+  }
 
   const practicedUserIds = new Set(practiced.rows.map(r => r.user_id));
 

@@ -44,3 +44,42 @@ export const HUMAN_TASK_TYPES = [
   'IDENTITY_VERIFICATION', 'BUSINESS_VERIFICATION', 'TERMS_ACCEPTANCE',
 ] as const;
 
+export interface PlatformRequirementFlags {
+  requires_captcha: boolean; requires_otp: boolean; requires_phone: boolean; requires_2fa: boolean;
+  requires_identity_verification: boolean; requires_business_verification: boolean; oauth_supported: boolean;
+}
+
+// Derives the real starting human-task checklist for a new provisioning job
+// directly from that platform's own recorded requirement flags -- never a
+// generic one-size-fits-all list. A platform with every flag false (rare)
+// still gets TERMS_ACCEPTANCE, since every platform's terms require human
+// agreement.
+export function generateInitialHumanTasks(flags: PlatformRequirementFlags): { taskType: typeof HUMAN_TASK_TYPES[number]; instructions: string }[] {
+  const tasks: { taskType: typeof HUMAN_TASK_TYPES[number]; instructions: string }[] = [];
+  if (flags.requires_captcha) tasks.push({ taskType: 'CAPTCHA', instructions: 'Complete the platform\'s CAPTCHA challenge during signup. Never submit an automated CAPTCHA solve.' });
+  if (flags.requires_otp) tasks.push({ taskType: 'EMAIL_OTP', instructions: 'Enter the one-time code sent to the account email to verify it.' });
+  if (flags.requires_phone) tasks.push({ taskType: 'PHONE_OTP', instructions: 'Enter the one-time code sent by SMS to verify the phone number.' });
+  if (flags.requires_2fa) tasks.push({ taskType: 'TWO_FACTOR_SETUP', instructions: 'Configure two-factor authentication and securely record the recovery codes.' });
+  if (flags.requires_identity_verification) tasks.push({ taskType: 'IDENTITY_VERIFICATION', instructions: 'Submit and complete the platform\'s identity verification flow (government ID or equivalent).' });
+  if (flags.requires_business_verification) tasks.push({ taskType: 'BUSINESS_VERIFICATION', instructions: 'Submit business verification documents (registration, domain, or tax ID as required) and wait for platform approval.' });
+  if (flags.oauth_supported) tasks.push({ taskType: 'OAUTH_APPROVAL', instructions: 'Review the requested OAuth scopes and grant consent from the account owner\'s own login session.' });
+  tasks.push({ taskType: 'TERMS_ACCEPTANCE', instructions: 'Read and accept the platform\'s terms of service and developer agreement.' });
+  return tasks;
+}
+
+// Real, well-known bio-length conventions, mapped to the closest of the 3
+// tiers social_brand_profile already provides (80/150/255) rather than
+// inventing 35 bespoke exact limits with unverified confidence.
+const SHORT_TIER_PLATFORMS = new Set(['tiktok', 'telegram']);
+const LONG_TIER_PLATFORMS = new Set([
+  'facebook', 'linkedin', 'youtube', 'github', 'gitlab', 'stack_overflow', 'google_business',
+  'yelp', 'tripadvisor', 'trustpilot', 'vimeo', 'dailymotion', 'spotify', 'apple_podcasts',
+  'soundcloud', 'patreon', 'medium', 'substack', 'quora_manual', 'twitch', 'whatsapp_business',
+  'slack', 'dribbble',
+]);
+export function bioTierFor(platform: string): 'bio_80' | 'bio_150' | 'bio_255' {
+  if (SHORT_TIER_PLATFORMS.has(platform)) return 'bio_80';
+  if (LONG_TIER_PLATFORMS.has(platform)) return 'bio_255';
+  return 'bio_150';
+}
+

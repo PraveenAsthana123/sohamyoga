@@ -251,3 +251,18 @@ describe('merge()', () => {
     expect(() => a.merge(b)).toThrow('different campaigns');
   });
 });
+
+
+describe('AdAnalytics — invalid provider metrics', () => {
+  it.each(['clicks', 'impressions', 'conversions', 'spendCents', 'revenueCents'] as const)('rejects nonfinite %s', field => {
+    for (const value of [NaN, Infinity, -Infinity]) {
+      expect(() => makeAnalytics({ [field]: value })).toThrow('must be finite');
+    }
+  });
+  it('rejects an invalid reporting date', () => {
+    expect(() => makeAnalytics({ period: { start: new Date('invalid'), end: END } })).toThrow('dates must be valid');
+  });
+  it('rejects a nonfinite incremental spend', () => {
+    expect(() => makeAnalytics().addSpend(NaN)).toThrow('must be finite');
+  });
+});

@@ -54,7 +54,9 @@ type Action =
   | { action: 'enterGracePeriod'; graceDays: number }
   | { action: 'expire' }
   | { action: 'cancel'; reason: string }
-  | { action: 'setAutoRenew'; enabled: boolean };
+  | { action: 'setAutoRenew'; enabled: boolean }
+  | { action: 'addFamilySeat'; customerId: string; memberName: string }
+  | { action: 'removeFamilySeat'; customerId: string };
 
 // PATCH /api/subscriptions/[id] — every transition goes through the real Subscription
 // class's state machine (pause/resume/freeze/unfreeze/cancel/...). The route never
@@ -71,6 +73,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const sub = await loadSubscription(params.id);
   if (!sub) return Response.json({ error: 'Subscription not found.' }, { status: 404 });
+
+  // Seat actions write to family_seat, not subscription_master -- kept
+  // separate from the state-machine switch below since they don't produce
+  // a new Subscription snapshot to persist the same way.
+  if (body.action === 'addFamilySeat' || body.action === 'removeFamilySeat') {
+    const plan = await query<{ max_family_seats: number }>(`SELECT max_family_seats FROM pricing_plan_master WHERE id = $1`, [sub.planId]);
+    const maxSeats = plan.rows[0]?.max_family_seats ?? 1;
+
+    let updated: Subscription;
+    try {
+      updated = body.action === 'addFamilySeat'
+        ? sub.addFamilySeat(body.customerId, body.memberName, maxSeats)
+        : sub.removeFamilySeat(body.customerId);
+    } catch (err) {
+      return Response.json({ error: err instanceof Error ? err.message : 'Invalid seat operation.' }, { status: 409 });
+    }
+
+    if (body.action === 'addFamilySeat') {
+      await query(
+        `INSERT INTO family_seat (subscription_id, customer_id, member_name) VALUES ($1,$2,$3)
+         ON CONFLICT (subscription_id, customer_id) DO UPDATE SET status = 'active', added_at = now()`,
+        [sub.id, body.customerId, body.memberName],
+      );
+    } else {
+      await query(`UPDATE family_seat SET status = 'removed' WHERE subscription_id = $1 AND customer_id = $2`, [sub.id, body.customerId]);
+    }
+    return Response.json({ ok: true, familySeats: updated.toJSON().familySeats });
+  }
 
   let next: Subscription;
   try {

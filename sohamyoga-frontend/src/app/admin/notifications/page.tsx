@@ -203,9 +203,60 @@ function AnalyticsTab({ data }: { data: OverviewData | null }) {
   );
 }
 
+function PushBroadcastPanel() {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [url, setUrl] = useState("");
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState<{ sent: number; removed: number; failed: number; recipients?: number; note?: string; error?: string } | null>(null);
+
+  const send = async () => {
+    setSending(true); setResult(null);
+    try {
+      const res = await fetch("/api/admin/notifications/push-broadcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, body, url: url || undefined, target: "all" }),
+      });
+      const d = await res.json();
+      setResult(res.ok ? d : { sent: 0, removed: 0, failed: 0, error: d.error });
+    } catch {
+      setResult({ sent: 0, removed: 0, failed: 0, error: "Request failed." });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+      <h3 className="font-semibold text-gray-800 text-sm">Push Broadcast — real send to every subscribed device</h3>
+      <p className="text-xs text-gray-400">Sends immediately via VAPID web-push (no queue, no external provider). Recipients = distinct users with a live push_subscription row.</p>
+      <input className="w-full border border-gray-200 rounded px-3 py-1.5 text-sm" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
+      <textarea className="w-full border border-gray-200 rounded px-3 py-1.5 text-sm" placeholder="Body" rows={2} value={body} onChange={e => setBody(e.target.value)} />
+      <input className="w-full border border-gray-200 rounded px-3 py-1.5 text-sm" placeholder="Click-through URL (optional)" value={url} onChange={e => setUrl(e.target.value)} />
+      <button
+        className="px-4 py-1.5 text-sm font-medium rounded bg-purple-600 text-white disabled:opacity-50"
+        disabled={sending || !title.trim() || !body.trim()}
+        onClick={send}
+      >
+        {sending ? "Sending…" : "Send to all subscribed"}
+      </button>
+      {result && (
+        result.error
+          ? <div className="text-xs text-red-600">{result.error}</div>
+          : <div className="text-xs text-gray-600">
+              {result.note ?? `recipients=${result.recipients} sent=${result.sent} removed_stale=${result.removed} failed=${result.failed}`}
+            </div>
+      )}
+    </div>
+  );
+}
+
 function ChannelsTab({ data }: { data: OverviewData | null }) {
   const channels = data?.channelHealth ?? [];
   return (
+    <div className="space-y-4">
+    <PushBroadcastPanel />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {channels.map(ch => (
         <div key={ch.channel} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
@@ -220,6 +271,7 @@ function ChannelsTab({ data }: { data: OverviewData | null }) {
         </div>
       ))}
       {!channels.length && <div className="col-span-2 px-4 py-8 text-center text-gray-400 text-sm bg-white border border-gray-200 rounded-lg">No notification_analytics rows yet for any channel — this populates once real notifications are dispatched.</div>}
+    </div>
     </div>
   );
 }

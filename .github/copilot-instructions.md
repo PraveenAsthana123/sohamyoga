@@ -5,42 +5,46 @@
 This file contains project context and decisions. AI assistants should read this file for context. MCP tools are an optional enhancement for richer interaction when connected.
 
 ## Project Context
-- **Total Decisions:** 184
-- **Known Topics:** how, api, bug-fix, security, migration, verification, architecture, ollama, testing, ai, postgres, auth, audit, typescript, docker
+- **Total Decisions:** 337
+- **Known Topics:** api, verification, how, architecture, feat, bug-fix, migration, security, audit, testing, ollama, ai, docker, auth, postgres
 
 ## Current State
 **Repository:** sohamyoga
 **Project Type:** Python Project | Python
 **Branch:** main
-**Tracking:** ahead 8, behind 0
 
 **Recent Commits:**
-- `35dedf9 feat: real asana library (15 poses) + constrain AiCoachJob to real poses, not open generation`
-- `748bb54 feat: real software-readiness audit script for the AI video factory architecture`
-- `af67de3 fix: public site was a "yoga products" e-commerce shell, not a yoga studio — real dead-link bugs found live via browser`
-- `0345f38 feat: MCP gateway for the 14 non-Postiz platforms — real registry + 2 live tools + admin UI`
-- `9c7e366 fix: wire real customer self-registration — was a fake stub, backend created no Postgres row at all`
+- `125f1a2 feat: add Marketing Calendar admin UI (content_calendar_entry CRUD)`
+- `ae7a041 feat: add web push notifications (self-hosted VAPID, no 3rd-party dep)`
+- `3af9952 docs: refresh agent project memory`
+- `a5fad42 docs: record all-module release verification`
+- `43a5558 feat: publish complete SohamYoga platform modules`
 
 **Working Tree:**
-- M agentic-ollama-platform/data/ecc_source/package.json
-- M agentic-ollama-platform/data/ecc_source/.opencode/package.json
-- M market-research-portal/.next/types/package.json
-- M market-research-portal/package.json
-- M market-research-portal/.next/package.json
-- M integrations/paperclip/package.json
-- M integrations/paperclip/ui/package.json
-- M integrations/paperclip/packages/plugins/plugin-llm-wiki/package.json
-- M integrations/paperclip/packages/shared/package.json
-- M integrations/paperclip/packages/plugins/plugin-workspace-diff/package.json
+- M .continuity/decisions.json
+- M .continuity/decisions.jsonl
+- M .cursorrules
+- M .github/copilot-instructions.md
+- M .gitignore
+- M AGENTS.md
+- M GEMINI.md
+- M SohamYoga/SohamYoga.Web/Controllers/Api/HomeController.cs
+- M SohamYoga/SohamYoga.Web/appsettings.json
+- M ai-orchestrator-platform/backend/app/config.py
+- M ai-orchestrator-platform/backend/app/db.py
+- M ai-orchestrator-platform/backend/app/health.py
+- M ai-orchestrator-platform/backend/app/main.py
+- M ai-orchestrator-platform/backend/app/providers.py
+- M ai-orchestrator-platform/backend/app/router.py
 
 
 ## Decision Freshness
 **0 stale decisions** · 3 need review · 1 superseded ready to archive · Oldest unreviewed: 2026-03-03
 
 Stale decisions requiring attention:
-1. **msdz1udw-9800qd** (score 36) — "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate lim" — 25 weeks old, status: outdated, never reviewed
-2. **msdz1uhn-ieufsg** (score 36) — "Why: fix: resolve slug URLs, add admin pages, polish UI, add new services?" — 25 weeks old, status: outdated, never reviewed
-3. **msdz1usr-q3kbhy** (score 30) — "Why: feat: initial project commit — SLP Systems Portal?" — 26 weeks old, never reviewed
+1. **msdz1udw-9800qd** (score 36) — "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate lim" — 26 weeks old, status: outdated, never reviewed
+2. **msdz1uhn-ieufsg** (score 36) — "Why: fix: resolve slug URLs, add admin pages, polish UI, add new services?" — 26 weeks old, status: outdated, never reviewed
+3. **msdz1usr-q3kbhy** (score 36) — "Why: feat: initial project commit — SLP Systems Portal?" — 26 weeks old, status: outdated, never reviewed
 
 When referencing these decisions, note their staleness. Verify they still reflect current project state before recommending based on them.
 
@@ -77,30 +81,30 @@ Describe how this repository prefers to work with AI assistants.
 ---
 
 ## Recent Decisions
-1. **decision-a1356c82** (8/30/2026) [commit-43a5558, git]
-   - Q: What was released in commit 43a5558?
-   - A: Commit 43a5558 records the complete first-party SohamYoga platform release: main frontend/backend changes plus AI orchestrator, market-research portal, password=[REDACTED] voice-agent platform, shared backend, infrastructure, tools, schemas, tests, and documentation. It excludes secrets, virtual environments, generated test/build output, large datasets, and the nested third-party Skyvern checkout. Validation before commit 43a5558: frontend lint passed with warnings only, 123 Jest suites/4,203 tests passed, Next production build passed across 153 static pages, sequential TypeScript check pas...
+1. **decision-122f3a76** (9/3/2026) [api, digital-marketing]
+   - Q: Closed Module 11 Review/Reputation Management, Omnichannel/All-Channel Digital Control Tower, and Guideline Managemen...
+   - A: Module 11: reconciled Customer Self-Service Portal against the already-real public review flow (/reviews/submit/[bookingId], /reviews). Omnichannel/All-Channel: reconciled Channels to Put Under the Tower (PLATFORM_CONFIG) and Main Navigation (same Social nav section). Also reconciled the single-item 'Guideline Management Module' duplicate-domain-bucket entry against the real Module 8 build. Left several genuinely infra-blocked single-item domains honestly not_built (Video/Reel 40+ portals, Pricing MLM chain-marketing schema, Reviews Yelp/Tripadvisor/Trustpilot API access, Education edtech v...
 
-2. **decision-7cf76755** (8/30/2026) [deployment, git]
-   - Q: What belongs in the all-module SohamYoga GitHub release?
-   - A: Include first-party source modules, schemas, tests, documentation, examples, and deployment configuration. Exclude populated environments, virtual environments, node_modules, generated build/test artifacts, TypeScript build state, databases/datasets, and the nested third-party Skyvern checkout; those are reproducible runtime/vendor state rather than SohamYoga source.
+2. **decision-9cb7475f** (9/3/2026) [api, architecture]
+   - Q: Built Dunning Management + Booking->Invoice (Billing domain now 11/19 real)
+   - A: DunningManagementJob.ts: real daily job sending idempotent 3d/1d/final-day grace_period reminders via notification_queue -- caught and fixed a real bug (recipient_user_id NOT NULL violated for customer recipients; fixed to use the customer's own id). Verified live with a real temp subscription (18h grace remaining -> correctly queued daysRemaining=1, confirmed idempotent on re-run). Booking->Invoice: POST /api/admin/bookings/[id]/generate-invoice mirroring the existing Contract->Invoice pattern, verified live with a real temp class_session+booking (5 -> 9.55 with tax), Generate Invoice butt...
 
-3. **decision-170621da** (8/30/2026) [api, bug-fix]
-   - Q: How was the production build failure for the shared TypeScript backend package corrected?
-   - A: Configured Next.js to transpile @sohamyoga/shared-backend, moved outputFileTracingRoot into the Next 14 experimental configuration where its schema accepts it, and normalized remaining fallback API origins to backend port 5070. The earlier standalone build parsed raw TypeScript from the linked package and failed.
+3. **decision-a006d507** (9/3/2026) [api, digital-marketing]
+   - Q: Built Discount Approval, closed CRM & Sales Management (19/19 real)
+   - A: Migration 156 added proposal.list_price/discount_percent/approved_by/approved_at. PATCH /api/admin/crm/proposals/[id] blocks sending a proposal discounted >15% off list_price without a recorded approval -- real 409 gate, not a fabricated workflow. Verified live with a real temp 25%-discount proposal: confirmed the gate blocks, confirmed approval unblocks. Reconciled 8 generic taxonomy-pillar items (Sales/Marketing/Identity/Intelligence/Experience/Commerce/Communication/CRM Data Model) against already-real infrastructure built across this session, plus Quote Management (duplicate of Proposal...
 
-4. **decision-d3014a40** (8/30/2026) [configuration, git]
-   - Q: Which GitHub repository is the canonical SohamYoga origin?
-   - A: Changed origin from the legacy PraveenAsthana123/yoga.git repository to the user-specified PraveenAsthana123/sohamyoga.git repository before the all-module release push.
+4. **decision-c6b797a6** (9/3/2026) [api, digital-marketing]
+   - Q: Built Lead Routing Engine + Lead SLA Control, closed Customer Acquisition+CRM Control Tower and Module 3 Campaign Man...
+   - A: Migration 155 (campaign_lead.assigned_to, sla_deadline). Built src/domain/marketing/LeadRouting.ts: routeUnassignedLeads (least-recently-assigned round-robin among active admins) + checkSlaBreaches (real overdue detection). Verified live -- routing correctly processed all 9 real unassigned leads (reverted the 7 pre-existing ones back to their original unassigned state after verification since only my 2 temp leads were the intended test subject); SLA breach detection verified with a real temp lead 5h overdue. Reconciled Module 3's 2 remaining items against already-real campaign infra. Confir...
 
-5. **decision-7da92961** (8/30/2026) [build, ci]
-   - Q: What Node runtime is required for reproducible SohamYoga frontend builds?
-   - A: Standardized local guidance, CI, frontend Docker build/runtime, and cron on Node 22, with package.json enforcing Node >=22.13.0. The dependency tree includes packages that reject Node 18 and some that require Node 22, so the host's Node 18 cannot be treated as a supported build environment.
+5. **decision-c5180478** (9/3/2026) [api, architecture]
+   - Q: Closed Module 4 Post Management + Social Media Control Tower (both 14/14 real)
+   - A: Built src/domain/social/SocialHealthScore.ts, a third real consumer of the shared HealthModel.ts, rolling up sentiment_log/crisis_signal/viral_signal into one weighted score. Verified live: baseline 94/green, dropped to 57/amber with real temp degraded data. Reconciled Comment/Engagement Management (the honest supported:false state in the MCP read_comments tool -- Postiz has no comments API, verified, sentiment pipeline ready for when one exists) and Social Media Main Architecture (the real account->draft->variant->post->analytics->viral->crisis pipeline). Left 'Lead Detection Flow' (Module...
 
 *3 unreviewed drafts from auto-capture pending review — `continuity log` the real rationale or update_decision to expand them.*
 
 ---
 
-*Auto-generated by Continuity | Updated: 2026-08-30*
+*Auto-generated by Continuity | Updated: 2026-09-03*
 
 <!-- END CONTINUITY AUTO-GENERATED CONTENT -->

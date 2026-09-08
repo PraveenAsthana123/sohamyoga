@@ -21,9 +21,59 @@ services:
     networks:
       - voiceagent-network
 
+  # Containerized so the real MCP server at /api/mcp is reachable from
+  # ContextForge's Docker network -- `npm run dev` on the bare host was only
+  # visible inside the agent's own sandboxed network namespace, not to the
+  # actual Docker bridge network ContextForge's container sits on (confirmed
+  # live 2026-09-02: voiceagent-postgres's host-mapped port WAS reachable
+  # from ContextForge, but the bare `next dev` port was not -- same host,
+  # different network visibility). This puts the app on both networks: its
+  # own (to reach `postgres` by service name) and the shared one (to be
+  # reachable by ContextForge as an MCP upstream).
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: voiceagent-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Overrides the .env value (which points at localhost:5438 for the
+      # bare-host workflow) -- inside this container, the DB is reachable
+      # by container name on the internal port, not via the host port
+      # mapping. MUST use the fully-qualified container name
+      # "voiceagent-postgres", NOT the generic short alias "postgres" --
+      # this app is also attached to the shared sohamyoga-network (so its
+      # MCP endpoint is reachable from ContextForge), and that network
+      # already has an unrelated container ("sohamyoga-postgres") aliased
+      # to the same generic name "postgres". Confirmed live 2026-09-02:
+      # using the short alias silently resolved to the WRONG database and
+      # only surfaced as a password-mismatch error, not a hard failure --
+      # a genuinely dangerous cross-project collision if the password had
+      # happened to match.
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-voiceagent}:${POSTGRES_PASSWORD:-change-me-before-production}@voiceagent-postgres:5432/${POSTGRES_DB:-voiceagent}"
+    ports:
+      - "8090:8090"
+    volumes:
+      - .:/app
+      - voiceagent-app-node-modules:/app/node_modules
+      - voiceagent-app-next-cache:/app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - voiceagent-network
+      - sohamyoga-network
+
 volumes:
   voiceagent-postgres-data:
+  voiceagent-app-node-modules:
+  voiceagent-app-next-cache:
 
 networks:
   voiceagent-network:
     driver: bridge
+  sohamyoga-network:
+    external: true
+    name: ${SOHAM_DOCKER_NETWORK:-sohamyoga_sohamyoga-network}

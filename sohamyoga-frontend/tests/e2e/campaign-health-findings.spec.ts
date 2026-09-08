@@ -10,6 +10,7 @@
 // Fixture ids carry a fixed prefix swept in afterAll.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -24,8 +25,8 @@ const CAMPAIGN_ID = 'e2eeeeee-1111-4000-8000-000000000001';
 // fixture (Playwright persists the session cookie across calls made through
 // the same fixture instance, like a browser context) — except the explicit
 // no-auth negative test, which opens its own separate, never-logged-in context.
-const ADMIN_EMAIL = 'admin@sohamyoga.ca';
-const ADMIN_PASSWORD = 'Admin@123456';
+const ADMIN_EMAIL = 'admin_demo@sohamyoga.ca';
+const ADMIN_PASSWORD = 'AdminDemo@123456';
 
 test.beforeEach(async ({ request }) => {
   const res = await request.post('/api/auth/login', { data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } });
@@ -87,7 +88,7 @@ test.describe('HEALTH-FINDINGS-002 — negative', () => {
 
   test('GET without admin auth is rejected (no cookie sent)', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/ads/health-findings');
+    const res = await unauth.get(apiUrl('/api/ads/health-findings'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

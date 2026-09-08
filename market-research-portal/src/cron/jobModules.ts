@@ -9,4 +9,6 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: (params?: any) => 
   ReviewsCrossPortalJob:  () => import('./jobs/ReviewsCrossPortalJob'),
   OperationsAlertSweepJob: () => import('./jobs/OperationsAlertSweepJob'),
   SelfHealJob: () => import('./jobs/SelfHealJob'),
+  VoiceCallDispatchJob: () => import('./jobs/VoiceCallDispatchJob'),
+  TopicIntelligenceJob: () => import('./jobs/TopicIntelligenceJob'),
 };

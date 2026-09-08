@@ -5,6 +5,7 @@
 // insufficient_data, never a fabricated score.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 
@@ -24,7 +25,7 @@ async function loginAsAdmin(request: import('playwright/test').APIRequestContext
 test.describe('INF-001 GET /api/admin/growth/influencers — auth gating', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/admin/growth/influencers');
+    const res = await unauth.get(apiUrl('/api/admin/growth/influencers'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

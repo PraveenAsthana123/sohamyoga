@@ -8,6 +8,7 @@
 // tear down exactly what this file created, safely re-runnable in CI.
 
 import { test, expect, type APIRequestContext } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -58,7 +59,7 @@ test.describe('CONSENT-001 POST /api/analytics/consent — positive', () => {
 test.describe('CONSENT-005 GET /api/analytics/consent — admin records table', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/analytics/consent');
+    const res = await unauth.get(apiUrl('/api/analytics/consent'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -67,7 +68,7 @@ test.describe('CONSENT-005 GET /api/analytics/consent — admin records table', 
     const anonymousId = id('admin-records-visible');
     await postConsent(request, { anonymousId, level: 'marketing' });
 
-    const login = await request.post('/api/auth/login', { data: { email: 'admin@sohamyoga.ca', password: 'Admin@123456' } });
+    const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
     expect(login.ok()).toBeTruthy();
 
     const res = await request.get('/api/analytics/consent');

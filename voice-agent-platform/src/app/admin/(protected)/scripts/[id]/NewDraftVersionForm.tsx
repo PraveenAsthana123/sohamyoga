@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { buildSystemPrompt, estimateTokens, RECOMMENDED_MAX_PROMPT_TOKENS } from '@/domain/script/promptBuilder';
 
 export default function NewDraftVersionForm({ scriptId }: { scriptId: string }) {
   const router = useRouter();
@@ -12,6 +13,16 @@ export default function NewDraftVersionForm({ scriptId }: { scriptId: string }) 
   const [closing, setClosing] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const estimatedTokens = useMemo(() => {
+    const prompt = buildSystemPrompt({
+      opening,
+      discoveryQuestions: discoveryQuestions.split('\n').map((q) => q.trim()).filter(Boolean),
+      objectionHandling,
+      closing,
+    });
+    return estimateTokens(prompt);
+  }, [opening, discoveryQuestions, objectionHandling, closing]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,6 +85,10 @@ export default function NewDraftVersionForm({ scriptId }: { scriptId: string }) 
         <label className="text-sm font-medium">Closing *</label>
         <textarea required value={closing} onChange={(e) => setClosing(e.target.value)} rows={2} className="w-full border border-black/20 dark:border-white/20 rounded px-3 py-2 bg-transparent" />
       </div>
+      <p className={`text-xs ${estimatedTokens > RECOMMENDED_MAX_PROMPT_TOKENS ? 'text-amber-600' : 'opacity-60'}`}>
+        Estimated system prompt size: ~{estimatedTokens} tokens
+        {estimatedTokens > RECOMMENDED_MAX_PROMPT_TOKENS && ` -- above the ${RECOMMENDED_MAX_PROMPT_TOKENS}-token recommended max for cost-efficient Vapi calls.`}
+      </p>
       <div className="flex gap-2">
         <button type="submit" disabled={submitting} className="rounded bg-black text-white dark:bg-white dark:text-black px-3 py-1.5 text-sm disabled:opacity-50">
           {submitting ? 'Saving…' : 'Save draft'}

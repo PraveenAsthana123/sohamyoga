@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
   const tenantId = await getPrimaryTenantId();
   const rows = await query(
     `SELECT lp.id, lp.slug, lp.title, lp.headline, lp.status::text, lp.view_count, lp.version, lp.published_at, lp.created_at,
-            c.label AS cta_label, c.tracking_slug AS cta_slug
-     FROM landing_page lp LEFT JOIN cta c ON c.id = lp.cta_id
+            c.label AS cta_label, c.tracking_slug AS cta_slug, cb.name AS campaign_name
+     FROM landing_page lp LEFT JOIN cta c ON c.id = lp.cta_id LEFT JOIN campaign_brief cb ON cb.id = lp.campaign_id
      WHERE lp.tenant_id = $1 ORDER BY lp.created_at DESC`,
     [tenantId],
   );
@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
       id: r.id, slug: r.slug, title: r.title, headline: r.headline, status: r.status,
       viewCount: r.view_count, version: r.version, publishedAt: r.published_at, createdAt: r.created_at,
       url: `/lp/${r.slug}`, ctaLabel: r.cta_label, ctaGoUrl: r.cta_slug ? `/go/${r.cta_slug}` : null,
+      campaignName: r.campaign_name,
     })),
   });
 }
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null) as {
     slug?: string; title?: string; headline?: string; subheadline?: string; bodyMarkdown?: string;
-    ctaId?: string; seoTitle?: string; seoDescription?: string;
+    ctaId?: string; seoTitle?: string; seoDescription?: string; campaignId?: string;
   } | null;
   if (!body?.slug || !body.title || !body.headline) {
     return Response.json({ error: 'slug, title, and headline are required.' }, { status: 400 });
@@ -43,12 +44,16 @@ export async function POST(req: NextRequest) {
   if (!/^[a-z0-9-]+$/.test(body.slug)) return Response.json({ error: 'slug must be lowercase letters, numbers, and hyphens.' }, { status: 400 });
 
   const tenantId = await getPrimaryTenantId();
+  if (body.campaignId) {
+    const campaign = await query<{ id: string }>(`SELECT id FROM campaign_brief WHERE id = $1 AND tenant_id = $2`, [body.campaignId, tenantId]);
+    if (!campaign.rowCount) return Response.json({ error: 'That campaign does not exist.' }, { status: 404 });
+  }
   try {
     const result = await query<{ id: string }>(
-      `INSERT INTO landing_page (tenant_id, slug, title, headline, subheadline, body_markdown, cta_id, seo_title, seo_description, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+      `INSERT INTO landing_page (tenant_id, slug, title, headline, subheadline, body_markdown, cta_id, seo_title, seo_description, campaign_id, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
       [tenantId, body.slug, body.title, body.headline, body.subheadline ?? null, body.bodyMarkdown ?? '',
-       body.ctaId ?? null, body.seoTitle ?? null, body.seoDescription ?? null, principal!.id],
+       body.ctaId ?? null, body.seoTitle ?? null, body.seoDescription ?? null, body.campaignId ?? null, principal!.id],
     );
     return Response.json({ ok: true, id: result.rows[0].id }, { status: 201 });
   } catch (err) {

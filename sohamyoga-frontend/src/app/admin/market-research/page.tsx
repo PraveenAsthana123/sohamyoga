@@ -39,6 +39,9 @@ export default function MarketResearchPage() {
               : "Real research frameworks used to size, enter, and grow the market"}
           </p>
         </div>
+        <Link href="/admin/market-research/projects" className="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700">
+          Research Projects
+        </Link>
       </div>
 
       {error && <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">{error}</div>}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { HomePageData, Service, Testimonial, TeamMember } from '@/lib/api';
 import SwiperHero, { type HeroSlide } from '@/components/carousel/SwiperHero';
+import CtaExperimentBanner from '@/components/home/CtaExperimentBanner';
 import InfiniteMarquee, { type MarqueeItem } from '@/components/carousel/InfiniteMarquee';
 import TestimonialCarousel, { type TestimonialSlide } from '@/components/carousel/TestimonialCarousel';
 import TeacherCarousel, { type TeacherSlide } from '@/components/carousel/TeacherCarousel';
@@ -234,6 +235,10 @@ export default async function HomePage() {
 
       {/* Blog */}
       <BlogSection posts={data?.recentPosts ?? []} />
+
+      {/* Real A/B-tested CTA — see docs/modules or module_registry key
+          'homepage-final-cta' for the experiment this is wired to. */}
+      <CtaExperimentBanner />
 
       {/* Newsletter */}
       <NewsletterSection />

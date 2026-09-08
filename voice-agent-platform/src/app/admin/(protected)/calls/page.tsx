@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { listCalls } from '@/domain/call/repository';
+import QualityReviewCell from './QualityReviewCell';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,8 +16,9 @@ export default async function CallsListPage() {
         </Link>
       </div>
       <p className="text-xs opacity-60">
-        No voice-provider credentials are configured yet (see VoiceProviderAdapter), so every row here was recorded
-        by a staff member manually via the form above — none of it is a real placed call.
+        &quot;manual&quot; rows were hand-entered by staff. &quot;vapi&quot; rows came from a real placed/received call and its
+        outcome was reported by the /api/webhooks/vapi receiver — cost/transcript are only ever set by that webhook,
+        never estimated.
       </p>
 
       {calls.length === 0 ? (
@@ -32,7 +34,10 @@ export default async function CallsListPage() {
                 <th className="p-2">Script</th>
                 <th className="p-2">Status</th>
                 <th className="p-2">Duration</th>
+                <th className="p-2">Cost</th>
                 <th className="p-2">Provider</th>
+                <th className="p-2">Transcript</th>
+                <th className="p-2">QA</th>
               </tr>
             </thead>
             <tbody>
@@ -44,7 +49,10 @@ export default async function CallsListPage() {
                   <td className="p-2">{c.scriptName ?? '—'}</td>
                   <td className="p-2 capitalize">{c.status.replace('_', ' ')}</td>
                   <td className="p-2">{c.durationSeconds !== null ? `${c.durationSeconds}s` : '—'}</td>
+                  <td className="p-2">{c.costUsd !== null ? `$${c.costUsd.toFixed(2)}` : '—'}</td>
                   <td className="p-2">{c.provider}</td>
+                  <td className="p-2 max-w-xs truncate" title={c.transcript ?? ''}>{c.transcript ?? '—'}</td>
+                  <td className="p-2"><QualityReviewCell callId={c.id} qualityScore={c.qualityScore} isIncident={c.isIncident} /></td>
                 </tr>
               ))}
             </tbody>

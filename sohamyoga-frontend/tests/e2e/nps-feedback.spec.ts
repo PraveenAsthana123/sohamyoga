@@ -11,14 +11,15 @@
 // itself is real seed data (migration 067), not created by this file.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
   || 'postgresql://sohamyoga:change-me-before-production@127.0.0.1:5437/sohamyoga';
 const pool = new Pool({ connectionString: DATABASE_URL });
 
-const ADMIN_EMAIL = 'admin@sohamyoga.ca';
-const ADMIN_PASSWORD = 'Admin@123456';
+const ADMIN_EMAIL = 'admin_demo@sohamyoga.ca';
+const ADMIN_PASSWORD = 'AdminDemo@123456';
 
 let surveyId: string;
 const createdInvitationTokens: string[] = [];
@@ -101,24 +102,24 @@ test.describe('NPS-002 POST respond — negative', () => {
 
 test.describe('NPS-003 POST respond — boundary', () => {
   test('score 0 (minimum) is accepted', async ({ request }) => {
-    const res = await request.post('/api/survey/post-class-experience/respond', { data: { npsScore: 0 } });
+    const res = await request.post('/api/survey/post-class-experience/respond', { data: { npsScore: 0, consent: true } });
     expect(res.status()).toBe(200);
     createdResponseIds.push((await res.json()).responseId);
   });
 
   test('score 10 (maximum) is accepted', async ({ request }) => {
-    const res = await request.post('/api/survey/post-class-experience/respond', { data: { npsScore: 10 } });
+    const res = await request.post('/api/survey/post-class-experience/respond', { data: { npsScore: 10, consent: true } });
     expect(res.status()).toBe(200);
     createdResponseIds.push((await res.json()).responseId);
   });
 
   test('reusing a token whose invitation is already completed is rejected with 409', async ({ request }) => {
     const token = await seedInvitation();
-    const first = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 9 } });
+    const first = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 9, consent: true } });
     expect(first.status()).toBe(200);
     createdResponseIds.push((await first.json()).responseId);
 
-    const second = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 3 } });
+    const second = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 3, consent: true } });
     expect(second.status()).toBe(409);
   });
 });
@@ -128,7 +129,7 @@ test.describe('NPS-004 end to end — invitation token to submitted response', (
     const token = await seedInvitation();
 
     const res = await request.post('/api/survey/post-class-experience/respond', {
-      data: { token, npsScore: 6, reasonText: 'It was fine, nothing special.' },
+      data: { token, npsScore: 6, reasonText: 'It was fine, nothing special.', consent: true },
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -150,7 +151,7 @@ test.describe('NPS-004 end to end — invitation token to submitted response', (
 test.describe('NPS-005 GET nps-summary — admin auth', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/survey/nps-summary');
+    const res = await unauth.get(apiUrl('/api/survey/nps-summary'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -169,7 +170,7 @@ test.describe('NPS-005 GET nps-summary — admin auth', () => {
 test.describe('NPS-006 GET nps-records — individual invitation/response rows', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/survey/nps-records');
+    const res = await unauth.get(apiUrl('/api/survey/nps-records'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -179,7 +180,7 @@ test.describe('NPS-006 GET nps-records — individual invitation/response rows',
     expect(login.ok()).toBeTruthy();
 
     const token = await seedInvitation();
-    const submit = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 8 } });
+    const submit = await request.post('/api/survey/post-class-experience/respond', { data: { token, npsScore: 8, consent: true } });
     expect(submit.status()).toBe(200);
     createdResponseIds.push((await submit.json()).responseId);
 

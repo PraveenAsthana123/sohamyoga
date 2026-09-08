@@ -7,6 +7,7 @@
 // the self-seeding/self-cleaning pattern used elsewhere this session.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -14,8 +15,8 @@ const DATABASE_URL = process.env.DATABASE_URL
 const pool = new Pool({ connectionString: DATABASE_URL });
 
 const TENANT_ID = '16fb3a23-5370-4572-bc93-2076534a4e99';
-const ADMIN_EMAIL = 'admin@sohamyoga.ca';
-const ADMIN_PASSWORD = 'Admin@123456';
+const ADMIN_EMAIL = 'admin_demo@sohamyoga.ca';
+const ADMIN_PASSWORD = 'AdminDemo@123456';
 
 // Fixed, distant period so this test's row never collides with a real
 // weekly-job-generated digest for the current week.
@@ -46,7 +47,7 @@ async function seedDigest() {
 test.describe('VOC-001 GET voice-of-customer — admin auth', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/marketing/voice-of-customer');
+    const res = await unauth.get(apiUrl('/api/marketing/voice-of-customer'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

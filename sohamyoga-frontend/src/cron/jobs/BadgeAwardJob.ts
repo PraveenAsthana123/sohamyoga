@@ -12,6 +12,17 @@
 // 'referral_champion' does not exist anywhere in this database — that rule
 // can never trigger (total_referrals stays 0), documented rather than
 // silently wrong.
+//
+// Real bug fix (2026-09-01, found live during an end-to-end demo): the real
+// badge table's ids are b1-b10 (verified via \d), not the descriptive
+// slugs ('first_class', 'week_warrior', etc.) this file's own BADGE_RULES
+// used -- so activeBadgeIds.has(rule.badgeSlug) was false for every single
+// rule, and this job had never awarded one real badge to any student,
+// ever. Remapped to the real ids, with conditions matching each real
+// badge's own description (verified via `SELECT id, name FROM badge`).
+// b8/b9 (community posts) have no real data source anywhere in this
+// codebase, same as b10/referral -- correctly left unreachable rather than
+// invented.
 
 import { Pool } from 'pg';
 
@@ -20,13 +31,15 @@ const db = new Pool({ connectionString: process.env.DATABASE_URL });
 interface BadgeRule { badgeSlug: string; condition: string }
 
 const BADGE_RULES: BadgeRule[] = [
-  { badgeSlug: 'first_class',       condition: `total_classes >= 1` },
-  { badgeSlug: 'week_warrior',      condition: `current_streak >= 7` },
-  { badgeSlug: 'month_master',      condition: `current_streak >= 30` },
-  { badgeSlug: 'century_club',      condition: `total_classes >= 100` },
-  { badgeSlug: 'wellness_keeper',   condition: `wellness_days >= 14` },
-  { badgeSlug: 'pose_explorer',     condition: `unique_poses >= 20` },
-  // referral_champion intentionally omitted — no `referral` table exists.
+  { badgeSlug: 'b1', condition: `total_classes >= 1` },    // First Class
+  { badgeSlug: 'b2', condition: `total_classes >= 10` },   // Dedicated Practitioner
+  { badgeSlug: 'b3', condition: `total_classes >= 30` },   // Regular Student
+  { badgeSlug: 'b4', condition: `total_classes >= 100` },  // Century Club
+  { badgeSlug: 'b5', condition: `current_streak >= 7` },   // One Week Warrior
+  { badgeSlug: 'b6', condition: `current_streak >= 30` },  // Month of Mindfulness
+  { badgeSlug: 'b7', condition: `unique_poses >= 1` },     // Pose Pioneer ("mastered your first pose")
+  // b8/b9 (community posts) and b10 (referral) intentionally omitted --
+  // no real data source exists for either anywhere in this codebase.
 ];
 
 export async function run(): Promise<void> {
@@ -46,7 +59,7 @@ export async function run(): Promise<void> {
       COUNT(DISTINCT ws.id) FILTER (WHERE ws.composite_score >= 60)::int AS wellness_days,
       COUNT(DISTINCT pa.asana_id)::int                                 AS unique_poses
     FROM student s
-    LEFT JOIN attendance_record ar  ON ar.student_id = s.id AND ar.status = 'present'
+    LEFT JOIN attendance_record ar  ON ar.student_id = s.id AND ar.status = 'attended'
     LEFT JOIN streak st             ON st.user_id = s.user_id
     LEFT JOIN wellness_score ws     ON ws.student_id = s.id
     LEFT JOIN pose_assessment pa    ON pa.student_id = s.id
@@ -54,8 +67,9 @@ export async function run(): Promise<void> {
     GROUP BY s.id, s.user_id, s.tenant_id, st.current_streak
   `);
 
-  const badges = await db.query<{ id: string }>(`SELECT id FROM badge WHERE is_active = true`);
+  const badges = await db.query<{ id: string; points_value: number }>(`SELECT id, points_value FROM badge WHERE is_active = true`);
   const activeBadgeIds = new Set(badges.rows.map(b => b.id));
+  const badgePoints = new Map(badges.rows.map(b => [b.id, b.points_value]));
 
   for (const st of stats.rows) {
     for (const rule of BADGE_RULES) {
@@ -84,15 +98,19 @@ export async function run(): Promise<void> {
         );
       }
 
+      // Real bug fix (2026-09-01): this used to award a hardcoded 100
+      // points regardless of which badge was earned, ignoring the real
+      // badge.points_value column (e.g. "First Class" is really worth 10).
+      const pointsValue = badgePoints.get(rule.badgeSlug) ?? 0;
       const prevBalance = await db.query<{ balance_after: number }>(
         `SELECT balance_after FROM points_ledger WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1`,
         [st.user_id],
       );
-      const newBalance = (prevBalance.rows[0]?.balance_after ?? 0) + 100;
+      const newBalance = (prevBalance.rows[0]?.balance_after ?? 0) + pointsValue;
       await db.query(
         `INSERT INTO points_ledger (tenant_id, user_id, amount, balance_after, reason, reference_type)
-         VALUES ($1,$2,100,$3,'badge','badge')`,
-        [st.tenant_id, st.user_id, newBalance],
+         VALUES ($1,$2,$3,$4,'badge','badge')`,
+        [st.tenant_id, st.user_id, pointsValue, newBalance],
       );
 
       awarded++;

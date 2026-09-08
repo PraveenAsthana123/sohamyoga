@@ -74,6 +74,16 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
       [booking.tenant_id, body.bookingId, body.reviewerName, body.reviewerEmail, body.starRating, body.comment ?? ''],
     );
+
+    // Real Service Recovery -- a low-star review automatically opens a
+    // trackable case; no AI decides resolution, a human records it.
+    if (body.starRating <= 2) {
+      await query(
+        `INSERT INTO service_recovery_case (tenant_id, review_id) VALUES ($1,$2) ON CONFLICT (review_id) DO NOTHING`,
+        [booking.tenant_id, result.rows[0].id],
+      );
+    }
+
     return Response.json({ ok: true, id: result.rows[0].id, message: 'Thank you — your review has been submitted and is pending moderation.' }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

@@ -1,0 +1,95 @@
+'use client';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ASPECTS, TRACK_TYPES, type EditTrack } from '@/domain/video/workspaceValidation';
+
+type Project = { id: string; title: string; creative_brief: string; status: string; aspect_ratio: string; duration_ms: number; revision: number; delivery_url: string | null; assigned_to: string; due_date: string | null; updated_at: string };
+type Detail = { project: Project; tracks: EditTrack[]; events: { id: number; event_type: string; detail: { message: string }; created_at: string }[]; jobs: { id: string; engine: string; status: string; attempts: number }[] };
+const input = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-600';
+const button = 'rounded-xl bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-900 disabled:opacity-50';
+const secondary = 'rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-50';
+const label = 'block text-xs font-semibold text-slate-600 mb-1';
+const statusLabel = (s: string) => ({ draft: 'In production', review: 'Ready for review', complete: 'Approved delivery', archived: 'Archived', failed: 'Needs attention', rendering: 'Rendering', approved: 'Approved' }[s] || s);
+export default function VideoWorkspace({ admin = false }: { admin?: boolean }) {
+  const endpoint = `/api/${admin ? 'admin' : 'customer'}/video-workspace`;
+  const [projects,setProjects] = useState<Project[]>([]);
+  const [detail,setDetail] = useState<Detail|null>(null);
+  const [selected,setSelected] = useState('');
+  const [tab,setTab] = useState('overview');
+  const [filter,setFilter] = useState('all');
+  const [search,setSearch] = useState('');
+  const [error,setError] = useState('');
+  const [notice,setNotice] = useState('');
+  const [loading,setLoading] = useState(true);
+  const [busy,setBusy] = useState(false);
+  const [create,setCreate] = useState(false);
+  const [tracks,setTracks] = useState<EditTrack[]>([]);
+  const [feedback,setFeedback] = useState('');
+  const [delivery,setDelivery] = useState('');
+  const [assignee,setAssignee] = useState('');
+  const [dueDate,setDueDate] = useState('');
+  const [dirty,setDirty] = useState(false);
+  const load = useCallback(async () => {
+    const r = await fetch(endpoint,{cache:'no-store'}); const b = await r.json();
+    if (!r.ok) throw new Error(b.error || 'Unable to load projects.');
+    setProjects(b.projects);
+  },[endpoint]);
+  const loadDetail = useCallback(async (id: string) => {
+    const r = await fetch(`${endpoint}?id=${id}`,{cache:'no-store'}); const b = await r.json();
+    if (!r.ok) throw new Error(b.error || 'Unable to load project.');
+    setDetail(b);setTracks(b.tracks.map((t: EditTrack)=>({...t,clips:t.clips.map(c=>({...c,start_ms:Number(c.start_ms),end_ms:Number(c.end_ms),source_in_ms:Number(c.source_in_ms)}))})));setDelivery(b.project.delivery_url || '');setAssignee(b.project.assigned_to);setDueDate(b.project.due_date?.slice(0,10)||'');setDirty(false);
+  },[endpoint]);
+  useEffect(()=>{load().catch(e=>setError(e.message)).finally(()=>setLoading(false));},[load]);
+  useEffect(()=>{if(selected)loadDetail(selected).catch(e=>setError(e.message));},[selected,loadDetail]);
+  async function action(action: string, data: Record<string,unknown> = {}) {
+    setBusy(true);setError('');setNotice('');
+    try {
+      const r=await fetch(endpoint,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:selected,action,...data})});const b=await r.json();
+      if(!r.ok)throw new Error(b.error||'Unable to save.');
+      await Promise.all([load(),loadDetail(selected)]);setNotice('Saved successfully.');setFeedback('');
+    } catch(e){setError(e instanceof Error?e.message:'Unable to save.');}finally{setBusy(false);}
+  }
+  async function createProject(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();const form=new FormData(e.currentTarget);setBusy(true);setError('');
+    try{const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(form))});const b=await r.json();if(!r.ok)throw new Error(b.error);await load();setSelected(b.project.id);setCreate(false);setNotice('Your video brief has been saved.');}catch(e){setError(e instanceof Error?e.message:'Unable to create project.');}finally{setBusy(false);}
+  }
+  function editTracks(next: EditTrack[]){setTracks(next);setDirty(true);}
+  function exportTimeline(){const blob=new Blob([JSON.stringify({project:detail?.project,tracks},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`video-timeline-${selected}.json`;a.click();URL.revokeObjectURL(url);}
+  const visible=projects.filter(p=>(filter==='all'||p.status===filter)&&p.title.toLowerCase().includes(search.toLowerCase()));
+  const p=detail?.project;
+  const editable=p&&!['review','complete','archived','rendering'].includes(p.status);
+  return <main className="min-h-screen bg-slate-50 p-4 md:p-8 text-slate-900">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <header className="rounded-3xl bg-teal-950 p-6 md:p-9 text-white flex flex-wrap items-center justify-between gap-5">
+        <div><p className="text-xs uppercase tracking-[0.25em] text-teal-200 mb-3">SohamYoga / Video studio</p><h1 className="text-3xl md:text-4xl font-semibold">{admin?'Production workspace':'Your stories, brought to life.'}</h1><p className="mt-3 text-teal-100 max-w-xl">{admin?'Plan edits, coordinate delivery and keep every review in one place.':'Tell us what you need. Follow your video from first brief to final download.'}</p></div>
+        <div className="flex gap-3"><Link href="/video-sample" className="rounded-xl border border-teal-500 px-4 py-3 text-sm">Watch sample ↗</Link><button className="rounded-xl bg-white px-4 py-3 text-teal-950 font-semibold text-sm" onClick={()=>setCreate(!create)}>+ New {admin?'project':'request'}</button></div>
+      </header>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[['Active projects',projects.filter(p=>!['complete','archived'].includes(p.status)).length],['Awaiting review',projects.filter(p=>p.status==='review').length],['Approved deliveries',projects.filter(p=>p.status==='complete').length],['Total projects',projects.length]].map(([title,value])=><div key={title} className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-xs text-slate-600">{title}</p><p className="text-3xl font-semibold mt-2">{value}</p></div>)}</div>
+      {error&&<div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{error} <button className="underline ml-3" onClick={()=>load().then(()=>setError('')).catch(e=>setError(e.message))}>Retry</button></div>}
+      {notice&&<p role="status" className="rounded-xl bg-teal-100 p-3 text-teal-900">{notice}</p>}
+      {create&&<form onSubmit={createProject} className="rounded-2xl border bg-white p-6 space-y-4"><h2 className="text-xl font-semibold">Start with a brief</h2><div className="grid md:grid-cols-3 gap-4"><label className="md:col-span-2"><span className={label}>Project title</span><input className={input} name="title" required maxLength={180} placeholder="e.g. Welcome reel for our new class"/></label><label><span className={label}>Video format</span><select className={input} name="aspect">{ASPECTS.map(a=><option key={a}>{a}</option>)}</select></label></div><label className="block"><span className={label}>Audience, message, source links and requested edits</span><textarea className={input} name="brief" required maxLength={10000} rows={4} placeholder="Describe the video, its intended audience and any footage you want us to use."/></label><div className="flex gap-3"><button disabled={busy} className={button}>Submit brief</button><button type="button" className={secondary} onClick={()=>setCreate(false)}>Cancel</button></div></form>}
+      <div className="grid lg:grid-cols-[310px_1fr] gap-5">
+        <aside className="rounded-2xl border bg-white p-4 space-y-3"><h2 className="font-semibold">{admin?'Production queue':'My requests'}</h2><input aria-label="Search projects" className={input} placeholder="Search projects…" value={search} onChange={e=>setSearch(e.target.value)}/><select aria-label="Filter by status" className={input} value={filter} onChange={e=>setFilter(e.target.value)}>{['all','draft','review','complete','failed','archived'].map(s=><option value={s} key={s}>{s==='all'?'All projects':statusLabel(s)}</option>)}</select>
+          {loading?<p className="p-4 text-sm">Loading projects…</p>:!visible.length?<div className="py-8 text-sm text-slate-600">No projects here yet. Start a request or explore the sample video.</div>:visible.map(project=><button key={project.id} onClick={()=>{if(dirty&&!window.confirm('Discard unsaved timeline changes?'))return;setSelected(project.id);setDetail(null);setTab('overview');}} className={`w-full rounded-xl border p-4 text-left ${selected===project.id?'border-teal-600 bg-teal-50':'border-slate-200 hover:bg-slate-50'}`}><p className="font-semibold text-sm">{project.title}</p><p className="text-xs text-slate-600 mt-2">{statusLabel(project.status)} · {project.aspect_ratio}</p><p className="text-xs text-slate-500 mt-1">Revision {project.revision}</p></button>)}
+        </aside>
+        <section className="rounded-2xl border bg-white min-w-0 overflow-hidden">
+          {!p?<div className="p-8 md:p-12"><p className="text-xs uppercase tracking-widest text-teal-700">A little inspiration</p><h2 className="text-2xl font-semibold mt-3">One idea. A clear, memorable video.</h2><video aria-label="SohamYoga sample video" controls preload="metadata" className="rounded-2xl mt-6 w-full bg-teal-950" src="/samples/soham-introduction.mp4"/><p className="mt-3 text-sm text-slate-600">15-second sample · Select a project to see its brief, delivery and review history.</p></div>:<>
+            <div className="p-6 border-b"><div className="flex justify-between gap-3"><div><h2 className="text-xl font-semibold">{p.title}</h2><p className="text-sm text-slate-600 mt-1">{p.aspect_ratio} · Revision {p.revision} · {statusLabel(p.status)}</p></div><span className="rounded-full bg-teal-50 text-teal-800 px-3 py-1 h-fit text-xs">{admin?'Internal workspace':'Private request'}</span></div></div>
+            <nav aria-label="Project sections" className="flex gap-2 overflow-auto border-b px-5 py-3">{['overview',...(admin?['timeline','operations']:[]),'delivery','activity'].map(t=><button key={t} className={`px-4 py-2 rounded-lg text-sm capitalize ${tab===t?'bg-teal-800 text-white':'text-slate-600 hover:bg-slate-100'}`} onClick={()=>setTab(t)}>{t}</button>)}</nav>
+            <div className="p-6 space-y-5">
+              {tab==='overview'&&<><h3 className="font-semibold">Creative brief</h3><p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{p.creative_brief}</p><div className="rounded-xl bg-slate-50 p-4 text-sm"><p>Assigned to: {p.assigned_to||'Awaiting assignment'}</p><p className="mt-2">Due date: {p.due_date?.slice(0,10)||'Not scheduled'}</p></div><p className="text-sm text-slate-600">Your workflow: brief → production → delivery review → approval. Revision requests return the project to production.</p>{['draft','review','failed'].includes(p.status)&&<button disabled={busy} className={secondary} onClick={()=>{if(window.confirm('Archive this video request?'))void action('cancel');}}>Archive request</button>}</>}
+              {tab==='timeline'&&admin&&<><div className="flex flex-wrap justify-between gap-2"><div><h3 className="font-semibold">Editing timeline</h3><p className="text-xs text-slate-600 mt-1">Save clip timing, source offsets, text and audio levels. Export the edit plan for rendering.</p></div><button className={secondary} onClick={exportTimeline}>Export timeline JSON</button></div>{!editable&&<p className="text-sm text-amber-800">This timeline is locked during review or after completion.</p>}
+                {tracks.map((track,i)=><div key={i} className="rounded-xl border p-4 space-y-3"><div className="flex flex-wrap gap-2"><input aria-label={`Track ${i+1} name`} disabled={!editable} className={`${input} flex-1`} value={track.name} onChange={e=>editTracks(tracks.map((t,n)=>n===i?{...t,name:e.target.value}:t))}/><select aria-label={`Track ${i+1} type`} disabled={!editable} className="border rounded-lg text-sm p-2" value={track.track_type} onChange={e=>editTracks(tracks.map((t,n)=>n===i?{...t,track_type:e.target.value}:t))}>{TRACK_TYPES.map(t=><option key={t}>{t}</option>)}</select><label className="text-xs flex items-center gap-1"><input type="checkbox" disabled={!editable} checked={track.muted} onChange={e=>editTracks(tracks.map((t,n)=>n===i?{...t,muted:e.target.checked}:t))}/>Mute</label><button disabled={!editable} aria-label={`Remove track ${i+1}`} className="text-sm text-red-700" onClick={()=>editTracks(tracks.filter((_,n)=>n!==i))}>Remove</button></div>
+                  {track.clips.map((clip,j)=>{const update=(patch: Partial<typeof clip>)=>editTracks(tracks.map((t,n)=>n===i?{...t,clips:t.clips.map((c,k)=>k===j?{...c,...patch}:c)}:t));return <div key={j} className="rounded-xl bg-slate-50 p-3 space-y-3"><div className="grid grid-cols-3 gap-2">{(['start_ms','end_ms','source_in_ms'] as const).map(key=><label key={key}><span className={label}>{key==='start_ms'?'Start (ms)':key==='end_ms'?'End (ms)':'Source in (ms)'}</span><input type="number" min="0" step="1" disabled={!editable} className={input} value={clip[key]} onChange={e=>update({[key]:Number(e.target.value)})}/></label>)}</div><label className="block"><span className={label}>Source media URL</span><input disabled={!editable} className={input} value={clip.asset_uri} placeholder="https://… or /samples/soham-introduction.mp4" onChange={e=>update({asset_uri:e.target.value})}/></label><label className="block"><span className={label}>Text / caption</span><textarea disabled={!editable} className={input} value={clip.properties.text||''} onChange={e=>update({properties:{...clip.properties,text:e.target.value}})}/></label><label className="block"><span className={label}>Audio volume: {Math.round((clip.properties.volume??1)*100)}%</span><input aria-label="Clip audio volume" type="range" min="0" max="1" step="0.05" disabled={!editable} value={clip.properties.volume??1} onChange={e=>update({properties:{...clip.properties,volume:Number(e.target.value)}})}/></label><button disabled={!editable} className="text-xs text-red-700" onClick={()=>editTracks(tracks.map((t,n)=>n===i?{...t,clips:t.clips.filter((_,k)=>k!==j)}:t))}>Remove clip</button></div>})}
+                  <button disabled={!editable} className={secondary} onClick={()=>editTracks(tracks.map((t,n)=>n===i?{...t,clips:[...t.clips,{asset_uri:'',start_ms:0,end_ms:5000,source_in_ms:0,properties:{text:'',volume:1}}]}:t))}>+ Clip</button></div>)}
+                <div className="flex gap-3"><button disabled={!editable} className={secondary} onClick={()=>editTracks([...tracks,{name:`Track ${tracks.length+1}`,track_type:'video',muted:false,clips:[]}])}>+ Track</button><button disabled={busy||!dirty||!editable} className={button} onClick={()=>action('timeline',{tracks})}>Save timeline</button></div><p className="text-xs text-slate-600">Timeline data is saved to this project. Automatic timeline rendering is not connected; deliver an exported video through the Delivery tab.</p></>}
+              {tab==='operations'&&admin&&<><h3 className="font-semibold">Production coordination</h3><label className="block"><span className={label}>Assigned editor / internal user</span><input className={input} value={assignee} onChange={e=>setAssignee(e.target.value)}/></label><label className="block"><span className={label}>Due date</span><input className={input} type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}/></label><button className={button} disabled={busy} onClick={()=>action('assign',{assignee,dueDate})}>Save assignment</button><h3 className="font-semibold pt-4">Render jobs</h3>{detail.jobs.length?detail.jobs.map(j=><div key={j.id} className="border rounded-lg p-3 text-sm">{j.engine} · {j.status} · {j.attempts} attempts</div>):<p className="text-sm text-slate-600">No render jobs recorded for this project.</p>}<Link href="/admin/videos" className="block text-sm text-teal-800 underline">Open existing script and video catalog →</Link></>}
+              {tab==='delivery'&&<><h3 className="font-semibold">Review & delivery</h3>{p.delivery_url?<><video key={p.delivery_url} aria-label="Delivered video" controls preload="metadata" className="w-full rounded-xl bg-slate-950" src={p.delivery_url}/><a className="inline-block text-teal-800 underline text-sm" href={p.delivery_url} download target="_blank" rel="noreferrer">Open / download delivery ↗</a></>:<p className="text-sm text-slate-600">Your video will appear here when the production team delivers it.</p>}{admin&&p.status!=='archived'&&<div className="border rounded-xl p-4 space-y-3"><label className="block"><span className={label}>Hosted video delivery URL</span><input className={input} value={delivery} onChange={e=>setDelivery(e.target.value)} placeholder="https://…/final-video.mp4"/></label><div className="flex flex-wrap gap-2"><button className={button} disabled={busy||!delivery} onClick={()=>action('delivery',{url:delivery})}>Send for review</button><button className={secondary} onClick={()=>setDelivery('/samples/soham-introduction.mp4')}>Use sample video</button></div></div>}{p.status==='review'&&<><label className="block"><span className={label}>Review notes / revision instructions</span><textarea className={input} rows={3} maxLength={4000} value={feedback} onChange={e=>setFeedback(e.target.value)}/></label><div className="flex gap-3"><button className={button} disabled={busy} onClick={()=>action('approve')}>Approve delivery</button><button className={secondary} disabled={busy||!feedback.trim()} onClick={()=>action('revision',{message:feedback})}>Request revision</button></div></>}</>}
+              {tab==='activity'&&<><h3 className="font-semibold">Conversation & history</h3><label className="block"><span className={label}>Add a project note (visible to customer and staff)</span><textarea className={input} value={feedback} rows={3} maxLength={4000} onChange={e=>setFeedback(e.target.value)}/></label><button className={button} disabled={busy||!feedback.trim()} onClick={()=>action('comment',{message:feedback})}>Post note</button><ol className="space-y-4">{detail.events.map(e=><li key={e.id} className="border-l-2 border-teal-300 pl-4"><p className="text-sm">{e.detail.message}</p><p className="text-xs text-slate-500 mt-1">{e.event_type} · {new Date(e.created_at).toLocaleString()}</p></li>)}</ol></>}
+            </div>
+          </>}
+        </section>
+      </div>
+    </div>
+  </main>;
+}

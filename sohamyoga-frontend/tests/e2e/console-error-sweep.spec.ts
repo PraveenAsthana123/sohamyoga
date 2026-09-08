@@ -57,6 +57,8 @@ async function sweepPage(page: import('playwright/test').Page, url: string) {
   };
   const pageErrorHandler = (err: Error) => pageErrors.push(err.message);
   const requestFailedHandler = (req: import('playwright/test').Request) => {
+    const isCancelledNextPrefetch = req.url().includes('_rsc=') && req.failure()?.errorText === 'net::ERR_ABORTED';
+    if (isCancelledNextPrefetch) return;
     // /public/v1 calls to Postiz are EXPECTED to fail in this environment
     // (no API key configured yet — a documented, honest blocker, not a bug).
     if (!req.url().includes('postiz') && !req.url().includes('15081')) failedRequests.push(`${req.method()} ${req.url()}`);

@@ -37,12 +37,22 @@ export async function GET(req: NextRequest) {
      ORDER BY m.sort_order, m.name, pp.billing_cycle`,
   );
 
+  // AI pricing advisory -- reuses MarketResearchPricingDigestJob's real,
+  // fact-checked weekly output (src/cron/jobs/MarketResearchPricingDigestJob.ts)
+  // rather than generating a second, redundant advisory here.
+  const digest = await query<{ content: string }>(
+    `SELECT rtt.content FROM research_topic rt
+     JOIN research_topic_tab rtt ON rtt.topic_id = rt.id
+     WHERE rt.slug = 'pricing' AND rtt.tab_key = 'output' LIMIT 1`,
+  );
+
   return Response.json({
     competitors: competitors.rows.map(c => ({
       ...c,
       pricePoints: pricePoints.rows.filter(p => (p as { competitor_id: string }).competitor_id === (c as { id: string }).id),
     })),
     ourPricing: ourPricing.rows,
+    pricingDigest: digest.rows[0]?.content ?? null,
   });
 }
 

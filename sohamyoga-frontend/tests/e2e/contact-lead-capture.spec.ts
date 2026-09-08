@@ -11,14 +11,15 @@
 // endpoint and the admin's raw-submissions list.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
   || 'postgresql://sohamyoga:change-me-before-production@127.0.0.1:5437/sohamyoga';
 const pool = new Pool({ connectionString: DATABASE_URL });
 
-const ADMIN_EMAIL = 'admin@sohamyoga.ca';
-const ADMIN_PASSWORD = 'Admin@123456';
+const ADMIN_EMAIL = 'admin_demo@sohamyoga.ca';
+const ADMIN_PASSWORD = 'AdminDemo@123456';
 const PREFIX = 'e2e-contact-';
 const email = (suffix: string) => `${PREFIX}${suffix}@example.com`;
 
@@ -113,7 +114,7 @@ test.describe('CONTACT-003 POST /api/contact — boundary', () => {
 test.describe('CONTACT-004 GET /api/contact — admin', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/contact');
+    const res = await unauth.get(apiUrl('/api/contact'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

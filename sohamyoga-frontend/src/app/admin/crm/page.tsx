@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 
-const TABS = ['Overview', 'Leads', 'Pipeline', 'Segmentation', 'CLV', 'Churn', 'Voice of Customer', 'Campaigns'] as const;
+const TABS = ['Overview', 'Leads', 'Pipeline', 'Opportunities', 'Proposals', 'Contracts', 'Segmentation', 'CLV', 'Churn', 'Voice of Customer', 'Campaigns'] as const;
 type Tab = typeof TABS[number];
 
 function KpiCard({ label, value, sub, color = 'blue' }: { label: string; value: string; sub?: string; color?: string }) {
@@ -63,7 +63,7 @@ function OverviewTab() {
   );
 }
 
-interface LeadRow { id: string; name: string; email: string; source: string; stage: string; score: number | null; temperature: string | null; added: string }
+interface LeadRow { id: string; name: string; email: string; source: string; stage: string; score: number | null; temperature: string | null; scoreReason: string | null; added: string; duplicateOfLeadId: string | null }
 
 const LEAD_FLOW = [
   { label: '1. Contact form', sub: 'POST /api/contact — real submission, no longer 404ing', color: 'bg-gray-50 border-gray-200 text-gray-800' },
@@ -92,33 +92,227 @@ function ProcessFlow({ steps }: { steps: { label: string; sub: string; color: st
   );
 }
 
+// Manual lead entry -- the "+ Add Lead" button previously had no onClick
+// handler at all. Runs through the same real dedup as every other
+// lead-creation entry point (contact form, event registration, forms).
+function NewLeadForm({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [phone, setPhone] = useState('');
+  const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
+  const [duplicateNotice, setDuplicateNotice] = useState<string | null>(null);
+
+  async function handleCreate() {
+    setBusy(true); setError(null); setDuplicateNotice(null);
+    const res = await fetch('/api/crm/leads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone: phone || undefined }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { setError(body.error ?? 'Failed to create lead.'); return; }
+    setOpen(false); setName(''); setEmail(''); setPhone('');
+    if (body.duplicateOfLeadId) setDuplicateNotice('Flagged as a duplicate of an existing lead.');
+    onCreated();
+  }
+
+  if (!open) return (
+    <div className="flex items-center gap-2">
+      {duplicateNotice && <span className="text-xs text-amber-600">{duplicateNotice}</span>}
+      <button onClick={() => setOpen(true)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Add Lead</button>
+    </div>
+  );
+  return (
+    <div className="bg-white border rounded-lg p-4 space-y-2 w-full max-w-sm">
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="Email" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone (optional)" className="w-full border rounded px-2 py-1.5 text-sm" />
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button onClick={handleCreate} disabled={busy || !name.trim() || !email.trim()} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create</button>
+        <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+interface SlaBreachRow { leadId: string; email: string | null; assignedTo: string | null; slaDeadline: string; hoursOverdue: number; funnelStage: string }
+interface RoutingResultRow { leadId: string; assignedTo: string; assignedToEmail: string }
+
+// Real Follow-Up Queue + Lead Routing Screen -- LeadRouting.ts
+// (routeUnassignedLeads/checkSlaBreaches) and its two API routes were real
+// and fully working, but zero UI anywhere ever called them -- confirmed via
+// grep, an orphaned engine exactly like FunnelBuilder earlier this session.
+function LeadOpsPanel({ onRouted }: { onRouted: () => void }) {
+  const [breaches, setBreaches] = useState<SlaBreachRow[]>([]);
+  const [routing, setRouting] = useState(false);
+  const [routed, setRouted] = useState<RoutingResultRow[] | null>(null);
+
+  const loadBreaches = useCallback(() => {
+    fetchJson<{ breaches: SlaBreachRow[] }>('/api/admin/crm/leads/sla-breaches').then(d => setBreaches(d?.breaches ?? []));
+  }, []);
+  useEffect(() => { loadBreaches(); }, [loadBreaches]);
+
+  async function runRouting() {
+    setRouting(true);
+    const res = await fetch('/api/admin/crm/leads/routing', { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    setRouting(false);
+    setRouted(body.routed ?? []);
+    onRouted();
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+          <h3 className="text-sm font-semibold">Follow-Up Queue — SLA Breaches</h3>
+          <span className="text-xs text-gray-400">{breaches.length} overdue</span>
+        </div>
+        {breaches.length === 0 ? <EmptyState message="No SLA-overdue new leads." /> : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Email', 'Overdue', 'Assigned'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {breaches.map(b => (
+                <tr key={b.leadId}>
+                  <td className="px-3 py-2 text-xs">{b.email ?? '—'}</td>
+                  <td className="px-3 py-2 text-xs text-red-600 font-medium">{b.hoursOverdue}h</td>
+                  <td className="px-3 py-2 text-xs text-gray-500">{b.assignedTo ?? 'unassigned'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+          <h3 className="text-sm font-semibold">Lead Routing</h3>
+          <button onClick={runRouting} disabled={routing} className="text-xs bg-blue-600 text-white px-2 py-1 rounded disabled:opacity-50">
+            {routing ? 'Routing…' : 'Route unassigned'}
+          </button>
+        </div>
+        <div className="p-3 space-y-1">
+          {routed === null ? (
+            <p className="text-xs text-gray-400">Least-recently-assigned round-robin among active admins.</p>
+          ) : routed.length === 0 ? (
+            <p className="text-xs text-gray-400">No unassigned leads to route.</p>
+          ) : routed.map(r => (
+            <p key={r.leadId} className="text-xs text-gray-600">Lead {r.leadId.slice(0, 8)} → {r.assignedToEmail}</p>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface LeadDetail {
+  id: string; name: string | null; email: string | null; phone: string | null; source: string | null;
+  funnelStage: string; score: number | null; temperature: string | null; assignedTo: string | null;
+  slaDeadline: string | null; serviceInterest: string | null; subject: string | null; message: string | null;
+  createdAt: string; duplicateOfLeadId: string | null;
+  opportunities: { id: string; title: string; estimated_value: string; currency: string; stage: string }[];
+  proposals: { id: string; title: string; amount: string; currency: string; status: string }[];
+  contracts: { id: string; status: string; created_at: string }[];
+  dripEnrollments: { id: string; status: string; enrolled_at: string }[];
+  eventRegistrations: { id: string; event_id: string; registered_at: string }[];
+}
+
+// Real Lead Detail Screen -- campaign_lead is referenced by opportunity/
+// proposal/contract/drip_enrollment/event_registration, but the Leads tab
+// only ever showed a flat table row with no click-through aggregation.
+function LeadDetailModal({ leadId, onClose }: { leadId: string; onClose: () => void }) {
+  const [detail, setDetail] = useState<LeadDetail | null>(null);
+
+  useEffect(() => {
+    fetchJson<LeadDetail>(`/api/admin/crm/leads/${leadId}`).then(setDetail);
+  }, [leadId]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto space-y-4 rounded-xl bg-white p-5 shadow-lg">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-gray-900">Lead Detail</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        {!detail ? <p className="text-sm text-gray-400">Loading…</p> : (
+          <>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <p><span className="text-gray-500">Name:</span> {detail.name ?? '—'}</p>
+              <p><span className="text-gray-500">Email:</span> {detail.email ?? '—'}</p>
+              <p><span className="text-gray-500">Phone:</span> {detail.phone ?? '—'}</p>
+              <p><span className="text-gray-500">Source:</span> {detail.source ?? '—'}</p>
+              <p><span className="text-gray-500">Stage:</span> {detail.funnelStage}</p>
+              <p><span className="text-gray-500">Score:</span> {detail.score ?? 'not scored'} {detail.temperature && `(${detail.temperature})`}</p>
+              <p><span className="text-gray-500">Assigned to:</span> {detail.assignedTo ?? 'unassigned'}</p>
+              <p><span className="text-gray-500">SLA deadline:</span> {detail.slaDeadline ? new Date(detail.slaDeadline).toLocaleString() : '—'}</p>
+              <p><span className="text-gray-500">Service interest:</span> {detail.serviceInterest ?? '—'}</p>
+              <p><span className="text-gray-500">Created:</span> {new Date(detail.createdAt).toLocaleDateString()}</p>
+            </div>
+            {detail.message && <p className="text-sm bg-gray-50 rounded p-2"><span className="text-gray-500">Message:</span> {detail.message}</p>}
+
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Opportunities ({detail.opportunities.length})</p>
+                {detail.opportunities.length === 0 ? <p className="text-xs text-gray-400">None</p> : detail.opportunities.map(o => (
+                  <p key={o.id} className="text-xs">{o.title} — {o.currency} {o.estimated_value} <Badge color="purple">{o.stage}</Badge></p>
+                ))}
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Proposals ({detail.proposals.length})</p>
+                {detail.proposals.length === 0 ? <p className="text-xs text-gray-400">None</p> : detail.proposals.map(p => (
+                  <p key={p.id} className="text-xs">{p.title} — {p.currency} {p.amount} <Badge color="blue">{p.status}</Badge></p>
+                ))}
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Contracts ({detail.contracts.length})</p>
+                {detail.contracts.length === 0 ? <p className="text-xs text-gray-400">None</p> : detail.contracts.map(c => (
+                  <p key={c.id} className="text-xs"><Badge color="green">{c.status}</Badge> {new Date(c.created_at).toLocaleDateString()}</p>
+                ))}
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Drip / Event ({detail.dripEnrollments.length + detail.eventRegistrations.length})</p>
+                {detail.dripEnrollments.map(d => <p key={d.id} className="text-xs">Drip: <Badge color="gray">{d.status}</Badge></p>)}
+                {detail.eventRegistrations.map(e => <p key={e.id} className="text-xs">Event registered {new Date(e.registered_at).toLocaleDateString()}</p>)}
+                {detail.dripEnrollments.length === 0 && detail.eventRegistrations.length === 0 && <p className="text-xs text-gray-400">None</p>}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LeadsTab() {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { fetchJson<{ leads: LeadRow[] }>('/api/crm/leads').then(d => { setLeads(d?.leads ?? []); setLoading(false); }); }, []);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const load = useCallback(() => { fetchJson<{ leads: LeadRow[] }>('/api/crm/leads').then(d => { setLeads(d?.leads ?? []); setLoading(false); }); }, []);
+  useEffect(() => { load(); }, [load]);
   return (
     <div className="space-y-4">
     <ProcessFlow steps={LEAD_FLOW} />
+    <LeadOpsPanel onRouted={load} />
     <div className="border rounded-lg overflow-hidden">
-      <div className="px-4 py-3 bg-gray-50 flex justify-between">
+      <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
         <h3 className="text-sm font-semibold">Active Leads ({leads.length})</h3>
-        <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ Add Lead</button>
+        <NewLeadForm onCreated={load} />
       </div>
       {loading ? <EmptyState message="Loading…" /> : leads.length === 0 ? <EmptyState message="No active leads yet." /> : (
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Name', 'Email', 'Source', 'Stage', 'Score', 'Added'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-gray-100">
             {leads.map(l => (
-              <tr key={l.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 font-medium">{l.name}</td>
+              <tr key={l.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedLeadId(l.id)}>
+                <td className="px-3 py-2 font-medium">{l.name} {l.duplicateOfLeadId && <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 ml-1">duplicate</span>}</td>
                 <td className="px-3 py-2 text-gray-600 text-xs">{l.email}</td>
                 <td className="px-3 py-2"><Badge color="blue">{l.source}</Badge></td>
                 <td className="px-3 py-2"><Badge color={l.stage === 'demo_scheduled' ? 'purple' : l.stage === 'trial' ? 'teal' : 'gray'}>{l.stage}</Badge></td>
                 <td className="px-3 py-2">
                   {l.score === null ? <span className="text-xs text-gray-400">not scored</span> : (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1" title={l.scoreReason ?? ''}>
                       <div className="w-12 h-1.5 bg-gray-100 rounded"><div className={`h-1.5 ${l.score > 80 ? 'bg-green-500' : l.score > 60 ? 'bg-amber-400' : 'bg-gray-400'} rounded`} style={{ width: `${l.score}%` }} /></div>
                       <span className="text-xs font-medium">{l.score}</span>
+                      {l.scoreReason && <span className="text-xs text-gray-400 truncate max-w-[160px]">· {l.scoreReason}</span>}
                     </div>
                   )}
                 </td>
@@ -129,6 +323,7 @@ function LeadsTab() {
         </table>
       )}
     </div>
+    {selectedLeadId && <LeadDetailModal leadId={selectedLeadId} onClose={() => setSelectedLeadId(null)} />}
     </div>
   );
 }
@@ -334,7 +529,15 @@ interface VocDigest {
 
 function VoiceOfCustomerTab() {
   const [digests, setDigests] = useState<VocDigest[] | null>(null);
-  useEffect(() => { fetchJson<{ digests: VocDigest[] }>('/api/marketing/voice-of-customer').then(d => setDigests(d?.digests ?? [])); }, []);
+  const load = () => fetchJson<{ digests: VocDigest[] }>('/api/marketing/voice-of-customer').then(d => setDigests(d?.digests ?? []));
+  useEffect(() => { load(); }, []);
+
+  async function transition(id: string, status: string) {
+    await fetch(`/api/marketing/voice-of-customer/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+    });
+    load();
+  }
 
   return (
     <div className="space-y-4">
@@ -357,6 +560,9 @@ function VoiceOfCustomerTab() {
         <EmptyState message="No digests yet — the weekly job skips creating one when there's no real inbound customer text that week." />
       ) : (
         <div className="space-y-3">
+          <div className="flex justify-end">
+            <a href="/api/admin/voice-of-customer/export" className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">⬇ Export All (PDF)</a>
+          </div>
           {digests.map(d => (
             <div key={d.id} className="border rounded-lg p-4 bg-white">
               <div className="flex items-center justify-between mb-2">
@@ -366,6 +572,13 @@ function VoiceOfCustomerTab() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400">{d.sourceMessageCount} real message{d.sourceMessageCount === 1 ? '' : 's'}</span>
                   <Badge color={d.status === 'draft' ? 'amber' : 'gray'}>{d.status}</Badge>
+                  {d.status === 'draft' && (
+                    <>
+                      <button onClick={() => transition(d.id, 'reviewed')} className="text-xs text-green-600 hover:underline">Mark Reviewed</button>
+                      <button onClick={() => transition(d.id, 'dismissed')} className="text-xs text-red-500 hover:underline">Dismiss</button>
+                    </>
+                  )}
+                  <a href={`/api/admin/voice-of-customer/export?id=${d.id}`} className="text-xs text-blue-600 hover:underline">PDF</a>
                 </div>
               </div>
               <p className="text-sm text-gray-700 mb-3">{d.overallSummary}</p>
@@ -494,6 +707,390 @@ function NewCampaignForm({ onCreated }: { onCreated: () => void }) {
   );
 }
 
+interface ProposalRow {
+  id: string; title: string; amount: number; currency: string; status: string;
+  validUntil: string | null; leadName: string; leadEmail: string; createdAt: string; hasContract: boolean;
+}
+
+const PROPOSAL_STATUS_COLOR: Record<string, string> = {
+  draft: 'gray', sent: 'blue', accepted: 'green', rejected: 'red', expired: 'amber',
+};
+const PROPOSAL_NEXT_ACTIONS: Record<string, { status: string; label: string }[]> = {
+  draft: [{ status: 'sent', label: 'Mark Sent' }],
+  sent: [{ status: 'accepted', label: 'Mark Accepted' }, { status: 'rejected', label: 'Mark Rejected' }, { status: 'expired', label: 'Mark Expired' }],
+  accepted: [], rejected: [], expired: [],
+};
+
+// Proposal Management -- previously "proposal" only existed as a
+// campaign_lead.funnel_stage string, with no real entity. Real lifecycle now:
+// draft -> sent -> accepted/rejected/expired, linked to a real campaign_lead.
+function NewProposalForm({ leads, onCreated }: { leads: LeadRow[]; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [leadId, setLeadId] = useState(''); const [title, setTitle] = useState(''); const [amount, setAmount] = useState('');
+  const [validUntil, setValidUntil] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
+
+  async function handleCreate() {
+    setBusy(true); setError(null);
+    const res = await fetch('/api/admin/crm/proposals', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leadId, title, amount: Number(amount), validUntil: validUntil || undefined }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setOpen(false); setLeadId(''); setTitle(''); setAmount(''); setValidUntil(''); onCreated(); }
+    else setError(body.error ?? 'Failed to create proposal.');
+  }
+
+  if (!open) return <button onClick={() => setOpen(true)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ New Proposal</button>;
+  return (
+    <div className="bg-white border rounded-lg p-4 space-y-2 w-full max-w-md">
+      <select value={leadId} onChange={e => setLeadId(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+        <option value="">Select lead…</option>
+        {leads.map(l => <option key={l.id} value={l.id}>{l.name} ({l.email})</option>)}
+      </select>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Proposal title" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={amount} onChange={e => setAmount(e.target.value)} type="number" min="0" step="0.01" placeholder="Amount (CAD)" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={validUntil} onChange={e => setValidUntil(e.target.value)} type="date" className="w-full border rounded px-2 py-1.5 text-sm" />
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button onClick={handleCreate} disabled={busy || !leadId || !title || !amount} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create draft</button>
+        <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function ProposalsTab() {
+  const [proposals, setProposals] = useState<ProposalRow[]>([]);
+  const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    Promise.all([
+      fetchJson<{ proposals: ProposalRow[] }>('/api/admin/crm/proposals'),
+      fetchJson<{ leads: LeadRow[] }>('/api/crm/leads'),
+    ]).then(([p, l]) => { setProposals(p?.proposals ?? []); setLeads(l?.leads ?? []); setLoading(false); });
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function transition(id: string, status: string) {
+    await fetch(`/api/admin/crm/proposals/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    load();
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+          <h3 className="text-sm font-semibold">Proposals ({proposals.length})</h3>
+          <NewProposalForm leads={leads} onCreated={load} />
+        </div>
+        {loading ? <EmptyState message="Loading…" /> : proposals.length === 0 ? <EmptyState message="No proposals yet — create one above." /> : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Title', 'Lead', 'Amount', 'Status', 'Valid Until', 'Actions'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {proposals.map(p => (
+                <tr key={p.id} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 font-medium">{p.title}</td>
+                  <td className="px-3 py-2 text-gray-600 text-xs">{p.leadName}</td>
+                  <td className="px-3 py-2">{p.currency} {p.amount.toFixed(2)}</td>
+                  <td className="px-3 py-2"><Badge color={PROPOSAL_STATUS_COLOR[p.status] ?? 'gray'}>{p.status}</Badge></td>
+                  <td className="px-3 py-2 text-gray-500 text-xs">{p.validUntil ? new Date(p.validUntil).toLocaleDateString() : '—'}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-2">
+                      {(PROPOSAL_NEXT_ACTIONS[p.status] ?? []).map(a => (
+                        <button key={a.status} onClick={() => transition(p.id, a.status)} className="text-xs text-blue-600 hover:underline">{a.label}</button>
+                      ))}
+                      {p.status === 'accepted' && !p.hasContract && (
+                        <span className="text-xs text-gray-400 italic">Create a contract in the Contracts tab</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface ContractRow {
+  id: string; title: string; terms: string; amount: number; currency: string; status: string;
+  signedByName: string | null; sentAt: string | null; signedAt: string | null; leadName: string;
+  leadEmail: string; createdAt: string; proposalId: string;
+}
+
+const CONTRACT_STATUS_COLOR: Record<string, string> = { draft: 'gray', sent: 'blue', signed: 'green', void: 'red' };
+const CONTRACT_NEXT_ACTIONS: Record<string, string[]> = { draft: ['sent', 'void'], sent: ['signed', 'void'], signed: [], void: [] };
+
+// Contract Management -- a real extension of Proposal Management. No
+// e-signature service (DocuSign/HelloSign) is connected -- signing is a
+// manual admin-recorded action, not fabricated e-signature integration.
+function NewContractForm({ proposals, onCreated }: { proposals: ProposalRow[]; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [proposalId, setProposalId] = useState(''); const [title, setTitle] = useState(''); const [terms, setTerms] = useState('');
+  const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
+
+  const eligible = proposals.filter(p => p.status === 'accepted' && !p.hasContract);
+
+  async function handleCreate() {
+    setBusy(true); setError(null);
+    const res = await fetch('/api/admin/crm/contracts', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId, title, terms }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setOpen(false); setProposalId(''); setTitle(''); setTerms(''); onCreated(); }
+    else setError(body.error ?? 'Failed to create contract.');
+  }
+
+  if (!open) return <button onClick={() => setOpen(true)} disabled={!eligible.length} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded disabled:opacity-50" title={!eligible.length ? 'No accepted proposals without a contract yet' : ''}>+ New Contract</button>;
+  return (
+    <div className="bg-white border rounded-lg p-4 space-y-2 w-full max-w-lg">
+      <select value={proposalId} onChange={e => setProposalId(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+        <option value="">Select accepted proposal…</option>
+        {eligible.map(p => <option key={p.id} value={p.id}>{p.title} — {p.leadName} ({p.currency} {p.amount.toFixed(2)})</option>)}
+      </select>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Contract title" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <textarea value={terms} onChange={e => setTerms(e.target.value)} placeholder="Terms (scope, payment schedule, cancellation policy, etc.)" rows={4} className="w-full border rounded px-2 py-1.5 text-sm" />
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button onClick={handleCreate} disabled={busy || !proposalId || !title || !terms.trim()} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create draft</button>
+        <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+interface OpportunityRow {
+  id: string; title: string; estimatedValue: number; currency: string; stage: string;
+  probabilityPct: number | null; expectedCloseDate: string | null; lostReason: string | null;
+  leadName: string; leadEmail: string; createdAt: string;
+  aiScore: number | null; aiNote: string | null; aiAssessedAt: string | null;
+}
+
+const STAGE_COLOR: Record<string, string> = {
+  qualification: 'gray', needs_analysis: 'blue', proposal: 'purple', negotiation: 'amber',
+  closed_won: 'green', closed_lost: 'red',
+};
+const STAGE_NEXT: Record<string, string[]> = {
+  qualification: ['needs_analysis', 'closed_lost'], needs_analysis: ['proposal', 'closed_lost'],
+  proposal: ['negotiation', 'closed_lost'], negotiation: ['closed_won', 'closed_lost'],
+  closed_won: [], closed_lost: [],
+};
+
+// Opportunity -- the missing link between Lead and Proposal: a lead becomes
+// an opportunity once genuinely qualified (a real sales judgment call, not
+// automatic), moves through a real stage pipeline, and can have a proposal
+// created against it once terms are ready.
+function NewOpportunityForm({ leads, onCreated }: { leads: LeadRow[]; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [leadId, setLeadId] = useState(''); const [title, setTitle] = useState(''); const [estimatedValue, setEstimatedValue] = useState('');
+  const [probabilityPct, setProbabilityPct] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
+
+  async function handleCreate() {
+    setBusy(true); setError(null);
+    const res = await fetch('/api/admin/crm/opportunities', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leadId, title, estimatedValue: Number(estimatedValue), probabilityPct: probabilityPct ? Number(probabilityPct) : undefined }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setOpen(false); setLeadId(''); setTitle(''); setEstimatedValue(''); setProbabilityPct(''); onCreated(); }
+    else setError(body.error ?? 'Failed to create opportunity.');
+  }
+
+  if (!open) return <button onClick={() => setOpen(true)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded">+ New Opportunity</button>;
+  return (
+    <div className="bg-white border rounded-lg p-4 space-y-2 w-full max-w-md">
+      <select value={leadId} onChange={e => setLeadId(e.target.value)} className="w-full border rounded px-2 py-1.5 text-sm">
+        <option value="">Select lead…</option>
+        {leads.map(l => <option key={l.id} value={l.id}>{l.name} ({l.email})</option>)}
+      </select>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Opportunity title" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={estimatedValue} onChange={e => setEstimatedValue(e.target.value)} type="number" min="0" step="0.01" placeholder="Estimated value (CAD)" className="w-full border rounded px-2 py-1.5 text-sm" />
+      <input value={probabilityPct} onChange={e => setProbabilityPct(e.target.value)} type="number" min="0" max="100" placeholder="Win probability % (optional)" className="w-full border rounded px-2 py-1.5 text-sm" />
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button onClick={handleCreate} disabled={busy || !leadId || !title || !estimatedValue} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm disabled:opacity-50">Create</button>
+        <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function OpportunitiesTab() {
+  const [opportunities, setOpportunities] = useState<OpportunityRow[]>([]);
+  const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [losingId, setLosingId] = useState<string | null>(null);
+  const [lostReason, setLostReason] = useState('');
+
+  const load = useCallback(() => {
+    setLoading(true);
+    Promise.all([
+      fetchJson<{ opportunities: OpportunityRow[] }>('/api/admin/crm/opportunities'),
+      fetchJson<{ leads: LeadRow[] }>('/api/crm/leads'),
+    ]).then(([o, l]) => { setOpportunities(o?.opportunities ?? []); setLeads(l?.leads ?? []); setLoading(false); });
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function transition(id: string, stage: string, reason?: string) {
+    await fetch(`/api/admin/crm/opportunities/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stage, lostReason: reason }),
+    });
+    setLosingId(null); setLostReason('');
+    load();
+  }
+
+  const totalPipelineValue = opportunities.filter(o => !o.stage.startsWith('closed')).reduce((sum, o) => sum + o.estimatedValue, 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+          <div>
+            <h3 className="text-sm font-semibold">Opportunities ({opportunities.length})</h3>
+            <p className="text-xs text-gray-500">Open pipeline value: ${totalPipelineValue.toFixed(2)}</p>
+          </div>
+          <NewOpportunityForm leads={leads} onCreated={load} />
+        </div>
+        {loading ? <EmptyState message="Loading…" /> : opportunities.length === 0 ? <EmptyState message="No opportunities yet — create one above." /> : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Title', 'Lead', 'Value', 'Probability', 'Stage', 'AI Score', 'Actions'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {opportunities.map(o => (
+                <tr key={o.id} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 font-medium">{o.title}</td>
+                  <td className="px-3 py-2 text-gray-600 text-xs">{o.leadName}</td>
+                  <td className="px-3 py-2">{o.currency} {o.estimatedValue.toFixed(2)}</td>
+                  <td className="px-3 py-2 text-gray-500 text-xs">{o.probabilityPct !== null ? `${o.probabilityPct}%` : '—'}</td>
+                  <td className="px-3 py-2"><Badge color={STAGE_COLOR[o.stage] ?? 'gray'}>{o.stage.replace('_', ' ')}</Badge></td>
+                  <td className="px-3 py-2 max-w-[160px]">
+                    {o.aiScore !== null ? (
+                      <span title={o.aiNote ?? ''} className={`text-xs font-semibold ${o.aiScore >= 70 ? 'text-red-600' : o.aiScore >= 40 ? 'text-amber-600' : 'text-gray-500'}`}>
+                        {o.aiScore} <span className="font-normal text-gray-400">· {o.aiNote}</span>
+                      </span>
+                    ) : <span className="text-xs text-gray-300">not yet assessed</span>}
+                  </td>
+                  <td className="px-3 py-2">
+                    {losingId === o.id ? (
+                      <div className="flex gap-1 items-center">
+                        <input value={lostReason} onChange={e => setLostReason(e.target.value)} placeholder="Reason…" className="border rounded px-1.5 py-0.5 text-xs w-28" />
+                        <button onClick={() => transition(o.id, 'closed_lost', lostReason)} disabled={!lostReason.trim()} className="text-xs text-red-600 hover:underline disabled:opacity-40">Confirm</button>
+                        <button onClick={() => setLosingId(null)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        {(STAGE_NEXT[o.stage] ?? []).map(s => (
+                          <button key={s} onClick={() => s === 'closed_lost' ? setLosingId(o.id) : transition(o.id, s)} className="text-xs text-blue-600 hover:underline">
+                            {s.replace('_', ' ')}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ContractsTab() {
+  const [contracts, setContracts] = useState<ContractRow[]>([]);
+  const [proposals, setProposals] = useState<ProposalRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [signingId, setSigningId] = useState<string | null>(null);
+  const [signedByName, setSignedByName] = useState('');
+  const [invoicingId, setInvoicingId] = useState<string | null>(null);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    Promise.all([
+      fetchJson<{ contracts: ContractRow[] }>('/api/admin/crm/contracts'),
+      fetchJson<{ proposals: ProposalRow[] }>('/api/admin/crm/proposals'),
+    ]).then(([c, p]) => { setContracts(c?.contracts ?? []); setProposals(p?.proposals ?? []); setLoading(false); });
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function transition(id: string, status: string, name?: string) {
+    await fetch(`/api/admin/crm/contracts/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, signedByName: name }),
+    });
+    setSigningId(null); setSignedByName('');
+    load();
+  }
+
+  async function generateInvoice(id: string) {
+    setInvoicingId(id); setInvoiceError(null);
+    const res = await fetch(`/api/admin/crm/contracts/${id}/generate-invoice`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    setInvoicingId(null);
+    if (!res.ok) { setInvoiceError(body.error ?? 'Failed to generate invoice.'); return; }
+    load();
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+          <h3 className="text-sm font-semibold">Contracts ({contracts.length})</h3>
+          <NewContractForm proposals={proposals} onCreated={load} />
+        </div>
+        {invoiceError && <p className="px-4 py-2 text-xs text-red-600 bg-red-50">{invoiceError}</p>}
+        {loading ? <EmptyState message="Loading…" /> : contracts.length === 0 ? <EmptyState message="No contracts yet — create one from an accepted proposal above." /> : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Title', 'Lead', 'Amount', 'Status', 'Signed By', 'Actions'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {contracts.map(c => (
+                <tr key={c.id} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 font-medium">{c.title}</td>
+                  <td className="px-3 py-2 text-gray-600 text-xs">{c.leadName}</td>
+                  <td className="px-3 py-2">{c.currency} {c.amount.toFixed(2)}</td>
+                  <td className="px-3 py-2"><Badge color={CONTRACT_STATUS_COLOR[c.status] ?? 'gray'}>{c.status}</Badge></td>
+                  <td className="px-3 py-2 text-gray-500 text-xs">{c.signedByName ?? '—'}</td>
+                  <td className="px-3 py-2">
+                    {signingId === c.id ? (
+                      <div className="flex gap-1 items-center">
+                        <input value={signedByName} onChange={e => setSignedByName(e.target.value)} placeholder="Signed by…" className="border rounded px-1.5 py-0.5 text-xs w-28" />
+                        <button onClick={() => transition(c.id, 'signed', signedByName)} disabled={!signedByName.trim()} className="text-xs text-green-600 hover:underline disabled:opacity-40">Confirm</button>
+                        <button onClick={() => setSigningId(null)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        {(CONTRACT_NEXT_ACTIONS[c.status] ?? []).map(status => (
+                          <button key={status} onClick={() => status === 'signed' ? setSigningId(c.id) : transition(c.id, status)} className="text-xs text-blue-600 hover:underline">
+                            {status === 'sent' ? 'Mark Sent' : status === 'signed' ? 'Mark Signed' : 'Void'}
+                          </button>
+                        ))}
+                        {c.status === 'signed' && (
+                          <button onClick={() => generateInvoice(c.id)} disabled={invoicingId === c.id} className="text-xs text-green-600 hover:underline disabled:opacity-40">
+                            {invoicingId === c.id ? 'Generating…' : 'Generate Invoice'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CampaignsTab() {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -570,6 +1167,9 @@ export default function CRMAdminPage() {
       {tab === 'Overview'      && <OverviewTab />}
       {tab === 'Leads'         && <LeadsTab />}
       {tab === 'Pipeline'      && <PipelineTab />}
+      {tab === 'Proposals'     && <ProposalsTab />}
+      {tab === 'Opportunities' && <OpportunitiesTab />}
+      {tab === 'Contracts'     && <ContractsTab />}
       {tab === 'Segmentation'  && <SegmentationTab />}
       {tab === 'CLV'           && <CLVTab />}
       {tab === 'Churn'         && <ChurnTab />}

@@ -1,32 +1,48 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAnalyticsContext } from "@/components/analytics/AnalyticsProvider";
 
-const CLASS_DATA: Record<string, { title: string; teacher: string; dateTime: string; duration: number; level: string; style: string; price: number; description: string }> = {
-  "1": { title: "Morning Flow", teacher: "Priya Sharma", dateTime: "2026-08-06T07:00:00", duration: 60, level: "Beginner", style: "Hatha", price: 15, description: "Gentle morning sequence to awaken the body and set a peaceful tone for your day." },
-  "2": { title: "Power Vinyasa", teacher: "Raj Patel", dateTime: "2026-08-06T10:00:00", duration: 75, level: "Intermediate", style: "Vinyasa", price: 18, description: "Energising flow linking breath with movement. Builds strength and flexibility." },
-  "3": { title: "Yin & Restore", teacher: "Anita Mehta", dateTime: "2026-08-06T18:00:00", duration: 90, level: "Beginner", style: "Yin", price: 15, description: "Deep, slow stretches held for 3-5 minutes. Ideal for stress relief and recovery." },
-  "4": { title: "Advanced Inversions", teacher: "Priya Sharma", dateTime: "2026-08-07T08:00:00", duration: 60, level: "Advanced", style: "Ashtanga", price: 22, description: "Headstands, handstands, and forearm balance. Safe, structured progression." },
-};
+interface ClassDetail {
+  id: string; title: string; teacher: string; dateTime: string; duration: number;
+  level: string | null; style: string | null; price: number; spotsLeft: number; totalSpots: number;
+}
 
 export default function ClassDetailPage() {
   const { classId } = useParams<{ classId: string }>();
   const router = useRouter();
   const { trackConversion } = useAnalyticsContext();
+  const [cls, setCls] = useState<ClassDetail | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
+  const [waitlisted, setWaitlisted] = useState(false);
+  const [error, setError] = useState('');
 
-  const cls = CLASS_DATA[classId];
-  if (!cls) return <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">Class not found.</div>;
+  useEffect(() => {
+    fetch(`/api/classes/${classId}`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d ? setCls(d) : setNotFound(true));
+  }, [classId]);
+
+  if (notFound) return <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">Class not found.</div>;
+  if (!cls) return <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center text-gray-500">Loading…</div>;
 
   async function handleBook() {
     setBooking(true);
-    trackConversion('booking_started', { classId, title: cls.title, style: cls.style, level: cls.level, price: cls.price });
-    await new Promise(r => setTimeout(r, 800));
-    setBooked(true);
+    setError('');
+    trackConversion('booking_started', { classId, title: cls!.title, style: cls!.style, level: cls!.level, price: cls!.price });
+    const r = await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ classSessionId: classId }) });
+    const j = await r.json();
     setBooking(false);
-    trackConversion('booking_completed', { classId, title: cls.title, style: cls.style, level: cls.level, price: cls.price });
+    if (!r.ok) { setError(j.error || 'Booking failed.'); return; }
+    if (j.outcome === 'waitlisted') {
+      setWaitlisted(true);
+      trackConversion('booking_waitlisted', { classId, title: cls!.title });
+      return;
+    }
+    setBooked(true);
+    trackConversion('booking_completed', { classId, title: cls!.title, style: cls!.style, level: cls!.level, price: cls!.price });
     setTimeout(() => router.push("/booking/confirmation"), 1000);
   }
 
@@ -44,7 +60,7 @@ export default function ClassDetailPage() {
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">{cls.style}</span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900">{cls.title}</h1>
-            <p className="text-gray-500 mt-2">{cls.description}</p>
+            <p className="text-gray-500 mt-2">{cls.spotsLeft} of {cls.totalSpots} spots left.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -69,14 +85,17 @@ export default function ClassDetailPage() {
             </div>
           </div>
 
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {waitlisted && <p className="text-sm text-amber-700">This class is full — you've been added to the waitlist and will be notified if a spot opens up.</p>}
+
           <button
             onClick={handleBook}
-            disabled={booking || booked}
+            disabled={booking || booked || waitlisted}
             className={`w-full py-4 rounded-xl font-semibold text-white text-lg transition-colors ${
-              booked ? "bg-green-500" : "bg-green-600 hover:bg-green-700"
+              booked ? "bg-green-500" : waitlisted ? "bg-amber-500" : "bg-green-600 hover:bg-green-700"
             }`}
           >
-            {booked ? "Booked!" : booking ? "Booking…" : `Book Now — $${cls.price}`}
+            {booked ? "Booked!" : waitlisted ? "Waitlisted" : booking ? "Booking…" : `Book Now — $${cls.price}`}
           </button>
           <p className="text-center text-xs text-gray-400">Cancel up to 2 hours before class for a full refund.</p>
         </div>

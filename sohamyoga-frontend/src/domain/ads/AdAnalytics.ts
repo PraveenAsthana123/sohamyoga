@@ -24,6 +24,11 @@ export class AdAnalytics {
   constructor(props: AdAnalyticsProps) {
     if (!props.id?.trim())         throw new Error('id is required');
     if (!props.campaignId?.trim()) throw new Error('campaignId is required');
+    if (!Number.isFinite(props.period.start.getTime()) || !Number.isFinite(props.period.end.getTime()))
+      throw new Error('period dates must be valid');
+    for (const field of ['clicks', 'impressions', 'conversions', 'spendCents', 'revenueCents'] as const) {
+      if (!Number.isFinite(props[field])) throw new Error(`${field} must be finite`);
+    }
     if (props.period.end <= props.period.start)
       throw new Error('period end must be after start');
     if (props.clicks < 0)        throw new Error('clicks cannot be negative');

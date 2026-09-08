@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const [voc, health, nps, churn, seo] = await Promise.all([
+  const [voc, health, nps, churn, seo, competitor] = await Promise.all([
     query<{ id: string; period_end: string; source_message_count: number; overall_summary: string; themes: unknown }>(
       `SELECT id, period_end, source_message_count, overall_summary, themes FROM voice_of_customer_digest ORDER BY period_start DESC LIMIT 1`,
     ),
@@ -35,6 +35,9 @@ export async function GET(req: NextRequest) {
     ),
     query<{ count: string; latest_status: string | null }>(
       `SELECT COUNT(*) AS count, (SELECT status FROM seo_report ORDER BY report_date DESC LIMIT 1) AS latest_status FROM seo_report`,
+    ),
+    query<{ competitors: string; price_points: string }>(
+      `SELECT (SELECT COUNT(*) FROM competitor)::text AS competitors, COUNT(*)::text AS price_points FROM competitor_price_point`,
     ),
   ]);
 
@@ -60,6 +63,12 @@ export async function GET(req: NextRequest) {
       hasData: Number(seo.rows[0]?.count ?? 0) > 0,
       status: seo.rows[0]?.latest_status ?? null,
       blocked: 'Blocked on your side: SeoReportJob reads real analytics from Matomo, which is not deployed in this environment. Deploy Matomo and set MATOMO_BASE_URL/MATOMO_SITE_ID/MATOMO_AUTH_TOKEN to unblock — this report will not fabricate SEO data without it.',
+    },
+    competitorIntelligence: {
+      hasData: Number(competitor.rows[0]?.price_points ?? 0) > 0,
+      competitors: Number(competitor.rows[0]?.competitors ?? 0),
+      pricePoints: Number(competitor.rows[0]?.price_points ?? 0),
+      reason: Number(competitor.rows[0]?.price_points ?? 0) ? undefined : 'No competitor price points recorded yet — add one at /admin/competitors (admin-researched only, never scraped).',
     },
   });
 }

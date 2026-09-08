@@ -72,6 +72,41 @@ def init():
             status TEXT NOT NULL,
             detail TEXT,
             checked_at REAL)""")
+        # Exact-match response cache, added 2026-09-02. Key is a hash of
+        # (provider, model, prompt) -- same request to the same provider+model
+        # returns instantly instead of re-running. Persisted in SQLite (not
+        # just in-memory) so it survives a backend restart.
+        c.execute("""CREATE TABLE IF NOT EXISTS response_cache(
+            cache_key TEXT PRIMARY KEY,
+            provider TEXT NOT NULL,
+            model TEXT,
+            prompt TEXT NOT NULL,
+            output TEXT NOT NULL,
+            hit_count INTEGER NOT NULL DEFAULT 0,
+            created_at REAL,
+            last_hit_at REAL)""")
+
+        # Chat attachments (desktop upload / clipboard paste), added 2026-09-03.
+        # See app/attachments.py for the save/extract logic; this table is
+        # just the metadata + extracted-text record.
+        c.execute("""CREATE TABLE IF NOT EXISTS attachments(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT NOT NULL,
+            mime_type TEXT,
+            size INTEGER NOT NULL,
+            stored_path TEXT NOT NULL,
+            is_image INTEGER NOT NULL DEFAULT 0,
+            is_text INTEGER NOT NULL DEFAULT 0,
+            extracted_text TEXT,
+            extraction_note TEXT,
+            created_at REAL)""")
+        # message_attachments links a message to the attachment(s) sent with
+        # it -- many-to-many in shape (one message can carry several files)
+        # even though today's UI sends them one at a time.
+        c.execute("""CREATE TABLE IF NOT EXISTS message_attachments(
+            message_id INTEGER NOT NULL,
+            attachment_id INTEGER NOT NULL,
+            PRIMARY KEY (message_id, attachment_id))""")
 
         # --- Migrations for the desktop-workspace pass (filesystem search /
         # assign-to-project / editor). Projects gain a real root_dir so a
@@ -81,6 +116,16 @@ def init():
         _add_column_if_missing(c, "projects", "root_dir TEXT")
         _add_column_if_missing(c, "conversations", "context_path TEXT")
         _add_column_if_missing(c, "tasks", "context_path TEXT")
+        # Per-message duration, added 2026-09-02 so response time is visible
+        # inline on every assistant message, not only in the Task History
+        # tab -- lets you compare platforms directly in the conversation.
+        _add_column_if_missing(c, "messages", "duration_ms REAL")
+        # Shareable read-only link, added 2026-09-03: NULL = never shared.
+        # A conversation with a token is readable via GET /share/{token}
+        # WITHOUT the login cookie (see app/auth.py's OPEN_PATHS prefix
+        # check) -- generating one is a deliberate, explicit act (POST
+        # /conversations/{id}/share), never automatic.
+        _add_column_if_missing(c, "conversations", "share_token TEXT")
 
         for p in config.KNOWN_PROJECTS:
             c.execute("INSERT OR IGNORE INTO projects(key, name, created_at) VALUES (?,?,?)",
@@ -135,11 +180,24 @@ def get_conversation(cid: int):
         return dict(row) if row else None
 
 
-def add_message(conversation_id: int, role: str, content: str, provider: str = None, model: str = None) -> int:
+def set_share_token(cid: int, token: str):
+    with conn() as c:
+        c.execute("UPDATE conversations SET share_token = ? WHERE id = ?", (token, cid))
+
+
+def get_conversation_by_share_token(token: str):
+    with conn() as c:
+        row = c.execute("SELECT * FROM conversations WHERE share_token = ?", (token,)).fetchone()
+        return dict(row) if row else None
+
+
+def add_message(conversation_id: int, role: str, content: str, provider: str = None, model: str = None,
+                 duration_ms: float = None) -> int:
     with conn() as c:
         cur = c.execute(
-            "INSERT INTO messages(conversation_id, role, content, provider, model, created_at) VALUES (?,?,?,?,?,?)",
-            (conversation_id, role, content, provider, model, time.time()))
+            "INSERT INTO messages(conversation_id, role, content, provider, model, created_at, duration_ms) "
+            "VALUES (?,?,?,?,?,?,?)",
+            (conversation_id, role, content, provider, model, time.time(), duration_ms))
         return cur.lastrowid
 
 
@@ -188,6 +246,28 @@ def get_task(task_id: int):
         return dict(row) if row else None
 
 
+def model_performance(provider: str):
+    """Measured, uncached completion latency grouped by model.
+
+    Zero-duration rows are exact-cache hits, so including them would make
+    inference look faster than it was. Models with no completed uncached run
+    are intentionally absent and the UI labels them as not measured.
+    """
+    with conn() as c:
+        rows = c.execute(
+            """SELECT model, COUNT(*) AS calls,
+                      ROUND(AVG(duration_ms), 1) AS avg_ms,
+                      ROUND(MIN(duration_ms), 1) AS min_ms,
+                      ROUND(MAX(duration_ms), 1) AS max_ms
+               FROM tasks
+               WHERE provider = ? AND status = 'completed'
+                 AND model IS NOT NULL AND duration_ms > 0
+               GROUP BY model""",
+            (provider,),
+        ).fetchall()
+        return {row["model"]: dict(row) for row in rows}
+
+
 def record_health(provider: str, status: str, detail: str = ""):
     with conn() as c:
         c.execute("INSERT INTO model_health_history(provider, status, detail, checked_at) VALUES (?,?,?,?)",
@@ -202,3 +282,76 @@ def latest_health():
             ON h.provider = m.provider AND h.checked_at = m.mx
         """).fetchall()
         return {r["provider"]: dict(r) for r in rows}
+
+
+def cache_get(cache_key: str, max_age_seconds: float):
+    """Real exact-match cache lookup. max_age_seconds=None means no expiry."""
+    with conn() as c:
+        row = c.execute("SELECT * FROM response_cache WHERE cache_key = ?", (cache_key,)).fetchone()
+        if not row:
+            return None
+        if max_age_seconds is not None and (time.time() - row["created_at"]) > max_age_seconds:
+            return None
+        c.execute("UPDATE response_cache SET hit_count = hit_count + 1, last_hit_at = ? WHERE cache_key = ?",
+                  (time.time(), cache_key))
+        return dict(row)
+
+
+def cache_set(cache_key: str, provider: str, model: str, prompt: str, output: str):
+    with conn() as c:
+        c.execute("""INSERT INTO response_cache(cache_key, provider, model, prompt, output, hit_count, created_at, last_hit_at)
+                     VALUES (?,?,?,?,?,0,?,NULL)
+                     ON CONFLICT(cache_key) DO UPDATE SET output=excluded.output, created_at=excluded.created_at""",
+                  (cache_key, provider, model, prompt, output, time.time()))
+
+
+def cache_stats():
+    with conn() as c:
+        row = c.execute("SELECT COUNT(*) n, COALESCE(SUM(hit_count),0) hits FROM response_cache").fetchone()
+        return {"entries": row["n"], "total_hits": row["hits"]}
+
+
+def cache_clear():
+    with conn() as c:
+        c.execute("DELETE FROM response_cache")
+
+
+def create_attachment(filename, mime_type, size, stored_path, is_image, is_text,
+                       extracted_text, extraction_note) -> dict:
+    created_at = time.time()
+    with conn() as c:
+        cur = c.execute(
+            """INSERT INTO attachments(filename, mime_type, size, stored_path, is_image, is_text,
+               extracted_text, extraction_note, created_at) VALUES (?,?,?,?,?,?,?,?,?)""",
+            (filename, mime_type, size, stored_path, int(is_image), int(is_text),
+             extracted_text, extraction_note, created_at))
+        attachment_id = cur.lastrowid
+    # Built directly rather than re-querying: a nested get_attachment() call
+    # here would open a SECOND connection and read before the `with conn()`
+    # block above commits, seeing nothing -- this bit us on the first version.
+    return {
+        "id": attachment_id, "filename": filename, "mime_type": mime_type, "size": size,
+        "stored_path": stored_path, "is_image": int(is_image), "is_text": int(is_text),
+        "extracted_text": extracted_text, "extraction_note": extraction_note, "created_at": created_at,
+    }
+
+
+def get_attachment(attachment_id: int):
+    with conn() as c:
+        row = c.execute("SELECT * FROM attachments WHERE id = ?", (attachment_id,)).fetchone()
+        return dict(row) if row else None
+
+
+def link_message_attachment(message_id: int, attachment_id: int):
+    with conn() as c:
+        c.execute("INSERT OR IGNORE INTO message_attachments(message_id, attachment_id) VALUES (?,?)",
+                  (message_id, attachment_id))
+
+
+def get_message_attachments(message_id: int):
+    with conn() as c:
+        rows = c.execute(
+            """SELECT a.* FROM attachments a
+               INNER JOIN message_attachments ma ON ma.attachment_id = a.id
+               WHERE ma.message_id = ?""", (message_id,)).fetchall()
+        return [dict(r) for r in rows]

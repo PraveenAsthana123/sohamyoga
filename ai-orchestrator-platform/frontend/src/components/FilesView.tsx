@@ -3,8 +3,10 @@ import Editor from '@monaco-editor/react'
 import { api, type FsEntry, type FsRoot, type FsSearchResult } from '../api'
 import { Markdown } from './Markdown'
 import { PdfViewer } from './PdfViewer'
+import { DocxViewer } from './DocxViewer'
 
 const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.svg'])
+const VIDEO_EXT = new Set(['.mp4', '.webm', '.mov', '.mkv', '.avi'])
 
 const LANGUAGE_BY_EXT: Record<string, string> = {
   '.py': 'python', '.ts': 'typescript', '.tsx': 'typescript', '.js': 'javascript',
@@ -21,10 +23,12 @@ function extOf(name: string): string {
   return i >= 0 ? name.slice(i).toLowerCase() : ''
 }
 
-function kindOf(name: string): 'pdf' | 'image' | 'text' {
+function kindOf(name: string): 'pdf' | 'image' | 'video' | 'docx' | 'text' {
   const ext = extOf(name)
   if (ext === '.pdf') return 'pdf'
+  if (ext === '.docx') return 'docx'
   if (IMAGE_EXT.has(ext)) return 'image'
+  if (VIDEO_EXT.has(ext)) return 'video'
   return 'text'
 }
 
@@ -45,6 +49,7 @@ export function FilesView({ onAssign }: { onAssign: (projectKey: string, context
   const [searchErr, setSearchErr] = useState('')
   const [selected, setSelected] = useState<Selected | null>(null)
   const [listErr, setListErr] = useState('')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     api.fsRoots().then((rs) => {
@@ -59,6 +64,7 @@ export function FilesView({ onAssign }: { onAssign: (projectKey: string, context
     setBrowsePath('.')
     setSearchResult(null)
     setSelected(null)
+    setSidebarCollapsed(false) // switching project/root -> show the full tree again to browse it
   }, [root])
 
   useEffect(() => {
@@ -75,13 +81,23 @@ export function FilesView({ onAssign }: { onAssign: (projectKey: string, context
 
   const openFile = (relPath: string, name: string) => {
     setSelected({ root, relPath, name })
+    // Opening a file gives the editor the room — auto-collapse the browser
+    // panel, same as VS Code narrowing the explorer when you focus an editor.
+    setSidebarCollapsed(true)
   }
 
   const currentRootMeta = roots.find((r) => r.key === root)
 
   return (
     <div className="files-view">
-      <div className="files-sidebar">
+      <button
+        className="files-sidebar-toggle"
+        title={sidebarCollapsed ? 'Show file browser' : 'Hide file browser (more room for the editor)'}
+        onClick={() => setSidebarCollapsed((c) => !c)}
+      >
+        {sidebarCollapsed ? '▶' : '◀'}
+      </button>
+      <div className={`files-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="section">
           <label>Workspace root</label>
           <select value={root} onChange={(e) => setRoot(e.target.value)}>
@@ -268,9 +284,15 @@ function FilePreview({ selected, onAssign }: { selected: Selected; onAssign: (ti
 
       <div className="preview-body">
         {kind === 'pdf' && <PdfViewer url={api.fsRawUrl(selected.root, selected.relPath)} />}
+        {kind === 'docx' && <DocxViewer url={api.fsRawUrl(selected.root, selected.relPath)} />}
         {kind === 'image' && (
           <div className="image-preview">
             <img src={api.fsRawUrl(selected.root, selected.relPath)} alt={selected.name} />
+          </div>
+        )}
+        {kind === 'video' && (
+          <div className="video-preview">
+            <video src={api.fsRawUrl(selected.root, selected.relPath)} controls style={{ maxWidth: '100%' }} />
           </div>
         )}
         {kind === 'text' && !loaded && <div className="viewer-loading">Loading…</div>}

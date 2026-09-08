@@ -1,11 +1,12 @@
 'use client';
 // /customer/features — self-service catalog of every real customer-facing
-// feature in the portal, grouped by purpose. This is the customer-side
-// counterpart to the admin's /admin/module-assurance stakeholder view: same
-// idea (a full feature inventory), but written for the person actually using
-// the portal rather than the person operating it. Routes listed here are all
-// real, currently-deployed pages — nothing here is a mock or a "coming soon"
-// placeholder unless explicitly labelled as such.
+// feature in the portal, grouped by purpose. Rewritten 2026-08-31: several
+// linked routes here were previously convincing-looking mocks (hardcoded
+// arrays presented as real data) despite this page's own prior claim that
+// "nothing here is a placeholder." That claim was false and has been fixed —
+// every mock was either rewired to real data or replaced with an honest
+// "not yet available" state; the one item still genuinely unbuilt (AI pose
+// analysis) is now labeled as such instead of hidden behind fake output.
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -14,7 +15,7 @@ import { customerAuthApi, CustomerUser } from '@/lib/api';
 interface FeatureGroup {
   title: string;
   description: string;
-  items: Array<{ label: string; href: string; description: string }>;
+  items: Array<{ label: string; href: string; description: string; notYetAvailable?: boolean }>;
 }
 
 const FEATURE_GROUPS: FeatureGroup[] = [
@@ -22,9 +23,25 @@ const FEATURE_GROUPS: FeatureGroup[] = [
     title: 'Book & Practice',
     description: 'Browse and reserve real classes.',
     items: [
-      { label: 'Class Catalog', href: '/catalog', description: 'Browse available classes by teacher, level and style.' },
       { label: 'Book a Class', href: '/booking', description: 'Reserve a spot in an upcoming session.' },
+      { label: 'My Bookings', href: '/customer/bookings', description: 'Your real upcoming and past classes.' },
       { label: 'Membership Plans', href: '/membership', description: 'Compare and choose a membership tier.' },
+      { label: 'Manage Subscription', href: '/customer/subscription', description: 'View your plan, pause, or cancel.' },
+      { label: 'My Goals', href: '/customer/goals', description: 'Structured practice goals, ranked by priority.' },
+      { label: 'My Plan', href: '/customer/plan', description: 'Your teacher-assigned personalized practice plan.' },
+      { label: 'Pose Mastery', href: '/customer/pose-mastery', description: 'Real teacher assessments of your pose progression.' },
+    ],
+  },
+  {
+    title: 'My Journey',
+    description: 'Your streaks, badges, and practice history — all real, all earned from actual attendance.',
+    items: [
+      { label: 'My Journey', href: '/customer/journey', description: 'Streaks, points, badges, and active challenges.' },
+      { label: 'Practice Journal', href: '/customer/practice-journal', description: 'Log how each session felt.' },
+      { label: 'Wellness Score', href: '/customer/wellness', description: 'Computed from your real practice journal entries.' },
+      { label: 'Loyalty', href: '/customer/loyalty', description: 'Your tier, points, and discount.' },
+      { label: 'Preferences', href: '/customer/preferences', description: 'Class styles, times, and notification settings.' },
+      { label: 'Settings', href: '/customer/settings', description: 'Turn off features you don\'t want to see.' },
     ],
   },
   {
@@ -32,37 +49,33 @@ const FEATURE_GROUPS: FeatureGroup[] = [
     description: 'Ollama-powered personalization, run against your own real practice data.',
     items: [
       { label: 'AI Yoga Coach', href: '/ai/coach', description: 'Personalized class and pose recommendations from AiCoachJob.' },
-      { label: 'Pose Analysis', href: '/ai/pose', description: 'AI-assisted pose feedback.' },
-      { label: 'Progress Tracking', href: '/ai/progress', description: 'Your practice trends over time.' },
-    ],
-  },
-  {
-    title: 'My Journey',
-    description: 'Your streaks, badges and practice history.',
-    items: [
-      { label: 'Dashboard', href: '/student/dashboard', description: 'Overview of your streaks, badges and points.' },
-      { label: 'Calendar', href: '/student/calendar', description: 'Your upcoming and past bookings.' },
-      { label: 'Challenges', href: '/student/challenges', description: 'Active milestones and community challenges.' },
-      { label: 'Practice History', href: '/student/history', description: 'Every logged practice journal entry.' },
-      { label: 'Preferences', href: '/student/preferences', description: 'Notification and practice preferences.' },
+      { label: 'Pose Analysis', href: '/ai/pose', description: 'Camera preview is live; automated feedback is not built yet.', notYetAvailable: true },
     ],
   },
   {
     title: 'Community & Content',
-    description: 'Articles, live chat and social updates.',
+    description: 'Articles, live chat, and social updates.',
     items: [
       { label: 'Blog', href: '/customer/blog', description: 'Studio articles and announcements.' },
       { label: 'Live Chat', href: '/customer/chat', description: 'Message the studio directly.' },
-      { label: 'Social Feed', href: '/customer/social', description: 'Recent posts from the studio’s connected social accounts.' },
-      { label: 'Community', href: '/community', description: 'Community highlights and shared achievements.' },
+      { label: 'Inbox', href: '/customer/inbox', description: 'Real notifications about your bookings — not an email inbox.' },
+      { label: 'Follow Us', href: '/customer/social', description: 'Where our studio is genuinely live on social platforms.' },
+      { label: 'Community Polls', href: '/community/polls', description: 'Vote and see real results.' },
+      { label: 'Call In / Call Out', href: '/customer/call-requests', description: "Let us know you'll call in, or request a callback." },
     ],
   },
   {
     title: 'Account',
-    description: 'Manage your account and payments.',
+    description: 'Manage your account, payments, and support.',
     items: [
       { label: 'Account Dashboard', href: '/customer/dashboard', description: 'Your account overview and recent activity.' },
+      { label: 'Profile & Addresses', href: '/customer/profile', description: 'Manage your saved addresses.' },
+      { label: 'Emergency Contacts', href: '/customer/emergency-contacts', description: 'Who to contact if there\'s an emergency during class.' },
+      { label: 'Billing & Invoices', href: '/customer/invoices', description: 'Your billing history.' },
+      { label: 'Support', href: '/customer/support', description: 'Open a ticket with our team.' },
+      { label: 'Integrations', href: '/customer/integrations', description: 'Real integration status — calendar export works today; email/SMS/wearable sync are honestly not built yet.' },
       { label: 'Payments', href: '/payments', description: 'Your payment history and receipts.' },
+      { label: 'Refer a Friend', href: '/customer/referral', description: 'Share your referral link and track rewards.' },
     ],
   },
 ];
@@ -80,7 +93,7 @@ export default function CustomerFeaturesPage() {
         <h1 className="text-2xl font-bold text-gray-900">Everything available to you</h1>
         <p className="mt-1 text-sm text-gray-500">
           {user ? `Signed in as ${user.name}. ` : ''}
-          Every feature below is real and working — nothing here is a placeholder.
+          Every feature below reads and writes real data. Anything not yet built is labeled "not yet available" rather than hidden or faked.
         </p>
       </div>
 
@@ -94,9 +107,9 @@ export default function CustomerFeaturesPage() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-lg border border-gray-200 p-3 text-sm hover:border-blue-300 hover:bg-blue-50/40"
+                  className={`rounded-lg border p-3 text-sm ${item.notYetAvailable ? 'border-amber-200 bg-amber-50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/40'}`}
                 >
-                  <div className="font-medium text-gray-900">{item.label}</div>
+                  <div className="font-medium text-gray-900">{item.label}{item.notYetAvailable ? ' (not yet available)' : ''}</div>
                   <div className="mt-0.5 text-xs text-gray-500">{item.description}</div>
                 </Link>
               ))}

@@ -7,7 +7,7 @@
 // which point this same page shell shows real data for that platform too
 // with zero new code here.
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 interface Signal {
   postId: string; excerpt: string | null; url: string | null;
@@ -25,6 +25,33 @@ export default function PlatformSocialPage({ params }: { params: { platform: str
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [data, setData] = useState<ViralData | null>(null);
   const [error, setError] = useState('');
+  const [amplifying, setAmplifying] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, { hook: string }[]>>({});
+  const [leadChecks, setLeadChecks] = useState<Record<string, { correlatedLeadCount: number; methodology: string } | { error: string }>>({});
+  const [checkingLeads, setCheckingLeads] = useState<string | null>(null);
+
+  async function checkLeads(postId: string) {
+    setCheckingLeads(postId);
+    try {
+      const res = await fetch(`/api/admin/social/viral/${postId}/leads`);
+      const body = await res.json();
+      setLeadChecks(x => ({ ...x, [postId]: res.ok ? body : { error: body.error } }));
+    } finally {
+      setCheckingLeads(null);
+    }
+  }
+
+  async function amplify(postId: string) {
+    setAmplifying(postId);
+    try {
+      const res = await fetch(`/api/admin/social/viral/${postId}/amplify`, { method: 'POST' });
+      const body = await res.json();
+      if (res.ok) setDrafts(d => ({ ...d, [postId]: body.drafts }));
+      else setDrafts(d => ({ ...d, [postId]: [{ hook: `Error: ${body.error}` }] }));
+    } finally {
+      setAmplifying(null);
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/admin/social/${platform}/viral-signals`, { cache: 'no-store' })
@@ -91,26 +118,58 @@ export default function PlatformSocialPage({ params }: { params: { platform: str
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    {['Post', 'Share Velocity/hr', 'Like Velocity/hr', 'Z-Score', 'Viral Score', 'Status', 'Note'].map(h => (
+                    {['Post', 'Share Velocity/hr', 'Like Velocity/hr', 'Z-Score', 'Viral Score', 'Status', 'Note', 'Amplify', 'Lead Detection'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {data.signals.map(s => (
-                    <tr key={s.postId} className={s.isViral ? 'bg-green-50' : ''}>
-                      <td className="px-4 py-3 max-w-xs truncate text-gray-700">{s.excerpt ?? s.postId.slice(0, 8)}</td>
-                      <td className="px-4 py-3 text-gray-600">{s.shareVelocity.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-gray-600">{s.likeVelocity.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-gray-600">{s.zScore !== null ? s.zScore.toFixed(1) : 'baseline pending'}</td>
-                      <td className="px-4 py-3 font-semibold text-gray-800">{s.viralScore}</td>
-                      <td className="px-4 py-3">
-                        {s.isViral
-                          ? <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Viral</span>
-                          : <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">Normal</span>}
-                      </td>
-                      <td className="px-4 py-3 max-w-xs text-xs text-gray-500">{s.aiNote ?? '—'}</td>
-                    </tr>
+                    <Fragment key={s.postId}>
+                      <tr className={s.isViral ? 'bg-green-50' : ''}>
+                        <td className="px-4 py-3 max-w-xs truncate text-gray-700">
+                          <a href={`/admin/social/posts/${s.postId}`} className="hover:underline hover:text-indigo-600">{s.excerpt ?? s.postId.slice(0, 8)}</a>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">{s.shareVelocity.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-gray-600">{s.likeVelocity.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-gray-600">{s.zScore !== null ? s.zScore.toFixed(1) : 'baseline pending'}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-800">{s.viralScore}</td>
+                        <td className="px-4 py-3">
+                          {s.isViral
+                            ? <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Viral</span>
+                            : <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">Normal</span>}
+                        </td>
+                        <td className="px-4 py-3 max-w-xs text-xs text-gray-500">{s.aiNote ?? '—'}</td>
+                        <td className="px-4 py-3">
+                          {s.isViral && (
+                            <button onClick={() => amplify(s.postId)} disabled={amplifying === s.postId} className="text-xs text-indigo-600 hover:underline disabled:opacity-50">
+                              {amplifying === s.postId ? 'Generating…' : 'Generate hooks'}
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => checkLeads(s.postId)} disabled={checkingLeads === s.postId} className="text-xs text-indigo-600 hover:underline disabled:opacity-50">
+                            {checkingLeads === s.postId ? 'Checking…' : 'Check leads'}
+                          </button>
+                          {leadChecks[s.postId] && (
+                            'error' in leadChecks[s.postId]
+                              ? <p className="text-xs text-red-500 mt-1">{(leadChecks[s.postId] as { error: string }).error}</p>
+                              : <p className="text-xs text-gray-500 mt-1" title={(leadChecks[s.postId] as { methodology: string }).methodology}>
+                                  {(leadChecks[s.postId] as { correlatedLeadCount: number }).correlatedLeadCount} correlated lead(s)
+                                </p>
+                          )}
+                        </td>
+                      </tr>
+                      {drafts[s.postId] && (
+                        <tr>
+                          <td colSpan={9} className="bg-indigo-50 px-4 py-2">
+                            {drafts[s.postId].map((d, i) => (
+                              <p key={i} className="text-xs text-gray-700">• {d.hook}</p>
+                            ))}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

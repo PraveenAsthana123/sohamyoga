@@ -6,11 +6,12 @@
 // section and its known real limitations.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 
 test.describe('GOV-001 GET /api/admin/ai-governance — admin auth', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/admin/ai-governance');
+    const res = await unauth.get(apiUrl('/api/admin/ai-governance'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

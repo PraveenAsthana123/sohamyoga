@@ -24,6 +24,7 @@ interface Link {
   fullUrl: string;
   trackingUrl: string;
   clickCount: number;
+  botClickCount: number;
   leadsCount: number;
   convertedCount: number;
   createdBy: string;
@@ -200,8 +201,9 @@ export default function UtmTrackingPage() {
                   <button onClick={() => remove(l.id)} className="px-3 py-1.5 bg-gray-800 hover:bg-red-900 rounded-lg text-xs transition-colors shrink-0">Delete</button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-4 gap-3 text-sm">
                   <div><span className="text-gray-500">Clicks:</span> <span className="font-semibold">{l.clickCount}</span></div>
+                  <div title="UA-matched bots/crawlers/preview-fetchers -- redirected but not counted as real clicks"><span className="text-gray-500">Bot hits:</span> <span className="font-semibold text-amber-500">{l.botClickCount}</span></div>
                   <div><span className="text-gray-500">Leads:</span> <span className="font-semibold">{l.leadsCount}</span></div>
                   <div><span className="text-gray-500">Converted:</span> <span className="font-semibold">{l.convertedCount}</span></div>
                 </div>

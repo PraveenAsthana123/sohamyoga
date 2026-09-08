@@ -14,7 +14,7 @@ import { getPool } from '../lib/postgres';
 import { ollama } from './OllamaClient';
 import { runJob } from '../domain/pipeline/runJob';
 
-const SCHEDULED_MODULES = ['PricingCrossPortalJob', 'ReviewsCrossPortalJob', 'OperationsAlertSweepJob', 'SelfHealJob'];
+const SCHEDULED_MODULES = ['PricingCrossPortalJob', 'ReviewsCrossPortalJob', 'OperationsAlertSweepJob', 'SelfHealJob', 'VoiceCallDispatchJob'];
 
 async function main() {
   console.log('[cron] market-research-portal cron runner starting');

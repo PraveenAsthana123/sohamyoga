@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'health' | 'analytics' | 'ai' | 'integrations';
+type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'health' | 'analytics' | 'ai' | 'pixels' | 'integrations';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview',      label: 'Overview'      },
@@ -11,8 +11,97 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'health',        label: 'Health'        },
   { id: 'analytics',     label: 'Analytics'     },
   { id: 'ai',            label: 'AI Engine'     },
+  { id: 'pixels',        label: 'Pixels'        },
   { id: 'integrations',  label: 'Integrations'  },
 ];
+
+interface PixelRow { platform: 'meta_pixel' | 'ga4'; pixel_id: string | null; enabled: boolean; updated_at: string }
+
+function PixelsTab() {
+  const [rows, setRows] = useState<PixelRow[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, { pixelId: string; enabled: boolean }>>({
+    meta_pixel: { pixelId: '', enabled: false },
+    ga4: { pixelId: '', enabled: false },
+  });
+  const [saving, setSaving] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const load = () => {
+    fetch('/api/admin/tracking-pixels').then(r => r.ok ? r.json() : null).then(d => {
+      if (!d?.config) return;
+      setRows(d.config);
+      const next = { ...drafts };
+      for (const row of d.config as PixelRow[]) next[row.platform] = { pixelId: row.pixel_id ?? '', enabled: row.enabled };
+      setDrafts(next);
+      setLoaded(true);
+    });
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async (platform: 'meta_pixel' | 'ga4') => {
+    setSaving(platform);
+    await fetch('/api/admin/tracking-pixels', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform, pixelId: drafts[platform].pixelId, enabled: drafts[platform].enabled }),
+    });
+    load();
+    setSaving(null);
+  };
+
+  const platforms: { key: 'meta_pixel' | 'ga4'; label: string; placeholder: string }[] = [
+    { key: 'meta_pixel', label: 'Meta Pixel (Facebook/Instagram retargeting)', placeholder: 'e.g. 1234567890123456' },
+    { key: 'ga4', label: 'Google Analytics 4 (GA4 Measurement ID)', placeholder: 'e.g. G-XXXXXXXXXX' },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        Real embed, no fabrication: nothing fires on the public site unless (1) a real ID is saved and enabled here, AND
+        (2) the visitor has given <strong>marketing</strong>-level consent in the cookie banner. Before this, `grep`-ing the
+        codebase for `fbq(` / `gtag(&apos;config&apos;` returned zero hits anywhere.
+      </div>
+      {platforms.map(p => {
+        const row = rows.find(r => r.platform === p.key);
+        return (
+          <div key={p.key} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-3">
+            <h3 className="font-semibold text-gray-900">{p.label}</h3>
+            <div className="flex gap-3 items-center flex-wrap">
+              <input
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-[220px]"
+                placeholder={p.placeholder}
+                value={drafts[p.key]?.pixelId ?? ''}
+                onChange={e => setDrafts({ ...drafts, [p.key]: { ...drafts[p.key], pixelId: e.target.value } })}
+              />
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={drafts[p.key]?.enabled ?? false}
+                  onChange={e => setDrafts({ ...drafts, [p.key]: { ...drafts[p.key], enabled: e.target.checked } })}
+                />
+                Enabled
+              </label>
+              <button
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white disabled:opacity-50"
+                disabled={saving === p.key}
+                onClick={() => save(p.key)}
+              >
+                {saving === p.key ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+            {loaded && (
+              <div className="text-xs text-gray-500">
+                {row?.enabled && row.pixel_id
+                  ? `Live: embeds on every public page once a visitor consents to marketing tracking. Last updated ${new Date(row.updated_at).toLocaleString()}.`
+                  : 'Not configured — no script embeds today.'}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 interface DashboardData {
   kpis: { activeCampaigns: number; totalSpend: number; totalImpressions: number; totalClicks: number; conversions: number; avgCtrPct: number; avgCpc: number; avgCpm: number; avgCpa: number };
@@ -24,7 +113,13 @@ interface AttributionData {
   windowDays: number;
   byChannel: { channel: string; conversions: number; pct: number }[];
 }
-interface CampaignRow { id: string; name: string; type: string; status: string; budget: number; impressions: number; clicks: number; ctr: number; cpc: number }
+interface CampaignRow { id: string; name: string; type: string; platform: string; status: string; budget: number; startDate: string | null; endDate: string | null; impressions: number; clicks: number; ctr: number; cpc: number }
+
+const PLATFORM_LABELS: Record<string, string> = {
+  google_ads: 'Google Ads', meta_ads: 'Meta Ads', tiktok_ads: 'TikTok Ads',
+  linkedin_ads: 'LinkedIn Ads', snapchat_ads: 'Snapchat Ads', other: 'Other',
+};
+interface AudienceRow { id: string; audienceType: string; segmentKey: string; segmentValue: string; bidAdjustment: number | null; isExcluded: boolean }
 interface AdGroupRow { id: string; name: string; campaign: string; status: string; keywords: number; ads: number; bid: number; ctr: number }
 interface CreativeRow { id: string; name: string; type: string; status: string; ai: boolean; impressions: number; clicks: number; ctr: number; cpc: number }
 interface HealthFinding {
@@ -167,6 +262,331 @@ const TYPE_BADGE: Record<string, string> = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+const AUDIENCE_TYPES = ['geo', 'device', 'language', 'interest', 'custom', 'lookalike'];
+
+// Real audience-targeting rules per campaign -- ad_audience previously had
+// zero API routes or UI referencing it despite existing in the schema.
+// Manual rule entry only; no lookalike-modeling computation and no
+// ad-platform sync (no connected account in this environment).
+const MATCH_TYPES = ['broad', 'phrase', 'exact'];
+
+interface KeywordRow { id: string; text: string; matchType: string; bidAdjustmentPercent: number | null; isNegative: boolean }
+
+// Real Keyword Management -- ad_keyword existed in the schema with zero
+// create/edit routes anywhere (only ever read for a dashboard count).
+// Manual keyword entry only -- no keyword-research/search-volume data
+// source is connected in this environment.
+function KeywordManagementModal({ adGroup, onClose }: { adGroup: AdGroupRow; onClose: () => void }) {
+  const [keywords, setKeywords] = useState<KeywordRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState('');
+  const [matchType, setMatchType] = useState('broad');
+  const [isNegative, setIsNegative] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = () => {
+    setLoading(true);
+    fetchJson<{ keywords: KeywordRow[] }>(`/api/ads/adgroups/${adGroup.id}/keywords`)
+      .then(d => setKeywords(d?.keywords ?? [])).finally(() => setLoading(false));
+  };
+  useEffect(load, [adGroup.id]);
+
+  async function addKeyword() {
+    setError('');
+    const res = await fetch(`/api/ads/adgroups/${adGroup.id}/keywords`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, matchType, isNegative }),
+    });
+    const body = await res.json();
+    if (!res.ok) { setError(body.error || 'Failed to add keyword.'); return; }
+    setText(''); setIsNegative(false);
+    load();
+  }
+
+  async function removeKeyword(keywordId: string) {
+    await fetch(`/api/ads/adgroups/${adGroup.id}/keywords/${keywordId}`, { method: 'DELETE' });
+    load();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-lg space-y-3 rounded-xl bg-white p-5 shadow-lg">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-gray-900">Keywords — {adGroup.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div className="flex gap-2">
+          <input placeholder="keyword" value={text} onChange={e => setText(e.target.value)} className="flex-1 rounded border p-2 text-sm" />
+          <select value={matchType} onChange={e => setMatchType(e.target.value)} className="rounded border p-2 text-sm">
+            {MATCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <label className="flex items-center gap-1 text-xs text-gray-600">
+            <input type="checkbox" checked={isNegative} onChange={e => setIsNegative(e.target.checked)} /> negative
+          </label>
+          <button onClick={addKeyword} disabled={!text.trim()} className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Add</button>
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {keywords.map(k => (
+              <div key={k.id} className="flex justify-between items-center rounded border p-2 text-sm">
+                <span>
+                  {k.isNegative && <span className="text-red-500 mr-1">−</span>}
+                  {k.text} <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 ml-1">{k.matchType}</span>
+                </span>
+                <button onClick={() => removeKeyword(k.id)} className="text-xs text-red-500 hover:underline">Remove</button>
+              </div>
+            ))}
+            {!keywords.length && <p className="text-xs text-gray-400">No keywords yet — add one above.</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface BudgetEventRow { id: string; eventType: string; amountCents: number; dailyBudgetCents: number | null; recordedBy: string; createdAt: string }
+
+// Real Budget Allocation -- ad_budget_event existed with zero writers.
+// Each event both logs the change AND actually updates the campaign's real
+// daily_budget_cents in the same DB transaction.
+function BudgetModal({ campaign, onClose, onChanged }: { campaign: CampaignRow; onClose: () => void; onChanged: () => void }) {
+  const [events, setEvents] = useState<BudgetEventRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [eventType, setEventType] = useState<'budget_increase' | 'budget_decrease'>('budget_increase');
+  const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
+
+  const load = () => {
+    setLoading(true);
+    fetchJson<{ events: BudgetEventRow[] }>(`/api/ads/campaigns/${campaign.id}/budget-events`)
+      .then(d => setEvents(d?.events ?? [])).finally(() => setLoading(false));
+  };
+  useEffect(load, [campaign.id]);
+
+  async function submit() {
+    setError('');
+    const res = await fetch(`/api/ads/campaigns/${campaign.id}/budget-events`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventType, amountCents: Math.round(Number(amount) * 100) }),
+    });
+    const body = await res.json();
+    if (!res.ok) { setError(body.error || 'Failed to record budget event.'); return; }
+    setAmount('');
+    load();
+    onChanged();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-lg space-y-3 rounded-xl bg-white p-5 shadow-lg">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-gray-900">Budget — {campaign.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <p className="text-sm text-gray-600">Current daily budget: ₹{campaign.budget}</p>
+        <div className="flex gap-2">
+          <select value={eventType} onChange={e => setEventType(e.target.value as typeof eventType)} className="rounded border p-2 text-sm">
+            <option value="budget_increase">Increase</option>
+            <option value="budget_decrease">Decrease</option>
+          </select>
+          <input type="number" min="0.01" step="0.01" placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} className="flex-1 rounded border p-2 text-sm" />
+          <button onClick={submit} disabled={!amount || Number(amount) <= 0} className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Apply</button>
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {events.map(e => (
+              <div key={e.id} className="flex justify-between items-center rounded border p-2 text-sm">
+                <span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded mr-2 ${e.eventType === 'budget_increase' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{e.eventType}</span>
+                  ₹{(e.amountCents / 100).toFixed(2)} by {e.recordedBy}
+                </span>
+                <span className="text-xs text-gray-400">{new Date(e.createdAt).toLocaleString()}</span>
+              </div>
+            ))}
+            {!events.length && <p className="text-xs text-gray-400">No budget events yet.</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const BIDDING_STRATEGIES = ['manual_cpc', 'target_cpa', 'target_roas', 'maximize_clicks', 'maximize_conversions'] as const;
+const DEVICE_TARGETS = ['desktop', 'mobile', 'tablet', 'tv'] as const;
+
+function BiddingPlacementModal({ campaign, onClose }: { campaign: CampaignRow; onClose: () => void }) {
+  const [biddingStrategy, setBiddingStrategy] = useState<string>('manual_cpc');
+  const [deviceTargets, setDeviceTargets] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchJson<{ biddingStrategy: string; deviceTargets: string[] }>(`/api/ads/campaigns/${campaign.id}/settings`)
+      .then(d => { if (d) { setBiddingStrategy(d.biddingStrategy); setDeviceTargets(d.deviceTargets); } })
+      .finally(() => setLoading(false));
+  }, [campaign.id]);
+
+  function toggleDevice(d: string) {
+    setDeviceTargets(list => list.includes(d) ? list.filter(x => x !== d) : [...list, d]);
+  }
+
+  async function save() {
+    setError(''); setSaved(false);
+    const res = await fetch(`/api/ads/campaigns/${campaign.id}/settings`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ biddingStrategy, deviceTargets }),
+    });
+    const body = await res.json();
+    if (!res.ok) { setError(body.error || 'Failed to save.'); return; }
+    setSaved(true);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-lg space-y-3 rounded-xl bg-white p-5 shadow-lg">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-gray-900">Bidding & Placement — {campaign.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
+          <>
+            <div>
+              <label className="text-xs font-medium text-gray-500">Bidding strategy</label>
+              <select value={biddingStrategy} onChange={e => setBiddingStrategy(e.target.value)} className="mt-1 w-full rounded border p-2 text-sm">
+                {BIDDING_STRATEGIES.map(s => <option key={s} value={s}>{s.replaceAll('_', ' ')}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500">Device placement</label>
+              <div className="mt-1 flex gap-3 flex-wrap">
+                {DEVICE_TARGETS.map(d => (
+                  <label key={d} className="flex items-center gap-1.5 text-sm">
+                    <input type="checkbox" checked={deviceTargets.includes(d)} onChange={() => toggleDevice(d)} />
+                    {d}
+                  </label>
+                ))}
+              </div>
+              {!deviceTargets.length && <p className="mt-1 text-xs text-amber-600">No devices selected — ads will not show on any placement.</p>}
+            </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <div className="flex items-center gap-2">
+              <button onClick={save} className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-white">Save</button>
+              {saved && <span className="text-xs text-green-600">Saved.</span>}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AudienceTargetingModal({ campaign, onClose }: { campaign: CampaignRow; onClose: () => void }) {
+  const [audiences, setAudiences] = useState<AudienceRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [audienceType, setAudienceType] = useState('geo');
+  const [segmentKey, setSegmentKey] = useState('');
+  const [segmentValue, setSegmentValue] = useState('');
+  const [error, setError] = useState('');
+  const [rtUrlPattern, setRtUrlPattern] = useState('');
+  const [rtReach, setRtReach] = useState<number | null>(null);
+  const [rtChecking, setRtChecking] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    fetchJson<{ audiences: AudienceRow[] }>(`/api/ads/campaigns/${campaign.id}/audiences`)
+      .then(d => setAudiences(d?.audiences ?? [])).finally(() => setLoading(false));
+  };
+  useEffect(load, [campaign.id]);
+
+  async function addRule() {
+    setError('');
+    const res = await fetch(`/api/ads/campaigns/${campaign.id}/audiences`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audienceType, segmentKey, segmentValue }),
+    });
+    const body = await res.json();
+    if (!res.ok) { setError(body.error || 'Failed to add rule.'); return; }
+    setSegmentKey(''); setSegmentValue('');
+    load();
+  }
+
+  async function removeRule(audienceId: string) {
+    await fetch(`/api/ads/campaigns/${campaign.id}/audiences/${audienceId}`, { method: 'DELETE' });
+    load();
+  }
+
+  async function previewReach() {
+    if (!rtUrlPattern.trim()) return;
+    setRtChecking(true);
+    const d = await fetchJson<{ reach: number }>(`/api/ads/retargeting/preview?urlPattern=${encodeURIComponent(rtUrlPattern.trim())}&days=30`);
+    setRtReach(d?.reach ?? 0);
+    setRtChecking(false);
+  }
+
+  async function saveRetargeting() {
+    setError('');
+    const res = await fetch(`/api/ads/campaigns/${campaign.id}/audiences`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audienceType: 'custom', segmentKey: 'site_visitor_url', segmentValue: rtUrlPattern.trim() }),
+    });
+    const body = await res.json();
+    if (!res.ok) { setError(body.error || 'Failed to save retargeting audience.'); return; }
+    setRtUrlPattern(''); setRtReach(null);
+    load();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-lg space-y-3 rounded-xl bg-white p-5 shadow-lg">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-gray-900">Audience Targeting — {campaign.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div className="flex gap-2">
+          <select value={audienceType} onChange={e => setAudienceType(e.target.value)} className="rounded border p-2 text-sm">
+            {AUDIENCE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <input placeholder="key (e.g. city)" value={segmentKey} onChange={e => setSegmentKey(e.target.value)} className="flex-1 rounded border p-2 text-sm" />
+          <input placeholder="value (e.g. Vancouver)" value={segmentValue} onChange={e => setSegmentValue(e.target.value)} className="flex-1 rounded border p-2 text-sm" />
+          <button onClick={addRule} disabled={!segmentKey.trim() || !segmentValue.trim()} className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Add</button>
+        </div>
+
+        <div className="rounded-lg border border-dashed border-gray-300 p-3 space-y-2">
+          <p className="text-sm font-medium text-gray-700">Retargeting — build from real site visitors</p>
+          <div className="flex gap-2">
+            <input placeholder="URL path, e.g. /booking" value={rtUrlPattern} onChange={e => { setRtUrlPattern(e.target.value); setRtReach(null); }} className="flex-1 rounded border p-2 text-sm" />
+            <button onClick={previewReach} disabled={!rtUrlPattern.trim() || rtChecking} className="rounded bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 disabled:opacity-50">
+              {rtChecking ? 'Checking…' : 'Preview reach'}
+            </button>
+          </div>
+          {rtReach !== null && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">{rtReach} distinct visitor{rtReach === 1 ? '' : 's'} to matching URLs in the last 30 days.</span>
+              <button onClick={saveRetargeting} disabled={rtReach === 0} className="rounded bg-amber-500 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Save as audience</button>
+            </div>
+          )}
+        </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {audiences.map(a => (
+              <div key={a.id} className="flex justify-between items-center rounded border p-2 text-sm">
+                <span><span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 mr-2">{a.audienceType}</span>{a.segmentKey} = {a.segmentValue}{a.isExcluded ? ' (excluded)' : ''}</span>
+                <button onClick={() => removeRule(a.id)} className="text-xs text-red-500 hover:underline">Remove</button>
+              </div>
+            ))}
+            {!audiences.length && <p className="text-xs text-gray-400">No targeting rules yet — add one above.</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -177,6 +597,13 @@ export default function AdsAdminPage() {
   const [adGroups, setAdGroups] = useState<AdGroupRow[]>([]);
   const [creatives, setCreatives] = useState<CreativeRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showNewCampaign, setShowNewCampaign] = useState(false);
+  const [newCampaign, setNewCampaign] = useState({ name: '', campaignType: 'search', platform: 'google_ads', dailyBudget: '50', startDate: '', endDate: '' });
+  const [createError, setCreateError] = useState('');
+  const [targetingCampaign, setTargetingCampaign] = useState<CampaignRow | null>(null);
+  const [keywordAdGroup, setKeywordAdGroup] = useState<AdGroupRow | null>(null);
+  const [budgetCampaign, setBudgetCampaign] = useState<CampaignRow | null>(null);
+  const [biddingCampaign, setBiddingCampaign] = useState<CampaignRow | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -201,6 +628,24 @@ export default function AdsAdminPage() {
   const filteredCampaigns = campaigns;
   const kpis = dashboard?.kpis;
 
+  async function createCampaign(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateError('');
+    const res = await fetch('/api/ads/campaigns', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newCampaign.name, campaignType: newCampaign.campaignType, platform: newCampaign.platform, dailyBudget: Number(newCampaign.dailyBudget),
+        startDate: newCampaign.startDate || undefined, endDate: newCampaign.endDate || undefined,
+      }),
+    });
+    const body = await res.json();
+    if (!res.ok) { setCreateError(body.error || 'Failed to create campaign.'); return; }
+    setShowNewCampaign(false);
+    setNewCampaign({ name: '', campaignType: 'search', platform: 'google_ads', dailyBudget: '50', startDate: '', endDate: '' });
+    const qs = statusFilter === 'all' ? '' : `?status=${statusFilter}`;
+    fetchJson<{ campaigns: CampaignRow[] }>(`/api/ads/campaigns${qs}`).then(d => setCampaigns(d?.campaigns ?? []));
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -214,14 +659,52 @@ export default function AdsAdminPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors">
+            <button onClick={() => setShowNewCampaign(true)} className="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors">
               + New Campaign
             </button>
-            <button className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
+            <button disabled title="Not built yet — no image-generation service (e.g. ComfyUI) is connected in this environment." className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg font-medium opacity-40 cursor-not-allowed">
               AI Generate Ad
             </button>
           </div>
         </div>
+
+        {showNewCampaign && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+            <form onSubmit={createCampaign} className="w-full max-w-md space-y-3 rounded-xl bg-white p-5 shadow-lg">
+              <h3 className="font-semibold text-gray-900">New Campaign</h3>
+              <label className="block text-sm">Name
+                <input required className="mt-1 w-full rounded border p-2" value={newCampaign.name} onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })} />
+              </label>
+              <label className="block text-sm">Type
+                <select className="mt-1 w-full rounded border p-2" value={newCampaign.campaignType} onChange={e => setNewCampaign({ ...newCampaign, campaignType: e.target.value })}>
+                  {['search', 'display', 'video', 'shopping', 'app'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm">Platform
+                <select className="mt-1 w-full rounded border p-2" value={newCampaign.platform} onChange={e => setNewCampaign({ ...newCampaign, platform: e.target.value })}>
+                  {Object.entries(PLATFORM_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm">Daily budget (USD)
+                <input required type="number" min="1" step="0.01" className="mt-1 w-full rounded border p-2" value={newCampaign.dailyBudget} onChange={e => setNewCampaign({ ...newCampaign, dailyBudget: e.target.value })} />
+              </label>
+              <div className="flex gap-2">
+                <label className="block text-sm flex-1">Start date
+                  <input type="date" className="mt-1 w-full rounded border p-2" value={newCampaign.startDate} onChange={e => setNewCampaign({ ...newCampaign, startDate: e.target.value })} />
+                </label>
+                <label className="block text-sm flex-1">End date (optional)
+                  <input type="date" min={newCampaign.startDate || undefined} className="mt-1 w-full rounded border p-2" value={newCampaign.endDate} onChange={e => setNewCampaign({ ...newCampaign, endDate: e.target.value })} />
+                </label>
+              </div>
+              {createError && <p className="text-sm text-red-600">{createError}</p>}
+              <p className="text-xs text-gray-400">Creates a real draft campaign. No ad-platform account is connected in this environment, so it will not launch to Google/Meta/TikTok — it is a real local record you can review and extend.</p>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setShowNewCampaign(false)} className="rounded px-3 py-1.5 text-sm text-gray-500">Cancel</button>
+                <button type="submit" className="rounded bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600">Create draft</button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-xl shadow-sm p-1 overflow-x-auto">
@@ -319,7 +802,7 @@ export default function AdsAdminPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>{['ID','Name','Type','Status','Budget/day','Impressions','Clicks','CTR','CPC'].map(h => (
+                  <tr>{['ID','Name','Type','Platform','Status','Schedule','Budget/day','Impressions','Clicks','CTR','CPC','Targeting'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                   ))}</tr>
                 </thead>
@@ -331,22 +814,46 @@ export default function AdsAdminPage() {
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[c.type] ?? 'bg-gray-100 text-gray-600'}`}>{c.type}</span>
                       </td>
+                      <td className="px-4 py-3 text-xs text-gray-600">{PLATFORM_LABELS[c.platform] ?? c.platform}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status] ?? 'bg-gray-100 text-gray-600'}`}>{c.status}</span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                        {c.startDate ? new Date(c.startDate).toLocaleDateString() : '—'}
+                        {c.endDate ? ` – ${new Date(c.endDate).toLocaleDateString()}` : ''}
                       </td>
                       <td className="px-4 py-3">₹{c.budget}</td>
                       <td className="px-4 py-3">{c.impressions ? c.impressions.toLocaleString() : '—'}</td>
                       <td className="px-4 py-3">{c.clicks ? c.clicks.toLocaleString() : '—'}</td>
                       <td className="px-4 py-3">{c.ctr ? `${c.ctr}%` : '—'}</td>
                       <td className="px-4 py-3">{c.cpc ? `₹${c.cpc}` : '—'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => setTargetingCampaign(c)} className="text-xs text-amber-600 hover:underline">Targeting</button>
+                          <button onClick={() => setBudgetCampaign(c)} className="text-xs text-blue-600 hover:underline">Budget</button>
+                          <button onClick={() => setBiddingCampaign(c)} className="text-xs text-purple-600 hover:underline">Bidding</button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             )}
+            {budgetCampaign && (
+              <BudgetModal
+                campaign={budgetCampaign}
+                onClose={() => setBudgetCampaign(null)}
+                onChanged={() => {
+                  const qs = statusFilter === 'all' ? '' : `?status=${statusFilter}`;
+                  fetchJson<{ campaigns: CampaignRow[] }>(`/api/ads/campaigns${qs}`).then(d => setCampaigns(d?.campaigns ?? []));
+                }}
+              />
+            )}
           </div>
         )}
+        {targetingCampaign && <AudienceTargetingModal campaign={targetingCampaign} onClose={() => setTargetingCampaign(null)} />}
+        {biddingCampaign && <BiddingPlacementModal campaign={biddingCampaign} onClose={() => setBiddingCampaign(null)} />}
 
         {/* ── Ad Groups ── */}
         {activeTab === 'adgroups' && (
@@ -354,7 +861,7 @@ export default function AdsAdminPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>{['ID','Ad Group','Campaign','Status','Keywords','Ads','Default Bid','CTR'].map(h => (
+                <tr>{['ID','Ad Group','Campaign','Status','Keywords','Ads','Default Bid','CTR',''].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                 ))}</tr>
               </thead>
@@ -371,16 +878,22 @@ export default function AdsAdminPage() {
                     <td className="px-4 py-3">{g.ads}</td>
                     <td className="px-4 py-3">₹{g.bid}</td>
                     <td className="px-4 py-3">{g.ctr}%</td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => setKeywordAdGroup(g)} className="text-xs text-amber-600 hover:underline">Keywords</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+        {keywordAdGroup && <KeywordManagementModal adGroup={keywordAdGroup} onClose={() => setKeywordAdGroup(null)} />}
 
         {/* ── Creatives ── */}
         {activeTab === 'creatives' && (
-          creatives.length === 0 ? <EmptyState message={loading ? 'Loading…' : 'No ad creatives yet.'} /> :
+          <div className="space-y-4">
+          <DynamicAdBuilder adGroups={adGroups} onCreated={() => fetchJson<{ creatives: CreativeRow[] }>('/api/ads/creatives').then(d => setCreatives(d?.creatives ?? []))} />
+          {creatives.length === 0 ? <EmptyState message={loading ? 'Loading…' : 'No ad creatives yet.'} /> :
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {creatives.map(ad => (
               <div key={ad.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
@@ -402,6 +915,8 @@ export default function AdsAdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+          }
           </div>
         )}
 
@@ -530,6 +1045,8 @@ export default function AdsAdminPage() {
               ))}
             </div>
 
+            <AdCreativeGeneratorPanel adGroups={adGroups} onGenerated={() => fetchJson<{ creatives: CreativeRow[] }>('/api/ads/creatives').then(d => setCreatives(d?.creatives ?? []))} />
+
             {/* Safety note */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-sm font-semibold text-amber-800 mb-1">AI Safety — Ads</p>
@@ -542,6 +1059,9 @@ export default function AdsAdminPage() {
             </div>
           </div>
         )}
+
+        {/* ── Pixels ── */}
+        {activeTab === 'pixels' && <PixelsTab />}
 
         {/* ── Integrations ── */}
         {activeTab === 'integrations' && (
@@ -636,6 +1156,189 @@ export default function AdsAdminPage() {
         )}
 
       </div>
+    </div>
+  );
+}
+
+// Real Dynamic Ad Builder -- manual RSA-style multi-headline/description
+// creative composition. The advertisement table already stored these as
+// arrays but only the AI generator (below) or a seeder could write one;
+// this is the first manual authoring path, combining N headlines x M
+// descriptions the way Google/Meta responsive ads actually serve variants.
+function DynamicAdBuilder({ adGroups, onCreated }: { adGroups: AdGroupRow[]; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [adGroupId, setAdGroupId] = useState('');
+  const [name, setName] = useState('');
+  const [adType, setAdType] = useState('responsive_search');
+  const [finalUrl, setFinalUrl] = useState('');
+  const [callToAction, setCallToAction] = useState('');
+  const [headlines, setHeadlines] = useState(['']);
+  const [descriptions, setDescriptions] = useState(['']);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const cleanHeadlines = headlines.map(h => h.trim()).filter(Boolean);
+  const cleanDescriptions = descriptions.map(d => d.trim()).filter(Boolean);
+  const variantCount = cleanHeadlines.length * cleanDescriptions.length;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSaving(true);
+    const res = await fetch('/api/ads/creatives', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adGroupId, name, adType, finalUrl, callToAction: callToAction || undefined, headlines: cleanHeadlines, descriptions: cleanDescriptions }),
+    });
+    const body = await res.json();
+    setSaving(false);
+    if (!res.ok) { setError(body.error || 'Failed to create ad.'); return; }
+    setOpen(false);
+    setName(''); setFinalUrl(''); setCallToAction(''); setHeadlines(['']); setDescriptions(['']);
+    onCreated();
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-semibold text-gray-900 text-sm">Dynamic Ad Builder</p>
+          <p className="text-xs text-gray-500 mt-0.5">Compose multiple headlines and descriptions — variants are combined and served responsively, RSA-style.</p>
+        </div>
+        <button onClick={() => setOpen(o => !o)} className="px-3 py-1.5 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium">
+          {open ? 'Cancel' : '+ Build Ad'}
+        </button>
+      </div>
+      {open && (
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm">Ad group
+              <select required className="mt-1 w-full rounded border p-2" value={adGroupId} onChange={e => setAdGroupId(e.target.value)}>
+                <option value="">Select…</option>
+                {adGroups.map(g => <option key={g.id} value={g.id}>{g.name} ({g.campaign})</option>)}
+              </select>
+            </label>
+            <label className="block text-sm">Ad type
+              <select className="mt-1 w-full rounded border p-2" value={adType} onChange={e => setAdType(e.target.value)}>
+                {['responsive_search', 'display', 'banner', 'video', 'image', 'dynamic', 'call'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </label>
+          </div>
+          <label className="block text-sm">Internal name
+            <input required className="mt-1 w-full rounded border p-2" value={name} onChange={e => setName(e.target.value)} />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm">Final URL
+              <input required type="url" className="mt-1 w-full rounded border p-2" value={finalUrl} onChange={e => setFinalUrl(e.target.value)} />
+            </label>
+            <label className="block text-sm">Call to action (optional)
+              <input className="mt-1 w-full rounded border p-2" value={callToAction} onChange={e => setCallToAction(e.target.value)} placeholder="Book a class" />
+            </label>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700">Headlines (1–15)</p>
+            {headlines.map((h, i) => (
+              <div key={i} className="flex gap-2 mt-1.5">
+                <input maxLength={30} className="flex-1 rounded border p-2 text-sm" value={h}
+                  onChange={e => setHeadlines(hs => hs.map((x, j) => j === i ? e.target.value : x))} placeholder={`Headline ${i + 1}`} />
+                {headlines.length > 1 && <button type="button" onClick={() => setHeadlines(hs => hs.filter((_, j) => j !== i))} className="text-xs text-red-500 px-2">Remove</button>}
+              </div>
+            ))}
+            {headlines.length < 15 && <button type="button" onClick={() => setHeadlines(hs => [...hs, ''])} className="text-xs text-amber-600 font-medium mt-2">+ Add headline</button>}
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700">Descriptions (1–4)</p>
+            {descriptions.map((d, i) => (
+              <div key={i} className="flex gap-2 mt-1.5">
+                <input maxLength={90} className="flex-1 rounded border p-2 text-sm" value={d}
+                  onChange={e => setDescriptions(ds => ds.map((x, j) => j === i ? e.target.value : x))} placeholder={`Description ${i + 1}`} />
+                {descriptions.length > 1 && <button type="button" onClick={() => setDescriptions(ds => ds.filter((_, j) => j !== i))} className="text-xs text-red-500 px-2">Remove</button>}
+              </div>
+            ))}
+            {descriptions.length < 4 && <button type="button" onClick={() => setDescriptions(ds => [...ds, ''])} className="text-xs text-amber-600 font-medium mt-2">+ Add description</button>}
+          </div>
+
+          <p className="text-xs text-gray-500">{variantCount > 0 ? `${variantCount} possible headline × description combinations will be available to serve.` : 'Add at least one headline and one description.'}</p>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex justify-end">
+            <button type="submit" disabled={saving || variantCount === 0} className="rounded bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50">
+              {saving ? 'Creating…' : 'Create ad'}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+// Real generation, closing the gap the "Ad Copy Generation" tile above has
+// always described but never implemented (adsGenerated was 0 before this).
+// Prompt-based, targeting-aware -- a distinct idea from generic ad copy,
+// named explicitly in a ChatGPT platform-blueprint conversation 2026-09-01.
+function AdCreativeGeneratorPanel({ adGroups, onGenerated }: { adGroups: AdGroupRow[]; onGenerated: () => void }) {
+  const [adGroupId, setAdGroupId] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [businessType, setBusinessType] = useState('yoga studio');
+  const [ageGroup, setAgeGroup] = useState('25-40');
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState<{ headline: string; description: string }[] | null>(null);
+  const [error, setError] = useState('');
+
+  const generate = async () => {
+    setGenerating(true);
+    setError('');
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/ads/generate-creative', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adGroupId, prompt, businessType, ageGroup, count: 3 }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? 'Generation failed.'); return; }
+      setResult(data.variants);
+      onGenerated();
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <p className="font-semibold text-gray-900 mb-1">Generate Ad Creative (Prompt-Based, Targeting-Aware)</p>
+      <p className="text-sm text-gray-500 mb-4">One prompt + a business type + age group produces distinct, age-appropriate headline/description variants — real Ollama generation, saved as ai_generated=true, requiring review before activation.</p>
+      {adGroups.length === 0 ? (
+        <p className="text-sm text-amber-700 bg-amber-50 rounded-lg p-3">No ad groups exist yet — create one under the Ad Groups tab first.</p>
+      ) : (
+        <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-3">
+            <select value={adGroupId} onChange={e => setAdGroupId(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+              <option value="">Select ad group…</option>
+              {adGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
+            <input value={businessType} onChange={e => setBusinessType(e.target.value)} placeholder="Business type" className="border rounded-lg px-3 py-2 text-sm" />
+            <select value={ageGroup} onChange={e => setAgeGroup(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+              {['18-24', '25-40', '40-60', '60+'].map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+          <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={2} placeholder="Campaign brief, e.g. 'Promote our new evening Vinyasa class'"
+            className="w-full border rounded-lg px-3 py-2 text-sm" />
+          <button onClick={generate} disabled={generating || !adGroupId || !prompt.trim()} className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+            {generating ? 'Generating…' : 'Generate 3 Variants'}
+          </button>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {result && (
+            <div className="space-y-2 mt-2">
+              {result.map((v, i) => (
+                <div key={i} className="border rounded-lg p-3 text-sm">
+                  <p className="font-semibold text-gray-800">{v.headline}</p>
+                  <p className="text-gray-500">{v.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

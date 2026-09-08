@@ -30,7 +30,7 @@ export async function GET() {
 
   return Response.json({
     plans: plans.rows.map(p => ({
-      slug: p.slug, name: p.name, planType: p.plan_type, description: p.description ?? '',
+      id: p.id, slug: p.slug, name: p.name, planType: p.plan_type, description: p.description ?? '',
       prices: (pricesByPlan.get(p.id) ?? []).map(pr => ({ amount: Number(pr.amount), currency: pr.currency, billingCycle: pr.billing_cycle })),
     })),
   });

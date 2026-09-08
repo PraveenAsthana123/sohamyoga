@@ -13,13 +13,44 @@ self.addEventListener('push',event=>{
   const title=data.title||'SohamYoga';
   const options={
     body:data.body||'',
-    icon:data.icon||'/icon.svg',
-    badge:data.badge||'/icon.svg',
+    icon:data.icon||'/push-icon-192.png',
+    badge:data.badge||'/push-icon-192.png',
     tag:data.tag||'soham-notification',
     data:{url:data.url||'/'},
     renotify:Boolean(data.tag),
   };
   event.waitUntil(self.registration.showNotification(title,options));
+});
+
+// Re-subscribe when the push service invalidates the current subscription
+// (key rotation, browser-side expiry, etc.) so the user silently keeps
+// receiving pushes instead of going dark until they happen to revisit a
+// page that calls subscribe() again. Reuses event.oldSubscription.options
+// (same applicationServerKey/VAPID key as the original subscribe call) --
+// per the Push API spec this is preserved on the old subscription, so the
+// service worker never needs its own copy of the VAPID public key.
+self.addEventListener('pushsubscriptionchange',event=>{
+  event.waitUntil((async()=>{
+    const oldEndpoint=event.oldSubscription?event.oldSubscription.endpoint:null;
+    try{
+      const newSubscription=await self.registration.pushManager.subscribe(
+        event.oldSubscription?event.oldSubscription.options:{userVisibleOnly:true}
+      );
+      const json=newSubscription.toJSON();
+      await fetch('/api/customer/push-subscriptions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({endpoint:json.endpoint,keys:json.keys}),
+      });
+      if(oldEndpoint&&oldEndpoint!==json.endpoint){
+        await fetch(`/api/customer/push-subscriptions?endpoint=${encodeURIComponent(oldEndpoint)}`,{method:'DELETE'}).catch(()=>{});
+      }
+    }catch(e){
+      // Nothing more this worker can do without a signed-in session context;
+      // the stale row is cleaned up server-side the next time a real send
+      // to it 404s/410s (see sendPushToUser in src/lib/web-push.ts).
+    }
+  })());
 });
 
 // Focus an already-open tab on the target URL if one exists, otherwise open

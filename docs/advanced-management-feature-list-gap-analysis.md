@@ -12,7 +12,7 @@ before writing "missing."
 | Video management | ✅ Real — `/admin/videos` (sohamyoga-frontend); real espeak-ng+FFmpeg render pipeline (market-research-portal) |
 | Email response/tracking management | 🟡 Partial — `notification_queue`/dispatch is real; no dedicated reply-classification or response-tracking admin page found |
 | Customer tracking management | ✅ Real — `tracking_event`, `campaign_lead`, funnel/analytics jobs, test-covered this session |
-| Poll management | ❌ Not found — no poll table, no admin page. (Survey ≠ poll here; survey is the built system) |
+| Poll management | ✅ Real — **correction, 2026-08-31**: earlier "not found" was wrong; verified via live audit — `sohamyoga-frontend/src/domain/community/db-schema-poll.sql` (poll/poll_option/poll_vote, tenant-scoped, DB-level duplicate-vote prevention), real `poll` table confirmed live in Postgres, `/api/community/polls` + `/admin/polls` + `/community/polls` all query the real table (no MOCK_* constants) |
 | Post management | 🟡 Partial — social scheduler (`/admin/social/scheduler`) exists; no unified generic "post" entity across all content types |
 | Caption management | ❌ Not found — no caption table/field beyond video subtitle generation (`.ass` files in the render pipeline, not a managed entity) |
 | Video-post management | 🟡 Partial — video rendering is real; publishing a rendered video as a "post" isn't wired (same gap as the youtube_publish/social_publish worker gap found this session) |
@@ -24,15 +24,15 @@ before writing "missing."
 
 ## Honest tally
 
-**9 of 15 rows are real or partially real** — this list was far more built-out
-than the earlier "ads management" spot-check suggested. Genuine gaps:
-poll management, caption management (as a managed entity, not just subtitle
-generation), a dedicated content editor, tag management (general-purpose),
-hooks management, and the structured compliance-message-type system.
+**10 of 15 rows are real or partially real** after the 2026-08-31 poll-management
+correction. Hooks management was also closed this session (`content_hook` table,
+`/api/hooks`). Remaining genuine gaps: caption management (as a managed entity,
+not just subtitle generation), a dedicated content editor, tag management
+(general-purpose), and the structured compliance-message-type system.
 
 ## Recommended next build (if prioritized)
 
-**Poll management** is the cleanest gap to close — the survey system
-(9 real tables, mature) is a near-complete template to adapt: same
-invitation/response/analytics shape, simpler question model (single choice
-vs. survey's full logic branching).
+Poll management (previously recommended here) turned out to already be real
+and working — see correction above. Next cleanest gap: **tag management**
+(general-purpose) — `meditation_tag` already proves the pattern for one content
+type; generalizing it to campaigns/content/hooks is a small, well-scoped extension.

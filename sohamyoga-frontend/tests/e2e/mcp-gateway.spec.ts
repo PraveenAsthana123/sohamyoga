@@ -8,6 +8,7 @@
 // reports "not connected" rather than faking success.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 
 async function loginAsAdmin(request: import('playwright/test').APIRequestContext) {
   const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
@@ -17,7 +18,7 @@ async function loginAsAdmin(request: import('playwright/test').APIRequestContext
 test.describe('MCPG-001 GET /api/admin/mcp-gateway — auth gating', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/admin/mcp-gateway');
+    const res = await unauth.get(apiUrl('/api/admin/mcp-gateway'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });
@@ -91,7 +92,7 @@ test.describe('MCPG-005 approval-tier tools cannot be executed directly, and the
   test('a staff_approval tool is refused with 403, never silently run', async ({ request }) => {
     await loginAsAdmin(request);
     const res = await request.post('/api/admin/mcp-gateway/execute', {
-      data: { serverSlug: 'github-mcp', toolName: 'create_issue', args: { repo: 'x', title: 'x', body: 'x' } },
+      data: { serverSlug: 'github-mcp', toolName: 'github_create_issue', args: { repo: 'x', title: 'x', body: 'x' } },
     });
     expect(res.status()).toBe(403);
   });

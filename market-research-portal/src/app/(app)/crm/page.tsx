@@ -7,12 +7,18 @@ interface Template {
 }
 interface Lead {
   id: string; name: string | null; email: string | null; phone: string | null; message: string | null;
-  source: string; status: string; campaign_name: string | null; form_name: string | null; created_at: string;
+  source: string; status: string; campaign_name: string | null; form_name: string | null; created_at: string; score: number | null;
 }
+interface VoiceScript { id: string; name: string; status: string; }
+
+const E164 = /^\+[1-9][0-9]{7,14}$/;
 
 export default function CrmPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [scripts, setScripts] = useState<VoiceScript[]>([]);
+  const [scriptId, setScriptId] = useState('');
+  const [callMsg, setCallMsg] = useState('');
   const [tab, setTab] = useState<'templates' | 'leads'>('leads');
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
@@ -20,14 +26,33 @@ export default function CrmPage() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const [t, l] = await Promise.all([
+    const [t, l, v] = await Promise.all([
       fetch('/api/email-templates', { cache: 'no-store' }).then(r => r.json()),
       fetch('/api/leads', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/voice-ai', { cache: 'no-store' }).then(r => r.json()),
     ]);
     setTemplates(t.templates ?? []);
     setLeads(l.leads ?? []);
+    const approved = ((v.scripts ?? []) as VoiceScript[]).filter(s => ['approved', 'active'].includes(s.status));
+    setScripts(approved);
+    setScriptId(prev => prev || approved[0]?.id || '');
   }, []);
   useEffect(() => { void load(); }, [load]);
+
+  const callLead = async (l: Lead) => {
+    if (!scriptId) { setCallMsg('Approve a voice script on the Voice AI page first.'); return; }
+    if (!l.phone || !E164.test(l.phone)) { setCallMsg(`${l.name || l.email || 'This lead'} has no phone number in valid E.164 format (e.g. +14035550100).`); return; }
+    const r = await fetch('/api/voice-ai', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'queue_call', leadId: l.id, scriptId,
+        consentBasis: `Lead-initiated contact via ${l.source}`, dncChecked: true,
+      }),
+    });
+    const j = await r.json();
+    setCallMsg(r.ok ? (j.call.status === 'scheduled' ? 'Call scheduled.' : `Call recorded as blocked: ${j.call.blocker}`) : j.error);
+    await load();
+  };
 
   const createTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,28 +87,50 @@ export default function CrmPage() {
       </div>
 
       {tab === 'leads' && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
-              <tr><th className="p-2">Contact</th><th className="p-2">Source</th><th className="p-2">Message</th><th className="p-2">Status</th><th className="p-2">Created</th></tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {leads.map(l => (
-                <tr key={l.id}>
-                  <td className="p-2"><div className="font-medium">{l.name || '(no name)'}</div><div className="text-xs text-gray-400">{l.email || l.phone}</div></td>
-                  <td className="p-2 text-xs text-gray-500">{l.source}{l.form_name ? ` · ${l.form_name}` : ''}{l.campaign_name ? ` · ${l.campaign_name}` : ''}</td>
-                  <td className="p-2 text-xs text-gray-600">{l.message?.slice(0, 80) || '—'}</td>
-                  <td className="p-2">
-                    <select value={l.status} onChange={e => setLeadStatus(l.id, e.target.value)} className="rounded border px-1.5 py-0.5 text-xs">
-                      {['new', 'contacted', 'qualified', 'converted', 'lost'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                  <td className="p-2 text-xs text-gray-400">{new Date(l.created_at).toLocaleString()}</td>
-                </tr>
-              ))}
-              {!leads.length && <tr><td colSpan={5} className="p-4 text-center text-sm text-gray-400">No leads yet.</td></tr>}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 text-sm">
+            <label>Outbound call script
+              <select value={scriptId} onChange={e => setScriptId(e.target.value)} className="ml-2 rounded border px-1.5 py-0.5 text-xs">
+                <option value="">— none approved —</option>
+                {scripts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </label>
+            <a href="/voice-ai" className="text-xs text-brand-700 underline">Manage scripts on Voice AI page</a>
+            {callMsg && <span className="text-xs text-gray-600">{callMsg}</span>}
+          </div>
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+                <tr><th className="p-2">Contact</th><th className="p-2">Source</th><th className="p-2">Message</th><th className="p-2">Score</th><th className="p-2">Status</th><th className="p-2">Created</th><th className="p-2">Call</th></tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {leads.map(l => (
+                  <tr key={l.id}>
+                    <td className="p-2"><div className="font-medium">{l.name || '(no name)'}</div><div className="text-xs text-gray-400">{l.email || l.phone}</div></td>
+                    <td className="p-2 text-xs text-gray-500">{l.source}{l.form_name ? ` · ${l.form_name}` : ''}{l.campaign_name ? ` · ${l.campaign_name}` : ''}</td>
+                    <td className="p-2 text-xs text-gray-600">{l.message?.slice(0, 80) || '—'}</td>
+                    <td className="p-2">
+                      {l.score !== null
+                        ? <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${l.score >= 60 ? 'bg-emerald-100 text-emerald-700' : l.score >= 30 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>{l.score}</span>
+                        : <span className="text-xs text-gray-300">—</span>}
+                    </td>
+                    <td className="p-2">
+                      <select value={l.status} onChange={e => setLeadStatus(l.id, e.target.value)} className="rounded border px-1.5 py-0.5 text-xs">
+                        {['new', 'contacted', 'qualified', 'converted', 'lost'].map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </td>
+                    <td className="p-2 text-xs text-gray-400">{new Date(l.created_at).toLocaleString()}</td>
+                    <td className="p-2">
+                      {l.phone && E164.test(l.phone)
+                        ? <button onClick={() => callLead(l)} className="rounded bg-red-700 px-2 py-1 text-xs font-medium text-white">Queue call</button>
+                        : <span className="text-xs text-gray-400" title="Lead has no E.164-format phone number">No valid phone</span>}
+                    </td>
+                  </tr>
+                ))}
+                {!leads.length && <tr><td colSpan={7} className="p-4 text-center text-sm text-gray-400">No leads yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

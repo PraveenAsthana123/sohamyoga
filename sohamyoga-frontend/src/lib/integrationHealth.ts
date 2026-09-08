@@ -20,7 +20,7 @@ export interface IntegrationCheckResult {
 async function timedFetch(url: string, timeoutMs = 5_000): Promise<{ ok: boolean; status: number; ms: number }> {
   const start = Date.now();
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), cache: 'no-store' });
     return { ok: res.ok, status: res.status, ms: Date.now() - start };
   } catch {
     return { ok: false, status: 0, ms: Date.now() - start };
@@ -71,7 +71,7 @@ async function checkActivepieces(): Promise<IntegrationCheckResult> {
   const base = { name: 'Activepieces', category: 'Workflow Orchestration' };
   const url = process.env.ACTIVEPIECES_URL || 'http://127.0.0.1:18181';
   const r = await timedFetch(`${url}/api/v1/health`);
-  return { ...base, status: r.ok ? 'connected' : 'not_configured', latencyMs: r.ms, detail: r.ok ? 'api/v1/health OK' : `HTTP ${r.status || 'unreachable'}` };
+  return { ...base, status: r.ok ? 'connected' : (process.env.ACTIVEPIECES_URL ? 'error' : 'not_configured'), latencyMs: r.ms, detail: r.ok ? 'api/v1/health OK' : `HTTP ${r.status || 'unreachable'}` };
 }
 
 const CHECKS: Array<() => Promise<IntegrationCheckResult>> = [
@@ -79,5 +79,15 @@ const CHECKS: Array<() => Promise<IntegrationCheckResult>> = [
 ];
 
 export async function getIntegrationHealth(): Promise<IntegrationCheckResult[]> {
-  return Promise.all(CHECKS.map(fn => fn()));
+  const results = await Promise.allSettled(CHECKS.map(fn => fn()));
+  const services = [
+    { name: 'PostgreSQL', category: 'Database' },
+    { name: 'Ollama', category: 'AI' },
+    { name: 'OpenBao', category: 'Secrets' },
+    { name: 'Postiz', category: 'Social Publishing' },
+    { name: 'Activepieces', category: 'Workflow Orchestration' },
+  ];
+  return results.map((result, index) => result.status === 'fulfilled'
+    ? result.value
+    : { ...services[index], status: 'error', latencyMs: null, detail: 'Health check failed' });
 }

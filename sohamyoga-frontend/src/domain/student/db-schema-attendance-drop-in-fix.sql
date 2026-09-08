@@ -1,0 +1,11 @@
+-- Real bug fix (found live during a 2026-09-01 end-to-end demo walkthrough):
+-- attendance_record.enrollment_id was NOT NULL, but class_session (the
+-- only real, working booking model) has no course_id/enrollment concept
+-- at all -- it's a drop-in single-class system. This meant the real,
+-- working booking check-in flow (PATCH /api/booking/[id]) could NEVER
+-- insert a valid attendance_record row, so StreakUpdateJob/BadgeAwardJob
+-- (which read FROM attendance_record) were permanently starved of real
+-- data for every real customer -- "My Journey" gamification looked real
+-- (real UI, real job, real schema) but its write path was structurally
+-- dead. enrollment_id now nullable for drop-in attendance.
+ALTER TABLE attendance_record ALTER COLUMN enrollment_id DROP NOT NULL;

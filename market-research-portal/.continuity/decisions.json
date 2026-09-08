@@ -259,5 +259,168 @@
       "source": "cli",
       "timestamp": "2026-08-20T23:01:14.645Z"
     }
+  },
+  {
+    "id": "48956d41-e9d2-4f72-9e2a-704811ce1039",
+    "question": "What did implementing the 'implement use cases one by one' priority (Voice-AI calling platform) actually deliver first?",
+    "answer": "Closed the one concrete gap identified between market-research-portal's existing voice-AI infrastructure (voice_agent/voice_script/voice_call/... schema, /api/voice-ai, the Voice AI admin page — all already comprehensive and pre-built) and the ChatGPT voice-agent conversation's request: lead-to-call linking. Added voice_call.lead_id (db-schema-voice-lead-link.sql, migrated live), extended POST /api/voice-ai queue_call to accept leadId (auto-derives phone from the lead, validates E.164, rejects with a clear message if invalid — never fabricates a number), auto-flips lead.status new->contacted on a queued call, and joined lead_name/lead_email into GET /api/voice-ai's calls list. Added a 'Queue call' button per lead row on the CRM page (disabled with an explanatory tooltip when the lead has no valid E.164 phone) plus a script-selector. Verified live end-to-end against the running server: create lead -> queue call by leadId only -> call correctly created with status='blocked' and the existing honest 'Telephony provider/account/number is not connected' blocker (no PSTN account exists) -> lead status flipped to contacted -> GET join confirmed. Negative case verified: lead with no phone returns a clear 400, not a silent failure or fabricated call. tsc --noEmit clean. Real phone calls remain correctly blocked pending a telephony carrier account, unchanged from before.",
+    "timestamp": "2026-08-31T04:49:44.843Z",
+    "tags": [
+      "api",
+      "crm",
+      "feature",
+      "verification",
+      "voice-ai"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T04:49:44.843Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T04:49:44.845Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "queue"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T04:49:44.780Z"
+    }
+  },
+  {
+    "id": "1f323986-bb7a-4a1a-b018-7f4a989e16e5",
+    "question": "How was 'each module must be a separate folder and shared, with end-to-end flow, demo use cases, schema, reporting, dashboard, job' applied to the Voice AI module?",
+    "answer": "Retrofitted the mandatory Operational Portal Page & Tab Standard (8 tabs: Dashboard/Report/Manual Process/Automatic Process/AI Exp/AI Governance/AI Risk/ResAI, 13-field process sub-structure) onto market-research-portal's Voice AI page, using operations-alerts/page.tsx as the reference template since it was the only existing implementation of the standard found. Added a real Automatic Process job (VoiceCallDispatchJob.ts, registered as 'voice-call-dispatch' in job_registry, every 5 min): sweeps voice_call rows still 'scheduled' past their scheduled_at and honestly relabels them 'blocked' with the true reason (no PSTN client exists) rather than leaving them stale. Verified live: created a stale scheduled call, ran the job on-demand via /api/jobs/run, confirmed it relabeled correctly and wrote a real job_run row. Verified the rebuilt page renders all 8 tabs live against the running dev server (grep-confirmed each tab label present, no runtime error). Wrote docs/modules/voice-ai/README.md as the portable 'shared module' contract: folder map (UI/API/schema/job paths), full data model, end-to-end flow diagram, 5 demo use cases, and an explicit exclusion boundary (no real PSTN calls, no voice cloning execution, no LLM-drafted scripts — all schema fields exist but unimplemented, stated honestly). tsc --noEmit clean throughout.",
+    "timestamp": "2026-08-31T04:56:11.426Z",
+    "tags": [
+      "api",
+      "governance",
+      "how",
+      "module-standard",
+      "verification",
+      "voice-ai"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T04:56:11.426Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T04:56:11.427Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api",
+        "schema",
+        "governance"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T04:56:11.375Z"
+    }
+  },
+  {
+    "id": "8c49ff52-4cc3-4fc6-851f-80e3b16e75b7",
+    "question": "What did the inbound-call dashboard build add to the Voice AI module?",
+    "answer": "Closed the second concrete gap from the voice-agent ChatGPT conversation ('inbound call planning, UI, tracking, reporting, dashboard'). Added toggle_route (enable/disable a voice_routing_rule, server-side guarded — rejects enabling without both a trunk_id and inbound_did assigned, verified live via a 409) and simulate_inbound_call (creates a real voice_call row, direction=inbound, unmistakably labeled provider='simulation (no real PSTN)' and disposition='simulated_test', so it can never be mistaken for a real customer interaction) to /api/voice-ai. Added an 'Inbound Call Center' section listing routing rules with enable/disable + simulate buttons, split the calls list into separate Outbound/Inbound cards (inbound rows show a visible 'simulated' badge), and added two new Dashboard tiles (enabled/total routes, inbound call count). Verified live end-to-end: created a trunk+workflow+route, confirmed enabling without trunk/DID correctly 409s, assigned both and enabled successfully, ran simulate_inbound_call and confirmed the resulting row's honest labeling via GET, confirmed the new UI sections render on the live page, then deleted all test rows. tsc --noEmit clean throughout.",
+    "timestamp": "2026-08-31T05:06:12.311Z",
+    "tags": [
+      "api",
+      "feature",
+      "verification",
+      "voice-ai"
+    ],
+    "files": [],
+    "status": "active",
+    "priority": "medium",
+    "relationships": {
+      "supersedes": [],
+      "supersededBy": [],
+      "relatedTo": [],
+      "causes": [],
+      "causedBy": []
+    },
+    "metadata": {
+      "source": "cli",
+      "autoLink": {
+        "checkedAt": "2026-08-31T05:06:12.311Z",
+        "result": "orphan"
+      },
+      "status": "active"
+    },
+    "commitHashes": [],
+    "history": [
+      {
+        "timestamp": "2026-08-31T05:06:12.316Z",
+        "action": "created"
+      }
+    ],
+    "entities": {
+      "technologies": [],
+      "patterns": [],
+      "concepts": [
+        "api"
+      ]
+    },
+    "provenance": {
+      "author": {
+        "name": "PraveenAsthana123",
+        "email": "29180578+PraveenAsthana123@users.noreply.github.com"
+      },
+      "source": "cli",
+      "timestamp": "2026-08-31T05:06:12.242Z"
+    }
   }
 ]

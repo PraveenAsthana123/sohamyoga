@@ -3,14 +3,17 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { resolveSession, SESSION_COOKIE } from '@/lib/auth';
 import LogoutButton from '@/components/LogoutButton';
+import NotificationBell from '@/components/NotificationBell';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/business-customers', label: 'Businesses' },
   { href: '/admin/contacts', label: 'Contacts' },
   { href: '/admin/forms', label: 'Forms' },
   { href: '/admin/scripts', label: 'Call Scripts' },
   { href: '/admin/calls', label: 'Call Log' },
   { href: '/admin/reports', label: 'Reports' },
+  { href: '/admin/ops', label: 'Ops Health' },
 ];
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
@@ -31,8 +34,9 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
             {item.label}
           </Link>
         ))}
-        <div className="mt-auto pt-4 border-t border-black/10 dark:border-white/10 text-xs">
-          <div className="mb-2 opacity-70">{principal.email}</div>
+        <div className="mt-auto pt-4 border-t border-black/10 dark:border-white/10 text-xs space-y-2">
+          <NotificationBell basePath="/api/admin/notifications" openDirection="up" />
+          <div className="opacity-70">{principal.email}</div>
           <LogoutButton />
         </div>
       </aside>

@@ -37,6 +37,30 @@ function useNpsRecords() {
   return data;
 }
 
+interface RealSurvey { id: string; title: string; type: string; status: string; responses: number; completion: number; nps?: number }
+interface RealResponse { id: string; survey: string; respondent: string; status: string; completion: number; duration: string; submittedAt: string }
+interface RealQuestion { id: string; survey: string; type: string; text: string; required: boolean; order: number; logic: boolean }
+interface SurveyOverview {
+  surveys: RealSurvey[]; responses: RealResponse[]; questions: RealQuestion[];
+  answerDistribution: { option: string; count: number }[]; completionBuckets: { bucket: string; count: number }[];
+}
+
+// Real data for this whole dashboard (Overview/Surveys/Questions/Responses/
+// Analytics) -- was exclusively MOCK_SURVEYS/MOCK_RESPONSES/MOCK_QUESTIONS
+// client constants + two fully-hardcoded decorative arrays ("Top Answers",
+// "Drop-off Analysis") before 2026-09-07. survey/survey_question/
+// survey_response/survey_answer already had a real schema and a real
+// create path (/admin/surveys) -- this dashboard just never read any of it.
+function useSurveyOverview() {
+  const [data, setData] = useState<SurveyOverview | null>(null);
+  const load = () => fetch('/api/admin/market-research/surveys/overview', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => setData(d ?? { surveys: [], responses: [], questions: [], answerDistribution: [], completionBuckets: [] }))
+    .catch(() => setData({ surveys: [], responses: [], questions: [], answerDistribution: [], completionBuckets: [] }));
+  useEffect(() => { load(); }, []);
+  return { data, reload: load };
+}
+
 const NPS_FLOW = [
   { label: '1. Class ends', sub: 'checked_in booking, session end time computed from real timestamps', color: 'bg-gray-50 border-gray-200 text-gray-800' },
   { label: '2. NpsInvitationJob', sub: 'Hourly — creates survey_invitation + notification_queue row', color: 'bg-blue-50 border-blue-200 text-blue-800' },
@@ -132,19 +156,16 @@ function NpsRecordsSection() {
   );
 }
 
-// Real, live-computed NPS data (from NpsCalculationJob via /api/survey/nps-summary).
-// Everything else on this page — MOCK_SURVEYS, MOCK_RESPONSES, the Questions/
-// Responses tabs, and most of the Analytics tab — remains illustrative UI
-// mockup pending a full survey-platform build (create/edit/publish surveys,
-// question builder, response viewer, exports); only the post-class-experience
-// NPS pipeline built this session is wired to real data. Flagged rather than
-// silently left to look more complete than it is.
-function MockDataNotice() {
+// Wired to real data as of 2026-09-07 -- survey/survey_question/
+// survey_response/survey_answer via /api/admin/market-research/surveys/overview.
+// Create/edit still happens at /admin/surveys (the dedicated question-
+// builder page); this dashboard is real read/reporting, not yet a second
+// write surface for the same tables.
+function RealDataNotice({ count }: { count: number }) {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
-      This page mostly shows illustrative sample data — only the <strong>NPS Score</strong> cards below
-      are wired to the real, live post-class feedback pipeline. Survey/question/response management
-      here is a UI mockup, not yet backed by a working create/edit/respond flow beyond that one survey.
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+      Live data from <code className="bg-blue-100 px-1 rounded">survey</code>/<code className="bg-blue-100 px-1 rounded">survey_response</code>/<code className="bg-blue-100 px-1 rounded">survey_answer</code> —
+      {count === 0 ? ' no surveys exist yet.' : ` ${count} real survey${count === 1 ? '' : 's'}.`} Create/edit questions at <a href="/admin/surveys" className="underline">/admin/surveys</a>.
     </div>
   );
 }
@@ -182,23 +203,6 @@ const TYPE_COLORS: Record<string, string> = {
   feedback: "bg-lime-100 text-lime-700",
 };
 
-const MOCK_SURVEYS = [
-  { id:"sv-1", title:"Post-Class Yoga Feedback", type:"feedback", status:"active", responses:142, completion:88, nps: undefined },
-  { id:"sv-2", title:"New Member Health Intake", type:"form", status:"active", responses:67, completion:95, nps: undefined },
-  { id:"sv-3", title:"Teacher Satisfaction NPS", type:"nps", status:"active", responses:210, completion:91, nps:72 },
-  { id:"sv-4", title:"Class Schedule Preference Poll", type:"poll", status:"closed", responses:89, completion:100, nps: undefined },
-  { id:"sv-5", title:"IRB Research Questionnaire", type:"questionnaire", status:"paused", responses:28, completion:75, nps: undefined },
-  { id:"sv-6", title:"Yoga Knowledge Quiz", type:"quiz", status:"draft", responses:0, completion:0, nps: undefined },
-];
-
-const MOCK_RESPONSES = [
-  { id:"r-1", survey:"Post-Class Yoga Feedback", respondent:"Anonymous", status:"submitted", completion:100, duration:"4m 12s", submittedAt:"2026-08-04 18:32" },
-  { id:"r-2", survey:"New Member Health Intake", respondent:"priya@yoga.in", status:"submitted", completion:100, duration:"7m 55s", submittedAt:"2026-08-04 11:10" },
-  { id:"r-3", survey:"Teacher Satisfaction NPS", respondent:"Anonymous", status:"submitted", completion:100, duration:"1m 30s", submittedAt:"2026-08-04 09:45" },
-  { id:"r-4", survey:"IRB Research Questionnaire", respondent:"P-042", status:"partial", completion:60, duration:"12m 00s", submittedAt:"—" },
-  { id:"r-5", survey:"Post-Class Yoga Feedback", respondent:"Anonymous", status:"in_progress", completion:30, duration:"—", submittedAt:"—" },
-];
-
 function KpiCard({ label, value, sub, color = "blue" }: { label: string; value: string | number; sub?: string; color?: string }) {
   const colors: Record<string, string> = {
     blue: "border-blue-500 bg-blue-50",
@@ -221,26 +225,28 @@ function Badge({ label, colorClass }: { label: string; colorClass: string }) {
   return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}>{label}</span>;
 }
 
-function OverviewTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) {
-  const totalResponses = MOCK_SURVEYS.reduce((s, sv) => s + sv.responses, 0);
-  const avgCompletion = Math.round(MOCK_SURVEYS.filter(s => s.responses > 0).reduce((s, sv) => s + sv.completion, 0) / MOCK_SURVEYS.filter(s => s.responses > 0).length);
-  const activeCount = MOCK_SURVEYS.filter(s => s.status === "active").length;
+function OverviewTab({ npsSurveys, overview }: { npsSurveys: NpsSurveySummary[] | null; overview: SurveyOverview | null }) {
+  const surveys = overview?.surveys ?? [];
+  const responses = overview?.responses ?? [];
+  const withResponses = surveys.filter(s => s.responses > 0);
+  const totalResponses = responses.length;
+  const avgCompletion = withResponses.length ? Math.round(withResponses.reduce((s, sv) => s + sv.completion, 0) / withResponses.length) : 0;
+  const activeCount = surveys.filter(s => s.status === "active").length;
   const realNps = npsSurveys?.find(s => s.npsScore !== null) ?? npsSurveys?.[0];
 
   return (
     <div className="space-y-6">
-      <MockDataNotice />
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KpiCard label="Total Surveys" value={MOCK_SURVEYS.length} sub="All types (sample)" color="blue" />
-        <KpiCard label="Active" value={activeCount} sub="Live now (sample)" color="green" />
-        <KpiCard label="Total Responses" value={totalResponses} sub="All surveys (sample)" color="purple" />
-        <KpiCard label="Avg Completion" value={`${avgCompletion}%`} sub="Submitted (sample)" color="teal" />
+      <RealDataNotice count={surveys.length} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <KpiCard label="Total Surveys" value={surveys.length} sub="All types" color="blue" />
+        <KpiCard label="Active" value={activeCount} sub="Live now" color="green" />
+        <KpiCard label="Total Responses" value={totalResponses} sub="All surveys" color="purple" />
+        <KpiCard label="Avg Completion" value={surveys.length ? `${avgCompletion}%` : "—"} sub="Across surveys with responses" color="teal" />
         <KpiCard
           label="NPS Score" color="amber"
           value={npsSurveys === null ? "…" : realNps?.npsScore !== null && realNps?.npsScore !== undefined ? realNps.npsScore : "—"}
           sub={realNps ? `${realNps.title} (real)` : "No responses yet"}
         />
-        <KpiCard label="Avg Duration" value="4.8 min" sub="Per response (sample)" color="pink" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -248,12 +254,12 @@ function OverviewTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) 
           <h3 className="font-semibold text-gray-800 mb-3">Surveys by Status</h3>
           <div className="space-y-2">
             {SURVEY_STATUSES.map(s => {
-              const count = MOCK_SURVEYS.filter(sv => sv.status === s).length;
+              const count = surveys.filter(sv => sv.status === s).length;
               return (
                 <div key={s} className="flex items-center justify-between">
                   <Badge label={s} colorClass={STATUS_COLORS[s]} />
                   <div className="flex-1 mx-3 bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(count / MOCK_SURVEYS.length) * 100}%` }} />
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${surveys.length ? (count / surveys.length) * 100 : 0}%` }} />
                   </div>
                   <span className="text-sm font-medium w-4">{count}</span>
                 </div>
@@ -266,18 +272,19 @@ function OverviewTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) 
           <h3 className="font-semibold text-gray-800 mb-3">Surveys by Type</h3>
           <div className="space-y-2">
             {SURVEY_TYPES.map(t => {
-              const count = MOCK_SURVEYS.filter(sv => sv.type === t).length;
+              const count = surveys.filter(sv => sv.type === t).length;
               if (count === 0) return null;
               return (
                 <div key={t} className="flex items-center justify-between">
                   <Badge label={t} colorClass={TYPE_COLORS[t]} />
                   <div className="flex-1 mx-3 bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${(count / MOCK_SURVEYS.length) * 100}%` }} />
+                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${(count / surveys.length) * 100}%` }} />
                   </div>
                   <span className="text-sm font-medium w-4">{count}</span>
                 </div>
               );
             })}
+            {surveys.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No surveys yet.</p>}
           </div>
         </div>
       </div>
@@ -286,15 +293,15 @@ function OverviewTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) 
         <h3 className="font-semibold text-gray-800 mb-3">Response Funnel</h3>
         <div className="grid grid-cols-4 gap-4 text-center">
           {[
-            { label: "Started", value: totalResponses, pct: 100, color: "bg-blue-500" },
-            { label: "Partial", value: MOCK_RESPONSES.filter(r => r.status === "partial").length, pct: 15, color: "bg-yellow-500" },
-            { label: "In Progress", value: MOCK_RESPONSES.filter(r => r.status === "in_progress").length, pct: 8, color: "bg-orange-500" },
-            { label: "Submitted", value: MOCK_RESPONSES.filter(r => r.status === "submitted").length, pct: 77, color: "bg-green-500" },
+            { label: "Started", value: totalResponses, color: "bg-blue-500" },
+            { label: "Partial", value: responses.filter(r => r.status === "partial").length, color: "bg-yellow-500" },
+            { label: "In Progress", value: responses.filter(r => r.status === "in_progress").length, color: "bg-orange-500" },
+            { label: "Submitted", value: responses.filter(r => r.status === "submitted").length, color: "bg-green-500" },
           ].map(f => (
             <div key={f.label} className="flex flex-col items-center gap-2">
               <div className={`${f.color} text-white rounded-lg px-3 py-2 w-full text-center`}>
                 <div className="text-xl font-bold">{f.value}</div>
-                <div className="text-xs">{f.pct}%</div>
+                <div className="text-xs">{totalResponses ? Math.round((f.value / totalResponses) * 100) : 0}%</div>
               </div>
               <span className="text-xs text-gray-500">{f.label}</span>
             </div>
@@ -305,14 +312,25 @@ function OverviewTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) 
   );
 }
 
-function SurveysTab() {
+function SurveysTab({ surveys, onChanged }: { surveys: RealSurvey[]; onChanged: () => void }) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const filtered = MOCK_SURVEYS.filter(s =>
+  const filtered = surveys.filter(s =>
     (typeFilter === "all" || s.type === typeFilter) &&
     (statusFilter === "all" || s.status === statusFilter)
   );
+
+  // Real status transition -- PATCH /api/admin/market-research/surveys/[id]
+  // already enforces the real draft->active->paused/closed->archived state
+  // machine; this just calls it instead of leaving Publish/Pause as inert
+  // decoration.
+  async function setStatus(id: string, status: string) {
+    await fetch(`/api/admin/market-research/surveys/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+    });
+    onChanged();
+  }
 
   return (
     <div className="space-y-4">
@@ -325,7 +343,7 @@ function SurveysTab() {
           <option value="all">All Statuses</option>
           {SURVEY_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <button className="ml-auto bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">+ New Survey</button>
+        <a href="/admin/surveys" className="ml-auto bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">+ New Survey</a>
       </div>
       <div className="bg-white border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
@@ -364,14 +382,18 @@ function SurveysTab() {
                 </td>
                 <td className="px-4 py-3 text-center">
                   <div className="flex gap-1 justify-center">
-                    <button className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">View</button>
-                    <button className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Edit</button>
-                    {s.status === "draft" && <button className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Publish</button>}
-                    {s.status === "active" && <button className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Pause</button>}
+                    {s.status === "draft" && <button onClick={() => setStatus(s.id, 'active')} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Publish</button>}
+                    {s.status === "active" && <button onClick={() => setStatus(s.id, 'paused')} className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Pause</button>}
+                    {s.status === "paused" && <button onClick={() => setStatus(s.id, 'active')} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Resume</button>}
                   </div>
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                {surveys.length === 0 ? <>No surveys yet — <a href="/admin/surveys" className="underline">create one</a>.</> : 'No surveys match this filter.'}
+              </td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -379,25 +401,17 @@ function SurveysTab() {
   );
 }
 
-function QuestionsTab() {
+function QuestionsTab({ questions, surveys }: { questions: RealQuestion[]; surveys: RealSurvey[] }) {
   const QUESTION_TYPES = ["single_choice","multiple_choice","rating_scale","nps","short_text","long_text","matrix_grid","file_upload","date","email"];
-  const MOCK_QUESTIONS = [
-    { id:"q-1", survey:"Post-Class Yoga Feedback", type:"rating_scale", text:"How would you rate today's class?", required:true, order:1, logic:false },
-    { id:"q-2", survey:"Post-Class Yoga Feedback", type:"short_text", text:"What did you enjoy most?", required:false, order:2, logic:false },
-    { id:"q-3", survey:"Post-Class Yoga Feedback", type:"nps", text:"How likely to recommend us to a friend?", required:true, order:3, logic:false },
-    { id:"q-4", survey:"New Member Health Intake", type:"single_choice", text:"Do you have any existing medical conditions?", required:true, order:1, logic:false },
-    { id:"q-5", survey:"New Member Health Intake", type:"long_text", text:"Please describe your conditions", required:false, order:2, logic:true },
-    { id:"q-6", survey:"IRB Research Questionnaire", type:"matrix_grid", text:"Rate frequency of seizure triggers", required:true, order:1, logic:false },
-  ];
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <select className="border rounded px-3 py-2 text-sm">
           <option>All Surveys</option>
-          {MOCK_SURVEYS.map(s => <option key={s.id}>{s.title}</option>)}
+          {surveys.map(s => <option key={s.id}>{s.title}</option>)}
         </select>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">+ Add Question</button>
+        <a href="/admin/surveys" className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">+ Add Question</a>
       </div>
       <div className="bg-white border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
@@ -409,11 +423,10 @@ function QuestionsTab() {
               <th className="px-4 py-3 text-left font-medium text-gray-600">Survey</th>
               <th className="px-4 py-3 text-center font-medium text-gray-600">Required</th>
               <th className="px-4 py-3 text-center font-medium text-gray-600">Logic</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {MOCK_QUESTIONS.map(q => (
+            {questions.map(q => (
               <tr key={q.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 text-gray-400">{q.order}</td>
                 <td className="px-4 py-3 max-w-xs truncate font-medium">{q.text}</td>
@@ -421,14 +434,11 @@ function QuestionsTab() {
                 <td className="px-4 py-3 text-xs text-gray-500">{q.survey}</td>
                 <td className="px-4 py-3 text-center">{q.required ? "✓" : "—"}</td>
                 <td className="px-4 py-3 text-center">{q.logic ? <span className="text-blue-500">If/then</span> : "—"}</td>
-                <td className="px-4 py-3 text-center">
-                  <div className="flex gap-1 justify-center">
-                    <button className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Edit</button>
-                    <button className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded">Delete</button>
-                  </div>
-                </td>
               </tr>
             ))}
+            {questions.length === 0 && (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No questions yet — add them from <a href="/admin/surveys" className="underline">/admin/surveys</a>.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -442,25 +452,41 @@ function QuestionsTab() {
   );
 }
 
-function ResponsesTab() {
+function ResponsesTab({ responses, surveys }: { responses: RealResponse[]; surveys: RealSurvey[] }) {
   const statusColors: Record<string, string> = {
     submitted: "bg-green-100 text-green-700",
     partial: "bg-yellow-100 text-yellow-700",
     in_progress: "bg-blue-100 text-blue-700",
   };
+
+  // Real client-side CSV export of exactly the rows on screen -- no
+  // fabricated SPSS .sav export (that's a real binary format this
+  // codebase has no writer for; the button is removed rather than faked).
+  function exportCsv() {
+    const header = ['Survey', 'Respondent', 'Status', 'Completion %', 'Duration', 'Submitted'];
+    const lines = [header.join(',')].concat(
+      responses.map(r => [r.survey, r.respondent, r.status, String(r.completion), r.duration, r.submittedAt]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    );
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'survey-responses.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3 items-center">
         <select className="border rounded px-3 py-2 text-sm">
           <option>All Surveys</option>
-          {MOCK_SURVEYS.map(s => <option key={s.id}>{s.title}</option>)}
+          {surveys.map(s => <option key={s.id}>{s.title}</option>)}
         </select>
         <select className="border rounded px-3 py-2 text-sm">
           <option>All Statuses</option>
           <option>submitted</option><option>partial</option><option>in_progress</option>
         </select>
-        <button className="ml-auto border border-gray-300 px-4 py-2 rounded text-sm text-gray-600 hover:bg-gray-50">Export CSV</button>
-        <button className="border border-gray-300 px-4 py-2 rounded text-sm text-gray-600 hover:bg-gray-50">Export SPSS</button>
+        <button onClick={exportCsv} disabled={!responses.length} className="ml-auto border border-gray-300 px-4 py-2 rounded text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40">Export CSV</button>
       </div>
       <div className="bg-white border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
@@ -472,11 +498,10 @@ function ResponsesTab() {
               <th className="px-4 py-3 text-right font-medium text-gray-600">Completion</th>
               <th className="px-4 py-3 text-right font-medium text-gray-600">Duration</th>
               <th className="px-4 py-3 text-right font-medium text-gray-600">Submitted</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {MOCK_RESPONSES.map(r => (
+            {responses.map(r => (
               <tr key={r.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 max-w-xs truncate">{r.survey}</td>
                 <td className="px-4 py-3 text-gray-500">{r.respondent}</td>
@@ -484,11 +509,11 @@ function ResponsesTab() {
                 <td className="px-4 py-3 text-right">{r.completion}%</td>
                 <td className="px-4 py-3 text-right">{r.duration}</td>
                 <td className="px-4 py-3 text-right text-xs text-gray-500">{r.submittedAt}</td>
-                <td className="px-4 py-3 text-center">
-                  <button className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">View</button>
-                </td>
               </tr>
             ))}
+            {responses.length === 0 && (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No responses submitted yet.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -496,16 +521,20 @@ function ResponsesTab() {
   );
 }
 
-function AnalyticsTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null }) {
+function AnalyticsTab({ npsSurveys, overview }: { npsSurveys: NpsSurveySummary[] | null; overview: SurveyOverview | null }) {
   const realNps = npsSurveys?.find(s => s.npsScore !== null) ?? npsSurveys?.[0];
   const npsQ = realNps?.questions.find(q => q.type === 'nps');
   const textQ = realNps?.questions.find(q => q.type === 'long_text');
   const npsTotal = (npsQ?.promoters ?? 0) + (npsQ?.passives ?? 0) + (npsQ?.detractors ?? 0);
   const pct = (n: number | undefined) => npsTotal && n !== undefined ? Math.round((n / npsTotal) * 100) : 0;
+  const surveys = overview?.surveys ?? [];
+  const answerDistribution = overview?.answerDistribution ?? [];
+  const completionBuckets = overview?.completionBuckets ?? [];
+  const maxAnswerCount = Math.max(1, ...answerDistribution.map(a => a.count));
+  const totalBucketed = completionBuckets.reduce((s, b) => s + b.count, 0);
 
   return (
     <div className="space-y-6">
-      <MockDataNotice />
       <NpsRecordsSection />
       <div className="grid md:grid-cols-3 gap-4">
         <div className="bg-white border rounded-lg p-4">
@@ -539,7 +568,7 @@ function AnalyticsTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null })
         <div className="bg-white border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Completion Rates</h3>
           <div className="space-y-3">
-            {MOCK_SURVEYS.filter(s => s.responses > 0).map(s => (
+            {surveys.filter(s => s.responses > 0).map(s => (
               <div key={s.id}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="truncate max-w-32">{s.title}</span>
@@ -550,46 +579,49 @@ function AnalyticsTab({ npsSurveys }: { npsSurveys: NpsSurveySummary[] | null })
                 </div>
               </div>
             ))}
+            {surveys.filter(s => s.responses > 0).length === 0 && <p className="text-sm text-gray-400 text-center py-4">No surveys with responses yet.</p>}
           </div>
         </div>
 
         <div className="bg-white border rounded-lg p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">Top Answers — Class Feedback</h3>
+          <h3 className="font-semibold text-gray-800 mb-3">Top Answers — All Choice Questions</h3>
           <div className="space-y-2 text-sm">
-            {[
-              { option: "Morning Pranayama", count: 45, pct: 45 },
-              { option: "Hatha Asanas", count: 32, pct: 32 },
-              { option: "Meditation", count: 18, pct: 18 },
-              { option: "Chanting", count: 5, pct: 5 },
-            ].map(o => (
+            {answerDistribution.map(o => (
               <div key={o.option} className="flex items-center gap-2">
                 <span className="w-36 text-xs truncate">{o.option}</span>
                 <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${o.pct}%` }} />
+                  <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${(o.count / maxAnswerCount) * 100}%` }} />
                 </div>
                 <span className="text-xs w-8 text-right">{o.count}</span>
               </div>
             ))}
+            {answerDistribution.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No choice-question answers submitted yet.</p>}
           </div>
         </div>
       </div>
 
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="font-semibold text-gray-800 mb-3">Drop-off Analysis</h3>
+        <h3 className="font-semibold text-gray-800 mb-3">Response Completion Distribution</h3>
+        <p className="text-xs text-gray-400 mb-3">
+          Real bucketed histogram of survey_response.completion_percent — this codebase tracks completion at the
+          response level only, not per-question abandonment, so a per-question drop-off funnel isn&apos;t available yet.
+        </p>
         <div className="grid grid-cols-5 gap-2">
-          {["Started","Q1","Q2","Q3","Submitted"].map((step, i) => {
-            const heights = [100, 92, 84, 79, 72];
+          {["0-24%","25-49%","50-74%","75-99%","100%"].map(bucket => {
+            const count = completionBuckets.find(b => b.bucket === bucket)?.count ?? 0;
+            const heightPct = totalBucketed ? Math.round((count / totalBucketed) * 100) : 0;
             return (
-              <div key={step} className="flex flex-col items-center gap-2">
+              <div key={bucket} className="flex flex-col items-center gap-2">
                 <div className="w-full bg-gray-200 rounded relative" style={{ height: "80px" }}>
-                  <div className="absolute bottom-0 w-full bg-blue-500 rounded" style={{ height: `${heights[i]}%` }} />
+                  <div className="absolute bottom-0 w-full bg-blue-500 rounded" style={{ height: `${heightPct}%` }} />
                 </div>
-                <span className="text-xs text-gray-500">{step}</span>
-                <span className="text-xs font-medium">{heights[i]}%</span>
+                <span className="text-xs text-gray-500">{bucket}</span>
+                <span className="text-xs font-medium">{count}</span>
               </div>
             );
           })}
         </div>
+        {totalBucketed === 0 && <p className="text-sm text-gray-400 text-center py-2">No responses yet.</p>}
       </div>
     </div>
   );
@@ -802,13 +834,14 @@ function IntegrationsTab() {
 export default function SurveyAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const npsSurveys = useNpsSummary();
+  const { data: overview, reload: reloadOverview } = useSurveyOverview();
 
   const TAB_CONTENT: Record<Tab, React.ReactElement> = {
-    overview:     <OverviewTab npsSurveys={npsSurveys} />,
-    surveys:      <SurveysTab />,
-    questions:    <QuestionsTab />,
-    responses:    <ResponsesTab />,
-    analytics:    <AnalyticsTab npsSurveys={npsSurveys} />,
+    overview:     <OverviewTab npsSurveys={npsSurveys} overview={overview} />,
+    surveys:      <SurveysTab surveys={overview?.surveys ?? []} onChanged={reloadOverview} />,
+    questions:    <QuestionsTab questions={overview?.questions ?? []} surveys={overview?.surveys ?? []} />,
+    responses:    <ResponsesTab responses={overview?.responses ?? []} surveys={overview?.surveys ?? []} />,
+    analytics:    <AnalyticsTab npsSurveys={npsSurveys} overview={overview} />,
     flowchart:    <FlowchartTab />,
     integrations: <IntegrationsTab />,
   };

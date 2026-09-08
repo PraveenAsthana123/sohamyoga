@@ -43,22 +43,29 @@ export default function QrCheckInScanner({ classId, className = '' }: QrCheckInS
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrRef = useRef<unknown>(null);
 
+  // Real QR check-in -- calls /api/checkin/validate, which validates the
+  // real registration_token created when the booking was confirmed and
+  // performs the same check-in transition used by the manual booking page
+  // (booking.status='checked_in', attendance_record, loyalty points).
   const processToken = useCallback(async (token: string): Promise<ScanResult> => {
-    // TODO: POST /api/checkin/validate with { token, classId }
-    // Simulated response for development:
-    await new Promise((r) => setTimeout(r, 300));
-
-    const mockResult: CheckInResult =
-      token.startsWith('tk_valid') ? 'valid' :
-      token.startsWith('tk_early') ? 'too_early' :
-      token.startsWith('tk_dup')   ? 'already_scanned' :
-      'unknown_token';
+    let result: CheckInResult = 'unknown_token';
+    let customerName = 'Unknown';
+    try {
+      const res = await fetch('/api/checkin/validate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokenValue: token, classSessionId: classId, deviceId: 'kiosk-scanner' }),
+      });
+      const body = await res.json();
+      if (res.ok && body.result) { result = body.result; customerName = body.customerName ?? customerName; }
+    } catch {
+      result = 'unknown_token';
+    }
 
     return {
       token,
-      result:       mockResult,
-      customerName: mockResult === 'valid' ? 'Ananya Krishnan' : 'Unknown',
-      message:      {
+      result,
+      customerName,
+      message: {
         valid:              'Check-in recorded. Welcome!',
         already_scanned:    `Already checked in at ${new Date().toLocaleTimeString()}`,
         wrong_class:        'QR is for a different class.',
@@ -69,7 +76,7 @@ export default function QrCheckInScanner({ classId, className = '' }: QrCheckInS
         unknown_token:      'Unrecognised QR code.',
         offline_queued:     'Queued — will sync when online.',
         manual_override:    'Manual override recorded.',
-      }[mockResult],
+      }[result],
       scannedAt: new Date(),
     };
   }, [classId]);

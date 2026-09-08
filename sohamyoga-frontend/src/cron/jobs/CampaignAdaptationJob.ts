@@ -6,6 +6,7 @@
 import { Pool } from 'pg';
 import { ollama } from '../OllamaClient';
 import { PLATFORM_LIMITS, ContentPlatform } from '../../domain/marketing/ContentVariant';
+import { checkBrandCompliance } from '../../domain/branding/BrandComplianceChecker';
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -50,8 +51,8 @@ export async function run(): Promise<void> {
 
     try {
       // Load brand kit for this tenant
-      const bkRes = await db.query<{ tone_words: string[]; default_hashtags: string[] }>(`
-        SELECT tone_words, default_hashtags FROM brand_kit
+      const bkRes = await db.query<{ tone_words: string[]; default_hashtags: string[]; banned_phrases: string[]; approved_phrases: string[] }>(`
+        SELECT tone_words, default_hashtags, banned_phrases, approved_phrases FROM brand_kit
         WHERE tenant_id=$1 AND is_default=true LIMIT 1
       `, [v.tenant_id]);
       const brandKit = bkRes.rows[0] ?? null;
@@ -74,15 +75,31 @@ export async function run(): Promise<void> {
       // Extract hashtags from the adapted text
       const hashtags = (adapted_text.match(/#\w+/g) ?? []).slice(0, PLATFORM_LIMITS[platform].maxHashtags);
 
+      // AI Brand Compliance Checker -- real enforcement of banned_phrases,
+      // not just storage. Flags rather than silently blocking, since this
+      // job's output already requires human approval before publish; the
+      // flag gives the reviewer a reason, it doesn't replace their judgment.
+      const compliance = checkBrandCompliance(adapted_text, {
+        banned_phrases: brandKit?.banned_phrases ?? [],
+        approved_phrases: brandKit?.approved_phrases ?? [],
+        tone_words: brandKit?.tone_words ?? [],
+      });
+      if (compliance.status === 'flagged') {
+        console.warn(`[campaign-adaptation] ${platform} flagged for banned phrase(s): ${compliance.violations.join(', ')}`);
+      }
+
       await db.query(`
         UPDATE content_variant SET
           adapted_content  = $1,
           hashtags         = $2,
           is_ai_generated  = true,
           ai_model_used    = 'ollama/strong',
+          compliance_status = $4,
+          compliance_violations = $5,
+          compliance_checked_at = NOW(),
           updated_at       = NOW()
         WHERE id = $3
-      `, [adapted_text, hashtags, v.id]);
+      `, [adapted_text, hashtags, v.id, compliance.status, compliance.violations]);
 
       // Save version history
       await db.query(`

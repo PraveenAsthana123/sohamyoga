@@ -47,6 +47,7 @@ export interface PlaceCallRequest {
   contactPhone: string;
   scriptVersionId: string;
   direction: 'outbound';
+  initiatedBy: string;
 }
 
 export interface PlaceCallResult {

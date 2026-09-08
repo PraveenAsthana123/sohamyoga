@@ -22,7 +22,7 @@ async function main() {
     status TEXT NOT NULL CHECK (status IN ('succeeded','failed')), error_message TEXT,
     started_at TIMESTAMPTZ NOT NULL, completed_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
 
-  for (const file of ['db-schema.sql','seed-phases.sql','db-schema-digital-marketing.sql','db-schema-operations-alerts.sql','db-schema-crm.sql','db-schema-checklist-templates.sql','seed-checklist-templates.sql']) {
+  for (const file of ['db-schema.sql','seed-phases.sql','db-schema-digital-marketing.sql','db-schema-operations-alerts.sql','db-schema-crm.sql','db-schema-checklist-templates.sql','seed-checklist-templates.sql','db-schema-hooks.sql','db-schema-voice-lead-link.sql','db-schema-service-catalog.sql','db-schema-research-library.sql','db-schema-intake.sql','db-schema-topic-intelligence.sql','db-schema-agency-client.sql','db-schema-meeting-reports.sql']) {
     const startedAt = new Date().toISOString();
     try {
       const sql = await readFile(path.join(process.cwd(),'src/domain/pipeline',file),'utf8');

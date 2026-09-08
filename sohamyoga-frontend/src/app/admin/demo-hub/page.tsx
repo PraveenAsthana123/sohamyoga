@@ -247,11 +247,8 @@ function ReportsTab() {
 
         <div className="rounded-xl border bg-white p-4 md:col-span-2">
           <h3 className="font-semibold">SEO Report</h3>
-          {data.seo.hasData ? (
-            <p className="mt-2 text-sm">Latest report status: {data.seo.status}</p>
-          ) : (
-            <p className="mt-2 text-xs text-amber-700">{data.seo.blocked}</p>
-          )}
+          {data.seo.hasData && <p className="mt-2 text-sm">Latest report status: {data.seo.status}</p>}
+          {data.seo.blocked && <p className="mt-2 text-xs text-amber-700">{data.seo.blocked}</p>}
         </div>
       </div>
     </section>
@@ -348,12 +345,12 @@ export default function DemoHubPage() {
         ))}
       </section>
 
-      <nav className="flex gap-2 border-b">
+      <nav className="flex flex-wrap gap-2 border-b">
         {(['catalog', 'flows', 'reports', 'dashboard', 'links'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium ${tab === t ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500'}`}
+            className={`whitespace-nowrap px-4 py-2 text-sm font-medium ${tab === t ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500'}`}
           >
             {t === 'catalog' ? `Use Case Catalog (${CRON_JOBS.length})`
               : t === 'flows' ? 'Sequence Flows'

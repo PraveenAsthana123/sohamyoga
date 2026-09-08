@@ -7,6 +7,7 @@
 // diagnoses an already-computed real leak; it never invents the numbers.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -25,7 +26,7 @@ async function loginAsAdmin(request: import('playwright/test').APIRequestContext
 test.describe('FUN-001 GET /api/admin/growth/funnel — auth gating', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/admin/growth/funnel');
+    const res = await unauth.get(apiUrl('/api/admin/growth/funnel'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

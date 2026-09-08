@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { databaseConfigured } from '@/lib/postgres';
+import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin, getAdminPrincipal } from '@/lib/admin-auth';
 import { type BrandKit } from '@/domain/marketing/BrandKit';
 import { loadBrandKit, saveBrandKitState } from '@/domain/marketing/brandKitRepository';
@@ -77,6 +77,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : 'Invalid update.' }, { status: 400 });
   }
+
+  // Real Version Management -- snapshot the state BEFORE this write, so
+  // history shows what the guideline used to say, not what it becomes.
+  const prior = await query<{ v: number | null }>(
+    `SELECT max(version) AS v FROM brand_kit_history WHERE brand_kit_id = $1`, [params.id],
+  );
+  const nextVersion = (prior.rows[0].v ?? 0) + 1;
+  await query(
+    `INSERT INTO brand_kit_history (brand_kit_id, version, snapshot, changed_action, changed_by)
+     VALUES ($1,$2,$3,$4,$5)`,
+    [params.id, nextVersion, JSON.stringify(kit.toJSON()), body.action, updatedBy],
+  );
 
   await saveBrandKitState(next);
   return Response.json({ ok: true, brandKit: next.toJSON() });

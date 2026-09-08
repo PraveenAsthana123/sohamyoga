@@ -24,25 +24,27 @@ export default function QrLoginChallenge({ onApproved, onExpired }: QrLoginChall
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Real QR Kiosk Login -- qr_login_challenge table + v_active_qr_challenges
+  // view existed with zero API route anywhere; this created a fake in-memory
+  // challenge and polled nothing. Now calls the real create/status/approve
+  // endpoints built alongside this fix.
   const createChallenge = useCallback(async () => {
     setStatus('loading');
     try {
-      // TODO: replace with real API call to POST /api/auth/qr-challenge
-      const mockChallenge: ChallengeData = {
-        challengeId:    `ch-${Math.random().toString(36).slice(2)}`,
-        challengeToken: `qr_${Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        expiresAt:      new Date(Date.now() + 60_000).toISOString(),
-        deviceHint:     typeof window !== 'undefined'
-          ? `${navigator.userAgent.split(' ').pop()?.split('/')[0] ?? 'Browser'} / ${window.location.hostname}`
-          : 'This device',
-      };
-      setChallenge(mockChallenge);
+      const deviceHint = typeof window !== 'undefined'
+        ? `${navigator.userAgent.split(' ').pop()?.split('/')[0] ?? 'Browser'} / ${window.location.hostname}`
+        : 'This device';
+      const res = await fetch('/api/auth/qr-challenge', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceHint }),
+      });
+      if (!res.ok) throw new Error('Failed to create challenge');
+      const data: ChallengeData = await res.json();
+      setChallenge(data);
       setStatus('pending');
-      setSecondsLeft(60);
+      setSecondsLeft(Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000)));
 
-      // Generate QR code using canvas
       await generateQrDataUrl(
-        `${window.location.origin}/auth/confirm-qr?token=${mockChallenge.challengeToken}`
+        `${window.location.origin}/auth/confirm-qr?token=${data.challengeToken}`
       );
     } catch {
       setStatus('error');
@@ -105,18 +107,27 @@ export default function QrLoginChallenge({ onApproved, onExpired }: QrLoginChall
     return () => clearInterval(timerRef.current!);
   }, [status, onExpired]);
 
-  // Poll for approval
+  // Poll for approval against the real challenge status.
   useEffect(() => {
     if (status !== 'pending' || !challenge) return;
     pollRef.current = setInterval(async () => {
       try {
-        // TODO: GET /api/auth/qr-challenge/<challengeId>/status
-        // const res = await fetch(`/api/auth/qr-challenge/${challenge.challengeId}/status`);
-        // if (res.ok) { const d = await res.json(); if (d.status === 'approved') { ... } }
+        const res = await fetch(`/api/auth/qr-challenge/${challenge.challengeToken}/status`);
+        if (!res.ok) return;
+        const d = await res.json();
+        if (d.status === 'approved') {
+          clearInterval(pollRef.current!);
+          setStatus('approved');
+          onApproved?.();
+        } else if (d.status === 'expired' || d.status === 'rejected') {
+          clearInterval(pollRef.current!);
+          setStatus('expired');
+          onExpired?.();
+        }
       } catch { /* ignore poll errors */ }
     }, 2000);
     return () => clearInterval(pollRef.current!);
-  }, [status, challenge]);
+  }, [status, challenge, onApproved, onExpired]);
 
   const circumference = 2 * Math.PI * 54;
   const dashOffset    = circumference - (secondsLeft / 60) * circumference;
@@ -145,8 +156,11 @@ export default function QrLoginChallenge({ onApproved, onExpired }: QrLoginChall
     return (
       <div className="glass-dark p-8 rounded-2xl text-center space-y-4">
         <div className="text-5xl">✅</div>
-        <p className="text-green-300 font-bold text-lg">Login approved!</p>
-        <p className="text-white/60 text-sm">You have been signed in. Redirecting…</p>
+        <p className="text-green-300 font-bold text-lg">Approved on your phone!</p>
+        <p className="text-white/60 text-sm">
+          Automatic sign-in handoff to this screen isn&apos;t available yet — please{' '}
+          <a href="/customer/login" className="text-green-400 underline">sign in here directly</a>.
+        </p>
       </div>
     );
   }

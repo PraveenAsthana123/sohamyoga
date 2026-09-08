@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { getScript, listVersions } from '@/domain/script/repository';
 import ScriptVersionActions from './ScriptVersionActions';
 import NewDraftVersionForm from './NewDraftVersionForm';
+import SyncToVapiButton from './SyncToVapiButton';
+import VapiConfigEditor from './VapiConfigEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +17,10 @@ export default async function ScriptDetailPage({ params }: { params: { id: strin
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">{scriptJson.name}</h1>
-        <p className="text-sm opacity-60 capitalize">{scriptJson.serviceType.replace('_', ' ')}</p>
+        <p className="text-sm opacity-60 capitalize">
+          {scriptJson.serviceType.replace('_', ' ')} · {scriptJson.direction}
+          {scriptJson.scenarioKey && ` · ${scriptJson.scenarioKey.replace(/_/g, ' ')}`}
+        </p>
       </div>
 
       <div className="space-y-3">
@@ -44,6 +49,14 @@ export default async function ScriptDetailPage({ params }: { params: { id: strin
                 <p><span className="opacity-60">Closing: </span>{vJson.sections.closing}</p>
               </div>
               {vJson.status === 'draft' && <ScriptVersionActions scriptId={scriptJson.id} versionId={vJson.id} />}
+              <VapiConfigEditor scriptId={scriptJson.id} versionId={vJson.id} config={vJson.vapiConfig!} />
+              <SyncToVapiButton
+                scriptId={scriptJson.id}
+                versionId={vJson.id}
+                vapiAssistantId={vJson.vapiAssistantId ?? null}
+                vapiSyncedAt={vJson.vapiSyncedAt ? vJson.vapiSyncedAt.toISOString() : null}
+                vapiSyncError={vJson.vapiSyncError ?? null}
+              />
             </div>
           );
         })}

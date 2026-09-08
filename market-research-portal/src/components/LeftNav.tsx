@@ -75,6 +75,10 @@ export default function LeftNav() {
           <Link href="/spatial-learning" className={linkClass('/spatial-learning')}>Spatial Learning</Link>
           <Link href="/competitors" className={linkClass('/competitors')}>Competitors</Link>
           <Link href="/operations-alerts" className={linkClass('/operations-alerts')}>Operations &amp; Alerts</Link>
+          <Link href="/research-library" className={linkClass('/research-library')}>Research Library</Link>
+          <Link href="/meeting-reports" className={linkClass('/meeting-reports')}>Meeting Reports</Link>
+          <Link href="/intake-submissions" className={linkClass('/intake-submissions')}>Intake Submissions</Link>
+          <Link href="/hooks" className={linkClass('/hooks')}>Hook Management</Link>
         </div>
       </div>
       <div className="border-t border-gray-200 p-3">

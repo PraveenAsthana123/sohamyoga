@@ -15,6 +15,7 @@
 // CORRECT, honest one, not evidence the feature doesn't work.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -118,9 +119,9 @@ test.describe('SOC-002 approval workflow — the previously-missing approve step
 test.describe('SOC-003 GET endpoints — auth gating', () => {
   test('drafts and approvals listing require admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const draftsRes = await unauth.get('http://127.0.0.1:8085/api/admin/social/drafts');
+    const draftsRes = await unauth.get(apiUrl('/api/admin/social/drafts'));
     expect(draftsRes.status()).toBe(401);
-    const approvalsRes = await unauth.get('http://127.0.0.1:8085/api/admin/social/approvals');
+    const approvalsRes = await unauth.get(apiUrl('/api/admin/social/approvals'));
     expect(approvalsRes.status()).toBe(401);
     await unauth.dispose();
   });

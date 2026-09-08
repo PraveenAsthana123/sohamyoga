@@ -2,6 +2,10 @@ import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { getAdminPrincipal } from '@/lib/admin-auth';
 import { CompetitorPricePoint } from '@/domain/competitor/CompetitorPricePoint';
+import { detectPriceChange, queueCompetitorPriceAlert } from '@/domain/competitor/PriceChangeDetector';
+import { draftCampaignFromPriceChange } from '@/domain/competitor/MarketIntelligenceToCampaign';
+
+const SIGNIFICANT_CHANGE_THRESHOLD_PCT = 10;
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,7 +34,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return Response.json({ error: err instanceof Error ? err.message : 'Invalid price point data.' }, { status: 400 });
   }
 
-  const competitor = await query(`SELECT id FROM competitor WHERE id = $1`, [params.id]);
+  const competitor = await query<{ id: string; tenant_id: string; name: string }>(
+    `SELECT id, tenant_id, name FROM competitor WHERE id = $1`, [params.id],
+  );
   if (!competitor.rows.length) return Response.json({ error: 'Competitor not found.' }, { status: 404 });
 
   const result = await query<{ id: string }>(
@@ -38,5 +44,20 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
      VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
     [params.id, body.serviceName, body.price, currency, body.effectiveDate, body.notes ?? '', principal!.id],
   );
-  return Response.json({ ok: true, id: result.rows[0].id }, { status: 201 });
+
+  // Market Intelligence Alerts -- a real diff against the competitor's own
+  // prior price point, not a fabricated "AI insight."
+  const change = await detectPriceChange(params.id, body.serviceName, body.price, result.rows[0].id);
+  let draftCampaignId: string | null = null;
+  if (change.changed) {
+    await queueCompetitorPriceAlert(competitor.rows[0].tenant_id, competitor.rows[0].name, body.serviceName, change);
+    // Market Intelligence -> Campaign: only draft a real campaign_brief for
+    // moves large enough to plausibly warrant a response -- not every
+    // trivial price tweak becomes a campaign draft.
+    if (change.deltaPct !== null && Math.abs(change.deltaPct) >= SIGNIFICANT_CHANGE_THRESHOLD_PCT) {
+      draftCampaignId = await draftCampaignFromPriceChange(competitor.rows[0].tenant_id, competitor.rows[0].name, body.serviceName, change);
+    }
+  }
+
+  return Response.json({ ok: true, id: result.rows[0].id, priceChange: change.changed ? change : null, draftCampaignId }, { status: 201 });
 }

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const auth = await getAdminPrincipal(req); if (auth.denied) return auth.denied;
   if (!databaseConfigured()) return Response.json({error:'DATABASE_URL is not configured.'},{status:503});
   const [jobs,tasks,requirements] = await Promise.all([
-    query(`SELECT j.*, count(t.id) FILTER (WHERE t.status='open')::int AS open_tasks FROM account_provisioning_job j LEFT JOIN provisioning_human_task t ON t.job_id=j.id GROUP BY j.id ORDER BY j.updated_at DESC LIMIT 100`),
+    query(`SELECT j.*, r.developer_creation_mode, count(t.id) FILTER (WHERE t.status='open')::int AS open_tasks FROM account_provisioning_job j LEFT JOIN provisioning_human_task t ON t.job_id=j.id JOIN social_platform_requirement r ON r.platform=j.platform GROUP BY j.id,r.developer_creation_mode ORDER BY j.updated_at DESC LIMIT 100`),
     query(`SELECT t.*,j.account_name FROM provisioning_human_task t JOIN account_provisioning_job j ON j.id=t.job_id WHERE t.status='open' ORDER BY t.due_at NULLS LAST,t.created_at`),
     query(`SELECT * FROM social_platform_requirement ORDER BY platform`),
   ]);

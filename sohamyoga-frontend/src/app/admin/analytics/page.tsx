@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const TABS = ["overview", "events", "funnels", "attribution", "sessions", "cohorts", "consent", "integrations"] as const;
+const TABS = ["overview", "events", "funnels", "attribution", "roi", "sessions", "cohorts", "consent", "integrations"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_LABELS: Record<Tab, string> = {
-  overview: "Overview", events: "Events", funnels: "Funnels", attribution: "Attribution",
+  overview: "Overview", events: "Events", funnels: "Funnels", attribution: "Attribution", roi: "Cross-Channel ROI",
   sessions: "Sessions", cohorts: "Cohorts", consent: "Consent", integrations: "Integrations",
 };
 
@@ -299,6 +299,78 @@ function AttributionTab() {
   );
 }
 
+interface RoiRow { source: 'platform_reported' | 'session_attributed'; channel: string; campaigns?: number; conversions?: number; spendCents: number; revenueCents: number; roiPct: number | null }
+interface RoiData {
+  windowDays: number;
+  platformReported: RoiRow[];
+  sessionAttributed: RoiRow[];
+  totals: { totalSpendCents: number; totalRevenueCents: number; blendedRoiPct: number | null };
+  caveats: string[];
+}
+
+function cad(cents: number): string { return `$${(cents / 100).toFixed(2)} CAD`; }
+
+function RoiTab() {
+  const [data, setData] = useState<RoiData | null>(null);
+  const [days, setDays] = useState(30);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+    fetchJson<RoiData>(`/api/admin/analytics/cross-channel-roi?days=${days}`).then(d => { setData(d); setLoading(false); });
+  }, [days]);
+
+  const rows = [...(data?.platformReported ?? []), ...(data?.sessionAttributed ?? [])];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        {[7, 30, 90].map(d => (
+          <button key={d} onClick={() => setDays(d)}
+            className={`text-xs px-3 py-1.5 border rounded hover:bg-gray-50 ${days === d ? "bg-blue-50 border-blue-300 text-blue-700" : ""}`}>Last {d} days</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <KpiCard label="Total Spend (all channels)" value={data ? cad(data.totals.totalSpendCents) : "—"} color="red" />
+        <KpiCard label="Total Attributed Revenue" value={data ? cad(data.totals.totalRevenueCents) : "—"} color="green" />
+        <KpiCard label="Blended ROI"
+          value={data?.totals.blendedRoiPct != null ? `${data.totals.blendedRoiPct}%` : "n/a — $0 spend basis"}
+          sub="platform-reported spend only" color="purple" />
+      </div>
+      {loading ? <EmptyState message="Loading…" /> : (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b"><h3 className="text-sm font-semibold">Spend &amp; Revenue by Channel</h3></div>
+          {!rows.length ? <p className="p-6 text-sm text-gray-500 text-center">No spend or attributed-revenue data in this window yet.</p> : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b text-xs text-gray-500">
+                <tr><th className="px-4 py-2 text-left">Channel</th><th className="px-4 py-2 text-left">Source</th>
+                  <th className="px-4 py-2 text-right">Spend</th><th className="px-4 py-2 text-right">Revenue</th><th className="px-4 py-2 text-right">ROI</th></tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-2 capitalize">{r.channel}</td>
+                    <td className="px-4 py-2"><Badge label={r.source === 'platform_reported' ? 'platform-reported' : 'session-attributed'}
+                      colorClass={r.source === 'platform_reported' ? 'bg-indigo-100 text-indigo-700' : 'bg-teal-100 text-teal-700'} /></td>
+                    <td className="px-4 py-2 text-right">{cad(r.spendCents)}</td>
+                    <td className="px-4 py-2 text-right font-medium">{cad(r.revenueCents)}</td>
+                    <td className="px-4 py-2 text-right">{r.roiPct != null ? `${r.roiPct}%` : "n/a"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+      {data?.caveats && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-800 space-y-1">
+          <p className="font-semibold">Read this before trusting the blended number:</p>
+          {data.caveats.map((c, i) => <p key={i}>• {c}</p>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface SessionRow { id: string; anon: string; device: string; browser: string; country: string; pages: number; durationLabel: string; source: string; replay: boolean }
 
 function SessionsTab() {
@@ -577,7 +649,7 @@ function IntegrationsTab() {
 export default function AnalyticsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const TAB_CONTENT: Record<Tab, React.ReactElement> = {
-    overview: <OverviewTab />, events: <EventsTab />, funnels: <FunnelsTab />, attribution: <AttributionTab />,
+    overview: <OverviewTab />, events: <EventsTab />, funnels: <FunnelsTab />, attribution: <AttributionTab />, roi: <RoiTab />,
     sessions: <SessionsTab />, cohorts: <CohortsTab />, consent: <ConsentTab />, integrations: <IntegrationsTab />,
   };
   return (

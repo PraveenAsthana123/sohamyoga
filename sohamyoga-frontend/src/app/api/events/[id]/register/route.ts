@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query, transaction } from '@/lib/postgres';
 import { Event, type EventType, type EventFormat, type EventStatus } from '@/domain/event/Event';
+import { findDuplicateLead, markAsDuplicate } from '@/domain/marketing/LeadDedup';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
          VALUES ($1, $2, 'event_registration', 'new', $3) RETURNING id`,
         [r.tenant_id, email, `Registered for: ${event.title}`],
       );
+
+      // Real dedup, same check used by the public contact form -- a repeat
+      // registrant is flagged, not silently double-counted as a new lead.
+      const duplicateOf = await findDuplicateLead(r.tenant_id, email, client);
+      if (duplicateOf && duplicateOf !== leadResult.rows[0].id) {
+        await markAsDuplicate(leadResult.rows[0].id, duplicateOf, client);
+      }
 
       await client.query(
         `INSERT INTO event_registration (event_id, name, email, phone, lead_id) VALUES ($1,$2,$3,$4,$5)`,

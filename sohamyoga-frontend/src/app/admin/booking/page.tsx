@@ -100,6 +100,18 @@ function TodayTab() {
     if (res.ok) load();
   }
 
+  async function generateInvoice(id: string) {
+    const res = await fetch(`/api/admin/bookings/${id}/generate-invoice`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    alert(res.ok ? `Invoice ${body.invoice.invoice_number} created for $${body.invoice.total_cad}.` : (body.error || 'Failed to generate invoice.'));
+  }
+
+  async function generateOrder(id: string) {
+    const res = await fetch(`/api/admin/bookings/${id}/generate-order`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    alert(res.ok ? `Order created (id ${String(body.orderId).slice(0, 8)}). View it in /admin/orders.` : (body.error || 'Failed to generate order.'));
+  }
+
   const statusColor: Record<string, string> = { confirmed: 'green', checked_in: 'blue', no_show: 'red', pending: 'amber', cancelled: 'gray' };
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -121,6 +133,12 @@ function TodayTab() {
               <td className="px-3 py-2">
                 {['pending', 'confirmed'].includes(b.status) && (
                   <button onClick={() => act(b.id, 'check_in')} className="text-xs text-blue-600 hover:underline mr-2">Check In</button>
+                )}
+                {b.status === 'checked_in' && (
+                  <>
+                    <button onClick={() => generateInvoice(b.id)} className="text-xs text-indigo-600 hover:underline mr-2">Generate Invoice</button>
+                    <button onClick={() => generateOrder(b.id)} className="text-xs text-teal-600 hover:underline mr-2">Generate Order</button>
+                  </>
                 )}
                 {b.status !== 'cancelled' && (
                   <button onClick={() => act(b.id, 'cancel')} className="text-xs text-red-500 hover:underline">Cancel</button>

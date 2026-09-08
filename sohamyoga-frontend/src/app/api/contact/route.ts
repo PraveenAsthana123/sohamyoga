@@ -12,6 +12,7 @@
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
+import { findDuplicateLead, markAsDuplicate } from '@/domain/marketing/LeadDedup';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -51,7 +52,16 @@ export async function POST(req: NextRequest) {
       body.subject.trim(), body.message.trim(), body.serviceInterest?.trim() || null, body.company?.trim() || null],
   );
 
-  return Response.json({ ok: true, id: result.rows[0].id }, { status: 201 });
+  // Real dedup -- confirmed zero implementation before this (grep,
+  // 2026-09-01). A repeat inquiry from the same email is flagged, not
+  // silently duplicated as an unrelated new lead.
+  const found = await findDuplicateLead(TENANT_ID, body.email.trim());
+  const duplicateOf = found && found !== result.rows[0].id ? found : null;
+  if (duplicateOf) {
+    await markAsDuplicate(result.rows[0].id, duplicateOf);
+  }
+
+  return Response.json({ ok: true, id: result.rows[0].id, duplicateOfLeadId: duplicateOf }, { status: 201 });
 }
 
 export async function GET(req: NextRequest) {
@@ -60,14 +70,19 @@ export async function GET(req: NextRequest) {
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
   const limit = Math.min(Number(req.nextUrl.searchParams.get('limit')) || 50, 200);
+  const includeDuplicates = req.nextUrl.searchParams.get('includeDuplicates') === 'true';
   const rows = await query<{
     id: string; first_name: string; last_name: string | null; email: string; phone: string | null;
     subject: string | null; message: string | null; service_interest: string | null; company: string | null;
     funnel_stage: string; lead_score: number | null; lead_temperature: string | null; created_at: string;
+    duplicate_of_lead_id: string | null; repeat_inquiry_count: string;
   }>(
-    `SELECT id, first_name, last_name, email, phone, subject, message, service_interest, company,
-            funnel_stage, lead_score, lead_temperature, created_at
-     FROM campaign_lead WHERE source_platform = 'website_form' ORDER BY created_at DESC LIMIT $1`,
+    `SELECT cl.id, cl.first_name, cl.last_name, cl.email, cl.phone, cl.subject, cl.message, cl.service_interest, cl.company,
+            cl.funnel_stage, cl.lead_score, cl.lead_temperature, cl.created_at, cl.duplicate_of_lead_id,
+            (SELECT COUNT(*) FROM campaign_lead d WHERE d.duplicate_of_lead_id = cl.id) AS repeat_inquiry_count
+     FROM campaign_lead cl
+     WHERE cl.source_platform = 'website_form' ${includeDuplicates ? '' : 'AND cl.duplicate_of_lead_id IS NULL'}
+     ORDER BY cl.created_at DESC LIMIT $1`,
     [limit],
   );
 
@@ -77,6 +92,7 @@ export async function GET(req: NextRequest) {
       subject: r.subject ?? undefined, message: r.message ?? undefined, serviceInterest: r.service_interest ?? undefined,
       company: r.company ?? undefined, funnelStage: r.funnel_stage, leadScore: r.lead_score ?? undefined,
       leadTemperature: r.lead_temperature ?? undefined, createdAt: r.created_at,
+      duplicateOfLeadId: r.duplicate_of_lead_id ?? undefined, repeatInquiryCount: Number(r.repeat_inquiry_count),
     })),
   });
 }

@@ -7,6 +7,7 @@
 // fixture the Reports tab tests already depend on.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 
 async function loginAsAdmin(request: import('playwright/test').APIRequestContext) {
   const login = await request.post('/api/auth/login', { data: { email: 'admin_demo@sohamyoga.ca', password: 'AdminDemo@123456' } });
@@ -16,7 +17,7 @@ async function loginAsAdmin(request: import('playwright/test').APIRequestContext
 test.describe('SIM-001 GET /api/admin/demo-hub/simulation-step', () => {
   test('requires admin auth', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const res = await unauth.get('http://127.0.0.1:8085/api/admin/demo-hub/simulation-step?flow=churn-prediction&step=source-data');
+    const res = await unauth.get(apiUrl('/api/admin/demo-hub/simulation-step?flow=churn-prediction&step=source-data'));
     expect(res.status()).toBe(401);
     await unauth.dispose();
   });

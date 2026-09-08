@@ -14,6 +14,7 @@
 // email domain so afterAll can clean up precisely.
 
 import { test, expect } from 'playwright/test';
+import { apiUrl } from './support/runtime';
 import { Pool } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -121,9 +122,9 @@ test.describe('TSO-003 negative validation', () => {
 
   test('unauthenticated requests are rejected with 401', async ({ playwright }) => {
     const unauth = await playwright.request.newContext();
-    const teacherRes = await unauth.post('http://127.0.0.1:8085/api/admin/teachers', { data: {} });
+    const teacherRes = await unauth.post(apiUrl('/api/admin/teachers'), { data: {} });
     expect(teacherRes.status()).toBe(401);
-    const studentRes = await unauth.post('http://127.0.0.1:8085/api/admin/students', { data: {} });
+    const studentRes = await unauth.post(apiUrl('/api/admin/students'), { data: {} });
     expect(studentRes.status()).toBe(401);
     await unauth.dispose();
   });

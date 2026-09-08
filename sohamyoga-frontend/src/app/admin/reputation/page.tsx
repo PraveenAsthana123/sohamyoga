@@ -9,7 +9,8 @@
 import { useEffect, useState, useCallback } from 'react';
 
 interface CredStatus { authStatus: string; hasClientCredentials: boolean; locationDisplayName: string | null; lastSyncedAt: string | null; lastFailureMessage: string | null }
-interface Review { id: string; reviewerName: string; starRating: number | null; comment: string | null; createdAt: string | null; replyText: string | null }
+interface Review { id: string; reviewerName: string; starRating: number | null; comment: string | null; createdAt: string | null; replyText: string | null; sentiment:string|null; workflowStatus:string }
+interface Intelligence { summary:{total:number;average_rating:string|null;positive:number;neutral:number;negative:number;responded:number;awaiting_response:number};customerMatchCandidates:unknown[];responseQueue:unknown[];automation:{mode:string} }
 
 export default function ReputationAdmin() {
   const [status, setStatus] = useState<CredStatus | null>(null);
@@ -17,10 +18,13 @@ export default function ReputationAdmin() {
   const [clientId, setClientId] = useState(''); const [clientSecret, setClientSecret] = useState('');
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState<string | null>(null);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [drafting, setDrafting] = useState<string | null>(null);
+  const [intelligence,setIntelligence]=useState<Intelligence|null>(null);
 
   const load = useCallback(() => {
     fetch('/api/admin/reputation/credentials', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(setStatus);
     fetch('/api/admin/reputation/reviews', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setReviews(d?.reviews ?? []));
+    fetch('/api/admin/reputation/intelligence', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(setIntelligence);
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -62,6 +66,15 @@ export default function ReputationAdmin() {
     load();
   }
 
+  async function draftWithAi(id: string) {
+    setDrafting(id);
+    const res = await fetch(`/api/admin/reputation/reviews/${id}/draft-reply`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    setDrafting(null);
+    if (res.ok) setReplyDrafts(d => ({ ...d, [id]: body.draft }));
+    else setMessage(body.error ?? 'Failed to draft a reply.');
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900">Review, Rating & Reputation Management</h1>
@@ -98,6 +111,15 @@ export default function ReputationAdmin() {
         )}
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {[['Reviews',intelligence?.summary.total??0],['Average rating',intelligence?.summary.average_rating??'—'],['Negative',intelligence?.summary.negative??0],['Awaiting response',intelligence?.summary.awaiting_response??0]].map(([label,value])=><div key={String(label)} className="bg-white border rounded-lg p-3"><p className="text-2xl font-bold text-gray-900">{value}</p><p className="text-xs text-gray-500">{label}</p></div>)}
+      </div>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6 text-sm text-indigo-900">
+        <p className="font-semibold">Semi-automation control</p>
+        <p>Review sync creates sentiment, unified-inbox events and approval work automatically. Public reviewer names create customer-match candidates only; staff confirmation is required. Google replies remain human-approved.</p>
+        <p className="mt-1 text-xs">Customer match candidates: {intelligence?.customerMatchCandidates.length??0} · Response work items: {intelligence?.responseQueue.length??0}</p>
+      </div>
+
       <div className="bg-white border rounded-lg overflow-hidden">
         <h3 className="font-semibold text-gray-800 p-4 pb-0">Reviews ({reviews.length})</h3>
         <div className="divide-y">
@@ -108,6 +130,7 @@ export default function ReputationAdmin() {
                 <p className="text-amber-500">{'★'.repeat(r.starRating ?? 0)}{'☆'.repeat(5 - (r.starRating ?? 0))}</p>
               </div>
               {r.comment && <p className="text-sm text-gray-600 mt-1">{r.comment}</p>}
+              {r.sentiment && <span className={`inline-block mt-2 rounded px-2 py-0.5 text-xs ${r.sentiment==='negative'?'bg-red-100 text-red-700':r.sentiment==='positive'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-600'}`}>{r.sentiment} · {r.workflowStatus}</span>}
               <p className="text-xs text-gray-400 mt-1">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</p>
               {r.replyText ? (
                 <p className="text-xs bg-gray-50 rounded p-2 mt-2 text-gray-600">Your reply: {r.replyText}</p>
@@ -118,6 +141,9 @@ export default function ReputationAdmin() {
                     onChange={e => setReplyDrafts(d => ({ ...d, [r.id]: e.target.value }))}
                     placeholder="Write a reply…" className="flex-1 border rounded px-2 py-1 text-xs"
                   />
+                  <button onClick={() => draftWithAi(r.id)} disabled={drafting === r.id} className="text-xs text-purple-600 hover:underline disabled:opacity-50">
+                    {drafting === r.id ? 'Drafting…' : 'Draft with AI'}
+                  </button>
                   <button onClick={() => sendReply(r.id)} className="text-xs text-indigo-600 hover:underline">Post reply</button>
                 </div>
               )}

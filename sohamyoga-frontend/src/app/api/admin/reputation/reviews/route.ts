@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
 
   const tenantId = await getPrimaryTenantId();
   const rows = await query(
-    `SELECT r.id, r.reviewer_name, r.star_rating, r.comment, r.review_created_at, r.reply_text, r.reply_updated_at
+    `SELECT r.id, r.reviewer_name, r.star_rating, r.comment, r.review_created_at, r.reply_text, r.reply_updated_at,
+            r.sentiment,r.sentiment_confidence,r.workflow_status
      FROM business_review r
      JOIN google_business_connection c ON c.id = r.connection_id
      WHERE c.tenant_id = $1 ORDER BY r.review_created_at DESC NULLS LAST LIMIT 200`,
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
     reviews: rows.rows.map(r => ({
       id: r.id, reviewerName: r.reviewer_name, starRating: r.star_rating, comment: r.comment,
       createdAt: r.review_created_at, replyText: r.reply_text, replyUpdatedAt: r.reply_updated_at,
+      sentiment:r.sentiment,sentimentConfidence:r.sentiment_confidence,workflowStatus:r.workflow_status,
     })),
   });
 }

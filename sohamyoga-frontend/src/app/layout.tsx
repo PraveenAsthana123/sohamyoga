@@ -4,6 +4,7 @@ import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import LiveChatWidget from '@/components/chat/LiveChatWidget';
 import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
 import ConsentBanner from '@/components/analytics/ConsentBanner';
+import RetargetingPixels from '@/components/analytics/RetargetingPixels';
 import PWARegister from '@/components/PWARegister';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sohamyoga.com';
@@ -77,6 +78,7 @@ export default function RootLayout({
           <div id="main-content"><LayoutWrapper>{children}</LayoutWrapper></div>
           <LiveChatWidget />
           <ConsentBanner />
+          <RetargetingPixels />
           <PWARegister />
         </AnalyticsProvider>
       </body>

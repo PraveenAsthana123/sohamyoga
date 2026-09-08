@@ -1,7 +1,7 @@
 import { countContacts } from '@/domain/contact/repository';
 import { countSubmissions, countSubmissionsWithContact } from '@/domain/form/repository';
 import { countScripts, scriptUsageCounts } from '@/domain/script/repository';
-import { callsByStatus, callsPerDay, countCalls } from '@/domain/call/repository';
+import { callsByStatus, callsPerDay, countCalls, totalCallCostUsd } from '@/domain/call/repository';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 }
 
 export default async function AdminDashboardPage() {
-  const [contacts, submissions, submissionsWithContact, scripts, calls, perDay, byStatus, usage] = await Promise.all([
+  const [contacts, submissions, submissionsWithContact, scripts, calls, perDay, byStatus, usage, totalCost] = await Promise.all([
     countContacts(),
     countSubmissions(),
     countSubmissionsWithContact(),
@@ -24,6 +24,7 @@ export default async function AdminDashboardPage() {
     callsPerDay(14),
     callsByStatus(),
     scriptUsageCounts(),
+    totalCallCostUsd(),
   ]);
 
   const maxPerDay = Math.max(1, ...perDay.map((d) => d.count));
@@ -43,6 +44,7 @@ export default async function AdminDashboardPage() {
         <StatCard label="Submissions → contact" value={submissionsWithContact} />
         <StatCard label="Call scripts" value={scripts} />
         <StatCard label="Calls logged" value={calls} />
+        <StatCard label="Total Vapi cost ($)" value={Number(totalCost.toFixed(2))} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

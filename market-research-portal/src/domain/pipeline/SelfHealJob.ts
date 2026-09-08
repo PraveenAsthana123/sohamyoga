@@ -26,14 +26,17 @@ async function retryVideoRenderJobs(): Promise<RetryResult[]> {
   // previous SELECT-then-loop-UPDATE had exactly the race window this
   // codebase's own memory says has caused real cron-overlap bugs before.
   const claimed = await query<{ id: string; asset_id: string; workspace_id: string; campaign_id: string | null; attempts: number }>(
-    `UPDATE marketing_production_job SET status='running', attempts=attempts+1, started_at=now()
-     WHERE id IN (
+    `WITH claimable AS (
        SELECT id FROM marketing_production_job
        WHERE job_type = 'video_render' AND status = 'failed' AND attempts < $1
          AND updated_at > now() - interval '24 hours'
        FOR UPDATE SKIP LOCKED
      )
-     RETURNING id, asset_id, workspace_id, campaign_id, attempts`,
+     UPDATE marketing_production_job j
+     SET status = 'running', attempts = attempts + 1, started_at = now()
+     FROM claimable c
+     WHERE j.id = c.id
+     RETURNING j.id, j.asset_id, j.workspace_id, j.campaign_id, j.attempts`,
     [MAX_ATTEMPTS],
   );
 

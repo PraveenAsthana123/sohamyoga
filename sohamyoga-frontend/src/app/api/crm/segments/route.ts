@@ -7,6 +7,7 @@ import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin, getAdminPrincipal } from '@/lib/admin-auth';
 import { getPrimaryTenantId } from '@/domain/ingestion/Connector';
 import { AudienceSegment, type SegmentCriteria, type SegmentLogic } from '@/domain/campaign/AudienceSegment';
+import { evaluateSegment } from '@/domain/campaign/SegmentEvaluator';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -71,5 +72,37 @@ export async function POST(req: NextRequest) {
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
     [tenantId, body.name, body.description ?? '', JSON.stringify(body.criteria), body.logic ?? 'AND', principal!.id],
   );
+
+  // Compute immediately — the whole reason this evaluator exists is so a
+  // new segment doesn't sit at "not computed" forever waiting for a job.
+  try {
+    const { count } = await evaluateSegment(body.criteria, body.logic ?? 'AND');
+    await query(`UPDATE audience_segment SET estimated_size = $2, last_computed_at = now() WHERE id = $1`, [result.rows[0].id, count]);
+  } catch (err) {
+    // Real, unsupported-field errors are surfaced to the admin, not silently
+    // swallowed — the segment is saved but stays "not computed."
+    return Response.json({ ok: true, id: result.rows[0].id, computeWarning: err instanceof Error ? err.message : 'Could not compute size.' }, { status: 201 });
+  }
   return Response.json({ ok: true, id: result.rows[0].id }, { status: 201 });
+}
+
+// Recompute an existing segment's size on demand (e.g. after real student
+// data changes) rather than only ever computing once at creation time.
+export async function PATCH(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
+  const body = await req.json().catch(() => null) as { segmentId?: string } | null;
+  if (!body?.segmentId) return Response.json({ error: 'segmentId is required.' }, { status: 400 });
+
+  const seg = await query<{ criteria: SegmentCriteria[]; logic: SegmentLogic }>(`SELECT criteria, logic FROM audience_segment WHERE id = $1`, [body.segmentId]);
+  if (!seg.rowCount) return Response.json({ error: 'Segment not found.' }, { status: 404 });
+
+  try {
+    const { count } = await evaluateSegment(seg.rows[0].criteria, seg.rows[0].logic);
+    const result = await query(`UPDATE audience_segment SET estimated_size = $2, last_computed_at = now() WHERE id = $1 RETURNING *`, [body.segmentId, count]);
+    return Response.json({ segment: result.rows[0] });
+  } catch (err) {
+    return Response.json({ error: err instanceof Error ? err.message : 'Could not compute size.' }, { status: 422 });
+  }
 }

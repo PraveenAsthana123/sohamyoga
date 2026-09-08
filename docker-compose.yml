@@ -58,12 +58,48 @@ services:
       - sohamyoga-network
 
   # ── Next.js Frontend ──────────────────────────────────────────────────────
+  ollama-host-bridge:
+    image: node:22-alpine
+    container_name: sohamyoga-ollama-host-bridge
+    restart: unless-stopped
+    network_mode: host
+    command: ["node", "/bridge/ollama-docker-bridge.mjs"]
+    environment:
+      OLLAMA_LISTEN_SOCKET: /bridge-socket/ollama.sock
+    volumes:
+      - ./scripts/ollama-docker-bridge.mjs:/bridge/ollama-docker-bridge.mjs:ro
+      - ollama-bridge-socket:/bridge-socket
+
+  ollama-bridge:
+    image: node:22-alpine
+    container_name: sohamyoga-ollama-bridge
+    restart: unless-stopped
+    command: ["node", "/bridge/ollama-docker-bridge.mjs"]
+    environment:
+      OLLAMA_TARGET_SOCKET: /bridge-socket/ollama.sock
+    volumes:
+      - ./scripts/ollama-docker-bridge.mjs:/bridge/ollama-docker-bridge.mjs:ro
+      - ollama-bridge-socket:/bridge-socket
+    depends_on:
+      - ollama-host-bridge
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:11435/api/tags"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 5s
+    networks:
+      - sohamyoga-network
+
   frontend:
     build:
-      context: ./sohamyoga-frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: sohamyoga-frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:5070}"
+        # Browser bundles use same-origin /api requests. The Next fallback
+        # rewrite below forwards backend-only routes over the Docker network.
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-}"
+        INTERNAL_API_URL: "http://backend:5070"
     image: sohamyoga-frontend:latest
     container_name: sohamyoga-frontend
     restart: unless-stopped
@@ -71,19 +107,21 @@ services:
       - "3110:3010"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://backend:5070}"
+      NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-}"
       # Server-only override read at runtime by lib/server-api.ts.
       # NEXT_PUBLIC_* is inlined at build time and would bake in a host-only
       # URL the container cannot reach; INTERNAL_API_URL stays runtime-readable.
       INTERNAL_API_URL: "http://backend:5070"
       # Local AI: the /api/ai/* routes stream from the host's Ollama daemon.
       # host.docker.internal resolves to the host via the extra_hosts mapping.
-      OLLAMA_URL: "${OLLAMA_URL:-http://host.docker.internal:11434}"
-      OLLAMA_MODEL: "${OLLAMA_MODEL:-qwen2.5:latest}"
+      OLLAMA_URL: "${OLLAMA_URL:-http://ollama-bridge:11435}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-phi4-mini:latest}"
       OLLAMA_KEEP_ALIVE: "${OLLAMA_KEEP_ALIVE:-30m}"
       # Agentic gateway (FastAPI): POST a goal -> Ollama planner -> task queue.
       AGENT_API_URL: "${AGENT_API_URL:-http://host.docker.internal:8091}"
       DATABASE_URL: "postgresql://${POSTGRES_USER:-sohamyoga}:${POSTGRES_PASSWORD:-change-me-before-production}@postgres:5432/${POSTGRES_DB:-sohamyoga}"
+      # Shared only with trusted provider adapters; requests are rejected when unset.
+      INTEGRATION_EVENT_SECRET: "${INTEGRATION_EVENT_SECRET:-}"
     extra_hosts:
       # Lets the container reach services (Ollama) bound on the host.
       - "host.docker.internal:host-gateway"
@@ -91,6 +129,8 @@ services:
       backend:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      ollama-bridge:
         condition: service_healthy
     healthcheck:
       # Standalone server.js binds IPv4 0.0.0.0:3010 only — busybox wget
@@ -105,8 +145,8 @@ services:
 
   cron:
     build:
-      context: ./sohamyoga-frontend
-      dockerfile: Dockerfile.cron
+      context: .
+      dockerfile: sohamyoga-frontend/Dockerfile.cron
     image: sohamyoga-cron:latest
     container_name: sohamyoga-cron
     restart: unless-stopped
@@ -150,6 +190,8 @@ volumes:
   sohamyoga-data:
     driver: local
   sohamyoga-logs:
+    driver: local
+  ollama-bridge-socket:
     driver: local
 
 networks:

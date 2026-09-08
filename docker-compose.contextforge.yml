@@ -1,0 +1,95 @@
+services:
+  # One-shot fixup: the image runs as uid 10001 ("app"), but a freshly
+  # created named Docker volume is root-owned -- without this, the app can
+  # never open its SQLite file, and every DB-touching request (including
+  # /health) hangs forever with 0% CPU rather than erroring (found live
+  # 2026-09-02: the main container had been "Up" and "unhealthy" for 30+
+  # minutes with an empty /data directory). Runs once per volume lifetime;
+  # a no-op chown on subsequent `up` calls.
+  contextforge-init:
+    image: busybox
+    container_name: sohamyoga-contextforge-init
+    command: ["chown", "-R", "10001:10001", "/data"]
+    volumes:
+      - contextforge-data:/data
+    networks:
+      - sohamyoga-network
+    restart: "no"
+
+  contextforge:
+    image: ghcr.io/ibm/mcp-context-forge@sha256:89c3df1d31ed3c9eeabe720f26b632d03abf53fba8b041e2542b2f2d0c2832c7
+    container_name: sohamyoga-contextforge
+    restart: unless-stopped
+    env_file:
+      - ./deploy/contextforge/.env.contextforge.local
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4444
+      DATABASE_URL: sqlite:////data/contextforge.db
+      REDIS_URL: redis://contextforge-redis:6379/0
+      APP_DOMAIN: http://localhost:4444
+      AUTH_REQUIRED: "true"
+      MCP_CLIENT_AUTH_ENABLED: "true"
+      MCP_REQUIRE_AUTH: "true"
+      REQUIRE_STRONG_SECRETS: "true"
+      MCPGATEWAY_UI_ENABLED: "true"
+      MCPGATEWAY_ADMIN_API_ENABLED: "true"
+      ALLOW_PUBLIC_VISIBILITY: "false"
+      API_ALLOW_BASIC_AUTH: "false"
+      DOCS_ALLOW_BASIC_AUTH: "false"
+      INSECURE_ALLOW_QUERYPARAM_AUTH: "false"
+      SSRF_PROTECTION_ENABLED: "true"
+      # Scoped allowlist, not a blanket ssrf_allow_private_networks=true --
+      # only the actual subnet real upstream MCP servers live on (confirmed
+      # live: sohamyoga_sohamyoga-network's real subnet). Cloud-metadata and
+      # link-local blocks (ssrf_blocked_networks) stay in force underneath.
+      SSRF_ALLOWED_NETWORKS: '["192.168.144.0/20"]'
+      FEDERATION_ENABLED: "true"
+      FEDERATION_DISCOVERY: "false"
+      MAX_TOOL_CALLS_PER_MINUTE: "120"
+      GUNICORN_WORKERS: "1"
+      LOG_FORMAT: json
+      LOG_REQUESTS: "false"
+      SECURE_COOKIES: "false"
+      LLMCHAT_ENABLED: "false"
+      LLM_API_PREFIX: /llm/v1
+      LEGACY_API_ENABLED: "false"
+    ports:
+      - "127.0.0.1:4444:4444"
+    volumes:
+      - contextforge-data:/data
+    networks:
+      - sohamyoga-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      contextforge-redis:
+        condition: service_healthy
+      contextforge-init:
+        condition: service_completed_successfully
+
+  contextforge-redis:
+    image: redis:7-alpine
+    container_name: sohamyoga-contextforge-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - contextforge-redis-data:/data
+    networks:
+      - sohamyoga-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+networks:
+  sohamyoga-network:
+    external: true
+    name: ${SOHAM_DOCKER_NETWORK:-sohamyoga_sohamyoga-network}
+
+volumes:
+  contextforge-data:
+    name: sohamyoga-contextforge-data
+  contextforge-redis-data:
+    name: sohamyoga-contextforge-redis-data

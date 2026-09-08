@@ -17,10 +17,14 @@ function Stars({ n }: { n: number }) {
   return <span className="text-amber-500">{'★'.repeat(n)}{'☆'.repeat(5 - n)}</span>;
 }
 
+// AI Response Draft -- Ollama suggests a reply from the review's own real
+// content; staff always reviews/edits before sending. Never auto-sends.
 function RespondBox({ id, onDone }: { id: string; onDone: () => void }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [draftError, setDraftError] = useState('');
 
   async function submit() {
     setBusy(true);
@@ -30,11 +34,105 @@ function RespondBox({ id, onDone }: { id: string; onDone: () => void }) {
     setBusy(false); setOpen(false); setText(''); onDone();
   }
 
+  async function draftWithAi() {
+    setDrafting(true); setDraftError('');
+    const res = await fetch(`/api/service-reviews/${id}/draft-response`, { method: 'POST' });
+    const body = await res.json();
+    setDrafting(false);
+    if (!res.ok) { setDraftError(body.error || 'Failed to draft a response.'); return; }
+    setText(body.draft);
+  }
+
   if (!open) return <button onClick={() => setOpen(true)} className="text-xs text-indigo-600 hover:underline">Respond</button>;
   return (
-    <div className="mt-2 flex gap-2">
-      <input value={text} onChange={e => setText(e.target.value)} placeholder="Staff response…" className="flex-1 border rounded px-2 py-1 text-xs" />
-      <button onClick={submit} disabled={busy || !text.trim()} className="px-2 py-1 bg-indigo-600 text-white rounded text-xs disabled:opacity-50">Send</button>
+    <div className="mt-2 space-y-1">
+      <div className="flex gap-2">
+        <input value={text} onChange={e => setText(e.target.value)} placeholder="Staff response…" className="flex-1 border rounded px-2 py-1 text-xs" />
+        <button onClick={draftWithAi} disabled={drafting} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs disabled:opacity-50">{drafting ? 'Drafting…' : 'Draft with AI'}</button>
+        <button onClick={submit} disabled={busy || !text.trim()} className="px-2 py-1 bg-indigo-600 text-white rounded text-xs disabled:opacity-50">Send</button>
+      </div>
+      {draftError && <p className="text-xs text-red-600">{draftError}</p>}
+    </div>
+  );
+}
+
+interface RecoveryCase {
+  id: string; status: string; contactMethod: string | null; notes: string | null; resolvedAt: string | null;
+  createdAt: string; starRating: number; comment: string; reviewerName: string; reviewerEmail: string; className: string;
+}
+
+const RECOVERY_STATUS_COLOR: Record<string, string> = {
+  identified: 'bg-red-100 text-red-700', contacted: 'bg-amber-100 text-amber-700',
+  resolved: 'bg-green-100 text-green-700', unresolved: 'bg-gray-100 text-gray-600',
+};
+const RECOVERY_NEXT: Record<string, string[]> = {
+  identified: ['contacted'], contacted: ['resolved', 'unresolved'], resolved: [], unresolved: ['contacted'],
+};
+
+// Real Service Recovery -- a case is auto-opened whenever a review scores
+// <=2 stars (POST /api/service-reviews). No AI decides resolution -- a
+// human records contact_method/notes, same as every other closure here.
+function ServiceRecoveryPanel() {
+  const [cases, setCases] = useState<RecoveryCase[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actingId, setActingId] = useState<string | null>(null);
+  const [contactMethod, setContactMethod] = useState('phone');
+  const [notes, setNotes] = useState('');
+
+  const load = useCallback(() => {
+    setLoading(true);
+    fetch('/api/admin/service-recovery', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setCases(d?.cases ?? [])).finally(() => setLoading(false));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function transition(id: string, status: string) {
+    await fetch(`/api/admin/service-recovery/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, contactMethod: status === 'contacted' ? contactMethod : undefined, notes: notes || undefined }),
+    });
+    setActingId(null); setNotes('');
+    load();
+  }
+
+  const open = cases.filter(c => c.status !== 'resolved');
+
+  return (
+    <div className="bg-white border rounded-lg p-4 mb-6">
+      <h2 className="font-semibold text-gray-900 mb-1">Service Recovery ({open.length} open)</h2>
+      <p className="text-xs text-gray-500 mb-3">Auto-opened whenever a review scores 2 stars or fewer.</p>
+      {loading ? <p className="text-xs text-gray-400">Loading…</p> : (
+        <div className="space-y-2">
+          {cases.map(c => (
+            <div key={c.id} className="border rounded p-3 text-sm">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium">{c.reviewerName} — <Stars n={c.starRating} /> — {c.className}</p>
+                  {c.comment && <p className="text-xs text-gray-500 mt-1">{c.comment}</p>}
+                  {c.notes && <p className="text-xs text-indigo-700 bg-indigo-50 rounded p-1.5 mt-1">{c.notes}</p>}
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${RECOVERY_STATUS_COLOR[c.status]}`}>{c.status}</span>
+              </div>
+              {actingId === c.id ? (
+                <div className="flex gap-2 mt-2 items-center">
+                  <select value={contactMethod} onChange={e => setContactMethod(e.target.value)} className="border rounded px-1.5 py-1 text-xs">
+                    {['phone', 'email', 'in_person'].map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes…" className="flex-1 border rounded px-2 py-1 text-xs" />
+                  <button onClick={() => transition(c.id, 'contacted')} className="text-xs text-blue-600 hover:underline">Confirm</button>
+                  <button onClick={() => setActingId(null)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-2">
+                  {(RECOVERY_NEXT[c.status] ?? []).map(s => (
+                    <button key={s} onClick={() => s === 'contacted' ? setActingId(c.id) : transition(c.id, s)} className="text-xs text-blue-600 hover:underline">{s}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          {!cases.length && <p className="text-xs text-gray-400">No recovery cases yet.</p>}
+        </div>
+      )}
     </div>
   );
 }
@@ -68,6 +166,7 @@ export default function ServiceReviewsAdmin() {
           <p className="text-xs text-gray-400">{published.length} published review{published.length === 1 ? '' : 's'}</p>
         </div>
       </div>
+      <ServiceRecoveryPanel />
       <div className="flex gap-2 mb-4">
         {(['all', 'pending', 'published', 'hidden'] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded text-sm capitalize ${filter === f ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{f}</button>

@@ -130,3 +130,22 @@
 - Found that existing VS Code integrated terminals inherited an old process environment and still resolve `/snap/bin/codex`; the workspace previously had no terminal or Codex launcher settings.
 - Added a SohamYoga login-shell profile, an explicit workspace terminal PATH prioritizing `/home/praveen/.npm-global/bin`, and absolute-path Codex verify/launch tasks under `.vscode`. Both JSON files validate and controlled/login-shell tests resolve the official CLI. Existing terminal processes must be closed and recreated, or the VS Code window reloaded, before they inherit the fix.
 - Diagnosed the separate official-extension UI error as a 33-second `renderer_ready_timeout` in an overloaded shared extension host that repeatedly became unresponsive while numerous competing AI extensions were active. Installed `openai.chatgpt@26.825.51511` as the only extension in isolated user-data and extension directories, added `scripts/open-codex-editor.sh` plus a `SohamYoga Codex Editor` desktop launcher, and launched the isolated Code instance. Its clean extension host is running without unresponsive, crash, or renderer-timeout log entries; opening the Codex sidebar is the remaining interactive activation step.
+
+## Active repair audit 2026-09-07
+User requested pending SohamYoga integration, PPC, performance marketing and video editing repairs. Preserve existing working changes. Unit suite and TypeScript checks running; Node 22.22.2 available. OpenBao and Meta OAuth proxy observed stopped. Continuity launcher unavailable; record decisions directly in JSONL pending CLI recovery.
+
+### Verified repair results
+- Baseline Node 22 unit run: 123 suites, 4211 tests passed.
+- Integration health: uncached probes, independent failure reporting, configured Activepieces outages classified as errors.
+- PPC AdAnalytics: reject invalid dates and nonfinite metrics.
+- Focused regression run: 2 suites, 50 tests passed; changed tracked source diff checks passed.
+- Docker reports OpenBao and Meta OAuth proxy stopped. Most core services running. Database records one Instagram connection; no external provider authentication or publishing was verified.
+- Video renderer inspected only; complete video editing workflow remains unverified.
+- Another agent process is working in this repository. Preserve concurrent work; no deployment or external publishing performed.
+- Full user scope remains open: audit/fix remaining platform adapters, PPC provider synchronization and video editing workflows.
+
+### Video editing check 2026-09-07
+Video project audit: live frontend lacks ffmpeg, ffprobe and espeak-ng. Editing schema exists but no application consumers of timeline/project/render-job tables found. Live DB has 0 video assets, 0 edit projects, 0 render jobs. Renderer hardcodes 1280x720 despite Reel UI; brand query is outside try and not tenant-scoped; rendering is an in-process background promise; generated files lack a frontend persistent volume. HyperFrames remains a documented isolated evaluation, not wired into current renderer. Read-only audit, no video or deployment produced.
+
+## Active sample video and portal implementation
+User authorized a rendered sample with link and video UI for customers and internal administrators. Build on the existing video_edit_project model; scope includes briefs, timeline editing, review/revisions, deliveries, job and activity evidence. Create a 15-second SohamYoga sample using HyperFrames. No external publishing. Keep concurrent edits intact.

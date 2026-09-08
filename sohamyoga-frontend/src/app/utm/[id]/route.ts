@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
+import { isLikelyBot } from '@/lib/bot-detection';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,12 +11,20 @@ export const dynamic = 'force-dynamic';
  * actually points to once shared), not admin-gated. Same shape as this
  * repo's other two public click-tracking redirects, /go/[slug] (cta) and
  * /r/[code] (referral_code): increments the row's click_count on every
- * real hit, then redirects to the destination -- which already carries the
- * utm_source/medium/campaign/content/term query params, so Matomo/PostHog
- * on the landing page pick them up exactly as before. This is what makes
- * utm_link.click_count (previously written by nothing, read only by
- * AnalyticsAggregationJob's SUM) an actually-exercised column instead of a
- * permanent zero.
+ * real human hit, then redirects to the destination -- which already
+ * carries the utm_source/medium/campaign/content/term query params, so
+ * Matomo/PostHog on the landing page pick them up exactly as before. This
+ * is what makes utm_link.click_count (previously written by nothing, read
+ * only by AnalyticsAggregationJob's SUM) an actually-exercised column
+ * instead of a permanent zero.
+ *
+ * Bot/UA filtering (added 2026-09-07, migration 158): a request whose
+ * User-Agent matches the known-bot heuristic (src/lib/bot-detection.ts)
+ * still redirects correctly (a crawler/preview-fetcher must still reach
+ * the real destination) but increments bot_click_count instead of
+ * click_count, so a spoofed-UA fetch never silently inflates the real
+ * human click metric that AnalyticsAggregationJob and the ROI/attribution
+ * dashboards read.
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,7 +33,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const result = await query<{ full_url: string }>(`SELECT full_url FROM utm_link WHERE id = $1`, [id]);
   if (!result.rowCount) return Response.json({ error: 'Unknown tracking link.' }, { status: 404 });
 
-  await query(`UPDATE utm_link SET click_count = click_count + 1 WHERE id = $1`, [id]);
+  const bot = isLikelyBot(req.headers.get('user-agent'));
+  await query(
+    bot ? `UPDATE utm_link SET bot_click_count = bot_click_count + 1 WHERE id = $1`
+        : `UPDATE utm_link SET click_count = click_count + 1 WHERE id = $1`,
+    [id],
+  );
 
   return Response.redirect(new URL(result.rows[0].full_url, req.url), 302);
 }

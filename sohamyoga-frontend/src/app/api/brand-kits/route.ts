@@ -3,6 +3,7 @@ import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin, getAdminPrincipal } from '@/lib/admin-auth';
 import { getPrimaryTenantId } from '@/domain/ingestion/Connector';
 import { BrandKit, type ToneWord } from '@/domain/marketing/BrandKit';
+import { computeBrandHealth } from '@/domain/branding/BrandHealthScore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,14 +22,23 @@ export async function GET(req: NextRequest) {
     [tenantId],
   );
   return Response.json({
-    brandKits: rows.rows.map(r => ({
-      id: r.id, name: r.name, primaryColor: r.primary_color, secondaryColor: r.secondary_color,
-      accentColor: r.accent_color, logoUrl: r.logo_url, darkLogoUrl: r.dark_logo_url,
-      fontPrimary: r.font_primary, fontSecondary: r.font_secondary,
-      toneWords: r.tone_words, approvedPhrases: r.approved_phrases, bannedPhrases: r.banned_phrases,
-      defaultHashtags: r.default_hashtags, isDefault: r.is_default,
-      updatedBy: r.updated_by, updatedAt: r.updated_at, createdAt: r.created_at,
-    })),
+    brandKits: rows.rows.map(r => {
+      const kit = {
+        logoUrl: r.logo_url, darkLogoUrl: r.dark_logo_url, primaryColor: r.primary_color,
+        secondaryColor: r.secondary_color, accentColor: r.accent_color, fontPrimary: r.font_primary,
+        fontSecondary: r.font_secondary, toneWords: r.tone_words, approvedPhrases: r.approved_phrases,
+        bannedPhrases: r.banned_phrases, defaultHashtags: r.default_hashtags,
+      };
+      return {
+        id: r.id, name: r.name, primaryColor: r.primary_color, secondaryColor: r.secondary_color,
+        accentColor: r.accent_color, logoUrl: r.logo_url, darkLogoUrl: r.dark_logo_url,
+        fontPrimary: r.font_primary, fontSecondary: r.font_secondary,
+        toneWords: r.tone_words, approvedPhrases: r.approved_phrases, bannedPhrases: r.banned_phrases,
+        defaultHashtags: r.default_hashtags, isDefault: r.is_default,
+        updatedBy: r.updated_by, updatedAt: r.updated_at, createdAt: r.created_at,
+        health: computeBrandHealth(kit),
+      };
+    }),
   });
 }
 

@@ -7,9 +7,10 @@ export const runtime='nodejs';
 
 export async function POST(req:NextRequest,{params}:{params:{id:string}}){
  const auth=await getAdminPrincipal(req);if(auth.denied)return auth.denied;
- const found=await query(`SELECT j.*,r.developer_portal_url FROM account_provisioning_job j JOIN social_platform_requirement r ON r.platform=j.platform WHERE j.id=$1`,[params.id]);
+ const found=await query(`SELECT j.*,r.developer_portal_url,r.developer_creation_mode FROM account_provisioning_job j JOIN social_platform_requirement r ON r.platform=j.platform WHERE j.id=$1`,[params.id]);
  if(!found.rowCount)return Response.json({error:'Provisioning job not found.'},{status:404});const job=found.rows[0];
  if(!ALLOWED_STATES.has(job.state))return Response.json({error:`Skyvern cannot start from ${job.state}. Approve and validate the profile first.`},{status:409});
+ if(!['ASSISTED_BROWSER','PARTNER_PROVISIONING_API'].includes(job.developer_creation_mode))return Response.json({error:`${job.platform} is classified ${job.developer_creation_mode} — browser automation is not permitted here. This platform's own policy requires a human to complete setup directly.`},{status:409});
  if(!job.developer_portal_url)return Response.json({error:'This platform has no approved developer portal URL.'},{status:409});
  try{
   const run=await startSkyvernTask(job.developer_portal_url,provisioningPrompt(job.platform,job.account_name));
