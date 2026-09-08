@@ -2,6 +2,8 @@
 
 > A full-stack platform for a yoga studio: public website, admin panel, and customer portal.
 
+**Last updated:** 2026-09-08 00:55 MDT · Feature counts and portal breakdown verified live against the `module_registry` Postgres table at that moment — see [Tech / Module / Feature stack](#tech--module--feature-stack-at-a-glance-sohamyoga-frontend-verified-2026-09-08) below.
+
 ---
 
 ## Overview
@@ -113,18 +115,20 @@ inventory) for `sohamyoga-frontend` — the largest and most active portal in th
 - [SECURITY.md](docs/architecture/sohamyoga-frontend/SECURITY.md) — access layers by actor, SAST/DAST/SCA/IaC scanning inventory, SOLID/architecture-style notes
 - [ATAM.md](docs/architecture/sohamyoga-frontend/ATAM.md) — tradeoff analysis and open risks
 - [ADR/](docs/architecture/sohamyoga-frontend/ADR/) — architecture decision records
+- [PORTALS.md](docs/architecture/sohamyoga-frontend/PORTALS.md) — the same feature matrix regrouped into the 5 real portals (Customer Self-Service, Admin, Yoga Customer-Facing, Digital Marketing, Market Research), plus dedicated Video Editing and Market Research feature call-outs
 
-**Other portals in this repo** (voice-agent-platform, market-research-portal,
-ai-orchestrator-platform, ai-agents) do not yet have this level of documentation — queued as
-follow-up work, one portal at a time, rather than produced in bulk without verification.
+**Other portals in this repo** (voice-agent-platform, ai-orchestrator-platform, ai-agents) do not
+yet have this level of documentation — queued as follow-up work, one portal at a time, rather than
+produced in bulk without verification.
 
-## Tech / Module / Feature stack at a glance (sohamyoga-frontend, verified 2026-09-07)
+## Tech / Module / Feature stack at a glance (sohamyoga-frontend, verified 2026-09-08)
 
 | Dimension | Summary | Detail |
 |---|---|---|
 | Tech stack | Next.js 14 (App Router) + React 18 + TS 5.9, raw `pg` driver (no ORM), Tailwind, Jest + Playwright, self-hosted VAPID push, local Ollama LLM | [HLD.md §3](docs/architecture/sohamyoga-frontend/HLD.md#3-tech-stack-verified-via-packagejson--nextconfigjs--tsconfigjson--dockerfile) |
 | Module stack | 57 domain modules under `src/domain/`, 221 pages + 383 API routes under `src/app/` | [HLD.md §4](docs/architecture/sohamyoga-frontend/HLD.md#4-moduledomain-map-57-top-level-folders-under-srcdomain) |
-| Feature stack status | **164 real / 23 partial / 1 not_built** (188 cataloged, live DB count) | [FEATURES.md](docs/architecture/sohamyoga-frontend/FEATURES.md) |
+| Feature stack status | **170 real / 25 partial / 1 not_built** (196 cataloged across both apps, live DB count) | [FEATURES.md](docs/architecture/sohamyoga-frontend/FEATURES.md) · [PORTALS.md](docs/architecture/sohamyoga-frontend/PORTALS.md) |
+| Portal breakdown | Customer Self-Service 15/16 real · Admin 7/8 real · Yoga Customer-Facing 36/38 real · Digital Marketing 85/105 real · Market Research 27/29 real | [PORTALS.md](docs/architecture/sohamyoga-frontend/PORTALS.md) |
 | Tool stack | semgrep (SAST), OWASP ZAP (DAST), npm audit (SCA), trivy/checkov (IaC) — real, but in-app/cron-triggered, not CI-gated | [SECURITY.md](docs/architecture/sohamyoga-frontend/SECURITY.md) |
 | DB design | Postgres 16, 496 tables, 144 domain-sharded schema files, no graph/vector DB in use | [LLD.md §2](docs/architecture/sohamyoga-frontend/LLD.md#2-database-design) |
 
