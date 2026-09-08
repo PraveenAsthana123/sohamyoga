@@ -54,12 +54,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json().catch(() => null) as {
-    status?: string; refundAmount?: number; refundReason?: string; trackingNumber?: string; carrier?: string;
+    status?: string; refundAmount?: number; refundReason?: string; trackingNumber?: string; carrier?: string; markPaid?: boolean;
   } | null;
-  if (!body?.status) return Response.json({ error: 'status is required.' }, { status: 400 });
+  if (!body?.status && !body?.markPaid) return Response.json({ error: 'status or markPaid is required.' }, { status: 400 });
 
-  const current = await query<{ status: string; total: string }>(`SELECT status, total FROM sales_order WHERE id = $1`, [id]);
+  const current = await query<{ status: string; total: string; payment_status: string }>(`SELECT status, total, payment_status FROM sales_order WHERE id = $1`, [id]);
   if (!current.rowCount) return Response.json({ error: 'Order not found.' }, { status: 404 });
+
+  // Real "mark paid" -- sales_order.payment_status could already be set to
+  // 'refunded' (the refund transition above) but nothing ever set it to
+  // 'paid', unlike invoice_mirror's equivalent PATCH-to-paid route. This is
+  // the manual/pay-later counterpart for orders placed with no payment
+  // gateway connected -- staff collects payment out of band, then records it.
+  if (body.markPaid) {
+    if (!['pending', 'partially_paid'].includes(current.rows[0].payment_status)) {
+      return Response.json({ error: `Cannot mark a "${current.rows[0].payment_status}" order as paid.` }, { status: 409 });
+    }
+    await query(`UPDATE sales_order SET payment_status = 'paid', updated_at = now() WHERE id = $1`, [id]);
+    return Response.json({ ok: true });
+  }
+  if (!body.status) return Response.json({ error: 'status is required.' }, { status: 400 });
 
   const allowed = TRANSITIONS[current.rows[0].status] ?? [];
   if (!allowed.includes(body.status)) {

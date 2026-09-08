@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: 'Billing & Account',
     items: [
       { href: '/customer/subscription', label: 'Subscription', icon: '💳' },
+      { href: '/customer/shop', label: 'Shop', icon: '🛍️' },
       { href: '/customer/cart', label: 'My Cart', icon: '🛒' },
       { href: '/customer/orders', label: 'My Orders', icon: '📦' },
       { href: '/customer/invoices', label: 'Billing & Invoices', icon: '🧾' },

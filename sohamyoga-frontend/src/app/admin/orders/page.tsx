@@ -60,6 +60,14 @@ export default function OrdersPage() {
     load();
   }
 
+  async function markPaid(id: string) {
+    const res = await fetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markPaid: true }),
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); window.alert(err.error || 'Could not mark paid.'); }
+    load();
+  }
+
   async function exchange(id: string) {
     const replacementProductName = window.prompt('Replacement product name:');
     if (!replacementProductName?.trim()) return;
@@ -106,6 +114,9 @@ export default function OrdersPage() {
                     {(NEXT_STATUS[o.status] ?? []).map(s => (
                       <button key={s} onClick={() => transition(o.id, s, o)} className="text-xs text-blue-600 hover:underline">{s.replaceAll('_', ' ')}</button>
                     ))}
+                    {['pending', 'partially_paid'].includes(o.paymentStatus) && (
+                      <button onClick={() => markPaid(o.id)} className="text-xs text-green-600 hover:underline">mark paid</button>
+                    )}
                     {o.status === 'returned' && (
                       <button onClick={() => exchange(o.id)} className="text-xs text-purple-600 hover:underline">exchange</button>
                     )}
