@@ -30,6 +30,18 @@ const serviceOptions = [
   'Workshops',
   'Studio Shop',
   'Teacher Training',
+  // Digital marketing services (added 2026-09-08 alongside /marketing-services —
+  // only categories with real, built, working capability behind them, matching
+  // this codebase's discipline against overclaiming a service that isn't real yet)
+  'CRM & Lead Management',
+  'Campaign Management',
+  'Social Media Management',
+  'SEO Management',
+  'Content & Video Production',
+  'Email Marketing Automation',
+  'Loyalty & Referral Programs',
+  'A/B Testing & Experiments',
+  'Reputation Management',
   'Other',
 ];
 
