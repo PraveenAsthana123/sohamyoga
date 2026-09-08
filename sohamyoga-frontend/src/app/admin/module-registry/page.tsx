@@ -34,7 +34,7 @@ function Field({ label, value }: { label: string; value: string | null | undefin
 export default function ModuleRegistryPage() {
   const [data, setData] = useState<{ modules: ModuleRow[]; tally: Record<string, number>; dimensionTally: Record<string, number>; catalogedCount: number; estimatedSohamyogaFrontendAdminSurfaces: number; note: string } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [appFilter, setAppFilter] = useState<'all' | 'sohamyoga-frontend' | 'market-research-portal'>('all');
+  const [appFilter, setAppFilter] = useState<'all' | 'sohamyoga-frontend' | 'market-research-portal' | 'voice-agent-platform'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'real' | 'partial' | 'not_built' | 'not_yet_cataloged'>('all');
 
   useEffect(() => {
@@ -82,6 +82,7 @@ export default function ModuleRegistryPage() {
           <option value="all">All apps</option>
           <option value="sohamyoga-frontend">sohamyoga-frontend</option>
           <option value="market-research-portal">market-research-portal</option>
+          <option value="voice-agent-platform">voice-agent-platform</option>
         </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)} className="rounded border px-2 py-1 text-sm">
           <option value="all">All statuses</option>
