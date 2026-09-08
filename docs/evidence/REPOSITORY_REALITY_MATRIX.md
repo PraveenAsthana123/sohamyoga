@@ -5,20 +5,38 @@ Built incrementally across 6 commits, per this workspace's GitHub Push & Enginee
 (evidence-based, no status inflation, small logical commits). Phases 2-18 of the full audit
 framework are separate, not-yet-started work — see [Known limitations](#known-limitations-of-this-checkpoint).
 
-## 🔴 Two P0 findings surfaced during this audit (read first)
+## 🟢 Two P0 findings surfaced during this audit — both fixed same-day (2026-09-08)
 
-1. **ai-orchestrator-platform backend has been down 4+ days** while its frontend + public Cloudflare
-   tunnel keep running and advertising the app to the internet, with no alerting on this failure
-   mode. Confirmed live: `curl 127.0.0.1:8100/health` refused, tunnel path returns HTTP 502. See the
-   [ai-orchestrator-platform](#ai-orchestrator-platform-praveenchatbot) section.
-2. **market-research-portal's production build is currently broken** — `/login` and `/api/voice-ai`
-   return HTTP 500 live, traced to a missing `BUILD_ID` in `.next/` (an incomplete/corrupted build
-   is what's actually being served). Separately, its own cron job runner is not running as a
-   process — the 7 registered jobs last executed automatically 2026-08-24 to 2026-08-31, i.e. 8+
-   days stale as of this audit. See the [market-research-portal deep-dive](#market-research-portal-deep-dive-beyond-registry-rows) section.
+1. **ai-orchestrator-platform backend was down 4+ days** (clean SIGTERM on 2026-09-03, and
+   `Restart=on-failure` doesn't fire on a clean stop) while its frontend + public Cloudflare tunnel
+   kept running and advertising the app to the internet, with no alerting. **Fix applied:**
+   `systemctl --user restart praveenchatbot-backend.service` (confirmed live: `/health` now returns
+   `401 not authenticated` instead of connection-refused/502); unit hardened from `Restart=on-failure`
+   to `Restart=always` in `~/.config/systemd/user/praveenchatbot-backend.service` so a clean stop
+   can't silently recur. Also restarted the OpenBao vault container (down 3 days, was blocking
+   OpenAI/Claude providers) — **flagging a separate, real gap this surfaced**: that vault runs in
+   OpenBao's `-dev` mode (in-memory, auto-unsealed, single root token), so any previously-stored
+   provider API keys were lost regardless of restart timing; worth a real fix (persistent storage
+   backend) in a future security pass, not something this restart could address. See the
+   [ai-orchestrator-platform](#ai-orchestrator-platform-praveenchatbot) section for the original
+   finding.
+2. **market-research-portal's production build was broken** — `/login` and `/api/voice-ai` returned
+   HTTP 500 live, traced to a missing `.next/BUILD_ID` (a stale/incomplete build was being served
+   from 2026-09-01/04 while the process had been running since 2026-09-01). **Fix applied:**
+   `npm run build` produced a fresh `BUILD_ID`; `systemctl --user restart soham-market-research.service`
+   picked it up — confirmed live: `/login` now 200 (was 500), `/api/voice-ai` now 401
+   correctly-gated (was 500). Separately, **no persistent scheduler for this app's cron jobs had
+   ever existed** (not in the root `docker-compose.yml`, no systemd unit, unlike sohamyoga-frontend's
+   dedicated `cron` container) — created
+   `~/.config/systemd/user/soham-market-research-cron.service` (`Restart=always`,
+   `EnvironmentFile=.env.local`), enabled and started it; confirmed live via journal log: all 5 jobs
+   (pricing-cross-portal, reviews-cross-portal, operations-alert-sweep, self-heal,
+   voice-call-dispatch) registered and running on their real cadences. See the
+   [market-research-portal deep-dive](#market-research-portal-deep-dive-beyond-registry-rows)
+   section for the original finding.
 
-Neither of these was previously flagged anywhere in this repo's existing docs — both are new,
-live, currently-reproducible findings from this Phase 1 pass, not historical/hypothetical gaps.
+Neither was previously flagged anywhere in this repo's existing docs before this Phase 1 pass —
+both are recorded here with before/after evidence rather than silently patched.
 
 **Methodology:** every row's `built_status`/UI columns come directly from the live `module_registry`
 Postgres table (`docker exec sohamyoga-postgres psql -U sohamyoga -d sohamyoga`), queried at
