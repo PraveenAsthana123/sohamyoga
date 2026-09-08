@@ -43,7 +43,13 @@ export class OllamaClient {
     return OLLAMA_MODELS[opts.tier ?? 'fast'];
   }
 
-  async generate(prompt: string, opts: GenerateOptions = {}): Promise<{ text: string; model: string }> {
+  async generate(prompt: string, opts: GenerateOptions = {}): Promise<{
+    text: string;
+    model: string;
+    latencyMs: number;
+    promptTokens: number | null;
+    completionTokens: number | null;
+  }> {
     if (this.breaker.isOpen()) {
       throw new Error('Local Ollama is temporarily unavailable (circuit open) — retry shortly.');
     }
@@ -51,6 +57,7 @@ export class OllamaClient {
     const model = this.resolveModel(opts);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 60_000);
+    const wallClockStart = Date.now();
 
     try {
       const res = await fetch(`${this.base}/api/generate`, {
@@ -68,9 +75,27 @@ export class OllamaClient {
         signal: controller.signal,
       });
       if (!res.ok) throw new Error(`Ollama ${res.status}: ${await res.text()}`);
-      const json = await res.json() as { response: string };
+      // Ollama's own non-streaming response already carries real token counts
+      // and duration in nanoseconds -- previously parsed for .response only
+      // and the rest discarded. Surfaced here instead of re-measuring wall
+      // clock alone (2026-09-08 audit fix, TD-10: this app-wide client had
+      // zero latency/token visibility on any call site that used it).
+      const json = await res.json() as {
+        response: string;
+        eval_count?: number;
+        prompt_eval_count?: number;
+        total_duration?: number;
+      };
+      const latencyMs = json.total_duration ? Math.round(json.total_duration / 1_000_000) : Date.now() - wallClockStart;
       this.breaker.recordSuccess();
-      return { text: json.response.trim(), model };
+      console.log(`[OllamaClient] model=${model} latencyMs=${latencyMs} promptTokens=${json.prompt_eval_count ?? 'n/a'} completionTokens=${json.eval_count ?? 'n/a'}`);
+      return {
+        text: json.response.trim(),
+        model,
+        latencyMs,
+        promptTokens: json.prompt_eval_count ?? null,
+        completionTokens: json.eval_count ?? null,
+      };
     } catch (error) {
       this.breaker.recordFailure();
       throw error;
