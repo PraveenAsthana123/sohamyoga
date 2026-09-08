@@ -101,6 +101,33 @@ See [.env.template](.env.template) for the full list of environment variables.
 
 ---
 
+## Engineering audit (18-phase, repo-wide, 2026-09-08)
+
+A full evidence-based engineering audit covering all 6 real portals in this repository — start
+here: [`ENGINEERING_READINESS_SCORECARD.md`](ENGINEERING_READINESS_SCORECARD.md) (25 dimensions,
+scored 0-5 with evidence/weakness/next-action per row) and
+[`TOP_10_P0_P1_ACTIONS.md`](TOP_10_P0_P1_ACTIONS.md) (priority-ordered, only high-value items).
+
+- [`docs/evidence/REPOSITORY_REALITY_MATRIX.md`](docs/evidence/REPOSITORY_REALITY_MATRIX.md) — every module's real build status, live-DB-sourced
+- [`docs/evidence/ENGINEERING_PROVENANCE.md`](docs/evidence/ENGINEERING_PROVENANCE.md) — 91.8% of commits git-history-provably AI-co-authored
+- [`docs/architecture/`](docs/architecture/) — MASTER_HLD/LLD/C4/DEPENDENCY_MAP/DATA_FLOW/INTEGRATION_MAP + 10 repo-wide ADRs
+- [`docs/engineering/CODE_QUALITY_AUDIT.md`](docs/engineering/CODE_QUALITY_AUDIT.md)
+- [`docs/data/`](docs/data/) — database architecture, migration strategy, governance, risk register
+- [`docs/api/`](docs/api/) — API standards, inventory, gap analysis
+- [`docs/testing/`](docs/testing/) — test strategy, coverage gaps, quality gates
+- [`docs/security/`](docs/security/) — architecture, threat model, CI gates, 17-item risk register
+- [`docs/reliability/`](docs/reliability/) — 3 real incidents found and fixed live during this audit
+- [`docs/performance/`](docs/performance/) — real measured baselines (no unverified scale claims)
+- [`docs/ai/`](docs/ai/) — full AI/agent inventory, LEVEL 0-6 maturity classification
+- [`docs/observability/`](docs/observability/)
+- [`docs/product/`](docs/product/) — demo catalog, journeys, revenue readiness, MVP scope
+- [`docs/governance/`](docs/governance/) — 22-item technical debt register, Stop-Building control
+- [`docs/portfolio/`](docs/portfolio/) — FDE case study, interview question bank, PM case study
+
+**Real fixes made during this audit, not just documented:** 2 systemd restart-policy gaps closed
+(a 4-day silent outage's root cause), a broken production build rebuilt, nginx's stale-DNS 502
+fixed structurally, a missing cron scheduler created, and a real database backup taken.
+
 ## Architecture documentation
 
 Full grounded architecture docs (HLD, LLD, ADRs, ATAM, C4 model, feature status matrix, security
