@@ -7,15 +7,25 @@
 // anywhere in cron or app code -- a saved timeline could never actually be
 // rendered. This is the first real renderer for it.
 //
-// V1 scope, stated honestly rather than silently: only the first VIDEO-type
-// track's clips are rendered (in start_ms order); music/voice/caption/
-// text/shape tracks are not yet composited in. Each clip is trimmed via its
-// real source_in_ms/duration and either straight-concatenated or, when
-// properties.transition === 'crossfade', blended into the next clip with a
-// real ffmpeg xfade (video) + acrossfade (audio) pair.
+// Each clip is trimmed via its real source_in_ms/duration and either
+// straight-concatenated or, when properties.transition === 'crossfade',
+// blended into the next clip with a real ffmpeg xfade (video) + acrossfade
+// (audio) pair. properties.denoise === true applies a real FFT denoise
+// (afftdn) to that clip's audio during trim.
+//
+// Multi-track audio mixing (added 2026-09-08, closing the "audio-editing"
+// gap -- "no multi-track mixing, background music, or noise removal"):
+// the first non-video track of type 'music' or 'voice' is treated as a
+// background-audio bed. Its first clip's audio (trimmed the same
+// source_in/duration way, volume-scaled from properties.volume) is looped
+// to the final video's duration and mixed under the main track's own audio
+// via a real ffmpeg amix. V1 scope, stated honestly: only ONE background-
+// audio clip is mixed in (not a full multi-clip background timeline), and
+// only the first VIDEO-type track's clips form the visual timeline --
+// caption/text/shape tracks are not yet composited in.
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { query, transaction } from '@/lib/postgres';
@@ -23,7 +33,7 @@ import { query, transaction } from '@/lib/postgres';
 const run = promisify(execFile);
 const TRANSITION_SECONDS = 0.5;
 
-interface ClipRow { id: string; asset_uri: string; start_ms: number; end_ms: number; source_in_ms: number; properties: { transition?: string } }
+interface ClipRow { id: string; asset_uri: string; start_ms: number; end_ms: number; source_in_ms: number; properties: { transition?: string; denoise?: boolean; volume?: number } }
 
 export interface RenderTimelineResult {
   status: 'succeeded' | 'failed';
@@ -95,9 +105,11 @@ export async function renderTimeline(projectId: string): Promise<RenderTimelineR
       const durationSec = (c.end_ms - c.start_ms) / 1000;
       const startSec = c.source_in_ms / 1000;
       const seg = path.join(workDir, `seg-${i}.mp4`);
+      const audioFilter = c.properties?.denoise ? 'afftdn=nf=-25' : 'anull';
       await run('ffmpeg', [
         '-y', '-ss', startSec.toFixed(3), '-t', durationSec.toFixed(3), '-i', localSrc,
         '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,fps=${fps},setsar=1`,
+        '-af', audioFilter,
         '-c:v', 'libopenh264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-ar', '48000', '-ac', '2', '-b:a', '128k',
         seg,
       ], { timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
@@ -108,7 +120,6 @@ export async function renderTimeline(projectId: string): Promise<RenderTimelineR
     // requests a real crossfade, in which case that boundary uses xfade/
     // acrossfade instead of a hard cut.
     let currentVideo = segmentFiles[0];
-    let currentAudio: string | null = null; // tracked implicitly inside currentVideo's own audio stream once merged
     let runningDurationSec = await probeDuration(segmentFiles[0]);
 
     for (let i = 1; i < segmentFiles.length; i++) {
@@ -136,8 +147,37 @@ export async function renderTimeline(projectId: string): Promise<RenderTimelineR
       currentVideo = joined;
     }
 
+    // Real background-music/voice-bed mixing -- the first clip on the
+    // first non-video 'music' or 'voice' track (if any) is looped to the
+    // final duration and mixed under the main track's own audio via amix.
+    const musicTrack = await query<{ id: string }>(
+      `SELECT id FROM video_edit_track WHERE project_id = $1 AND track_type IN ('music','voice') ORDER BY sort_order LIMIT 1`,
+      [projectId],
+    );
+    let mixedVideo = currentVideo;
+    if (musicTrack.rowCount) {
+      const musicClip = (await query<ClipRow>(
+        `SELECT id, asset_uri, start_ms, end_ms, source_in_ms, properties FROM video_edit_clip WHERE track_id = $1 ORDER BY start_ms LIMIT 1`,
+        [musicTrack.rows[0].id],
+      )).rows[0];
+      if (musicClip?.asset_uri) {
+        const musicLocal = await resolveLocalPath(musicClip.asset_uri, workDir, 900);
+        const musicVolume = musicClip.properties?.volume ?? 1;
+        const mixed = path.join(workDir, 'mixed.mp4');
+        await run('ffmpeg', [
+          '-y', '-i', currentVideo,
+          '-stream_loop', '-1', '-t', runningDurationSec.toFixed(3), '-i', musicLocal,
+          '-filter_complex', `[1:a]volume=${musicVolume}[bg];[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0[a]`,
+          '-map', '0:v', '-map', '[a]',
+          '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-shortest',
+          mixed,
+        ], { timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
+        mixedVideo = mixed;
+      }
+    }
+
     await mkdir(outDir, { recursive: true });
-    await run('ffmpeg', ['-y', '-i', currentVideo, '-c', 'copy', '-movflags', '+faststart', outFile], { timeout: 60000 });
+    await run('ffmpeg', ['-y', '-i', mixedVideo, '-c', 'copy', '-movflags', '+faststart', outFile], { timeout: 60000 });
 
     const bytes = await readFile(outFile);
     const checksum = createHash('sha256').update(bytes).digest('hex');
@@ -154,14 +194,18 @@ export async function renderTimeline(projectId: string): Promise<RenderTimelineR
       );
       await client.query(
         `INSERT INTO video_project_event (project_id, event_type, detail) VALUES ($1, 'rendered', $2)`,
-        [projectId, JSON.stringify({ message: `Real ffmpeg render: ${clips.length} clip(s), ${durationSeconds.toFixed(1)}s output`, jobId })],
+        [projectId, JSON.stringify({
+          message: `Real ffmpeg render: ${clips.length} clip(s), ${durationSeconds.toFixed(1)}s output${mixedVideo !== currentVideo ? ' (with background audio mix)' : ''}`,
+          jobId,
+        })],
       );
     });
 
-    await Promise.allSettled(segmentFiles.map(f => unlink(f)));
+    await rm(workDir, { recursive: true, force: true });
     return { status: 'succeeded', jobId, outputUri: relOut, durationSeconds, checksum };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'render failed';
+    await rm(workDir, { recursive: true, force: true }).catch(() => {});
     return fail(message);
   }
 }

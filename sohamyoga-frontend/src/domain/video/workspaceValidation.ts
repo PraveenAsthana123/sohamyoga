@@ -1,7 +1,7 @@
 export const ASPECTS = ['16:9', '9:16', '1:1', '4:5'] as const;
 export const TRACK_TYPES = ['video', 'image', 'text', 'caption', 'voice', 'music', 'sfx', 'shape'] as const;
 export const TRANSITIONS = ['none', 'crossfade'] as const;
-export type EditClip = { asset_uri: string; start_ms: number; end_ms: number; source_in_ms: number; properties: { text?: string; volume?: number; transition?: string } };
+export type EditClip = { asset_uri: string; start_ms: number; end_ms: number; source_in_ms: number; properties: { text?: string; volume?: number; transition?: string; denoise?: boolean } };
 export type EditTrack = { name: string; track_type: string; muted: boolean; clips: EditClip[] };
 export function safeMediaUrl(value: unknown): value is string {
   if (typeof value !== 'string' || value.length > 2048) return false;
@@ -19,10 +19,11 @@ export function validateTracks(value: unknown): EditTrack[] {
       const text = c.properties?.text;
       const volume = c.properties?.volume;
       const transition = c.properties?.transition ?? 'none';
+      const denoise = Boolean(c.properties?.denoise);
       if (text !== undefined && (typeof text !== 'string' || text.length > 4000)) throw new Error('Clip text is too long.');
       if (volume !== undefined && (!Number.isFinite(volume) || volume < 0 || volume > 1)) throw new Error('Volume must be between 0 and 1.');
       if (!TRANSITIONS.includes(transition as typeof TRANSITIONS[number])) throw new Error('Unknown transition type.');
-      return { asset_uri: c.asset_uri || '', start_ms: c.start_ms, end_ms: c.end_ms, source_in_ms: c.source_in_ms, properties: { text: text || '', volume: volume ?? 1, transition } };
+      return { asset_uri: c.asset_uri || '', start_ms: c.start_ms, end_ms: c.end_ms, source_in_ms: c.source_in_ms, properties: { text: text || '', volume: volume ?? 1, transition, denoise } };
     }) };
   });
 }
