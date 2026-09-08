@@ -21,7 +21,7 @@ are explicit manually-set flags, not text-inferred.
 - ✅ market-research-portal, registry-tracked modules only (8 modules) — full registry-sourced table below
 - ⏳ voice-agent-platform — investigation in progress, not yet in this file
 - ⏳ market-research-portal — deeper backend/API pass beyond the 8 registry rows, in progress
-- ⏳ ai-orchestrator-platform — investigation in progress, not yet in this file
+- ✅ ai-orchestrator-platform — full table below (this checkpoint)
 - ✅ SohamYoga (.NET backend) — full table below (this checkpoint)
 - ✅ password-manager — full column set below (this checkpoint)
 
@@ -389,6 +389,66 @@ running `sohamyoga-backend` container (port 5070).
 **Live deployment confirmed:** `sohamyoga-backend` container `Up 5 days (healthy)` on port 5070,
 built from a non-root multi-stage Dockerfile with a real `HEALTHCHECK`, wired into root
 `docker-compose.yml` behind nginx and in front of the frontend.
+
+## ai-orchestrator-platform ("praveenchatbot")
+
+**Real business purpose** (from `main.py`/`router.py`/`providers.py`, not folder-name guess): a
+personal, single-operator, ChatGPT-style chat UI that routes each message across **6 real backend
+LLM engines** (Ollama, OpenAI, Claude, LocalAI, llama.cpp, LM Studio) via a small rule-based
+keyword/length router, plus a filesystem workspace (browse/search/view/edit files across 7 known
+project roots) and a chat-history/analytics layer. Reuses `agentic-ollama-platform`'s engine
+in-process via `bridge.py` rather than reimplementing model calls.
+
+**Confirmed a distinct app from `epilepsy-open-webui`** — the latter is a genuinely separate Docker
+container (`docker inspect` confirms `/epilepsy-open-webui`, `restart=unless-stopped`) on port
+13000; this app runs as bare user-scope systemd processes, not Docker, on ports 8100/8101. Different
+codebase, auth, port, and deployment mechanism — verified, not assumed.
+
+### 🔴 P0 finding — live production incident, found during this audit
+
+**The backend has been dead for 4+ days while the public Cloudflare tunnel keeps advertising the app
+to the internet with no alerting.** `systemctl --user status praveenchatbot-backend.service` shows
+inactive since 2026-09-03 14:45:56 (killed by clean SIGTERM — `Restart=on-failure` does not fire on
+a clean TERM, so it never came back). Live-verified: `curl 127.0.0.1:8100/health` → connection
+refused; `curl 127.0.0.1:8101/api/health` (the path the tunnel actually proxies) → **HTTP 502**. The
+frontend and tunnel services are both still `active (running)`, so anyone hitting the public tunnel
+URL right now gets a 502 with no indication anything is wrong on the operator side. The SQLite DB
+was last written 2026-09-08 08:22 (today), so this is a live regression on a previously-working
+system, not a permanently broken feature — flagged here rather than silently left for a later phase.
+
+| Domain | Module | DB writes verified | External integration | AI/LLM | Agentic? | Tests | Maturity | Known issue |
+|---|---|---|---|---|---|---|---|---|
+| Core Chat | Multi-provider chat (WS+REST) | yes — 127 real messages, 43 conversations, last write today 08:22 | Ollama/OpenAI/Claude/LocalAI/llama.cpp/LM Studio | yes, real completion calls on all 6 | **No** — single non-streaming completion per turn; WS only chunks already-complete text for UX, self-documented as a "HONEST LIMITATION" in-code, not real token streaming | **none found anywhere in repo** | REAL_BUT_PARTIAL (real+historically proven, currently BROKEN in prod — see P0 above) | backend down 4+ days |
+| Routing | Task router | n/a | routes to the 6 providers | no | **No** — explicitly self-documented as "NOT an ML classifier... not trained or validated," a plain heuristic | none | REAL_END_TO_END (honestly scoped, no overclaim) | none — does exactly what it claims |
+| Provider | Ollama | n/a | 127.0.0.1:11435 | yes | no | none | REAL_END_TO_END | live-confirmed connected today 08:54 |
+| Provider | LM Studio | n/a | 127.0.0.1:8083 | yes | no | none | REAL_BUT_PARTIAL | intermittent timeouts per its own maintenance logs |
+| Provider | llama.cpp | n/a | 2 instances (8082, 8084) | yes | no | none | REAL_BUT_PARTIAL | 2nd instance not systemd-managed — won't survive a reboot (self-documented) |
+| Provider | LocalAI | n/a | 127.0.0.1:8081 | yes when up | no | none | **BROKEN (currently)** | live-confirmed down: "Connection refused" |
+| Provider | OpenAI (cloud) | n/a | api.openai.com via OpenBao vault | real call path exists | no | none | **CODE_EXISTS_NOT_INTEGRATED (currently)** | OpenBao vault container down 3 days → key fetch fails → reports `no_key` |
+| Provider | Claude (cloud) | n/a | api.anthropic.com via OpenBao vault | real call path exists | no | none | **CODE_EXISTS_NOT_INTEGRATED (currently)** | same vault outage; router.py's own comment already flags this as a pre-existing known gap |
+| Auth | Cookie session | n/a | n/a | no | no | none | REAL_END_TO_END | in-memory session store — restarting backend logs everyone out (self-documented tradeoff, acceptable per author) |
+| Filesystem workspace | Browse/search/view/edit across 7 project roots | n/a (filesystem) | n/a | no | no | none | REAL_END_TO_END | real path-traversal defense (`Path.relative_to()` check, allow-listed roots) — genuine defense-in-depth |
+| Attachments | Upload/paste + real text/docx/pdf extraction | yes — 6 real rows, 5 linked messages | mammoth/pypdf/python-docx (real OSS libs, not custom parsers) | vision images gated on live model-capability check, not assumed | no | none | REAL_END_TO_END | none found |
+| Sharing | Public read-only conversation link | n/a | n/a | no | no | none | REAL_END_TO_END (code-complete) | not verified live this session |
+| Caching | Exact-match response cache | yes — 26 real entries | n/a | no | no | none | REAL_END_TO_END | none found |
+| Analytics | Dashboard (latency stats) | n/a (read-only) | n/a | no | no | none | REAL_END_TO_END (code); unverified live this session (backend down) | excludes 0ms cache hits from avg so cache can't fake "fast" — real computation, not fabricated |
+| Personas | System-prompt presets | n/a | n/a | no | **No** — explicitly self-documented as "just a system-prompt preset, NOT a multi-step pipeline or separate agent process" | none | REAL_END_TO_END (honest, no overclaim) | none |
+| Voice input | Browser speech-to-text | n/a | Chrome/Edge native `SpeechRecognition` (audio leaves the machine to Google — self-documented) | no | no | none | REAL_BUT_PARTIAL | Firefox unsupported by design |
+| Doc viewers | PDF/DOCX/Markdown render | n/a | pdfjs-dist, mammoth (real OSS) | no | no | none | REAL_END_TO_END | none found |
+| Tooling | `query_history.py` read-only CLI | reads same DB | n/a | no | no | none | REAL_END_TO_END | read-only URI mode, cannot corrupt live data |
+| Ops job | `local_ai_maintenance.py` (10-min systemd timer) | yes — live JSON/JSONL written 08:54 today | probes all 6 local services + Ollama keep-alive | n/a (health-probe, not LLM caller) | no | none | **REAL_END_TO_END** | **the one component in this whole audit unambiguously healthy right now** — real, currently-firing systemd timer |
+| Deployment | Cloudflare quick tunnel | n/a | `cloudflared`, confirmed active 5 days | n/a | n/a | none | **BROKEN (backend leg) / REAL (tunnel leg)** | see P0 finding above — password is the only protection once exposed, per the app's own boot-time check |
+| Testing | Automated test suite | n/a | n/a | n/a | n/a | **zero — no `tests/` dir, no pytest config, no test file anywhere** (repo-wide `find`) | STUB (absent) | zero coverage on a codebase with real user data flowing through it |
+
+**Summary:** roughly two-thirds of this app is REAL_END_TO_END with genuine evidence (DB row counts,
+systemd status, live health-probe logs), and the codebase is unusually honest about its own
+limits — comments explicitly disclaim "NOT an ML classifier," "NOT token-level streaming," "personas
+are NOT a multi-step agent." No genuine agentic/multi-step-autonomy workflow exists anywhere in this
+app; every AI interaction is a single completion call. Two cloud providers and one local provider are
+currently non-functional (vault down, LocalAI down — both live-verified, not inferred). The dominant
+finding is operational, not architectural: **the backend process has been down for 4+ days while the
+public tunnel keeps serving it, with no alerting to catch that specific failure mode** — a real,
+current production incident, not a historical or hypothetical gap. Zero test coverage anywhere.
 
 ## Known limitations of this checkpoint
 
