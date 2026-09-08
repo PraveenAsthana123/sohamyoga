@@ -27,8 +27,8 @@ export async function PUT(req: NextRequest) {
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
   const body = await req.json().catch(() => null) as { platform?: string; pixelId?: string; enabled?: boolean } | null;
-  if (body?.platform !== 'meta_pixel' && body?.platform !== 'ga4') {
-    return Response.json({ error: 'platform must be "meta_pixel" or "ga4".' }, { status: 400 });
+  if (body?.platform !== 'meta_pixel' && body?.platform !== 'ga4' && body?.platform !== 'posthog') {
+    return Response.json({ error: 'platform must be "meta_pixel", "ga4", or "posthog".' }, { status: 400 });
   }
 
   const { principal } = await getAdminPrincipal(req);

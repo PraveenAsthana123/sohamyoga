@@ -591,6 +591,47 @@ function ConsentTab() {
   );
 }
 
+function PostHogConfigPanel() {
+  const [pixelId, setPixelId] = useState('');
+  const [enabled, setEnabled] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const load = () => {
+    fetch('/api/admin/tracking-pixels').then(r => r.ok ? r.json() : null).then(d => {
+      const row = (d?.config ?? []).find((c: { platform: string }) => c.platform === 'posthog');
+      if (row) { setPixelId(row.pixel_id ?? ''); setEnabled(row.enabled); }
+      setLoaded(true);
+    });
+  };
+  useEffect(load, []);
+
+  const save = async () => {
+    setSaving(true);
+    await fetch('/api/admin/tracking-pixels', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: 'posthog', pixelId, enabled }),
+    });
+    load();
+    setSaving(false);
+  };
+
+  return (
+    <div className="border rounded p-3 text-xs mb-2 space-y-2 bg-blue-50/40">
+      <div className="flex justify-between items-start">
+        <span className="font-medium text-blue-700">PostHog</span>
+        <Badge label={loaded && enabled && pixelId ? 'connected' : 'not connected'} colorClass={loaded && enabled && pixelId ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} />
+      </div>
+      <p className="text-gray-500">Real product analytics: pageviews, click/scroll heatmaps, session replay (inputs masked by default), error tracking -- one snippet closes all of these FeatureFlag entries at once, gated on analytics-level cookie consent.</p>
+      <div className="flex gap-2">
+        <input value={pixelId} onChange={e => setPixelId(e.target.value)} placeholder="PostHog Project API Key (phc_...)" className="flex-1 border rounded px-2 py-1 text-xs" />
+        <label className="flex items-center gap-1"><input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} />Enabled</label>
+        <button onClick={save} disabled={saving} className="px-2 py-1 bg-blue-600 text-white rounded disabled:opacity-50">{saving ? 'Saving…' : 'Save'}</button>
+      </div>
+    </div>
+  );
+}
+
 function IntegrationsTab() {
   const MCP_TOOLS = [
     { name: "get_dashboard", tier: "auto" }, { name: "list_events", tier: "auto" },
@@ -622,16 +663,17 @@ function IntegrationsTab() {
         </div>
         <div className="bg-white border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">External Systems</h3>
+          <PostHogConfigPanel />
           {[
-            { name: "PostHog", role: "Product analytics, funnels, heatmaps, error tracking" },
             { name: "OpenReplay", role: "Session replay — staff_approval gated; fields masked" },
             { name: "Umami", role: "Privacy-first traffic analytics; no cookies; GDPR by design" },
             { name: "GrowthBook", role: "Feature flags and A/B experiments" },
             { name: "OpenTelemetry", role: "API error and latency traces to Grafana / Tempo" },
           ].map(e => (
             <div key={e.name} className="flex gap-2 items-start border rounded p-2 text-xs mb-2">
-              <span className="font-medium text-blue-700 w-24 flex-shrink-0">{e.name}</span>
-              <span className="text-gray-500">{e.role}</span>
+              <span className="font-medium text-gray-600 w-24 flex-shrink-0">{e.name}</span>
+              <span className="text-gray-500 flex-1">{e.role}</span>
+              <Badge label="not connected" colorClass="bg-gray-100 text-gray-500" />
             </div>
           ))}
           <h3 className="font-semibold text-gray-800 mb-2 mt-4">DB Tables (9)</h3>
