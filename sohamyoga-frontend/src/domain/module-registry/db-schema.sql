@@ -1,8 +1,16 @@
 -- Module Understanding registry — the real, queryable backing for the
 -- mandatory Module Understanding Standard policy. One row per real module,
--- across BOTH sohamyoga apps (see `app` column). A module with no row here
--- is "not yet cataloged" — the UI must say so honestly, never omit it or
--- imply it's fine.
+-- across every cataloged app in the monorepo (see `app` column). A module
+-- with no row here is "not yet cataloged" — the UI must say so honestly,
+-- never omit it or imply it's fine.
+--
+-- app allow-list expanded 2026-09-08 to add voice-agent-platform (own
+-- Postgres on 5438, cataloged this session against its real
+-- docs/PLATFORM_REFERENCE.md + live DB row counts) and ai-orchestrator-
+-- platform (SQLite backend, allow-listed but not yet cataloged -- flagged
+-- as too recently/heavily churned in one bulk commit to catalog honestly
+-- this session; add its rows only after confirming no further uncommitted
+-- work is in flight).
 --
 -- Distinct from src/cron/moduleRegistry.ts's lightweight MODULES list (used
 -- only to feed source code to Ollama for AI quality review) — that list's
@@ -11,7 +19,7 @@
 
 CREATE TABLE IF NOT EXISTS module_registry (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  app                  TEXT NOT NULL CHECK (app IN ('sohamyoga-frontend', 'market-research-portal')),
+  app                  TEXT NOT NULL CHECK (app IN ('sohamyoga-frontend', 'market-research-portal', 'voice-agent-platform', 'ai-orchestrator-platform')),
   module_key           TEXT NOT NULL,
   name                 TEXT NOT NULL,
   description          TEXT NOT NULL DEFAULT '',
