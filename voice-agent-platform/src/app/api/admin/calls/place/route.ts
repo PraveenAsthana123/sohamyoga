@@ -5,6 +5,7 @@ import { getVersion } from '@/domain/script/repository';
 import { getVoiceProviderAdapter } from '@/domain/call/getVoiceProviderAdapter';
 import { VoiceProviderNotConfiguredError } from '@/domain/call/VoiceProviderAdapter';
 import { createManualCall } from '@/domain/call/repository';
+import { isRateLimited, clientIp } from '@/lib/rate-limit';
 
 /**
  * Places a REAL outbound phone call via the configured VoiceProviderAdapter
@@ -18,6 +19,15 @@ import { createManualCall } from '@/domain/call/repository';
 export async function POST(req: NextRequest) {
   const auth = await requireAdmin(req);
   if (auth.denied) return auth.denied;
+
+  // 2026-09-08 audit fix (SEC-06): real outbound calls cost real money and
+  // had zero rate limiting beyond admin auth. 10 calls/min per IP is a
+  // deliberately generous cap for legitimate admin use, tight enough to
+  // stop a compromised admin session or a client bug from placing a burst
+  // of real calls unnoticed.
+  if (isRateLimited(`calls-place:${clientIp(req)}`, 10, 60_000)) {
+    return NextResponse.json({ error: 'Too many call placement requests. Try again shortly.' }, { status: 429 });
+  }
 
   let body: Record<string, unknown>;
   try {
