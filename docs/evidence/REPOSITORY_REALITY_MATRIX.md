@@ -290,6 +290,23 @@ Full-column evidence (single-module portal). Verified 2026-09-08 via direct file
 routes, `app/page.tsx`, `docker-compose.yml`, `.env.local`; live `docker ps -a`, live
 `docker exec passwordmanager-postgres psql` row counts, `ss -tlnp` port scan.
 
+### 🔴 Update 2026-09-08 (later same day): the app was actually run for the first time, and it crashes
+
+A "fix all" pass attempted the real signup→vault→login round trip this Reality Matrix entry
+originally could only describe as untested. **Found: `require('argon2')` segfaults (SIGSEGV, exit
+code 139) on this host — the crash happens at module load, before any hashing is even attempted.**
+Confirmed reproducible 3 times, including after a clean reinstall of the `argon2` package (the
+reinstall's own from-source rebuild attempt also failed with a `node-gyp` error, then falling back
+to the same prebuilt binary, same segfault). This is a materially different and more severe finding
+than "never run end-to-end" — **the app cannot start a login/signup flow on this host at all; the
+process crashes.** Root cause not fully isolated (ruled out: CPU feature gap — AVX2 present;
+obvious library-link failure — `ldd` resolves cleanly; Node version — 18.19.1 satisfies argon2's
+stated `>=16.17.0`). Likely candidates not yet tested: a corrupted/mismatched prebuild for this
+specific glibc 2.39 build, or a missing system dependency the `node-gyp` fallback needed and didn't
+have. This is now the single most severe, concrete finding for this portal — see
+[SECURITY_RISK_REGISTER.md](../security/SECURITY_RISK_REGISTER.md) SEC-17 (updated) and
+[TECHNICAL_DEBT_REGISTER.md](../governance/TECHNICAL_DEBT_REGISTER.md).
+
 | Field | Value |
 |---|---|
 | Portal | password-manager |
@@ -316,7 +333,7 @@ routes, `app/page.tsx`, `docker-compose.yml`, `.env.local`; live `docker ps -a`,
 | Known dependency | Postgres 16 (own container, port 5439); `argon2` native module (real prebuilt bindings present); Web Crypto API (browser-only, no polyfill) |
 | Known issue | Container has no restart policy; zero real usage data ever created; no tests; no edit-item UI despite API support; plaintext password rendering; no auth rate-limiting |
 | Missing item | Tests, app Dockerfile, observability, rate-limiting, edit-item UI, password generator, 2FA/MFA, vault-sharing (schema has unused `public_key`/`encrypted_private_key` columns), real README, LICENSE |
-| Current maturity | **CODE_EXISTS_NOT_INTEGRATED** operationally (schema migrated, container stopped, zero real usage, no tests) — but the crypto/auth *design* itself is **REAL_BUT_PARTIAL**: soundly architected with correct primitives, unverified by any live E2E run or independent audit |
+| Current maturity | **BROKEN** — updated 2026-09-08: `argon2` segfaults on load, confirmed reproducible, the app cannot complete a signup/login. The crypto *design* remains sound on paper (correct primitives, verified by code read) but is now confirmed non-functional in practice, not just "unverified" |
 | Evidence file/path | `password-manager/{package.json, db/schema.sql, lib/crypto-client.ts, lib/session.ts, lib/postgres.ts, app/api/**, app/page.tsx, docker-compose.yml, .env.local}`; live `docker ps -a --filter name=passwordmanager`, live row counts |
 | Last verified date | 2026-09-08 |
 
