@@ -99,5 +99,36 @@ See [.env.template](.env.template) for the full list of environment variables.
 
 ---
 
+## Architecture documentation
+
+Full grounded architecture docs (HLD, LLD, ADRs, ATAM, C4 model, feature status matrix, security
+inventory) for `sohamyoga-frontend` — the largest and most active portal in this repo — live under
+[`docs/architecture/sohamyoga-frontend/`](docs/architecture/sohamyoga-frontend/):
+
+- [HLD.md](docs/architecture/sohamyoga-frontend/HLD.md) — container topology, tech stack, module map
+- [LLD.md](docs/architecture/sohamyoga-frontend/LLD.md) — auth gate implementation, DB design, no graph/vector DB confirmation
+- [C4.md](docs/architecture/sohamyoga-frontend/C4.md) — C4 context/container/component diagrams
+- [FEATURES.md](docs/architecture/sohamyoga-frontend/FEATURES.md) — real built/partial/not_built matrix, pending list, recorded user stories
+- [INTEGRATION.md](docs/architecture/sohamyoga-frontend/INTEGRATION.md) — real external integrations (Google, Postiz, Skyvern, Ollama, Slack, OpenBao, etc.)
+- [SECURITY.md](docs/architecture/sohamyoga-frontend/SECURITY.md) — access layers by actor, SAST/DAST/SCA/IaC scanning inventory, SOLID/architecture-style notes
+- [ATAM.md](docs/architecture/sohamyoga-frontend/ATAM.md) — tradeoff analysis and open risks
+- [ADR/](docs/architecture/sohamyoga-frontend/ADR/) — architecture decision records
+
+**Other portals in this repo** (voice-agent-platform, market-research-portal,
+ai-orchestrator-platform, ai-agents) do not yet have this level of documentation — queued as
+follow-up work, one portal at a time, rather than produced in bulk without verification.
+
+## Tech / Module / Feature stack at a glance (sohamyoga-frontend, verified 2026-09-07)
+
+| Dimension | Summary | Detail |
+|---|---|---|
+| Tech stack | Next.js 14 (App Router) + React 18 + TS 5.9, raw `pg` driver (no ORM), Tailwind, Jest + Playwright, self-hosted VAPID push, local Ollama LLM | [HLD.md §3](docs/architecture/sohamyoga-frontend/HLD.md#3-tech-stack-verified-via-packagejson--nextconfigjs--tsconfigjson--dockerfile) |
+| Module stack | 57 domain modules under `src/domain/`, 221 pages + 383 API routes under `src/app/` | [HLD.md §4](docs/architecture/sohamyoga-frontend/HLD.md#4-moduledomain-map-57-top-level-folders-under-srcdomain) |
+| Feature stack status | **164 real / 23 partial / 1 not_built** (188 cataloged, live DB count) | [FEATURES.md](docs/architecture/sohamyoga-frontend/FEATURES.md) |
+| Tool stack | semgrep (SAST), OWASP ZAP (DAST), npm audit (SCA), trivy/checkov (IaC) — real, but in-app/cron-triggered, not CI-gated | [SECURITY.md](docs/architecture/sohamyoga-frontend/SECURITY.md) |
+| DB design | Postgres 16, 496 tables, 144 domain-sharded schema files, no graph/vector DB in use | [LLD.md §2](docs/architecture/sohamyoga-frontend/LLD.md#2-database-design) |
+
+---
+
 *Backend seed data intentionally ships without demo services/testimonials/blog content —
 populate them through the admin CMS.*
