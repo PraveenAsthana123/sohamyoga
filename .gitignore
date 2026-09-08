@@ -116,3 +116,6 @@ data/kaggle/*/
 
 # Database backups — real customer/business data, never committed
 .backups/
+
+# Health monitor logs — operational output, not source
+.health-logs/
