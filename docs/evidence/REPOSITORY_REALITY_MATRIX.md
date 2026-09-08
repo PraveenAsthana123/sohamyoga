@@ -23,7 +23,7 @@ are explicit manually-set flags, not text-inferred.
 - ⏳ market-research-portal — deeper backend/API pass beyond the 8 registry rows, in progress
 - ⏳ ai-orchestrator-platform — investigation in progress, not yet in this file
 - ⏳ SohamYoga (.NET backend) — investigation in progress, not yet in this file
-- ⏳ password-manager — investigation in progress, not yet in this file
+- ✅ password-manager — full column set below (this checkpoint)
 
 **Column note:** the user-specified Reality Matrix schema (Portal, Domain, Module, Business purpose,
 User persona, Entry point, UI exists?, API exists?, DB schema exists?, DB writes verified?, DB reads
@@ -252,6 +252,88 @@ rows updated same-day as this audit).
 | sohamyoga-frontend | website-to-business-profile-import | Website-to-Business Profile Import | REAL | no | no | - | - |  |  |
 | sohamyoga-frontend | wellness | Wellness Tracking | REAL | no | yes | - | Two real bugs found live and fixed 2026-09-01: (1) wearables POST reused one SQL parameter in two conflicting type conte | live code/schema audit 2026-08-31 | 2026-09-01 |
 
+## password-manager
+
+Full-column evidence (single-module portal). Verified 2026-09-08 via direct file reads of
+`db/schema.sql`, `lib/crypto-client.ts`, `lib/session.ts`, `lib/postgres.ts`, all `app/api/**`
+routes, `app/page.tsx`, `docker-compose.yml`, `.env.local`; live `docker ps -a`, live
+`docker exec passwordmanager-postgres psql` row counts, `ss -tlnp` port scan.
+
+| Field | Value |
+|---|---|
+| Portal | password-manager |
+| Domain | Credential/Secrets Management |
+| Module | Zero-Knowledge Password Vault (auth + vault CRUD) |
+| Business purpose | Personal credential vault — store/retrieve login items with client-side E2E encryption so the server never sees plaintext secrets. No README describes this (unedited `create-next-app` boilerplate) — purpose inferred from code comments. |
+| User persona | Single end-user (self-hosted personal vault); no sharing, no admin role, no teams |
+| Entry point | `app/page.tsx` (single-page client component) |
+| UI exists? | Yes — login/signup + add-item form + item list with delete. No edit-item UI (API supports PUT, unwired), no password mask/reveal toggle, no generator, no search |
+| API exists? | Yes — 6 routes: `auth/{signup,login,logout,kdf-params}`, `vault/items` (GET/POST), `vault/items/[id]` (PUT/DELETE) |
+| DB schema exists? | Yes — `app_user`, `vault_item`, `app_session`, `pgcrypto` extension |
+| DB writes verified? | Schema migrated and live, but **zero rows in any table** — no signup/login/item-creation has ever actually run. Write path is code-correct, not live-proven. |
+| DB reads verified? | Same caveat — code-correct, never executed against real rows |
+| External integration exists? | None — only self-hosted Postgres + native `argon2` bindings |
+| External integration tested? | N/A |
+| AI/LLM used? | No |
+| Agentic workflow used? | No |
+| Tests exist? | No — zero test files anywhere, no Jest/Playwright config, no CI reference |
+| E2E demo verified? | No. App not currently running (no process on any port); only Postgres container exists and was found stopped (`Exited (0) 7 days ago`) |
+| Security controls | **Real, sound design.** Client: Web Crypto PBKDF2-SHA256 600k iterations (matches Bitwarden's default) derives a Master Key; separate one-way `authHash` sent to server (never the password/key itself); random AES-256-GCM Vault Key wraps items, itself encrypted by the Master Key — server never sees plaintext. Server: `auth_hash` re-hashed with real Argon2id (genuine native bindings, not a stub) before storage. Sessions: random 32-byte token, only its SHA-256 hash stored, `HttpOnly; Secure; SameSite=Lax`. Login runs a dummy Argon2 verify on unknown emails to resist enumeration. No plaintext-secret logging found. Caveats: `SERVER_PEPPER` used only for the fake-salt HMAC, not as a real pepper on the auth hash; UI shows stored passwords in plaintext with no mask control; no rate-limiting on auth routes; never independently audited or pen-tested. |
+| Observability | None — no logging framework, no metrics, no error tracking |
+| Deployment status | Own `docker-compose.yml` with only a `postgres:16-alpine` service — no Dockerfile for the app itself (runs via `npm run dev`/`next start` outside Docker). `passwordmanager-postgres` container found **Exited (0) 7 days ago** — not running before this audit. Not wired into any reverse-proxy or other compose stack. |
+| Source origin | **Original/custom-built** — no LICENSE, no Bitwarden/Vaultwarden source or dependency; independently reimplements a similar zero-knowledge pattern from scratch, confirmed via boilerplate README + fresh `package.json` deps |
+| Known dependency | Postgres 16 (own container, port 5439); `argon2` native module (real prebuilt bindings present); Web Crypto API (browser-only, no polyfill) |
+| Known issue | Container has no restart policy; zero real usage data ever created; no tests; no edit-item UI despite API support; plaintext password rendering; no auth rate-limiting |
+| Missing item | Tests, app Dockerfile, observability, rate-limiting, edit-item UI, password generator, 2FA/MFA, vault-sharing (schema has unused `public_key`/`encrypted_private_key` columns), real README, LICENSE |
+| Current maturity | **CODE_EXISTS_NOT_INTEGRATED** operationally (schema migrated, container stopped, zero real usage, no tests) — but the crypto/auth *design* itself is **REAL_BUT_PARTIAL**: soundly architected with correct primitives, unverified by any live E2E run or independent audit |
+| Evidence file/path | `password-manager/{package.json, db/schema.sql, lib/crypto-client.ts, lib/session.ts, lib/postgres.ts, app/api/**, app/page.tsx, docker-compose.yml, .env.local}`; live `docker ps -a --filter name=passwordmanager`, live row counts |
+| Last verified date | 2026-09-08 |
+
+**Summary:** genuinely sound, custom-built zero-knowledge crypto design (client-side PBKDF2 600k + AES-256-GCM, server-side Argon2id re-hash) — not a naive scheme, not forked OSS. But architecturally correct ≠ operationally proven: never run end-to-end, container stopped, zero rows in any table, no tests, no independent security review. Do not present as "production-ready" without a live signup→add→logout→login→decrypt round-trip and a dedicated crypto review first.
+
+## voice-agent-platform
+
+Verified 2026-09-08 via direct reads of all `src/domain/*`, `src/app/api/*`, `docker-compose.yml`,
+`package.json`, `Dockerfile`, `docs/PLATFORM_REFERENCE.md`, `SESSION_HANDOFF.md`; live `docker ps`;
+live `psql` queries against the running `voiceagent-postgres` container (schema + row counts +
+samples on `call_log`, `vapi_api_audit_log`, `vapi_created_assistant`, `vapi_sync_log`,
+`notification`); `curl` to port 8090.
+
+| Domain | Module | UI/API/DB | DB writes verified | External integration | Maturity | Known issue |
+|---|---|---|---|---|---|---|
+| call | Vapi outbound call placement | yes/yes/yes | code path real, but **zero `/call` POSTs ever appear in `vapi_api_audit_log`** (12 rows, all `/assistant` and `/phone-number`) — never actually invoked | Vapi | CODE_EXISTS_NOT_INTEGRATED | wired since 2026-09-02, never actually invoked; no live ring ever demonstrated |
+| call | Vapi assistant create/update sync | yes/yes/yes | **yes** — live audit log shows real `POST/PATCH /assistant` (200/201) on 2026-09-02/03; `vapi_created_assistant` has 2 real rows | Vapi | REAL_END_TO_END | none |
+| call | Vapi tenant-isolation guard | n/a/n/a/yes | yes — a real `blocked=t` audit row exists | Vapi | REAL_END_TO_END | **real prior incident**: a manual test nearly overwrote an unrelated live client's assistant ("Domino's Pizza-Inbound Call") before this guard existed; guard rebuilt, now proven working |
+| call | Vapi end-of-call webhook receiver | n/a/yes/yes | code real, but **zero `call_log` rows show webhook-sourced data** (only row is manual) | Vapi (`x-vapi-secret` verified) | CODE_EXISTS_NOT_INTEGRATED | `docs/PLATFORM_REFERENCE.md` (dated 2026-09-02) still says "not built" — **stale**; code exists as of same day per file mtimes |
+| call | Inbound call routing (default assistant) | yes/yes/n-a | live `GET /phone-number` (200) confirms **no assistantId currently set** | Vapi | REAL_BUT_PARTIAL | **confirmed real gap: the shared inbound number has zero assistant attached — any real inbound call rings unanswered by AI** |
+| call | Manual call logging | yes/yes/yes | yes — the one existing `call_log` row was created this way | none | REAL_END_TO_END | this is currently the *only* way real call outcomes reach `call_log` |
+| call | Call quality review | yes/yes/yes | code real, not live-verified this session | none | CODE_EXISTS_NOT_INTEGRATED | none found |
+| call | Vapi cost cap / spend control | yes/yes/yes | code real, depends on webhook cost data which isn't populated live | derives from `call_log.cost_usd` | CODE_EXISTS_NOT_INTEGRATED | depends entirely on the unverified webhook path above |
+| mcp | Vapi MCP server (8 tools) | n/a/yes/reuses | reuses existing repos | ContextForge (federation) | REAL_BUT_PARTIAL | real tool-use surface for an external agent (not itself autonomous); `place_call` requires explicit `confirmed:true` |
+| contact | Contact management + CSV import + preferences | yes/yes/yes | yes — real INSERT/UPDATE confirmed, live table has 2 real rows | none | REAL_BUT_PARTIAL | `customer_preference` table empty (0 rows) despite schema/repo existing |
+| script | Call script + versioning + templates | yes/yes/yes | yes — live: 24 scripts / 25 versions / 3 templates | Vapi (via sync) | REAL_END_TO_END | one real sync failure logged (2026-09-03) — genuine failure case, not fabricated |
+| calendar | Cal.com adapter (availability/book) | partial/yes/n-a | n/a | Cal.com | **CONFIG_ONLY** | `CALCOM_API_KEY` empty in `.env` — fails closed, never tested against a live account (unlike Vapi) |
+| contact/form | Public lead-capture forms | yes/yes/yes | yes — live: 1 definition, 1 real submission | none | REAL_END_TO_END | none found |
+| notification | In-app notifications | yes/yes/yes | yes — live: 1 real row (`vapi_sync_failed`, 2026-09-03) | none | REAL_BUT_PARTIAL | only 1 real notification exists to date — most trigger paths (cost cap, unmatched inbound) unexercised live |
+| customer | Business customer self-service portal | yes/yes/yes | code real (scrypt hashing, session tokens); **live table has 0 rows** despite `PLATFORM_REFERENCE.md` claiming "2 real businesses registered" as of 2026-09-02 — **that data no longer exists** | none | REAL_BUT_PARTIAL | prior verification data no longer present in live DB; cannot re-confirm tenant isolation without re-running |
+| admin | Admin auth (login/session) | yes/yes/yes | live: 2 real `admin_user` rows; scrypt + timing-safe compare confirmed | none | REAL_END_TO_END | none found |
+| reports | Reports/dashboard | yes/yes/reuses | real aggregate queries, honest-empty-state design (own code comment) | none | REAL_BUT_PARTIAL (real queries, thin real data) | near-empty `call_log`/`business_customer` means most views currently render empty |
+| infra | Postgres database | n/a/n/a/yes | 17 tables, 23 applied migrations | n/a | REAL_END_TO_END | **running** — `docker ps` confirms `voiceagent-postgres` healthy |
+| infra | Next.js app container | n/a/n/a/n-a | n/a | n/a | **BROKEN (currently down)** | `voiceagent-app` **Exited (0) 3 days ago** — none of the UI/API claims above are reachable right now without a restart |
+| testing | Automated test suite | n/a | n/a | n/a | **MISSING** | zero test files anywhere, no CI config |
+
+**Summary — answers the earlier "voice AI inbound/outbound scenario" question directly:** the Vapi
+*assistant-configuration* lifecycle is genuinely real and proven (real, successful `POST/PATCH
+/assistant` calls against api.vapi.ai, including a real caught-and-fixed tenant-isolation incident
+that nearly overwrote an unrelated production client's assistant). But **actually placing or
+receiving a phone call has never been exercised**: the outbound-call code path exists and has a live
+API key, yet zero `/call` POSTs appear in the audit log; the inbound webhook receiver exists but zero
+webhook-sourced rows exist in `call_log`; and the shared inbound number currently has **no assistant
+attached at all**, so a real inbound call today would ring unanswered. `docs/PLATFORM_REFERENCE.md`
+is stale and overstates what's missing in one place while a separate live DB shows previously-claimed
+verification data (2 registered businesses) no longer exists. The app container itself is currently
+stopped — nothing above is reachable over HTTP without a restart. No automated tests exist anywhere.
+
 ## Known limitations of this checkpoint
 
 1. **15 of 27 requested columns are not populated per-row** for the 196 registry-tracked modules
@@ -262,9 +344,9 @@ rows updated same-day as this audit).
    (`user_flow`, `admin_flow`, `data_flow`, `job_name`, `report_location`, `dashboard_location` exist
    in the schema but weren't exported here) or a real per-module code read. Flagged, not silently
    dropped.
-2. **5 portals not yet covered**: voice-agent-platform, ai-orchestrator-platform, SohamYoga .NET
-   backend, password-manager, and market-research-portal's non-registry backend surface. Under
-   active parallel investigation as of this checkpoint.
+2. **3 portals not yet covered**: ai-orchestrator-platform, SohamYoga .NET backend, and
+   market-research-portal's non-registry backend surface. Under active parallel investigation as of
+   this checkpoint. (voice-agent-platform and password-manager completed in this checkpoint.)
 3. **AI/Agentic workflow classification** (Phase 10 of the full audit) has not been applied to any
    module yet — that requires a dedicated LEVEL 0-6 classification pass per the mandatory policy,
    not a guess embedded in this Phase 1 matrix.
