@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json().catch(() => null) as {
     title?: string; contentType?: string; channel?: string | null; scheduledAt?: string;
     status?: string; briefId?: string | null; assignedTo?: string | null;
-    tags?: string[]; notes?: string | null;
+    tags?: string[]; notes?: string | null; contentVariantId?: string | null;
   } | null;
   if (!body) return Response.json({ error: 'Invalid request body.' }, { status: 400 });
 
@@ -23,12 +23,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     `UPDATE content_calendar_entry
      SET title = COALESCE($2, title), content_type = COALESCE($3, content_type),
          channel = $4, scheduled_at = COALESCE($5, scheduled_at), status = COALESCE($6, status),
-         brief_id = $7, assigned_to = $8, tags = COALESCE($9, tags), notes = $10, updated_at = now()
+         brief_id = $7, assigned_to = $8, tags = COALESCE($9, tags), notes = $10, content_variant_id = $11, updated_at = now()
      WHERE id = $1 RETURNING id`,
     [
       id, body.title?.trim() ?? null, body.contentType ?? null, body.channel ?? null,
       body.scheduledAt ?? null, body.status ?? null, body.briefId ?? null, body.assignedTo ?? null,
-      body.tags ?? null, body.notes ?? null,
+      body.tags ?? null, body.notes ?? null, body.contentVariantId ?? null,
     ],
   );
   if (!result.rowCount) return Response.json({ error: 'Calendar entry not found.' }, { status: 404 });

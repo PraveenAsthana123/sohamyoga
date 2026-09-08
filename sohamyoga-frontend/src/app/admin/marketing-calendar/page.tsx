@@ -39,6 +39,8 @@ interface Entry {
   status: string;
   briefId: string | null;
   briefName: string | null;
+  contentVariantId: string | null;
+  contentPreview: { platform: string | null; content: string | null } | null;
   assignedTo: string | null;
   tags: string[];
   notes: string | null;
@@ -49,6 +51,7 @@ interface Entry {
 
 interface Brief { id: string; name: string }
 interface StatusCode { code: string; label: string }
+interface Variant { id: string; platform: string; preview: string; briefId: string | null }
 
 const STATUS_STYLE: Record<string, string> = {
   planned: "bg-gray-800 text-gray-300",
@@ -61,12 +64,13 @@ const STATUS_STYLE: Record<string, string> = {
 
 const emptyForm = {
   title: "", contentType: "social_post", channel: "", scheduledAt: "",
-  status: "planned", briefId: "", assignedTo: "", tags: "", notes: "",
+  status: "planned", briefId: "", assignedTo: "", tags: "", notes: "", contentVariantId: "",
 };
 
 export default function MarketingCalendarPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [statuses, setStatuses] = useState<StatusCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -84,6 +88,7 @@ export default function MarketingCalendarPage() {
         if (!r.ok) throw new Error(d.error || "Failed to load calendar.");
         setEntries(d.entries);
         setBriefs(d.briefs);
+        setVariants(d.variants ?? []);
         setStatuses(d.statuses);
         setError("");
       })
@@ -110,6 +115,7 @@ export default function MarketingCalendarPage() {
       assignedTo: e.assignedTo ?? "",
       tags: e.tags.join(", "),
       notes: e.notes ?? "",
+      contentVariantId: e.contentVariantId ?? "",
     });
     setShowForm(true);
   }
@@ -128,6 +134,7 @@ export default function MarketingCalendarPage() {
       assignedTo: form.assignedTo || null,
       tags: form.tags.split(",").map(t => t.trim()).filter(Boolean),
       notes: form.notes || null,
+      contentVariantId: form.contentVariantId || null,
     };
     try {
       const url = editingId ? `/api/admin/marketing-calendar/${editingId}` : "/api/admin/marketing-calendar";
@@ -170,6 +177,7 @@ export default function MarketingCalendarPage() {
         title: entry.title, contentType: entry.contentType, channel: entry.channel,
         scheduledAt: next.toISOString(), status: entry.status, briefId: entry.briefId,
         assignedTo: entry.assignedTo, tags: entry.tags, notes: entry.notes,
+        contentVariantId: entry.contentVariantId,
       }),
     });
     setRescheduling(null);
@@ -339,6 +347,11 @@ export default function MarketingCalendarPage() {
                     {e.assignedTo && <> · assigned: {e.assignedTo}</>}
                     {e.tags.length > 0 && <> · {e.tags.join(", ")}</>}
                   </p>
+                  {e.contentPreview?.content && (
+                    <p className="text-xs text-gray-500 mt-1 bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 truncate">
+                      [{e.contentPreview.platform}] {e.contentPreview.content}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => openEdit(e)} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs transition-colors">Edit</button>
@@ -400,6 +413,16 @@ export default function MarketingCalendarPage() {
                   {briefs.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
                 {briefs.length === 0 && <p className="text-xs text-gray-500 mt-1">No campaign briefs exist yet.</p>}
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Content (optional) — links the real post/email/blog copy to this entry</label>
+                <select value={form.contentVariantId} onChange={e => setForm(f => ({ ...f, contentVariantId: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">
+                  <option value="">— none —</option>
+                  {variants.map(v => <option key={v.id} value={v.id}>[{v.platform}] {v.preview}</option>)}
+                </select>
+                {variants.length === 0 && <p className="text-xs text-gray-500 mt-1">No content_variant rows exist yet — generate content via a campaign brief first.</p>}
               </div>
 
               <input value={form.assignedTo} onChange={e => setForm(f => ({ ...f, assignedTo: e.target.value }))}
