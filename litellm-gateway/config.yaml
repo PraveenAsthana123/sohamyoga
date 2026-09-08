@@ -6,6 +6,15 @@
 # env vars (fast/code/strong) so this can later stand in for that portal's
 # router.py without renaming anything downstream.
 #
+# CORRECTED 2026-09-08 (same day, later): api_base was originally
+# 127.0.0.1:11434. That is the "older/smaller Ollama instance (10 models)"
+# per ai-orchestrator-platform/backend/app/config.py's own comment --
+# 11435 is "the full-catalog instance (39 models)" that app actually
+# targets (OLLAMA_URL default), decision-logged 2026-09-02. Fixed to point
+# at 11435 to match the real integration target. The 3 models pulled onto
+# 11434 earlier this session were redundant -- 11435 already had all three
+# (phi4-mini:latest, qwen2.5-coder:latest, qwen2.5:latest) the whole time.
+#
 # IMPORTANT: use `ollama_chat/`, not `ollama/`. Found live during setup:
 # `ollama/` routes through LiteLLM's raw-completion translation, which sent
 # an unformatted prompt to Ollama's legacy /api/generate endpoint -- the
@@ -19,19 +28,19 @@ model_list:
   - model_name: fast
     litellm_params:
       model: ollama_chat/phi4-mini:latest
-      api_base: http://127.0.0.1:11434
+      api_base: http://127.0.0.1:11435
       max_tokens: 1024
 
   - model_name: code
     litellm_params:
       model: ollama_chat/qwen2.5-coder:latest
-      api_base: http://127.0.0.1:11434
+      api_base: http://127.0.0.1:11435
       max_tokens: 1024
 
   - model_name: strong
     litellm_params:
       model: ollama_chat/qwen2.5:latest
-      api_base: http://127.0.0.1:11434
+      api_base: http://127.0.0.1:11435
       max_tokens: 1024
 
 general_settings:
@@ -39,4 +48,9 @@ general_settings:
   # systemd unit), matching this workspace's existing pattern of gating
   # exposure at the network/tunnel layer rather than app-layer auth for
   # single-operator local services. Revisit before any wider exposure.
-  disable_spend_logs: true
+  #
+  # disable_spend_logs was true (spend/cost tracking off) -- flipped to
+  # false 2026-09-08 after being asked directly whether this gateway
+  # tracks cost. Local Ollama models have no real $ cost, but token/latency
+  # spend records are still useful observability data, so leaving it on.
+  disable_spend_logs: false
