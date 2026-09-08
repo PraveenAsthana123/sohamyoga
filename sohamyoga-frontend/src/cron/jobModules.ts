@@ -27,6 +27,7 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   CommunityDigestJob:         () => import('./jobs/CommunityDigestJob'),
   LeadNurturingJob:           () => import('./jobs/LeadNurturingJob'),
   SeoReportJob:               () => import('./jobs/SeoReportJob'),
+  SearchVisibilityJob:        () => import('./jobs/SearchVisibilityJob'),
   PostizProviderHealthJob:    () => import('./jobs/PostizProviderHealthJob'),
   PostizSocialAutoPublishJob: () => import('./jobs/PostizSocialAutoPublishJob'),
   FirstWaveDispatchJob: () => import('./jobs/FirstWaveDispatchJob'),

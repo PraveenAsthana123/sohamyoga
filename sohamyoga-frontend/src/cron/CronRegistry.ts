@@ -423,6 +423,14 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   180_000,
   },
   {
+    name:        'search-visibility',
+    schedule:    '15 7 * * 5',
+    description: 'Write real organic-search keyword snapshots (Matomo referrer data) into marketing_search_visibility_snapshot -- no fabricated SERP position',
+    module:      'SearchVisibilityJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
     name:        'feature-gap-advisor',
     schedule:    '0 8 * * 5',
     description: '§166 advise step — Ollama (strong) reads one module\'s own source and drafts the single highest-leverage feature missing to reach top-1% for that topic',

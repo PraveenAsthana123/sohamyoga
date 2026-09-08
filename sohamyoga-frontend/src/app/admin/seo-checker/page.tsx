@@ -21,6 +21,7 @@ interface ArchIssue { severity: 'high' | 'medium'; title: string; detail: string
 interface ArchReport { pages: ArchPage[]; issues: ArchIssue[] }
 interface ContentBrief { seedKeyword: string; suggestedTitle: string; suggestedHeadings: string[]; relatedTermsToInclude: string[] }
 interface LandingPage { slug: string; title: string; metaDescription: string; h1: string; intro: string }
+interface VisibilitySnapshot { query: string; engine: string; visibilityType: string; position: string | null; isCited: boolean | null; brandMentioned: boolean; measuredAt: string }
 
 const STATUS_COLORS: Record<string, string> = {
   pass: 'bg-emerald-100 text-emerald-700', warn: 'bg-amber-100 text-amber-700', fail: 'bg-red-100 text-red-700',
@@ -86,9 +87,11 @@ export default function SeoCheckerPage() {
   const [redirects, setRedirects] = useState<RedirectRule[]>([]);
   const [newFrom, setNewFrom] = useState('');
   const [newTo, setNewTo] = useState('');
+  const [visibility, setVisibility] = useState<VisibilitySnapshot[] | null>(null);
 
   useEffect(() => {
     fetch('/api/admin/seo/redirects').then((r) => r.ok ? r.json() : { rules: [] }).then((d) => setRedirects(d.rules ?? []));
+    fetch('/api/admin/seo/search-visibility').then((r) => r.ok ? r.json() : { snapshots: [] }).then((d) => setVisibility(d.snapshots ?? []));
   }, []);
 
   async function checkBrokenLinksNow() {
@@ -493,6 +496,32 @@ export default function SeoCheckerPage() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border bg-white p-5 space-y-3">
+        <div>
+          <p className="font-semibold text-gray-800">Search Visibility Trend</p>
+          <p className="text-xs text-gray-500">Real organic-search keyword snapshots from Matomo (weekly search-visibility job) -- SERP position/citation stay blank when not real (no rank-tracking API in this environment, same honest gap as backlink tracking). GEO/local visibility types remain unwritten for the same reason.</p>
+        </div>
+        {visibility === null ? <p className="text-xs text-gray-400">Loading…</p> : visibility.length === 0 ? (
+          <p className="text-xs text-gray-400">No snapshots yet -- the weekly search-visibility job writes real Matomo organic-search keyword data here once Matomo is reachable and has traffic to report.</p>
+        ) : (
+          <table className="w-full text-xs">
+            <thead><tr className="text-left text-gray-400"><th className="pb-1">Query</th><th className="pb-1">Type</th><th className="pb-1">Engine</th><th className="pb-1">Position</th><th className="pb-1">Brand mentioned</th><th className="pb-1">Measured</th></tr></thead>
+            <tbody>
+              {visibility.map((v, i) => (
+                <tr key={i} className="border-t">
+                  <td className="py-1 pr-2">{v.query}</td>
+                  <td className="py-1 pr-2 uppercase">{v.visibilityType}</td>
+                  <td className="py-1 pr-2">{v.engine}</td>
+                  <td className="py-1 pr-2">{v.position ?? '—'}</td>
+                  <td className="py-1 pr-2">{v.brandMentioned ? '✓' : '—'}</td>
+                  <td className="py-1 text-gray-400">{new Date(v.measuredAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
