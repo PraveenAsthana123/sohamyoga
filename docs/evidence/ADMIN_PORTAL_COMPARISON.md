@@ -1,23 +1,56 @@
 # Admin Portal Comparison — sohamyoga-frontend vs TalentsHill
 
-Verified 2026-09-08, in response to an explicit request to compare the two admin portals
-feature-by-feature and identify what's genuinely shareable in each direction. Builds on
-[TALENTSHILL_COMPARISON.md](TALENTSHILL_COMPARISON.md) (platform-level, done earlier this session)
-— this pass is scoped specifically to the two admin surfaces.
+Originally verified 2026-09-08. **Refreshed 2026-09-09** after a full-session TalentsHill build-out
+(33 admin modules brought onto the Operational Portal 10-tab standard — Manual/Pipeline/Agentic/
+Monitoring/Dashboard/Report/Governance/User Story/Testing/Log&Tracking) that materially changed
+several of this document's original findings, most notably the RAG-pipeline and admin-tab-structure
+rows below. Builds on [TALENTSHILL_COMPARISON.md](TALENTSHILL_COMPARISON.md) (platform-level, done
+2026-09-08) — this pass is scoped specifically to the two admin surfaces. All counts in this refresh
+were re-run live against both codebases today, not carried forward from the 2026-09-08 pass.
 
-## Raw scale, verified by directory/file count
+## What changed since the 2026-09-08 pass (read this first)
+
+- **RAG pipeline flipped from schema-only to real.** Two compounding gaps were found and fixed:
+  nothing anywhere ever created the `rag_embed` job (a document could reach 'chunked' status with no
+  path to 'embedded'), and both the embed handler and hybrid search were hardcoded to a
+  `DummyEmbeddingProvider` generating random vectors — so even once reachable, vector search would
+  have been meaningless. Fixed with a real local-Ollama embedding provider (`nomic-embed-text`),
+  verified live end-to-end (real document → real chunks → real embeddings → a real search query
+  correctly ranking the relevant chunk → a genuine RAG-powered Q&A agent giving a grounded, cited
+  answer and correctly refusing to answer from outside knowledge on an out-of-corpus question).
+- **TalentsHill's admin is now built to a page/tab standard** (see the "Operational Portal 10-tab
+  standard" row below, previously listed as a gap TalentsHill didn't have).
+- **The single most severe bug found all session was in TalentsHill's Broadcasts module, not RAG or
+  Settings:** clicking "Launch" on a broadcast never actually sent any emails — nothing enqueued the
+  real send job, only a DB status flip happened. Fixed at the root. Found by chance while building
+  out the new Run Console module and needing a real send to test against — a reminder that "the admin
+  page works and the API returns 200" is not evidence a feature has any real-world effect; see the
+  session's [search-existing-data-before-building memory](/home/praveen/.claude/projects/-mnt-deepa-sohamyoga/memory/feedback_search_existing_data_before_building.md)
+  for the full pattern (7+ occurrences this session alone).
+- **Settings → public site was also disconnected:** the admin Social Links form wrote to a DB table
+  the public site's Footer never read (it read build-time env vars instead) — fixed, plus a
+  duplicate/dead Feature-toggle UI (colliding key names with the real, separate Feature Flags module)
+  was removed in favor of pointing at the real one.
+
+## Raw scale, verified by directory/file count (re-run 2026-09-09)
 
 | | sohamyoga-frontend admin | TalentsHill admin |
 |---|---|---|
-| Admin page directories | 120 (`find src/app/admin -maxdepth 1 -type d`) | 62 (per TalentsHill's own README, not independently re-walked this pass) |
-| Admin API routes | 214 (`find src/app/api/admin -name route.ts \| wc -l`) | 96 (`find app/api/admin -name route.ts \| wc -l`, this session) |
-| RBAC enforcement | Not audited this pass — flagged below as a follow-up | Was schema-only, dead code (`withPermission()` called 0 times) until the wiring in progress right now this session |
-| Currently running | Yes, live traffic this session (multiple portals) | No — confirmed not running, per TALENTSHILL_COMPARISON.md |
+| Admin page directories | 110 (`find src/app/admin -maxdepth 1 -type d`, sohamyoga-frontend/) | 34 (`find app/admin -maxdepth 1 -type d`) |
+| Admin API routes | 220 (`find src/app/api/admin -name route.ts \| wc -l`) | 276 (`find app/api/admin -name route.ts \| wc -l`) |
+| RBAC enforcement | Not audited this pass — flagged below as a follow-up | Real, `withPermission()` wired across all 276 routes as of this session's build-out (was dead code as of the 2026-09-08 pass) |
+| 10-tab Operational Portal standard | No — sohamyoga-frontend's admin pages are not built to this structure | **Yes as of 2026-09-09** — all 33 pre-existing admin modules brought onto Manual/Pipeline/Agentic/Monitoring/Dashboard/Report/Governance/User Story/Testing/Log&Tracking |
+| Currently running | Yes, live traffic this session (multiple portals) | No — dev server started/stopped repeatedly this session purely for live verification of each change, not left running persistently |
 
-sohamyoga-frontend's admin is roughly **2x TalentsHill's** by page count and API-route count. That
-scale difference matters for the rest of this comparison — sohamyoga isn't "behind," it's a much
-larger, longer-lived surface with a different center of gravity (yoga-vertical + generic
-marketing-suite breadth vs TalentsHill's tighter enterprise-AI-consulting focus).
+Note on the page-directory count: TalentsHill's 34 top-level admin directories now each typically
+contain ~10-12 files (one per tab, e.g. `ManualTab.tsx`, `PipelineTab.tsx`, `GovernanceTab.tsx`)
+rather than one file per directory — the directory count alone understates how much real UI surface
+exists per module compared to the 2026-09-08 baseline of 62 (a number that was never independently
+re-walked, only taken from TalentsHill's own README). sohamyoga-frontend's admin is now roughly 3x
+TalentsHill's by page-directory count but TalentsHill now has *more* admin API routes in absolute
+terms (276 vs 220) — the two portals' scale relationship inverted from the original "sohamyoga is
+~2x TalentsHill" framing once TalentsHill's build-out is counted. This still isn't a apples-to-apples
+"more real" claim either way — it reflects this session's build focus, not a capability judgment.
 
 ## Where the two overlap (same capability, built independently, different stack)
 
@@ -46,7 +79,7 @@ side, Drizzle/SQLite on the other).
 
 | TalentsHill feature | Real or schema-only? | Worth porting? |
 |---|---|---|
-| RAG pipeline (`rag/documents`, `/chunks`, `/ingest`, `/search`, `/evaluate`, `/runs`) | **Schema only — zero real rows**, per TALENTSHILL_COMPARISON.md | Schema shape is a reasonable reference, but it's not a proven pattern — TalentsHill hasn't exercised it either. Per the new [RAG + Ollama mandatory policy](/home/praveen/.claude/projects/-mnt-deepa-sohamyoga/memory/policy_rag_ollama_mandatory_global.md), sohamyoga's own RAG work (`admin/ai-ingestion`) should be built and verified independently, not copied from an unexercised reference |
+| RAG pipeline (`rag/documents`, `/chunks`, `/ingest`, `/search`, `/evaluate`, `/runs`) | **Real as of 2026-09-09** — was schema-only/zero-rows at the 2026-09-08 pass; this session found and fixed two compounding gaps (the embed job was never created, and the embedding provider generated random vectors) and verified real ingestion → chunking → real local-Ollama embeddings → real hybrid search → a genuine RAG-powered Q&A agent, live, end-to-end | Now a genuinely proven, exercised pattern — worth referencing for sohamyoga's own RAG work (`admin/ai-ingestion`) specifically for the "wire a real embedding provider, not a dummy/random one" and "make sure the job that actually gets you from ingested to embedded is reachable" lessons, both of which cost real debugging time here. Per the [RAG + Ollama mandatory policy](/home/praveen/.claude/projects/-mnt-deepa-sohamyoga/memory/policy_rag_ollama_mandatory_global.md), sohamyoga's implementation should still be built and verified independently against its own stack, not copy-pasted |
 | Content versioning + publish workflow (`content/[id]/versions`, `content/[id]/publish`) | Real (needs re-verification for actual row usage — not checked this pass) | Yes — sohamyoga's `content-library` doesn't have an equivalent draft/version/publish flow today. Concrete, checkable gap |
 | Industries + Services catalog (`admin/industries`, `admin/services`) backing the public `solutions/genai`, `solutions/quantum-ai`, `solutions/robotics-ai` pages | Real | **No** — this is deliberately TalentsHill-specific business content (robotics/quantum/satellite/embedded-systems consulting lines), already correctly kept out of sohamyoga per this session's earlier decision |
 | Email compose UI (`admin/email-compose`) as a distinct surface from campaign creation | Real | Minor — sohamyoga's campaign/newsletter admin likely covers this already; not independently verified |
@@ -56,30 +89,43 @@ side, Drizzle/SQLite on the other).
 
 | sohamyoga feature | Why it matters for TalentsHill |
 |---|---|
-| `module-registry` + `module-assurance` (real registry-backed built-vs-missing tracking, per the [Module Understanding Standard](/home/praveen/.claude/projects/-mnt-deepa-sohamyoga/memory/policy_module_understanding_standard.md)) | TalentsHill's own README claims (79 tables, 124 routes, 62 pages) were **not self-verified** anywhere in TalentsHill itself — they were verified externally, by this session's audit. A module registry would let TalentsHill track its own real-vs-schema-only status continuously instead of via one-off external audits |
-| `security-control-tower`, `quality-center`, `api-tracking`, `logs`, `build-status` | TalentsHill has no live observability/ops dashboards found — consistent with it "not currently running." These are exactly what would need to exist before TalentsHill could be called production-grade, which is the standard the user set explicitly earlier this session ("this needs to be production") |
-| `scripts/health-monitor.sh` + `scripts/backup-databases.sh` (real, tested, cron-scheduled this session) | TalentsHill has no backup/health-check automation found. SQLite makes this simpler for TalentsHill than sohamyoga's Postgres case — a straight file-copy backup + one HTTP health check, not a large lift |
-| Operational Portal 8-tab page standard (Dashboard/Report/Manual Process/Automatic Process/AI Exp/AI Governance/AI Risk/ResAI per policy) | TalentsHill's admin pages are single-purpose CRUD screens, not built to this tab structure. Only worth adopting if/when TalentsHill's admin is deliberately re-platformed to the same operational maturity bar — not a small change, flagging as a structural gap rather than proposing to force it in now |
+| `module-registry` + `module-assurance` (real registry-backed built-vs-missing tracking, per the [Module Understanding Standard](/home/praveen/.claude/projects/-mnt-deepa-sohamyoga/memory/policy_module_understanding_standard.md)) | **No longer a TalentsHill gap** — TalentsHill built its own `admin/module-registry` this session (2026-09-09), real DB-backed, catalog of every admin module's real/partial/not-built status with a disclosed-gap column. It additionally now has a real drift-detection pipeline (flags a registry row whose `last_verified_at` is stale, or whose disclosed status is internally inconsistent) that sohamyoga's module-registry does not have as of this pass — worth checking whether sohamyoga's version has an equivalent drift check, not verified this pass |
+| `security-control-tower`, `quality-center`, `api-tracking`, `logs`, `build-status` | TalentsHill still has no equivalent live observability/ops dashboards found this pass — still consistent with it not being run as a persistent service. These remain exactly what would need to exist before TalentsHill could be called production-grade |
+| `scripts/health-monitor.sh` + `scripts/backup-databases.sh` (real, tested, cron-scheduled this session) | TalentsHill still has no backup/health-check automation found this pass. SQLite makes this simpler for TalentsHill than sohamyoga's Postgres case — a straight file-copy backup + one HTTP health check, not a large lift |
 
 ## Two-way, already-verified-safe shares (recommend doing now)
 
-1. **RBAC enforcement audit for sohamyoga-frontend.** TalentsHill just had a real critical bug
-   (`withPermission()` defined, never called — 96 unprotected admin routes) found and fixed this
-   session, on top of an earlier, separate critical bug (middleware not gating `/api/admin/*` at
-   all). sohamyoga-frontend has 214 admin routes and has not been checked for the same dead-code
-   authorization pattern. **Recommend auditing this next** — same failure class, unverified on this
-   side.
+1. **RBAC enforcement audit for sohamyoga-frontend.** TalentsHill had a real critical bug
+   (`withPermission()` defined, never called — originally 96 unprotected admin routes, now fully
+   wired across all 276 real admin routes as of this session's completed build-out) found and fixed
+   earlier this session, on top of an earlier, separate critical bug (middleware not gating
+   `/api/admin/*` at all). sohamyoga-frontend has 220 admin routes (re-counted 2026-09-09) and has
+   not been checked for the same dead-code authorization pattern. **Recommend auditing this next** —
+   same failure class, unverified on this side. TalentsHill's build-out also repeatedly found the
+   *next* layer of the same failure class beyond RBAC — a route/UI being reachable and permission-
+   checked is no guarantee the thing it triggers is itself wired to anything (see the "What changed"
+   section at the top); worth keeping that broader framing in mind for the sohamyoga audit, not just
+   a narrow `withPermission()` grep.
 2. **Health-monitor + backup script pattern → TalentsHill.** sohamyoga's `scripts/health-monitor.sh`
    and `scripts/backup-databases.sh` are real, tested, and adaptable to TalentsHill's SQLite file with
    minimal changes — genuinely portable, low-risk, closes a real gap.
-3. **OAuth (Google/Microsoft) login pattern, once verified in TalentsHill** (in progress this
-   session) — the manual OAuth2+PKCE-against-existing-session-cookie approach is stack-agnostic and
-   could be replicated in sohamyoga-frontend's own admin login if social login is ever wanted there.
+3. **OAuth (Google/Microsoft) login pattern, once verified in TalentsHill** — per TalentsHill's own
+   module registry (checked 2026-09-09), this is still marked `partial` with a disclosed real gap
+   (code-complete and fail-closed-path-verified, but not fully exercised), not yet a "recommend
+   copying now" pattern. The manual OAuth2+PKCE-against-existing-session-cookie approach is
+   stack-agnostic and worth replicating in sohamyoga-frontend's own admin login once TalentsHill's
+   own gap closes, not before.
 
 ## What this comparison deliberately does not do
 
-Does not re-verify TalentsHill's README claims beyond what TALENTSHILL_COMPARISON.md already
-checked (DB table counts, RAG row counts, AI-governance row counts) — this pass is structural
-(directory/route inventory + cross-reference), not a fresh live-data audit. Does not audit
-sohamyoga-frontend's 214 admin routes for RBAC enforcement — flagged above as the most
-consequential recommended follow-up, not yet executed.
+This 2026-09-09 refresh only re-verifies the specific rows called out in "What changed since the
+2026-09-08 pass" above (RAG, the admin tab standard, module-registry, RBAC route counts, the
+Broadcasts/Settings bugs) — those were confirmed live against the actual current code and, for RAG
+and Broadcasts, against real running-server test evidence recorded this session. Every other row
+carried forward from the 2026-09-08 pass (content-versioning, industries/services, email-compose,
+maintenance-mode, security-control-tower, health-monitor/backup scripts, the OAuth pattern) was
+**not** independently re-checked this pass and should not be read as freshly verified just because
+the surrounding document was touched today. Does not audit sohamyoga-frontend's 220 admin routes for
+RBAC enforcement — still flagged above as the most consequential recommended follow-up, not yet
+executed. Does not attempt a fresh TALENTSHILL_COMPARISON.md-style DB table/row-count audit beyond
+what the RAG and Broadcasts fixes directly touched.
