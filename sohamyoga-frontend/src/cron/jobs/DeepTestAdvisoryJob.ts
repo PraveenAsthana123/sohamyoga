@@ -32,6 +32,7 @@ interface Advisory {
   summary: string;
   themes: Array<{ theme: string; affected_tests: string[]; likely_cause: string; suggested_fix: string }>;
   flaky_suspects: string[];
+  raw_prose_fallback?: string;
 }
 
 export async function run(): Promise<void> {
@@ -57,14 +58,27 @@ export async function run(): Promise<void> {
     advisory = { summary: `Run fully green: ${runRow.passed}/${runRow.total_tests} passed, 0 failed, ${runRow.skipped} skipped.`, themes: [], flaky_suspects: [] };
   } else {
     const prompt = `Run summary: ${runRow.passed}/${runRow.total_tests} passed, ${runRow.failed} failed, ${runRow.skipped} skipped.\n\nFailed tests:\n` +
-      failures.rows.map(f => `- [${f.spec_file}] ${f.test_title} (${f.status}, ${f.duration_ms}ms)\n  error: ${(f.error_message ?? 'none').slice(0, 500)}`).join('\n');
+      failures.rows.map(f => `- [${f.spec_file}] ${f.test_title} (${f.status}, ${f.duration_ms}ms)\n  error: ${(f.error_message ?? 'none').slice(0, 300)}`).join('\n');
 
-    const reply = await ollama.generate(prompt, { tier: 'strong', system: SYSTEM, maxTokens: 900, timeoutMs: 120_000 });
+    // 900 tokens was enough for a handful of failures but genuinely too
+    // tight once a run has 20-30+ across many spec files -- found live:
+    // the model's real JSON response got cut off mid-object and failed to
+    // parse. Scaling the budget with failure count rather than a single
+    // fixed number, capped so a pathological run can't run away.
+    const maxTokens = Math.min(3000, 900 + failures.rowCount * 60);
+    const reply = await ollama.generate(prompt, { tier: 'strong', system: SYSTEM, maxTokens, timeoutMs: 150_000 });
     try {
       advisory = extractJson<Advisory>(reply);
     } catch (error) {
-      console.error('[deep-test-advisory] Ollama response parse failed:', error);
-      advisory = { summary: `${runRow.failed} test(s) failed; Ollama advisory generation failed to parse -- raw failures recorded in playwright_test_result.`, themes: [], flaky_suspects: [] };
+      // Found live: with 20-30+ failures the model sometimes ignores the
+      // "JSON only" instruction and writes a full prose report instead
+      // (genuinely useful analysis, just the wrong format) -- keep that
+      // real output rather than discarding it for a generic error string.
+      console.error('[deep-test-advisory] Ollama response parse failed, keeping raw prose:', error);
+      advisory = {
+        summary: `${runRow.failed} test(s) failed. Ollama did not return structured JSON for this run -- see raw_prose_fallback for its real analysis.`,
+        themes: [], flaky_suspects: [], raw_prose_fallback: reply.slice(0, 6000),
+      };
     }
   }
 
