@@ -63,3 +63,33 @@ COMMENT ON TABLE playwright_suite_run IS
   'One row per scheduled or manual Playwright e2e suite run. status=crashed means the run itself failed to complete (e.g. dev server down), distinct from failed individual test cases.';
 COMMENT ON TABLE playwright_test_result IS
   'One row per individual Playwright test case in a run, attributed to module_registry.module_key(s) via playwright_spec_module_map.';
+
+-- Real defect tracking -- a failing test_title/spec_file combination
+-- persists as one open playwright_test_defect row across however many
+-- runs it keeps failing (occurrence_count), rather than showing up as N
+-- disconnected per-run failures with no memory between nights. Closed
+-- automatically (status -> 'fixed') the first run where that same test
+-- passes again, by scripts/deep-test-suite-runner.ts after each run.
+CREATE TABLE IF NOT EXISTS playwright_test_defect (
+  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  spec_file             VARCHAR(200) NOT NULL,
+  test_title            TEXT         NOT NULL,
+  module_keys           TEXT[]       NOT NULL DEFAULT '{}',
+  status                VARCHAR(20)  NOT NULL DEFAULT 'open' CHECK (status IN ('open','fixed')),
+  first_seen_run_id     UUID         REFERENCES playwright_suite_run(id) ON DELETE SET NULL,
+  first_seen_at         TIMESTAMPTZ  NOT NULL,
+  last_seen_run_id      UUID         REFERENCES playwright_suite_run(id) ON DELETE SET NULL,
+  last_seen_at          TIMESTAMPTZ  NOT NULL,
+  occurrence_count      INTEGER      NOT NULL DEFAULT 1,
+  latest_error_message  TEXT,
+  resolved_run_id        UUID        REFERENCES playwright_suite_run(id) ON DELETE SET NULL,
+  resolved_at           TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  UNIQUE (spec_file, test_title)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pw_defect_status ON playwright_test_defect(status);
+CREATE INDEX IF NOT EXISTS idx_pw_defect_modules ON playwright_test_defect USING GIN(module_keys);
+
+COMMENT ON TABLE playwright_test_defect IS
+  'One row per distinct (spec_file, test_title) that has ever failed -- open while still failing (occurrence_count tracks how many consecutive runs), fixed the first run it passes again. Upserted by deep-test-suite-runner.ts after every run.';

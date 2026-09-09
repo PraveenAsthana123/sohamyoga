@@ -18,6 +18,29 @@ import { Pool } from 'pg';
 
 const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(__dirname, '..');
+
+// Real bug caught live on the first scheduled cron run: DATABASE_URL was
+// never set in cron's minimal environment, so `pg` silently connected to
+// Postgres's default port (5432) instead of this stack's real port (5437)
+// and crashed with ECONNREFUSED. NODE_OPTIONS="--env-file=..." was tried
+// first and rejected by Node itself. Loads .env.local manually instead,
+// matching market-research-portal/scripts/migrate.ts's exact pattern --
+// also propagates to the child `playwright test` process below (env vars
+// set here land in process.env before that spawn).
+function loadEnvLocal(): void {
+  const envPath = path.join(REPO_ROOT, '.env.local');
+  if (!existsSync(envPath)) return;
+  for (const raw of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const split = line.indexOf('=');
+    if (split < 1) continue;
+    const key = line.slice(0, split).trim();
+    const value = line.slice(split + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
+    if (!process.env[key]) process.env[key] = value;
+  }
+}
+loadEnvLocal();
 const JSON_OUTPUT = path.join(REPO_ROOT, 'test-results', 'unified-quality.json');
 const cliArgs = process.argv.slice(2);
 const TRIGGERED_BY = cliArgs.includes('--manual') ? 'manual' : 'scheduled';
@@ -120,13 +143,41 @@ async function main() {
         else if (status === 'skipped') skipped++;
         else failed++;
 
+        const testTitle = `${spec.title} [${test.projectName}]`;
+        const errorMessage = last.errors?.[0]?.message?.slice(0, 4000) ?? null;
+
         await db.query(
           `INSERT INTO playwright_test_result
              (suite_run_id, spec_file, module_keys, test_title, status, duration_ms, error_message, retries)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-          [runId, specFile, moduleKeys, `${spec.title} [${test.projectName}]`, status,
-            Math.round(last.duration ?? 0), last.errors?.[0]?.message?.slice(0, 4000) ?? null, test.results.length - 1],
+          [runId, specFile, moduleKeys, testTitle, status,
+            Math.round(last.duration ?? 0), errorMessage, test.results.length - 1],
         );
+
+        // Real defect tracking -- the same failing (spec_file, test_title)
+        // persists as one open row across however many nights it keeps
+        // failing, rather than N disconnected per-run rows with no memory.
+        // Closed the first run that same test passes again.
+        if (status === 'failed' || status === 'timedOut') {
+          await db.query(
+            `INSERT INTO playwright_test_defect
+               (spec_file, test_title, module_keys, status, first_seen_run_id, first_seen_at,
+                last_seen_run_id, last_seen_at, occurrence_count, latest_error_message)
+             VALUES ($1,$2,$3,'open',$4,now(),$4,now(),1,$5)
+             ON CONFLICT (spec_file, test_title) DO UPDATE SET
+               status = 'open', last_seen_run_id = $4, last_seen_at = now(),
+               occurrence_count = playwright_test_defect.occurrence_count + 1,
+               latest_error_message = $5, module_keys = $3,
+               resolved_run_id = NULL, resolved_at = NULL`,
+            [specFile, testTitle, moduleKeys, runId, errorMessage],
+          );
+        } else if (status === 'passed') {
+          await db.query(
+            `UPDATE playwright_test_defect SET status = 'fixed', resolved_run_id = $3, resolved_at = now()
+             WHERE spec_file = $1 AND test_title = $2 AND status = 'open'`,
+            [specFile, testTitle, runId],
+          );
+        }
       }
     }
 

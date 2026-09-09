@@ -28,4 +28,13 @@ if ! curl --fail --silent --show-error --max-time 10 "$SOHAM_BASE_URL/" >/dev/nu
   exit 0
 fi
 
+# Real bug caught live: the very first scheduled cron run crashed with
+# "connect ECONNREFUSED 127.0.0.1:5432" -- DATABASE_URL was never set in
+# cron's minimal environment, so `pg` silently fell back to Postgres's
+# default port (5432) instead of this stack's real port (5437). Every
+# manual test run during development worked only because DATABASE_URL was
+# exported by hand first. NODE_OPTIONS="--env-file=..." was tried and
+# rejected by Node itself ("--env-file= is not allowed in NODE_OPTIONS") --
+# deep-test-suite-runner.ts loads .env.local itself instead, matching the
+# same pattern already used by market-research-portal/scripts/migrate.ts.
 cd "$FRONTEND" && npx tsx scripts/deep-test-suite-runner.ts "$@"
