@@ -1083,11 +1083,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </svg>
           </button>
 
-          {/* Page title area */}
+          {/* Page title area -- topbar nav-section label, not the page's
+              semantic heading (that belongs to the page content itself).
+              Was rendered as <h1>, duplicating every admin page's own
+              <h1> and producing two same-named h1s per page -- a real
+              accessibility bug (a page should have exactly one h1),
+              caught live via a Playwright strict-mode violation on
+              /admin/students ("Students" resolved to 2 elements). */}
           <div className="hidden lg:block">
-            <h1 className="text-lg font-semibold text-dark-800">
+            <p className="text-lg font-semibold text-dark-800">
               {navItems.find((item) => isActive(item.href))?.label || 'Admin'}
-            </h1>
+            </p>
           </div>
 
           {/* User info and logout */}

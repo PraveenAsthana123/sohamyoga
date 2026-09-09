@@ -181,9 +181,17 @@ test.describe('CREF-005 self-service page renders real data', () => {
     await adminCtx.dispose();
 
     customerId = randomUUID();
+    // onboarding_completed_at must be set here -- this is the one CREF-005
+    // block that does a real browser page.goto('/customer/referral')
+    // (the other customer-referral fixtures only make page.request API
+    // calls, which never mount src/app/customer/layout.tsx's client-side
+    // onboarding-gate redirect). Found live: without it, a freshly-inserted
+    // customer gets client-redirected to /customer/onboarding before the
+    // referral page ever renders, and the test's own heading assertion
+    // fails against the onboarding wizard's markup instead.
     await pool.query(
-      `INSERT INTO customer (id, tenant_id, user_id, student_id, display_name, email)
-       VALUES ($1, $2, $3, $4, 'CREF Page', $5)`,
+      `INSERT INTO customer (id, tenant_id, user_id, student_id, display_name, email, onboarding_step, onboarding_completed_at)
+       VALUES ($1, $2, $3, $4, 'CREF Page', $5, 'done', now())`,
       [customerId, TENANT_ID, userId, studentId, email],
     );
   });
