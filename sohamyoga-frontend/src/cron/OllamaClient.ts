@@ -4,10 +4,25 @@
 
 const OLLAMA_BASE = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
 
+// BUG FIX (2026-09-09): the frontend container's real env only sets
+// OLLAMA_MODEL/OLLAMA_URL (for lib/ollama.ts) -- it has no
+// OLLAMA_MODEL_STRONG or OLLAMA_MODEL_CODE override (confirmed live via
+// `docker exec sohamyoga-frontend env`), unlike the cron container which
+// does set them. So every frontend API route using tier:'strong' (at
+// least 15 real call sites: ViralAmplificationGenerator, AdCreativeGenerator,
+// LandingPageGenerator, CampaignContentGenerator, ReviewResponseDrafter,
+// VideoScriptGenerator, and more) was silently falling back to the
+// hardcoded defaults below -- 'llama3.2:3b' and 'deepseek-coder:6.7b-instruct'
+// -- neither of which is installed on this machine (`ollama list` / `/api/tags`
+// checked live), so every one of those real, already-shipped features (e.g.
+// the "Generate hooks" amplify button) would fail with a 404 model-not-found
+// error in production. Fixed the hardcoded fallbacks to match the real
+// installed models / the cron container's actual working values, so the
+// frontend behaves correctly even without the env override present.
 export const OLLAMA_MODELS = {
   fast:   process.env.OLLAMA_MODEL_FAST   ?? 'phi4-mini:latest',
-  code:   process.env.OLLAMA_MODEL_CODE   ?? 'deepseek-coder:6.7b-instruct',
-  strong: process.env.OLLAMA_MODEL_STRONG ?? 'llama3.2:3b',
+  code:   process.env.OLLAMA_MODEL_CODE   ?? 'qwen2.5-coder:latest',
+  strong: process.env.OLLAMA_MODEL_STRONG ?? 'qwen2.5:latest',
 } as const;
 
 export type OllamaModelTier = keyof typeof OLLAMA_MODELS;
