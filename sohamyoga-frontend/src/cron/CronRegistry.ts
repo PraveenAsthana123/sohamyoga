@@ -541,6 +541,16 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   60_000,
   },
 
+  // ── Daily 04:15 UTC ──────────────────────────────────────────────────────
+  {
+    name:        'deep-test-advisory',
+    schedule:    '15 4 * * *',
+    description: 'Ollama advisory pass over the real Playwright e2e suite -- reads the most recent completed playwright_suite_run (written by the host-level run-deep-test-suite.sh cron entry at 03:00 UTC, since this container has no browser runtime), groups real failures into root-cause themes with suggested fixes, flags likely flakes, and notifies admin. No-ops gracefully if the host run has not landed yet or already has an advisory.',
+    module:      'DeepTestAdvisoryJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
+
   // ── Daily 01:30 UTC ──────────────────────────────────────────────────────
   {
     name:        'security-scan',
@@ -603,6 +613,9 @@ Thu    09:00  influencer-value (Ollama)
 Daily  01:30  security-scan (real tools -- no AI)
 Daily  02:30  backlog-prioritization (Ollama)
 Daily  03:15  opportunity-scoring (Ollama)
+Daily  04:15  deep-test-advisory (Ollama) -- reads the real Playwright run written by
+              scripts/run-deep-test-suite.sh (host-level, OS crontab 03:00 UTC daily,
+              NOT in this in-app scheduler -- the cron container has no browser runtime)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 41 jobs | 26 use Ollama | 0 cloud AI tokens
+Total: 42 jobs | 27 use Ollama | 0 cloud AI tokens
 `;

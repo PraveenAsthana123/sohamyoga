@@ -67,4 +67,5 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   HealthSnapshotJob:          () => import('./jobs/HealthSnapshotJob'),
   SecurityScanJob:            () => import('./jobs/SecurityScanJob'),
   BacklogPrioritizationJob:   () => import('./jobs/BacklogPrioritizationJob'),
+  DeepTestAdvisoryJob:        () => import('./jobs/DeepTestAdvisoryJob'),
 };
