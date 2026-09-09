@@ -360,7 +360,12 @@ export default function SocialPortalPage() {
       {/* ─── Platforms ──────────────────────────────────────────────────────── */}
       {tab === "platforms" && (
         <div className="space-y-3">
-          <div className="text-sm text-gray-500 mb-2">Platform coverage: 17 via Postiz · 3 custom connectors · 1 manual-only</div>
+          <div className="text-sm text-gray-500 mb-2">
+            Platform coverage: {Object.values(PLATFORM_CONFIG).filter(c => c.postizSupport === "postiz").length} via Postiz ·{" "}
+            {Object.values(PLATFORM_CONFIG).filter(c => c.postizSupport === "custom_connector").length} custom connectors ·{" "}
+            {Object.values(PLATFORM_CONFIG).filter(c => c.postizSupport === "manual_only").length} manual-only ·{" "}
+            {Object.values(PLATFORM_CONFIG).length} total
+          </div>
           <div className="bg-white border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
@@ -379,11 +384,13 @@ export default function SocialPortalPage() {
                   const providerRow = providers.find(p => (PROVIDER_TO_PLATFORM[p.provider_name.toLowerCase()] || p.provider_name.toLowerCase()) === cfg.platform);
                   return (
                     <tr key={cfg.platform} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold flex-shrink-0">
-                          {PLATFORM_ICONS[cfg.platform]}
-                        </span>
-                        {cfg.displayName}
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        <Link href={`/admin/social/${cfg.platform}`} className="flex items-center gap-2 hover:text-blue-600 hover:underline">
+                          <span className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold flex-shrink-0">
+                            {PLATFORM_ICONS[cfg.platform]}
+                          </span>
+                          {cfg.displayName}
+                        </Link>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.color}`}>
