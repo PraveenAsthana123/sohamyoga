@@ -5,7 +5,18 @@ export type SocialPlatform =
   | "tiktok" | "youtube" | "reddit" | "pinterest" | "bluesky"
   | "mastodon" | "discord" | "slack" | "telegram" | "whatsapp_business"
   | "google_business"
-  | "tumblr" | "medium" | "dribbble" | "twitch";
+  | "tumblr" | "medium" | "dribbble" | "twitch"
+  // Added 2026-09-09 per user request. Found that ref_social_platform (a
+  // Postgres reference table) already had 14 of these 16 researched and
+  // categorized -- names/connector-types below are reconciled to match
+  // that real, pre-existing data (not re-guessed), including its
+  // "stack_overflow" and "quora_manual" naming. kijiji is the only
+  // genuinely new platform with no prior record anywhere in this codebase.
+  | "snapchat" | "github" | "gitlab" | "stack_overflow"
+  | "yelp" | "tripadvisor" | "trustpilot"
+  | "vimeo" | "dailymotion" | "spotify" | "apple_podcasts" | "soundcloud"
+  | "patreon" | "quora_manual" | "substack"
+  | "kijiji";
 
 export type AccountStatus = "connected" | "expired" | "revoked" | "error" | "pending_auth";
 export type PostizSupported = "postiz" | "custom_connector" | "manual_only";
@@ -118,4 +129,32 @@ export const PLATFORM_CONFIG: Record<SocialPlatform, PlatformConfig> = {
   medium:            { platform: "medium",            displayName: "Medium",              postizSupport: "postiz",           maxCharacters: 100000,supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Real Postiz provider — no separate developer app; connect via Postiz UI" },
   dribbble:          { platform: "dribbble",          displayName: "Dribbble",            postizSupport: "postiz",           maxCharacters: 40000, supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "Real Postiz OAuth provider — DRIBBBLE_CLIENT_ID/SECRET; image-shot platform" },
   twitch:            { platform: "twitch",            displayName: "Twitch",              postizSupport: "postiz",           maxCharacters: 500,   supportsImages: false, supportsVideo: false, supportsCarousel: false, supportsScheduling: true,  requiresApproval: true, notes: "500-char limit is a chat/announcement message, not a full post; no separate developer app" },
+
+  // Added 2026-09-09. All 16 below are postizSupport:"manual_only" --
+  // verified live that Postiz has no provider for any of them (checked
+  // `find /app -iname "*.provider.ts"` inside the real sohamyoga_postiz
+  // container's provider directory). maxCharacters/media flags reflect
+  // each platform's real publicly-documented content model where one
+  // exists; several of these (review/business-listing sites) have no
+  // "post text" concept at all, noted explicitly rather than guessed.
+  // postizSupport values reconciled against ref_social_platform.connector
+  // (a real, pre-existing Postgres reference table found while doing
+  // this work) -- "custom_connector" means a real API exists and is worth
+  // building against; "manual_only" means no realistic automation path.
+  snapchat:       { platform: "snapchat",       displayName: "Snapchat",              postizSupport: "manual_only",     maxCharacters: 250,     supportsImages: true,  supportsVideo: true,  supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only'. Snap Kit/Marketing API exists but is not wired here." },
+  github:         { platform: "github",         displayName: "GitHub",                postizSupport: "custom_connector", maxCharacters: 65536,   supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector' -- real REST/GraphQL API + PAT/App auth, worth building. Developer-marketing channel: repo READMEs, Releases, Discussions." },
+  gitlab:         { platform: "gitlab",         displayName: "GitLab",                postizSupport: "custom_connector", maxCharacters: 1048576, supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector' -- real REST API + access-token auth, worth building." },
+  stack_overflow: { platform: "stack_overflow", displayName: "Stack Overflow",        postizSupport: "manual_only",     maxCharacters: 30000,   supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only' -- Stack Exchange API is read-heavy and answer-posting via API is against community norms." },
+  yelp:           { platform: "yelp",           displayName: "Yelp",                  postizSupport: "manual_only",     maxCharacters: 0,       supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only'. Review/reputation platform, not a post-content channel -- maxCharacters=0 reflects no owned-content posting concept, only business-profile claim + review responses." },
+  tripadvisor:    { platform: "tripadvisor",    displayName: "Tripadvisor",           postizSupport: "manual_only",     maxCharacters: 0,       supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only'. Same content model as Yelp -- business claim + review responses, no post-content channel." },
+  trustpilot:     { platform: "trustpilot",     displayName: "Trustpilot",            postizSupport: "custom_connector", maxCharacters: 0,       supportsImages: false, supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector' -- real Business API exists, worth building. Still no post-content channel (review/reputation platform), maxCharacters=0." },
+  vimeo:          { platform: "vimeo",          displayName: "Vimeo",                 postizSupport: "custom_connector", maxCharacters: 5000,    supportsImages: false, supportsVideo: true,  supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector' -- real Vimeo API (OAuth2), worth building. maxCharacters is the description field limit." },
+  dailymotion:    { platform: "dailymotion",    displayName: "Dailymotion",           postizSupport: "custom_connector", maxCharacters: 3000,    supportsImages: false, supportsVideo: true,  supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector' -- real Graph API, worth building." },
+  spotify:        { platform: "spotify",        displayName: "Spotify (Podcasters)",  postizSupport: "manual_only",     maxCharacters: 4000,    supportsImages: false, supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only'. Podcast distribution via Spotify for Podcasters -- upload is RSS-feed/dashboard based, not a text-post channel." },
+  apple_podcasts: { platform: "apple_podcasts", displayName: "Apple Podcasts",        postizSupport: "manual_only",     maxCharacters: 4000,    supportsImages: false, supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only'. Distribution is RSS-feed based via Apple Podcasts Connect." },
+  soundcloud:     { platform: "soundcloud",     displayName: "SoundCloud",            postizSupport: "custom_connector", maxCharacters: 5000,    supportsImages: false, supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector'. Real API exists though new API-key registration has been closed/limited historically -- verify current availability before building." },
+  patreon:        { platform: "patreon",        displayName: "Patreon",               postizSupport: "custom_connector", maxCharacters: 100000,  supportsImages: true,  supportsVideo: true,  supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector, but matches ref_social_platform.connector='custom_connector' -- real Creator API (OAuth2), worth building. Membership/community content, not a broadcast channel." },
+  quora_manual:   { platform: "quora_manual",   displayName: "Quora (Manual Only)",   postizSupport: "manual_only",     maxCharacters: 0,       supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector and no official public posting API -- matches ref_social_platform's existing 'quora_manual' row and social_manual_queue's Quora-style manual-queue design. Manual only by design, not a gap to close." },
+  substack:       { platform: "substack",       displayName: "Substack",              postizSupport: "manual_only",     maxCharacters: 0,       supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector. Matches ref_social_platform.connector='manual_only'. Newsletter platform, publish via Substack's own editor -- no official public publishing API, no fixed length limit." },
+  kijiji:         { platform: "kijiji",         displayName: "Kijiji",                postizSupport: "manual_only", maxCharacters: 5000,  supportsImages: true,  supportsVideo: false, supportsCarousel: false, supportsScheduling: false, requiresApproval: true, notes: "No Postiz connector -- classifieds platform (Canadian eBay Classifieds), not a social feed. No official public posting API; listings are posted manually. Added as the first of the 'classifieds' category per user request." },
 };
