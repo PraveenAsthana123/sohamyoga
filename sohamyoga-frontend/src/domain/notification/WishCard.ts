@@ -1,6 +1,6 @@
 // Birthday, anniversary, and special occasion wish cards — sent automatically or manually
 
-export type WishOccasion = "birthday" | "member_anniversary" | "class_milestone" | "challenge_completed" | "custom";
+export type WishOccasion = "birthday" | "member_anniversary" | "class_milestone" | "challenge_completed" | "festival" | "custom";
 export type WishCardStatus = "PENDING" | "SENT" | "OPENED" | "FAILED";
 
 export interface WishCardProps {
@@ -70,6 +70,10 @@ export const WISH_TEMPLATES: Record<WishOccasion, { title: string; message: stri
   challenge_completed: {
     title: "Challenge Complete! {reward} 🏆",
     message: "You completed the '{challenge}' challenge! Your commitment is extraordinary. A special reward has been added to your profile.",
+  },
+  festival: {
+    title: "{festivalName} from SohamYoga! 🪔",
+    message: "Wishing you and your loved ones a joyful {festivalName}, filled with peace and light. From all of us at SohamYoga.",
   },
   custom: {
     title: "A message from SohamYoga",

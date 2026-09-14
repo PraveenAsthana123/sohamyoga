@@ -248,6 +248,16 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   {
+    href: '/admin/occasions',
+    label: 'Customer Occasions',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-2m8-6h-2M6 12H4m13.657-5.657l-1.414 1.414M7.757 16.243l-1.414 1.414m0-11.314l1.414 1.414M16.243 16.243l1.414 1.414" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
     href: '/admin/analytics',
     label: 'Behavior Analytics',
     icon: (
@@ -509,6 +519,7 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/affiliates', label: 'Affiliate Marketing', icon: <span aria-hidden>↗</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/referral',
     label: 'Referral Management',

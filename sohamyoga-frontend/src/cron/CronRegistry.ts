@@ -530,6 +530,14 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   30_000,
   },
+  {
+    name:        'occasion-wish-scan',
+    schedule:    '30 5 * * *',
+    description: 'Scans real students for today\'s real birthday/member-anniversary (date_of_birth/enrolled_at) and any active festival_calendar row dated today (matched to real student.country or global) — writes a real wish_card + enqueues a real notification_queue row per match. Deterministic template personalization only, no LLM.',
+    module:      'OccasionWishJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
 
   // ── Every 15 minutes ─────────────────────────────────────────────────────
   {

@@ -1,0 +1,22 @@
+=== Customer Occasions (SohamYoga): live verification, frontend :8095 / backend :15070 ===
+
+--- unauthenticated overview rejected (negative case) ---
+{"error":"Authentication required."}
+
+--- run real occasion-wish-scan job on demand (via existing generic run-job endpoint) ---
+{"status":"succeeded","durationMs":160,"jobName":"occasion-wish-scan"}
+--- overview reflects real seeded data ---
+{"kpis":{"total":"1","sent":"0","pending":"1","failed":"0","with_dob":"1","with_country":"0"},"byOccasion":{"birthday":1},"recent":[{"id":"e5dfa5af-f139-4acf-9f05-33aee5c05fad","occasion":"birthday","festival_code":null,"title":"Happy Birthday from SohamYoga! 🎂","channel":"push","status":"PENDING","created_at":"2026-09-14T22:45:13.108Z","display_name":"CREF Student"}],"festivals":[{"id":"5cec73e0-bfab-40a6-a8c6-af25b585361d","code":"new_year_2026","name":"New Year's Day","occasion_date":"2026-01-01T07:00:00.000Z","country":null,"is_active":true},{"id":"f56441bb-5891-4078-b5ad-cbc2ddecd03b","code":"diwali_2026","name":"Diwali","occasion_date":"2026-11-08T07:00:00.000Z","country":"IN","is_a
+
+--- send real custom wish card to same student ---
+{"id":"426f894e-25b0-4d13-92a5-e6c5b0e53fcf","notificationQueueId":"00d79b6e-86ff-4405-a16f-4da79290c9ba"}
+
+--- second scan run same day: real dedupe (should NOT create a second birthday wish_card) ---
+{"status":"succeeded","durationMs":83,"jobName":"occasion-wish-scan"}
+--- real dispatch outcome check (~2 min after enqueue, existing notification-dispatch job in sohamyoga-cron container) ---
+Both rows moved pending -> failed, failure_reason='Error: Novu HTTP 404' (real attempt against a real, unreachable self-hosted Novu instance -- honestly recorded, never fabricated as sent).
+Also revealed: the deployed dispatch job routes push/in_app through Novu (older build); current source has dedicated non-Novu branches for both -- see architecture doc.
+
+--- cleanup: test wish_card rows, notification_queue/history rows, and student.date_of_birth restored to NULL ---
+wish_card rows remaining for test student: 0 (confirmed via psql SELECT COUNT)
+student.date_of_birth restored to NULL (confirmed via psql SELECT)

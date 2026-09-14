@@ -19,6 +19,7 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   WellnessScoringJob:         () => import('./jobs/WellnessScoringJob'),
   MilestoneCheckJob:          () => import('./jobs/MilestoneCheckJob'),
   BadgeAwardJob:              () => import('./jobs/BadgeAwardJob'),
+  OccasionWishJob:            () => import('./jobs/OccasionWishJob'),
   AiCoachJob:                 () => import('./jobs/AiCoachJob'),
   CampaignCopyDraftJob:       () => import('./jobs/CampaignCopyDraftJob'),
   VideoScriptDraftJob:        () => import('./jobs/VideoScriptDraftJob'),
