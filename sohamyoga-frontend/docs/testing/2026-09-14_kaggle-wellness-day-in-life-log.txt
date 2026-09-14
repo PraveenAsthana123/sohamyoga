@@ -1,0 +1,37 @@
+=== SohamYoga DAY-IN-THE-LIFE — real Kaggle-seeded data, live servers (frontend :8095, backend :15070) ===
+
+--- 06:30 Front desk: today's class schedule (executive rollup) ---
+{"generatedAt":"2026-09-14T21:48:31.904Z","overview":{"monthRevenue":0,"mrr":0,"activeMembers":467,"classesToday":4,"newLeadsWeek":0,"activeTeachers":2,"totalTeachers":2,"trialSubscriptions":0,"pausedOrFrozenSubscriptions":0},"revenue":{"today":0,"week":0,"month":0,"quarter":0,"ytd":0,"mrr":0,"topSources":[]},"memberships":{"activeMembers":467,"activeSubscriptions":0,"trialActive":0,"pausedSubscriptions":0,"frozenSubscriptions":0,"cancelledSubscriptions":1,"tierBreakdown":[]},"operations":{"classesToday":4,"attendanceRatePct30d":38.7,"waitlistToday":0,"checkinsToday":0,"schedule":[{"className"
+
+--- 07:00 Attendance overview (real booking/attendance_record data) ---
+{"kpis":{"attendanceRateMonth":33,"studentsPresentToday":0,"noShowsToday":0,"totalBookedToday":0,"streakHolders7Plus":0},"students":[{"display_name":"Demo Student (synthetic)","classes_attended":2,"classes_booked":2,"last_seen":"2026-09-04 21:43:43.636+00","current_streak":0},{"display_name":"CREF Page","classes_attended":1,"classes_booked":1,"last_seen":"2026-09-04 21:43:43.636+00","current_streak":0},{"display_name":"CREF Page","classes_attended":1,"classes_booked":1,"last_seen":"2026-09-11 21
+
+--- 09:00 Wellness coach: real FitBit-derived daily logs ---
+100 real entries
+{'id': '15564398-83da-4ad4-8c70-4bdc18397030', 'tenant_id': '16fb3a23-5370-4572-bc93-2076534a4e99', 'customer_id': 'c8365916-d92c-4558-b791-812a5fb67e6e', 'date': '2026-09-14T06:00:00.000Z', 'sleep_hours': None, 'water_ml': None, 'calorie_burn': 1827, 'steps': 12764, 'heart_rate_bpm': None, 'mood': None, 'energy_level': None, 'stress_level': None, 'notes': None, 'created_at': '2026-09-14T21:43:45.848Z', 'updated_at': '2026-09-14T21:43:45.848Z', 'display_name': 'Idempotent Test', 'email': 'reg-idempotent-a67842ec@example.com'}
+
+
+--- 09:15 Wellness analytics dashboard ---
+{"kpis":{"profile_count":"0","avg_bmi":null,"doctor_clearance_count":"0","pregnancy_count":"0"},"conditionBreakdown":[],"fitnessLevels":[],"bmiDistribution":[{"tenant_id":"16fb3a23-5370-4572-bc93-2076534a4e99","bmi_category":"normal","customer_count":"1","avg_bmi":"22.5","min_bmi":"22.5","max_bmi":"22.5"}],"completenessToday":{"tenant_id":"16fb3a23-5370-4572-bc93-2076534a4e99","date":"2026-09-14T06:00:00.000Z","total_logs":"11","sleep_logged":"0","water_logged":"0","mood_logged":"0","energy_logg
+
+--- 10:00 Upcoming real Kaggle-seeded classes (customer-facing) ---
+14 real Kaggle-seed classes visible on the real booking page
+ - Kaggle-seed: Bikram / Hot Yoga Class Raj Patel 2026-09-15T17:30:00
+ - Kaggle-seed: Power Yoga Class Anita Mehta 2026-09-16T19:00:00
+ - Kaggle-seed: Aerial Yoga Class Amrita Singh 2026-09-17T06:30:00
+ - Kaggle-seed: Hatha Class Priya Sharma 2026-09-18T08:00:00
+ - Kaggle-seed: Vinyasa Class Raj Patel 2026-09-19T17:30:00
+
+--- 16:00 EOD: real row counts across seeded tables ---
+                 t                 |  c  
+-----------------------------------+-----
+ class_session (Kaggle-seed)       |  24
+ booking (on Kaggle-seed sessions) | 342
+ attendance_record (attended)      | 110
+ wellness_score (kaggle_import)    | 300
+ daily_wellness_log                | 111
+(5 rows)
+
+--- real avg wellness_score composite (sanity check) ---
+  37.1 |  14 |  59
+
