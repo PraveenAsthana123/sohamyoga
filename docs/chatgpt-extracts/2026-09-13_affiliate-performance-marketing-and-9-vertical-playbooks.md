@@ -63,3 +63,24 @@ Checked live (not from memory) against both TalentsHill (`/mnt/deepa/talentshill
 This conversation is a **service-line and vertical-strategy specification**, not idle chat — same category as the market-research-250 and yoga-hooks extracts. It contains two genuinely new, unbuilt items (affiliate-marketing-as-an-agency-service, and a Shopify integration concept) plus 8 vertical playbooks with zero existing representation in either codebase, plus one vertical (yoga) that partially overlaps a prior extract without duplicating it. Nothing here should be treated as already covered by the 41 TalentsHill modules built this session — Ads Management, Market Research, and Influencer Video are real but answer different questions than this conversation raises.
 
 No build action has been taken on this content. Per the "no standing instruction" gap noted for this task, the user should be asked what to do with it before any of it is built.
+
+## Use-case count and pending status (added 2026-09-14, live-verified against `module_registry`)
+
+The conversation contains exactly two numbered "usecase" catalogs (its own term, msg 18/19 and msg 20/21) — **130 use cases total**. Status below is checked against TalentsHill's real `module_registry` table (`sqlite3 /mnt/deepa/talentshill/data/talentshill.db`) plus a live `grep`/`find` sweep for modules with no registry row (social-media management, reviews/reputation, loyalty, churn, personalization, CRO, podcast, retargeting, local/geofencing all confirmed absent — zero files).
+
+**Honest verdict: 0 of 130 are built as the specific AI-driven demo described in the conversation (scoring, attribution, control-tower dashboards, etc.).** The distinction below is only "does *any* underlying admin module exist to extend" vs. "nothing exists at all."
+
+### A. Marketing-type demo use cases (40 total, from msg 19)
+
+| Status | Count | Use cases |
+|---|---:|---|
+| **Partial infrastructure exists** (a real/partial admin module covers the base entity, but not the AI logic/flow described) | 17 | 1 Performance Marketing (`ads_management`), 2 Lead Generation (`leads`), 5 Influencer Marketing (`influencer_video`), 7 Paid Search/PPC (`ads_management`), 8 Paid Social (`ads_management`), 11 Content Marketing (`content`), 13 Email Marketing (`templates`/`email_compose`), 14 Lifecycle Marketing (`campaigns`), 18 Brand Marketing (`branding`), 21 Market Research (`market_research`), 26 Conversational Marketing (`chat`), 27 Voice AI Marketing (`voice_ai`), 28 SMS/WhatsApp Marketing (`broadcasts`), 31 Event/Webinar Marketing (`appointments`), 32 Video Marketing (`video_editing`/`videos`), 33 YouTube Marketing (`youtube`), 39 Competitive Intelligence Marketing (`competitor_analysis` — closest to a real match) |
+| **Zero coverage** (no matching module anywhere) | 23 | 3 Demand Generation, 4 Affiliate Marketing, 6 Referral Marketing, 9 SEO (public page only, no admin capability), 10 AEO/GEO, 12 Social Media Marketing, 15 Marketing Automation (`workflows` is approval-routing, not nurture automation), 16 Customer Marketing (upsell/cross-sell), 17 Loyalty Marketing, 19 Reputation/Review Marketing, 20 Social Listening, 22 ABM, 23 Partner Marketing, 24 CRO, 25 Product-Led Growth, 29 Local Marketing, 30 Community Marketing, 34 Podcast Marketing, 35 E-commerce Marketing, 36 Retargeting, 37 Personalization Marketing, 38 Customer Journey Orchestration, 40 Pricing/Promotion Marketing |
+
+### B. Market-research use cases (90 total, from msg 21)
+
+**All 90 pending — 0 built as distinct capabilities.** The `market_research` module is registry-status `partial` and has a real Ollama-grounded synthesis agent (built earlier this session, Module 37), but it performs generic brief synthesis from analyst-provided notes — it does not implement any of the 90 named methodologies (TAM/SAM/SOM calculator, Van Westendorp pricing study, conjoint analysis, PESTLE, Porter's Five Forces, churn/win-loss research, etc.) as a distinct, data-driven capability. No `report_type`/`use_case_catalog` table exists to even track them individually (same gap already documented in the separate `market-research-report-catalog-250.md` extract for its 250-report catalog — this 90-item list is additional, not a subset).
+
+### Total
+
+**130 use cases enumerated. 0 fully built. 17 have partial underlying infrastructure to extend. 113 have zero existing code to build from.**
