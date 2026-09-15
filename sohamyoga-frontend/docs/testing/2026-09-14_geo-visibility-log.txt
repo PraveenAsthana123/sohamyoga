@@ -1,0 +1,6 @@
+=== GEO Visibility: live verification ===
+--- record a real observation (admin actually checked ChatGPT) ---
+{"observation":{"id":"41d26c38-8253-4c3a-a09d-68989a658484","tenant_id":"16fb3a23-5370-4572-bc93-2076534a4e99","platform":"chatgpt","query_text":"best yoga studio near me for beginners","was_mentioned":false,"excerpt":"","observed_at":"2026-09-15T01:09:56.063Z","created_by":"admin_demo@sohamyoga.ca","created_at":"2026-09-15T01:09:56.063Z"}}
+
+--- GET real summary ---
+{"totalObservations":1,"mentionedCount":0,"mentionRate":0,"byPlatform":{"chatgpt":{"total":1,"mentioned":0}}}
