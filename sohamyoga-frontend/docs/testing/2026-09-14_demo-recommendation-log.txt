@@ -1,0 +1,1 @@
+{"hasRecommendation":true,"dimension":"referral_growth","priorityScore":53,"demo":"/admin/referrals (real Referral/Affiliate domain, src/domain/referral/) — Real referral code + campaign + reward system exists but has zero real conversions this period — launch a real referral campaign to a real student segment."}
