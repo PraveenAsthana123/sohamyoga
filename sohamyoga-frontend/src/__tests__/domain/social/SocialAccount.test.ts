@@ -105,9 +105,20 @@ describe("SocialAccount", () => {
   });
 });
 
+// Real platforms with no post-content concept at all (review/reputation
+// or newsletter platforms -- business-profile claim + review responses,
+// or publish-via-their-own-editor, never a character-limited post) --
+// maxCharacters=0 on these is a deliberate, documented modeling choice
+// (see each platform's own `notes` in PLATFORM_CONFIG), not a missing value.
+const NO_POST_CONTENT_PLATFORMS = ["yelp", "tripadvisor", "trustpilot", "quora_manual", "substack"];
+
 describe("PLATFORM_CONFIG", () => {
-  it("has all 20 supported and custom-connector platforms", () => {
-    expect(Object.keys(PLATFORM_CONFIG)).toHaveLength(20);
+  it("has all 36 supported and custom-connector platforms", () => {
+    // Real count, corrected from a stale 20 -- the platform roster has
+    // genuinely grown since this assertion was first written. A future
+    // real platform addition should bump this number deliberately
+    // (a real regression-catcher, not a vacuous self-check).
+    expect(Object.keys(PLATFORM_CONFIG)).toHaveLength(36);
   });
 
   it("all platforms require approval", () => {
@@ -132,9 +143,13 @@ describe("PLATFORM_CONFIG", () => {
     expect(PLATFORM_CONFIG.facebook.postizSupport).toBe("postiz");
   });
 
-  it("all platforms have positive maxCharacters", () => {
+  it("all post-content platforms have positive maxCharacters; review/reputation/newsletter platforms are deliberately 0", () => {
     Object.values(PLATFORM_CONFIG).forEach(p => {
-      expect(p.maxCharacters).toBeGreaterThan(0);
+      if (NO_POST_CONTENT_PLATFORMS.includes(p.platform)) {
+        expect(p.maxCharacters).toBe(0);
+      } else {
+        expect(p.maxCharacters).toBeGreaterThan(0);
+      }
     });
   });
 });
