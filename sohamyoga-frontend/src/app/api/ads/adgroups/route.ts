@@ -5,6 +5,37 @@ import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Real gap fixed: no POST existed to create an ad group via the UI --
+// found live during the 2026-09-01 paid-ads verification (module_registry
+// disclosed it as a structural gap). Mirrors the real POST /api/ads/campaigns
+// pattern (same validation/auth/insert shape). No created_by column exists
+// on ad_group (confirmed against the real db-schema.sql), unlike ad_campaign.
+export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
+
+  const body = await req.json().catch(() => null) as { campaignId?: string; name?: string; defaultBid?: number } | null;
+  if (!body?.campaignId || !body.name) {
+    return Response.json({ error: 'campaignId and name are required.' }, { status: 400 });
+  }
+  const campaign = await query<{ id: string }>(`SELECT id FROM ad_campaign WHERE id = $1`, [body.campaignId]);
+  if (campaign.rows.length === 0) {
+    return Response.json({ error: 'campaignId does not reference a real campaign.' }, { status: 400 });
+  }
+  const defaultBidCents = Math.round((body.defaultBid ?? 1) * 100);
+  if (!Number.isInteger(defaultBidCents) || defaultBidCents < 1) {
+    return Response.json({ error: 'defaultBid must be a positive number.' }, { status: 400 });
+  }
+
+  const result = await query<{ id: string; name: string; status: string; default_bid_cents: number }>(
+    `INSERT INTO ad_group (campaign_id, name, default_bid_cents, status)
+     VALUES ($1,$2,$3,'active') RETURNING id, name, status::text, default_bid_cents`,
+    [body.campaignId, body.name, defaultBidCents],
+  );
+  return Response.json({ adGroup: result.rows[0] }, { status: 201 });
+}
+
 export async function GET(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
