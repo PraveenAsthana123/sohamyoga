@@ -1,0 +1,4 @@
+=== CRO Engine: live verification ===
+{"finding":{"id":"ed835ba4-9b48-4cf5-ad0f-b3410ef97622","tenant_id":"16fb3a23-5370-4572-bc93-2076534a4e99","page_path":"/booking","friction_type":"missing_trust_signal","severity":"medium","description":"__e2e_test no cancellation-policy text visible on booking confirmation step","resolved_at":null,"created_by":"admin_demo@sohamyoga.ca","created_at":"2026-09-15T01:11:49.171Z"}}
+
+{"findings":[{"id":"ed835ba4-9b48-4cf5-ad0f-b3410ef97622","page_path":"/booking","friction_type":"missing_trust_signal","severity":"medium","description":"__e2e_test no cancellation-policy text visible on booking confirmation step","resolved_at":null}],"unresolvedCount":1,"conversionReadinessScore":90}
