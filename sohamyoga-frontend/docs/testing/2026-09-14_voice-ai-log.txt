@@ -1,0 +1,2 @@
+=== Voice AI (call-log scaffolding): live verification ===
+{"id":"dfba4fb6-e043-4784-bab2-43bcce02cac4","qualificationScore":80,"qualificationTier":"hot"}
