@@ -298,6 +298,16 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   {
+    href: '/admin/segments',
+    label: 'Audience Segments',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 4v-2a4 4 0 00-3-3.87m-9 5.87v-2a4 4 0 013-3.87" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
     href: '/admin/analytics',
     label: 'Behavior Analytics',
     icon: (

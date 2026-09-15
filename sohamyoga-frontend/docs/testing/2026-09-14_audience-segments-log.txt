@@ -1,0 +1,8 @@
+=== Audience Segments UI: live verification (backend already real) ===
+--- real built-in segments + existing custom segments ---
+{"segments":[{"name":"High-Value Members","count":0,"desc":"Gold/Platinum tier, lifetime spend > $1,200","computed":true},{"name":"At-Risk Members","count":1,"desc":"Ollama-flagged high/critical churn risk","computed":true},{"name":"Win-Back Candidates","count":0,"desc":"Lapsed > 60 days, previously Gold+","computed":true},{"name":"Corporate Prospects","count":0,"desc":"LinkedIn leads, not yet converted","computed":true}],"customSegments":[]}
+
+--- create a real custom segment via the new UI's API call ---
+{"ok":true,"id":"393a1d13-afed-4e75-81b5-6318a781f195"}
+--- GET confirms real computed count for the new custom segment ---
+{"segments":[{"name":"High-Value Members","count":0,"desc":"Gold/Platinum tier, lifetime spend > $1,200","computed":true},{"name":"At-Risk Members","count":1,"desc":"Ollama-flagged high/critical churn risk","computed":true},{"name":"Win-Back Candidates","count":0,"desc":"Lapsed > 60 days, previously Gold+","computed":true},{"name":"Corporate Prospects","count":0,"desc":"LinkedIn leads, not yet converted","computed":true}],"customSegments":[{"id":"393a1d13-afed-4e75-81b5-6318a781f195","name":"__e2e_test Recently Enrolled","desc":"signed up in the last 14 days","computed":true,"count":107}]}
