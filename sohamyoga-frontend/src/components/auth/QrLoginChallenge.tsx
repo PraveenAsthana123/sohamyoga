@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import QRCode from 'qrcode';
 
 interface ChallengeData {
   challengeId:     string;
@@ -52,38 +53,18 @@ export default function QrLoginChallenge({ onApproved, onExpired }: QrLoginChall
   }, []);
 
   const generateQrDataUrl = async (text: string) => {
-    // Dynamic import to keep QR lib out of SSR bundle
+    // Real, scannable QR encoding via the `qrcode` library -- previously
+    // a fake hash-derived grid that looked QR-like but encoded nothing;
+    // no phone camera could ever have scanned it.
     try {
-      // Using native canvas for a lightweight QR placeholder
-      // TODO: replace with qrcode.js or qr-code-styling for production
-      const size = 240;
-      const canvas = document.createElement('canvas');
-      canvas.width  = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = '#052e16';
-
-      // Simple QR-like placeholder grid (replace with real QR library)
-      const cells = 21;
-      const cellSize = (size - 32) / cells;
-      const offset = 16;
-      const hash = Array.from(text).reduce((h, c) => (h << 5) - h + c.charCodeAt(0), 0);
-      for (let r = 0; r < cells; r++) {
-        for (let c = 0; c < cells; c++) {
-          const corner =
-            (r < 7 && c < 7) || (r < 7 && c >= cells - 7) || (r >= cells - 7 && c < 7);
-          const fill = corner ? true : !!(((hash >> ((r * cells + c) % 31)) & 1));
-          if (fill) {
-            ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize - 1, cellSize - 1);
-          }
-        }
-      }
-      setQrDataUrl(canvas.toDataURL());
-    } catch { /* canvas unavailable */ }
+      const dataUrl = await QRCode.toDataURL(text, {
+        width: 240,
+        margin: 2,
+        color: { dark: '#052e16', light: '#ffffff' },
+        errorCorrectionLevel: 'M',
+      });
+      setQrDataUrl(dataUrl);
+    } catch { /* qrcode generation unavailable */ }
   };
 
   useEffect(() => {
