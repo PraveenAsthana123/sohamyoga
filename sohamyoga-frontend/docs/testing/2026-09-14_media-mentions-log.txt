@@ -1,0 +1,4 @@
+=== PR & Earned Media (final item, #30/30): live verification ===
+{"id":"ec06e471-be86-4d0a-9ba0-f8a6e873f931"}
+
+{"totalMentions":1,"byType":{"guest_post":1},"positiveShare":100}
