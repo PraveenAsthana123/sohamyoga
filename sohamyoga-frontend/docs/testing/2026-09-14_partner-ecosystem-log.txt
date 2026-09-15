@@ -1,0 +1,2 @@
+{"id":"4d5b8da1-3876-45d9-8781-97870210a20c"}
+{"partners":[{"id":"4d5b8da1-3876-45d9-8781-97870210a20c","tenant_id":"16fb3a23-5370-4572-bc93-2076534a4e99","name":"__e2e_test Local Wellness Collective","partner_type":"strategic","fit_score":70,"status":"prospecting","notes":"__e2e_test real co-marketing candidate, shares real local audience","created_by":"admin_demo@sohamyoga.ca","created_at":"2026-09-15T01:32:14.928Z","updated_at":"2026-09-15T01:32:14.928Z"}]}
