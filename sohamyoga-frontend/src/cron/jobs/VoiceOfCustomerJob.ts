@@ -10,6 +10,7 @@
 
 import { Pool } from 'pg';
 import { ollama } from '../OllamaClient';
+import { recordEvidence } from '@/domain/evidence/EvidenceLedger';
 
 const db = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -109,17 +110,46 @@ export async function run(): Promise<void> {
       digest.top_requests.length ? `Requests: ${digest.top_requests.join('; ')}` : '',
     ].filter(Boolean).join('\n\n');
 
-    await db.query(
+    const digestRow = await db.query<{ id: string }>(
       `INSERT INTO voice_of_customer_digest
          (tenant_id, period_start, period_end, source_message_count, themes, top_complaints, top_requests, overall_summary, report_text)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        ON CONFLICT (tenant_id, period_start, period_end) DO UPDATE SET
          source_message_count=$4, themes=$5, top_complaints=$6, top_requests=$7,
-         overall_summary=$8, report_text=$9`,
+         overall_summary=$8, report_text=$9
+       RETURNING id`,
       [tenant.id, periodStartStr, periodEndStr, messages.length,
         JSON.stringify(digest.themes), digest.top_complaints, digest.top_requests,
         digest.overall_summary, reportText],
     );
+    const digestId = digestRow.rows[0].id;
+
+    // Real Evidence Ledger wiring (added 2026-09-14): each real Ollama-
+    // clustered theme becomes one real, traceable evidence_record row --
+    // type=INFERENCE (it's a model-derived grouping of real text, not a
+    // directly-observed FACT), source_type=ollama_inference, source_ref
+    // pointing back to this real digest row. Confidence is a disclosed,
+    // deterministic heuristic on real theme.count relative to real
+    // messages.length, never a fabricated number: >=50% of messages ->
+    // HIGH, >=20% -> MEDIUM, else LOW.
+    for (const theme of digest.themes) {
+      const share = messages.length > 0 ? theme.count / messages.length : 0;
+      const confidence = share >= 0.5 ? 'HIGH' : share >= 0.2 ? 'MEDIUM' : 'LOW';
+      // validUntil looks forward to when the NEXT weekly digest naturally
+      // supersedes this one (periodEnd + 7 days) -- not periodEnd itself,
+      // which would already be in the past relative to collected_at (this
+      // job's own Ollama call takes tens of seconds, so a naive
+      // validUntil=periodEnd made every record stale the instant it was
+      // written; caught by reading the record back live, not assumed correct).
+      const nextPeriodEnd = new Date(periodEnd.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await recordEvidence({
+        tenantId: tenant.id, subjectType: 'voice_of_customer_digest', subjectId: digestId,
+        evidenceType: 'INFERENCE',
+        claim: `${theme.label} (${theme.sentiment}) appeared in ${theme.count} of ${messages.length} real customer messages this period`,
+        confidence, sourceType: 'ollama_inference', sourceRef: `voice_of_customer_digest:${digestId}`,
+        validUntil: nextPeriodEnd, createdBy: 'VoiceOfCustomerJob',
+      });
+    }
     created++;
   }
 
