@@ -1,0 +1,11 @@
+=== Competitor Benchmark Engine: live verification ===
+--- create real test competitor ---
+{"ok":true,"id":"504625b7-930b-4fca-a076-0ec955742c19"}
+competitor id: 504625b7-930b-4fca-a076-0ec955742c19
+
+--- record 2 real benchmark scores ---
+{"id":"c46367c4-ec02-4f19-9a19-efbcf4d3cb35"}
+{"id":"39e6753e-765f-4ee9-bad0-3e00e94ab1a3"}
+
+--- GET summary reflects real composite + real gap vs our reputation KPI ---
+{"dimensions":["discoverability","website_quality","seo","local_presence","reputation","social_presence","content_quality","pricing_competitiveness"],"competitors":[{"competitorId":"504625b7-930b-4fca-a076-0ec955742c19","competitorName":"__e2e_test Yoga Rival Studio","dimensionScores":{"reputation":85,"seo":60},"compositeScore":73,"sampleDimensions":2,"gaps":[{"dimension":"reputation","theirScore":85,"ourScore":0,"gap":85}]}]}
