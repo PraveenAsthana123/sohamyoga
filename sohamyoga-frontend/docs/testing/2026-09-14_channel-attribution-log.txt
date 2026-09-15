@@ -1,0 +1,1 @@
+{"channels":[{"channel":"website","totalLeads":5,"converted":0,"conversionRate":0,"duplicates":0},{"channel":"manual","totalLeads":2,"converted":0,"conversionRate":0,"duplicates":0}]}
