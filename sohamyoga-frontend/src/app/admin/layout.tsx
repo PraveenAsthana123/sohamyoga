@@ -1096,6 +1096,7 @@ const navItems = [
     requiredRoles: ['Admin', 'Editor', 'Sales'],
   },
   { href: '/admin/ab-testing', label: 'A/B Testing 🔬', icon: <span aria-hidden="true">🔬</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/popup-builder', label: 'Pop-up Builder 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/marketing-calendar',
     label: 'Marketing Calendar',
