@@ -170,17 +170,22 @@ function RealDataNotice({ count }: { count: number }) {
   );
 }
 
-const TABS = ["overview", "surveys", "questions", "responses", "analytics", "flowchart", "integrations"] as const;
+const TABS = ["overview", "surveys", "questions", "responses", "analytics", "builder", "response-analysis", "ai-insights", "distribution", "export", "flowchart", "integrations"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_LABELS: Record<Tab, string> = {
-  overview:     "Overview",
-  surveys:      "Surveys",
-  questions:    "Questions",
-  responses:    "Responses",
-  analytics:    "Analytics",
-  flowchart:    "Flowchart",
-  integrations: "Integrations",
+  overview:          "Overview",
+  surveys:           "Surveys",
+  questions:         "Questions",
+  responses:         "Responses",
+  analytics:         "Analytics",
+  builder:           "Survey Builder",
+  "response-analysis": "Response Analysis",
+  "ai-insights":     "AI Insights",
+  distribution:      "Distribution",
+  export:            "Export",
+  flowchart:         "Flowchart",
+  integrations:      "Integrations",
 };
 
 const SURVEY_TYPES = ["survey","questionnaire","form","quiz","assessment","poll","nps","feedback"] as const;
@@ -831,19 +836,485 @@ function IntegrationsTab() {
   );
 }
 
+// ─── Survey Builder Tab ────────────────────────────────────────────────────────
+type QuestionType = 'text' | 'number' | 'radio' | 'checkbox' | 'rating' | 'nps' | 'matrix' | 'date' | 'file';
+
+interface BuilderQuestion {
+  id: string;
+  type: QuestionType;
+  text: string;
+  options: string[];
+  required: boolean;
+  logicRule: string;
+}
+
+function SurveyBuilderTab({ surveys }: { surveys: RealSurvey[] }) {
+  const [selectedSurveyId, setSelectedSurveyId] = useState<string>(surveys[0]?.id ?? "");
+  const [questions, setQuestions] = useState<BuilderQuestion[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  const QUESTION_TYPE_OPTIONS: { value: QuestionType; label: string }[] = [
+    { value: 'text', label: 'Short Text' },
+    { value: 'number', label: 'Number' },
+    { value: 'radio', label: 'Single Choice' },
+    { value: 'checkbox', label: 'Multi Choice' },
+    { value: 'rating', label: 'Rating (1-5)' },
+    { value: 'nps', label: 'NPS (0-10)' },
+    { value: 'matrix', label: 'Matrix Grid' },
+    { value: 'date', label: 'Date' },
+    { value: 'file', label: 'File Upload' },
+  ];
+
+  function addQuestion() {
+    setQuestions(prev => [...prev, {
+      id: crypto.randomUUID(),
+      type: 'text',
+      text: '',
+      options: ['Option A', 'Option B'],
+      required: true,
+      logicRule: '',
+    }]);
+  }
+
+  function updateQuestion(id: string, patch: Partial<BuilderQuestion>) {
+    setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...patch } : q));
+  }
+
+  function removeQuestion(id: string) {
+    setQuestions(prev => prev.filter(q => q.id !== id));
+  }
+
+  function moveQuestion(id: string, dir: 'up' | 'down') {
+    setQuestions(prev => {
+      const idx = prev.findIndex(q => q.id === id);
+      if (idx < 0) return prev;
+      const newArr = [...prev];
+      const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= newArr.length) return prev;
+      [newArr[idx], newArr[swapIdx]] = [newArr[swapIdx], newArr[idx]];
+      return newArr;
+    });
+  }
+
+  async function saveAll() {
+    if (!selectedSurveyId || questions.length === 0) return;
+    setSaving(true);
+    setSaveMsg("");
+    let saved = 0;
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const res = await fetch(`/api/admin/surveys/${selectedSurveyId}/questions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question_text: q.text || 'Untitled question',
+          question_type: q.type,
+          options: q.options.map((o, idx) => ({ label: o, value: String(idx) })),
+          required: q.required,
+          sort_order: i,
+          logic_rules: q.logicRule ? { raw: q.logicRule } : {},
+        }),
+      });
+      if (res.ok) saved++;
+    }
+    setSaving(false);
+    setSaveMsg(`Saved ${saved}/${questions.length} questions.`);
+    setQuestions([]);
+  }
+
+  const needsOptions = (t: QuestionType) => t === 'radio' || t === 'checkbox' || t === 'matrix';
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <select value={selectedSurveyId} onChange={e => setSelectedSurveyId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+          <option value="">Select survey…</option>
+          {surveys.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </select>
+        <button onClick={addQuestion} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">+ Add Question</button>
+        <button onClick={saveAll} disabled={saving || questions.length === 0 || !selectedSurveyId} className="bg-green-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-700 disabled:opacity-40">
+          {saving ? 'Saving…' : 'Save All Questions'}
+        </button>
+        {saveMsg && <span className="text-sm text-green-700 font-medium">{saveMsg}</span>}
+      </div>
+
+      {questions.length === 0 && (
+        <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+          <p className="text-gray-400 text-sm">Click &ldquo;+ Add Question&rdquo; to start building your survey</p>
+          <p className="text-xs text-gray-400 mt-1">Supports 9 question types including NPS, rating, matrix, and file upload</p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {questions.map((q, idx) => (
+          <div key={q.id} className="bg-white border rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-sm font-medium w-6">{idx + 1}.</span>
+              <input
+                className="flex-1 border rounded px-3 py-1.5 text-sm"
+                placeholder="Question text…"
+                value={q.text}
+                onChange={e => updateQuestion(q.id, { text: e.target.value })}
+              />
+              <select value={q.type} onChange={e => updateQuestion(q.id, { type: e.target.value as QuestionType })} className="border rounded px-2 py-1.5 text-sm">
+                {QUESTION_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <label className="flex items-center gap-1 text-xs text-gray-600">
+                <input type="checkbox" checked={q.required} onChange={e => updateQuestion(q.id, { required: e.target.checked })} />
+                Required
+              </label>
+              <button onClick={() => moveQuestion(q.id, 'up')} disabled={idx === 0} className="text-gray-400 hover:text-gray-700 text-xs px-1 disabled:opacity-30">↑</button>
+              <button onClick={() => moveQuestion(q.id, 'down')} disabled={idx === questions.length - 1} className="text-gray-400 hover:text-gray-700 text-xs px-1 disabled:opacity-30">↓</button>
+              <button onClick={() => removeQuestion(q.id)} className="text-red-400 hover:text-red-600 text-xs px-1">✕</button>
+            </div>
+
+            {needsOptions(q.type) && (
+              <div className="ml-8 space-y-1">
+                <p className="text-xs text-gray-500 font-medium">Options:</p>
+                {q.options.map((opt, oi) => (
+                  <div key={oi} className="flex gap-2">
+                    <input
+                      className="border rounded px-2 py-1 text-sm flex-1"
+                      value={opt}
+                      onChange={e => {
+                        const opts = [...q.options]; opts[oi] = e.target.value;
+                        updateQuestion(q.id, { options: opts });
+                      }}
+                    />
+                    <button onClick={() => { const opts = q.options.filter((_, i) => i !== oi); updateQuestion(q.id, { options: opts }); }} className="text-red-400 text-xs">✕</button>
+                  </div>
+                ))}
+                <button onClick={() => updateQuestion(q.id, { options: [...q.options, `Option ${q.options.length + 1}`] })} className="text-blue-500 text-xs">+ Add option</button>
+              </div>
+            )}
+
+            <div className="ml-8">
+              <input
+                className="w-full border rounded px-2 py-1 text-xs text-gray-500"
+                placeholder="Conditional logic (e.g. Show if Q1 = Promoter)"
+                value={q.logicRule}
+                onChange={e => updateQuestion(q.id, { logicRule: e.target.value })}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Response Analysis Tab ─────────────────────────────────────────────────────
+function ResponseAnalysisTab({ surveys }: { surveys: RealSurvey[] }) {
+  const [surveyId, setSurveyId] = useState<string>(surveys[0]?.id ?? "");
+  const [data, setData] = useState<{
+    stats: { total: number; complete: number; completionRate: number };
+    responses: Array<{ id: number; respondent_email: string; is_complete: boolean; completion_time_seconds: number; started_at: string; completed_at: string; answer_count: string }>;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function load(id: string) {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/surveys/${id}/responses`);
+      if (res.ok) setData(await res.json());
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleSelect(id: string) {
+    setSurveyId(id);
+    load(id);
+  }
+
+  const survey = surveys.find(s => s.id === surveyId);
+  const avgTime = data?.responses.length
+    ? Math.round(data.responses.filter(r => r.completion_time_seconds).reduce((s, r) => s + (r.completion_time_seconds || 0), 0) / data.responses.length)
+    : 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-3 items-center">
+        <select value={surveyId} onChange={e => handleSelect(e.target.value)} className="border rounded px-3 py-2 text-sm">
+          <option value="">Select survey…</option>
+          {surveys.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </select>
+        <button onClick={() => load(surveyId)} disabled={loading || !surveyId} className="border px-3 py-2 rounded text-sm hover:bg-gray-50 disabled:opacity-40">
+          {loading ? 'Loading…' : 'Refresh'}
+        </button>
+      </div>
+
+      {data && (
+        <>
+          <div className="grid grid-cols-3 gap-4">
+            <KpiCard label="Total Responses" value={data.stats.total} color="blue" />
+            <KpiCard label="Completion Rate" value={`${data.stats.completionRate}%`} color="green" />
+            <KpiCard label="Avg Time" value={avgTime ? `${avgTime}s` : '—'} sub="completion time" color="amber" />
+          </div>
+
+          {survey && survey.nps !== undefined && (
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-3">NPS Score</h3>
+              <div className="text-center">
+                <div className={`text-5xl font-bold ${survey.nps >= 50 ? 'text-green-600' : survey.nps >= 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  {survey.nps}
+                </div>
+                <p className="text-sm text-gray-500 mt-1">Net Promoter Score</p>
+                <Badge label={survey.nps >= 70 ? 'Excellent' : survey.nps >= 30 ? 'Good' : 'Needs Work'} colorClass={survey.nps >= 70 ? 'bg-green-100 text-green-700' : survey.nps >= 30 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'} />
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white border rounded-lg overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b">
+              <h3 className="font-semibold text-gray-800 text-sm">Individual Responses ({data.responses.length})</h3>
+            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  {['#', 'Respondent', 'Complete', 'Answers', 'Time', 'Started'].map(h => (
+                    <th key={h} className="px-4 py-2 text-left font-medium text-gray-600 text-xs">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {data.responses.map(r => (
+                  <tr key={r.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-gray-400 text-xs">{r.id}</td>
+                    <td className="px-4 py-2 text-xs">{r.respondent_email || '—'}</td>
+                    <td className="px-4 py-2"><Badge label={r.is_complete ? 'Yes' : 'No'} colorClass={r.is_complete ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} /></td>
+                    <td className="px-4 py-2 text-xs text-center">{r.answer_count}</td>
+                    <td className="px-4 py-2 text-xs">{r.completion_time_seconds ? `${r.completion_time_seconds}s` : '—'}</td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{new Date(r.started_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+                {data.responses.length === 0 && (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No responses yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {!data && !loading && <p className="text-sm text-gray-400 text-center py-8">Select a survey to view response analysis.</p>}
+    </div>
+  );
+}
+
+// ─── AI Insights Tab ───────────────────────────────────────────────────────────
+function AiInsightsTab({ surveys }: { surveys: RealSurvey[] }) {
+  const [surveyId, setSurveyId] = useState<string>(surveys[0]?.id ?? "");
+  const [analysis, setAnalysis] = useState<{ analysis: string; responseCount: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function analyze() {
+    if (!surveyId) return;
+    setLoading(true);
+    setAnalysis(null);
+    try {
+      const res = await fetch(`/api/admin/surveys/${surveyId}/analyze`, { method: 'POST' });
+      if (res.ok) setAnalysis(await res.json());
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+        <h3 className="font-semibold text-purple-800 mb-1">AI-Powered Response Analysis</h3>
+        <p className="text-xs text-purple-600">Ollama llama3.2 analyzes all text responses and generates themes, sentiment, and recommendations — fully local, no cloud AI.</p>
+      </div>
+
+      <div className="flex gap-3 items-center">
+        <select value={surveyId} onChange={e => setSurveyId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+          <option value="">Select survey…</option>
+          {surveys.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </select>
+        <button onClick={analyze} disabled={loading || !surveyId} className="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-purple-700 disabled:opacity-40">
+          {loading ? 'Analyzing with Ollama…' : '🤖 Run AI Analysis'}
+        </button>
+      </div>
+
+      {loading && (
+        <div className="bg-white border rounded-lg p-8 text-center">
+          <div className="text-purple-500 text-2xl mb-2">🤖</div>
+          <p className="text-sm text-gray-500">Ollama is analyzing responses…</p>
+          <p className="text-xs text-gray-400 mt-1">This may take 15-30 seconds</p>
+        </div>
+      )}
+
+      {analysis && (
+        <div className="space-y-4">
+          <div className="bg-white border rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-purple-500">🤖</span>
+              <h3 className="font-semibold text-gray-800">AI Analysis</h3>
+              <Badge label={`${analysis.responseCount} responses analyzed`} colorClass="bg-purple-100 text-purple-700" />
+            </div>
+            <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+              {analysis.analysis}
+            </div>
+          </div>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-700">
+            AI analysis is for informational purposes only. Review outputs before acting on recommendations.
+          </div>
+        </div>
+      )}
+
+      {!loading && !analysis && <p className="text-sm text-gray-400 text-center py-8">Select a survey and click &ldquo;Run AI Analysis&rdquo; to generate insights.</p>}
+    </div>
+  );
+}
+
+// ─── Distribution Tab ──────────────────────────────────────────────────────────
+function DistributionTab({ surveys }: { surveys: RealSurvey[] }) {
+  const [surveyId, setSurveyId] = useState<string>(surveys[0]?.id ?? "");
+  const [emails, setEmails] = useState("");
+  const [copied, setCopied] = useState(false);
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+  const embedCode = surveyId ? `<iframe src="${origin}/survey/${surveyId}" width="100%" height="600" frameborder="0" title="Survey"></iframe>` : '';
+  const directLink = surveyId ? `${origin}/survey/${surveyId}` : '';
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-3 items-center">
+        <select value={surveyId} onChange={e => setSurveyId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+          <option value="">Select survey…</option>
+          {surveys.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </select>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-white border rounded-lg p-4 space-y-3">
+          <h3 className="font-semibold text-gray-800">Direct Link</h3>
+          <div className="flex gap-2">
+            <input readOnly value={directLink} className="flex-1 border rounded px-3 py-2 text-sm bg-gray-50 font-mono text-xs" />
+            <button onClick={() => copyToClipboard(directLink)} className="bg-blue-600 text-white px-3 py-2 rounded text-sm">
+              {copied ? '✓' : 'Copy'}
+            </button>
+          </div>
+          <div className="bg-gray-100 rounded-lg p-8 text-center">
+            <div className="text-4xl mb-2">📱</div>
+            <p className="text-xs text-gray-500">QR Code — scan to open survey</p>
+            <p className="text-xs text-gray-400 mt-1">QR generation requires qrcode library</p>
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg p-4 space-y-3">
+          <h3 className="font-semibold text-gray-800">Embed Code</h3>
+          <textarea
+            readOnly
+            value={embedCode}
+            rows={4}
+            className="w-full border rounded px-3 py-2 text-xs font-mono bg-gray-50"
+          />
+          <button onClick={() => copyToClipboard(embedCode)} className="border px-3 py-1.5 rounded text-sm text-gray-600 hover:bg-gray-50">Copy Embed Code</button>
+        </div>
+      </div>
+
+      <div className="bg-white border rounded-lg p-4 space-y-3">
+        <h3 className="font-semibold text-gray-800">Email Distribution</h3>
+        <p className="text-xs text-gray-500">Paste email addresses (one per line or comma-separated) to create a scheduled broadcast</p>
+        <textarea
+          rows={4}
+          className="w-full border rounded px-3 py-2 text-sm"
+          placeholder="alice@example.com&#10;bob@example.com&#10;carol@example.com"
+          value={emails}
+          onChange={e => setEmails(e.target.value)}
+        />
+        <div className="flex gap-2">
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-40"
+            disabled={!emails.trim() || !surveyId}
+            onClick={() => alert(`Broadcast to ${emails.split(/[\n,]+/).filter(Boolean).length} recipients would be scheduled. Connect /api/admin/broadcast to enable sending.`)}
+          >
+            Schedule Email Broadcast
+          </button>
+          <span className="text-xs text-gray-400 self-center">
+            {emails.split(/[\n,]+/).filter(e => e.trim()).length} recipients
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Export Tab ────────────────────────────────────────────────────────────────
+function ExportTab({ surveys }: { surveys: RealSurvey[] }) {
+  const [surveyId, setSurveyId] = useState<string>(surveys[0]?.id ?? "");
+  const [seeding, setSeeding] = useState(false);
+  const [seedMsg, setSeedMsg] = useState("");
+
+  async function seedData() {
+    setSeeding(true);
+    setSeedMsg("");
+    const res = await fetch('/api/admin/surveys/seed', { method: 'POST' });
+    const d = await res.json() as { ok?: boolean; message?: string; error?: string };
+    setSeedMsg(d.message ?? d.error ?? 'Done');
+    setSeeding(false);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-3 items-center">
+        <select value={surveyId} onChange={e => setSurveyId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+          <option value="">Select survey…</option>
+          {surveys.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </select>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-white border rounded-lg p-4 space-y-3">
+          <h3 className="font-semibold text-gray-800">Export Responses</h3>
+          <p className="text-sm text-gray-500">Download all responses with answers as a CSV file.</p>
+          <a
+            href={surveyId ? `/api/admin/surveys/${surveyId}/export` : '#'}
+            className={`inline-block bg-green-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-700 ${!surveyId ? 'pointer-events-none opacity-40' : ''}`}
+          >
+            ↓ Download Responses CSV
+          </a>
+        </div>
+
+        <div className="bg-white border rounded-lg p-4 space-y-3">
+          <h3 className="font-semibold text-gray-800">Seed Demo Data</h3>
+          <p className="text-sm text-gray-500">Create 2 survey templates (NPS + CSAT) with 10 demo responses for testing.</p>
+          <button onClick={seedData} disabled={seeding} className="bg-amber-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-amber-700 disabled:opacity-40">
+            {seeding ? 'Seeding…' : 'Seed Survey Templates'}
+          </button>
+          {seedMsg && <p className="text-xs text-gray-600">{seedMsg}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SurveyAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const npsSurveys = useNpsSummary();
   const { data: overview, reload: reloadOverview } = useSurveyOverview();
 
   const TAB_CONTENT: Record<Tab, React.ReactElement> = {
-    overview:     <OverviewTab npsSurveys={npsSurveys} overview={overview} />,
-    surveys:      <SurveysTab surveys={overview?.surveys ?? []} onChanged={reloadOverview} />,
-    questions:    <QuestionsTab questions={overview?.questions ?? []} surveys={overview?.surveys ?? []} />,
-    responses:    <ResponsesTab responses={overview?.responses ?? []} surveys={overview?.surveys ?? []} />,
-    analytics:    <AnalyticsTab npsSurveys={npsSurveys} overview={overview} />,
-    flowchart:    <FlowchartTab />,
-    integrations: <IntegrationsTab />,
+    overview:            <OverviewTab npsSurveys={npsSurveys} overview={overview} />,
+    surveys:             <SurveysTab surveys={overview?.surveys ?? []} onChanged={reloadOverview} />,
+    questions:           <QuestionsTab questions={overview?.questions ?? []} surveys={overview?.surveys ?? []} />,
+    responses:           <ResponsesTab responses={overview?.responses ?? []} surveys={overview?.surveys ?? []} />,
+    analytics:           <AnalyticsTab npsSurveys={npsSurveys} overview={overview} />,
+    builder:             <SurveyBuilderTab surveys={overview?.surveys ?? []} />,
+    "response-analysis": <ResponseAnalysisTab surveys={overview?.surveys ?? []} />,
+    "ai-insights":       <AiInsightsTab surveys={overview?.surveys ?? []} />,
+    distribution:        <DistributionTab surveys={overview?.surveys ?? []} />,
+    export:              <ExportTab surveys={overview?.surveys ?? []} />,
+    flowchart:           <FlowchartTab />,
+    integrations:        <IntegrationsTab />,
   };
 
   return (

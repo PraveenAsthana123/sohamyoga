@@ -52,7 +52,8 @@ export async function GET(req: NextRequest) {
     params,
   );
 
-  return NextResponse.json({ ads: result.rows });
+  // Return both `results` and `ads` so either page consumption pattern works
+  return NextResponse.json({ results: result.rows, ads: result.rows });
 }
 
 // POST /api/admin/market-research/ad-spy
@@ -89,7 +90,62 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ads: result.rows,
+    results: result.rows,
     note: `Returning stored results for ${platform}. To enable live fetching: ${platform === 'facebook' ? 'create a Facebook App, request Ads Library API access, and set FACEBOOK_APP_ID + FACEBOOK_APP_SECRET env vars' : platform === 'google' ? 'Google Ads Transparency has no public JSON API — requires web scraping or Google Ads API access via GOOGLE_ADS_DEVELOPER_TOKEN' : 'LinkedIn Ad Library requires LinkedIn Marketing Developer Platform access — set LINKEDIN_CLIENT_ID + LINKEDIN_CLIENT_SECRET'}. Public library URL: ${libraryUrls[platform]}`,
     realApiRequired: true,
   });
+}
+
+interface OllamaResponse {
+  response?: string;
+}
+
+// PATCH /api/admin/market-research/ad-spy
+// body: { id: number } — triggers Ollama AI analysis for a specific ad
+export async function PATCH(req: NextRequest) {
+  const authError = await requireAdmin(req);
+  if (authError) return authError;
+
+  const body = (await req.json()) as { id?: number };
+  if (typeof body.id !== 'number') {
+    return NextResponse.json({ error: 'id (number) required' }, { status: 400 });
+  }
+
+  const adRes = await pool.query<AdSpyRow>(
+    'SELECT * FROM ad_spy_result WHERE id = $1',
+    [body.id],
+  );
+  if (adRes.rowCount === 0) {
+    return NextResponse.json({ error: 'Ad not found' }, { status: 404 });
+  }
+
+  const ad = adRes.rows[0];
+  const text = [ad.headline, ad.ad_text].filter(Boolean).join(' — ');
+
+  let analysis = '';
+  try {
+    const res = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama3.2',
+        prompt: `Analyze this competitor ad in 2-3 concise sentences. Identify: messaging angle, call-to-action tactic, and likely target audience.
+Ad: "${text.slice(0, 500)}"`,
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    const data = (await res.json()) as OllamaResponse;
+    analysis = data.response ?? '';
+  } catch {
+    analysis = 'Ollama unavailable for analysis.';
+  }
+
+  // Store analysis in raw_data since ad_spy_result has no ai_analysis column
+  await pool.query(
+    `UPDATE ad_spy_result SET raw_data = raw_data || $1 WHERE id = $2`,
+    [JSON.stringify({ ai_analysis: analysis }), body.id],
+  );
+
+  return NextResponse.json({ ok: true, analysis });
 }

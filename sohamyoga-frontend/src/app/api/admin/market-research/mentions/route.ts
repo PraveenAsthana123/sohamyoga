@@ -140,3 +140,26 @@ Respond with only the single word sentiment label, nothing else.`;
 
   return NextResponse.json({ ok: true });
 }
+
+// PATCH /api/admin/market-research/mentions
+// body: { id: number; reviewed: boolean } — mark a mention as reviewed/unreviewed
+export async function PATCH(req: NextRequest) {
+  const authError = await requireAdmin(req);
+  if (authError) return authError;
+
+  const body = (await req.json()) as { id?: number; reviewed?: boolean };
+  const { id, reviewed } = body;
+
+  if (typeof id !== 'number') {
+    return NextResponse.json({ error: 'id (number) required' }, { status: 400 });
+  }
+
+  const reviewedValue = reviewed !== false; // default to true if not specified
+
+  await pool.query(
+    'UPDATE competitor_mention SET reviewed = $1 WHERE id = $2',
+    [reviewedValue, id],
+  );
+
+  return NextResponse.json({ ok: true });
+}
