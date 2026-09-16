@@ -938,6 +938,7 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   { href: '/admin/mcp', label: 'MCP Servers & Calls', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-control-tower', label: 'AI Control Tower 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
   { href: '/admin/platform-scenarios', label: 'Platform Scenarios', icon: <span aria-hidden="true">🎭</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/usecase-registry',

@@ -254,7 +254,7 @@ export default function ModuleRegistryPage() {
           ) : <p className="text-sm text-gray-400">Select a module.</p>}
         </div>
       </div>
-    </div></>}
+    </>}
     </div>
   );
 }
