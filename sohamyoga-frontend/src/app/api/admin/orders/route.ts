@@ -1,29 +1,70 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
-import { databaseConfigured, query } from '@/lib/postgres';
+import { pool } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Real Order Management admin surface -- sales_order already had a rich,
-// real state-machine schema (status/payment_status/fulfillment_status CHECK
-// constraints) but ZERO admin UI and zero write path anywhere in the app
-// (confirmed via full-codebase grep). This is the first real list view.
 export async function GET(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const status = req.nextUrl.searchParams.get('status');
-  const rows = status && status !== 'all'
-    ? await query(`SELECT id, order_number, customer_email, status, payment_status, fulfillment_status, total, currency, created_at FROM sales_order WHERE status = $1 ORDER BY created_at DESC LIMIT 200`, [status])
-    : await query(`SELECT id, order_number, customer_email, status, payment_status, fulfillment_status, total, currency, created_at FROM sales_order ORDER BY created_at DESC LIMIT 200`);
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get('status') ?? '';
 
-  return Response.json({
-    orders: rows.rows.map((o) => ({
-      id: o.id, orderNumber: o.order_number, customerEmail: o.customer_email, status: o.status,
-      paymentStatus: o.payment_status, fulfillmentStatus: o.fulfillment_status,
-      total: Number(o.total), currency: o.currency, createdAt: o.created_at,
-    })),
-  });
+  const client = await pool.connect();
+  try {
+    const conditions: string[] = [];
+    const values: string[] = [];
+    if (status && status !== 'all') {
+      conditions.push(`status = $${values.length + 1}`);
+      values.push(status);
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const [orders, statusSummary, revenueSummary] = await Promise.all([
+      client.query(
+        `SELECT id, order_number, customer_email, status, payment_status, fulfillment_status,
+                subtotal, tax_amount, total, currency, refund_amount, created_at
+         FROM sales_order ${where}
+         ORDER BY created_at DESC LIMIT 500`,
+        values,
+      ),
+      client.query(
+        `SELECT status, COUNT(*)::int AS cnt, COALESCE(SUM(total),0)::numeric AS revenue
+         FROM sales_order GROUP BY status ORDER BY status`,
+      ),
+      client.query(
+        `SELECT
+           COUNT(*)::int AS total_orders,
+           COALESCE(SUM(total) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days'), 0)::numeric AS revenue_30d,
+           COUNT(*) FILTER (WHERE status = 'pending')::int AS pending,
+           CASE WHEN COUNT(*) > 0 THEN (SUM(total) / COUNT(*))::numeric ELSE 0 END AS avg_order_value
+         FROM sales_order`,
+      ),
+    ]);
+
+    return Response.json({
+      orders: orders.rows.map((o: Record<string, unknown>) => ({
+        ...o,
+        total: Number(o.total),
+        subtotal: Number(o.subtotal),
+        taxAmount: Number(o.tax_amount),
+        refundAmount: Number(o.refund_amount),
+      })),
+      statusSummary: statusSummary.rows.map((r: Record<string, unknown>) => ({
+        status: r.status,
+        count: r.cnt,
+        revenue: Number(r.revenue),
+      })),
+      kpi: {
+        totalOrders: revenueSummary.rows[0].total_orders,
+        revenue30d: Number(revenueSummary.rows[0].revenue_30d),
+        pending: revenueSummary.rows[0].pending,
+        avgOrderValue: Number(revenueSummary.rows[0].avg_order_value),
+      },
+    });
+  } finally {
+    client.release();
+  }
 }

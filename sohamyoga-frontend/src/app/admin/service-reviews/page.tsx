@@ -1,24 +1,52 @@
 'use client';
-// Review, Rating & Reputation Management — on-site review moderation.
-// Distinct from /admin/reputation (Google Business Profile sync, external
-// third-party reviews). This is the studio's OWN on-site review collection,
-// tied to a real completed (checked_in) booking — real integrity control
-// against review-bombing, not an open form.
 
 import { useEffect, useState, useCallback } from 'react';
 
 interface ReviewRow {
-  id: string; booking_id: string; reviewer_name: string; reviewer_email: string; star_rating: number;
-  comment: string; status: string; staff_response: string | null; responded_at: string | null; created_at: string;
-  class_name: string; teacher_name: string; session_date: string;
+  id: string;
+  reviewer_name: string;
+  reviewer_email: string;
+  star_rating: number;
+  comment: string;
+  status: string;
+  staff_response: string | null;
+  responded_at: string | null;
+  created_at: string;
+  service_name: string | null;
 }
+
+interface RatingBucket { star_rating: number; cnt: number }
+
+interface Kpi {
+  total: number;
+  avg_rating: number;
+  five_star: number;
+  published: number;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  published: 'bg-green-100 text-green-700',
+  pending: 'bg-amber-100 text-amber-700',
+  hidden: 'bg-gray-100 text-gray-500',
+};
+
+const TABS = ['Overview', 'All Reviews', 'Published', 'Hidden', 'Analytics'] as const;
+type Tab = typeof TABS[number];
 
 function Stars({ n }: { n: number }) {
   return <span className="text-amber-500">{'★'.repeat(n)}{'☆'.repeat(5 - n)}</span>;
 }
 
-// AI Response Draft -- Ollama suggests a reply from the review's own real
-// content; staff always reviews/edits before sending. Never auto-sends.
+function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+      <p className="text-sm text-gray-500 mb-1">{label}</p>
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
 function RespondBox({ id, onDone }: { id: string; onDone: () => void }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
@@ -37,7 +65,7 @@ function RespondBox({ id, onDone }: { id: string; onDone: () => void }) {
   async function draftWithAi() {
     setDrafting(true); setDraftError('');
     const res = await fetch(`/api/service-reviews/${id}/draft-response`, { method: 'POST' });
-    const body = await res.json();
+    const body = await res.json().catch(() => ({}));
     setDrafting(false);
     if (!res.ok) { setDraftError(body.error || 'Failed to draft a response.'); return; }
     setText(body.draft);
@@ -56,145 +84,213 @@ function RespondBox({ id, onDone }: { id: string; onDone: () => void }) {
   );
 }
 
-interface RecoveryCase {
-  id: string; status: string; contactMethod: string | null; notes: string | null; resolvedAt: string | null;
-  createdAt: string; starRating: number; comment: string; reviewerName: string; reviewerEmail: string; className: string;
-}
-
-const RECOVERY_STATUS_COLOR: Record<string, string> = {
-  identified: 'bg-red-100 text-red-700', contacted: 'bg-amber-100 text-amber-700',
-  resolved: 'bg-green-100 text-green-700', unresolved: 'bg-gray-100 text-gray-600',
-};
-const RECOVERY_NEXT: Record<string, string[]> = {
-  identified: ['contacted'], contacted: ['resolved', 'unresolved'], resolved: [], unresolved: ['contacted'],
-};
-
-// Real Service Recovery -- a case is auto-opened whenever a review scores
-// <=2 stars (POST /api/service-reviews). No AI decides resolution -- a
-// human records contact_method/notes, same as every other closure here.
-function ServiceRecoveryPanel() {
-  const [cases, setCases] = useState<RecoveryCase[]>([]);
+export default function ServiceReviewsAdmin() {
+  const [tab, setTab] = useState<Tab>('Overview');
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [kpi, setKpi] = useState<Kpi | null>(null);
+  const [byRating, setByRating] = useState<RatingBucket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actingId, setActingId] = useState<string | null>(null);
-  const [contactMethod, setContactMethod] = useState('phone');
-  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     setLoading(true);
-    fetch('/api/admin/service-recovery', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setCases(d?.cases ?? [])).finally(() => setLoading(false));
+    setError('');
+    try {
+      const res = await fetch('/api/admin/service-reviews', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json();
+      setReviews(d.reviews ?? []);
+      setKpi(d.kpi ?? null);
+      setByRating(d.byRating ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load reviews');
+    } finally {
+      setLoading(false);
+    }
   }, []);
-  useEffect(() => { load(); }, [load]);
 
-  async function transition(id: string, status: string) {
-    await fetch(`/api/admin/service-recovery/${id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, contactMethod: status === 'contacted' ? contactMethod : undefined, notes: notes || undefined }),
-    });
-    setActingId(null); setNotes('');
-    load();
-  }
+  useEffect(() => { void load(); }, [load]);
 
-  const open = cases.filter(c => c.status !== 'resolved');
+  const updateStatus = useCallback(async (id: string, status: string) => {
+    setUpdating(id);
+    try {
+      const res = await fetch('/api/admin/service-reviews', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to update review');
+    } finally {
+      setUpdating(null);
+    }
+  }, [load]);
+
+  const displayed = reviews.filter(r => {
+    if (tab === 'Published') return r.status === 'published';
+    if (tab === 'Hidden') return r.status === 'hidden';
+    return true;
+  }).filter(r =>
+    !search || r.reviewer_name.toLowerCase().includes(search.toLowerCase()) ||
+    r.reviewer_email.toLowerCase().includes(search.toLowerCase()) ||
+    r.comment.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="bg-white border rounded-lg p-4 mb-6">
-      <h2 className="font-semibold text-gray-900 mb-1">Service Recovery ({open.length} open)</h2>
-      <p className="text-xs text-gray-500 mb-3">Auto-opened whenever a review scores 2 stars or fewer.</p>
-      {loading ? <p className="text-xs text-gray-400">Loading…</p> : (
-        <div className="space-y-2">
-          {cases.map(c => (
-            <div key={c.id} className="border rounded p-3 text-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium">{c.reviewerName} — <Stars n={c.starRating} /> — {c.className}</p>
-                  {c.comment && <p className="text-xs text-gray-500 mt-1">{c.comment}</p>}
-                  {c.notes && <p className="text-xs text-indigo-700 bg-indigo-50 rounded p-1.5 mt-1">{c.notes}</p>}
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${RECOVERY_STATUS_COLOR[c.status]}`}>{c.status}</span>
-              </div>
-              {actingId === c.id ? (
-                <div className="flex gap-2 mt-2 items-center">
-                  <select value={contactMethod} onChange={e => setContactMethod(e.target.value)} className="border rounded px-1.5 py-1 text-xs">
-                    {['phone', 'email', 'in_person'].map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                  <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes…" className="flex-1 border rounded px-2 py-1 text-xs" />
-                  <button onClick={() => transition(c.id, 'contacted')} className="text-xs text-blue-600 hover:underline">Confirm</button>
-                  <button onClick={() => setActingId(null)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Service Reviews</h1>
+        <p className="text-gray-500 text-sm mt-1">On-site review moderation — real reviews from real checked-in bookings.</p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm flex justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="font-medium ml-4">Dismiss</button>
+        </div>
+      )}
+
+      {kpi && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <KpiCard label="Total Reviews" value={kpi.total} />
+          <KpiCard label="Avg Rating" value={`${Number(kpi.avg_rating).toFixed(1)} / 5`} />
+          <KpiCard label="5-Star Reviews" value={kpi.five_star} />
+          <KpiCard label="Published" value={kpi.published} />
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="flex gap-1 p-3 border-b border-gray-100 overflow-x-auto">
+          {TABS.map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                tab === t ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'Analytics' ? (
+          <div className="p-6 space-y-6">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">Rating Distribution</h3>
+              {byRating.length > 0 ? (
+                <div className="space-y-3">
+                  {[5, 4, 3, 2, 1].map(star => {
+                    const bucket = byRating.find(b => b.star_rating === star);
+                    const n = bucket?.cnt ?? 0;
+                    const total = kpi?.total ?? 1;
+                    return (
+                      <div key={star} className="flex items-center gap-3">
+                        <span className="text-amber-500 w-20 text-sm">{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-3">
+                          <div className="bg-amber-400 h-3 rounded-full" style={{ width: `${total ? (n / total) * 100 : 0}%` }} />
+                        </div>
+                        <span className="text-sm text-gray-700 w-8 text-right">{n}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="flex gap-2 mt-2">
-                  {(RECOVERY_NEXT[c.status] ?? []).map(s => (
-                    <button key={s} onClick={() => s === 'contacted' ? setActingId(c.id) : transition(c.id, s)} className="text-xs text-blue-600 hover:underline">{s}</button>
-                  ))}
+                <p className="text-gray-400 text-sm">No reviews yet.</p>
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Status Breakdown</h3>
+              {kpi && (
+                <div className="flex gap-4 text-sm">
+                  <div className="text-center"><div className="text-lg font-bold text-green-700">{kpi.published}</div><div className="text-xs text-gray-400">published</div></div>
+                  <div className="text-center"><div className="text-lg font-bold text-amber-600">{kpi.total - kpi.published}</div><div className="text-xs text-gray-400">pending/hidden</div></div>
                 </div>
               )}
             </div>
-          ))}
-          {!cases.length && <p className="text-xs text-gray-400">No recovery cases yet.</p>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function ServiceReviewsAdmin() {
-  const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'published' | 'hidden'>('all');
-
-  const load = useCallback(() => {
-    setLoading(true);
-    fetch('/api/service-reviews', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setReviews(d?.reviews ?? [])).finally(() => setLoading(false));
-  }, []);
-  useEffect(() => { load(); }, [load]);
-
-  async function transition(id: string, action: 'publish' | 'hide') {
-    await fetch(`/api/service-reviews/${id}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
-    load();
-  }
-
-  const visible = reviews.filter(r => filter === 'all' || r.status === filter);
-  const published = reviews.filter(r => r.status === 'published');
-  const avg = published.length ? (published.reduce((s, r) => s + r.star_rating, 0) / published.length) : 0;
-
-  return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-bold text-gray-900">On-Site Reviews</h1><p className="text-sm text-gray-500">Real reviews from real checked-in bookings — moderate, respond, and see the real aggregate rating.</p></div>
-        <div className="text-right">
-          <p className="text-2xl font-bold text-amber-600">{avg ? avg.toFixed(1) : '—'} <span className="text-sm text-gray-400 font-normal">/ 5</span></p>
-          <p className="text-xs text-gray-400">{published.length} published review{published.length === 1 ? '' : 's'}</p>
-        </div>
-      </div>
-      <ServiceRecoveryPanel />
-      <div className="flex gap-2 mb-4">
-        {(['all', 'pending', 'published', 'hidden'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded text-sm capitalize ${filter === f ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{f}</button>
-        ))}
-      </div>
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
-        <div className="space-y-3">
-          {visible.map(r => (
-            <div key={r.id} className="bg-white border rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-gray-800">{r.reviewer_name} <Stars n={r.star_rating} /></p>
-                  <p className="text-xs text-gray-400">{r.class_name} with {r.teacher_name} · {new Date(r.session_date).toLocaleDateString()}</p>
-                  {r.comment && <p className="text-sm text-gray-700 mt-2">{r.comment}</p>}
-                  {r.staff_response && <p className="text-xs text-indigo-700 bg-indigo-50 rounded p-2 mt-2">Staff response: {r.staff_response}</p>}
+          </div>
+        ) : tab === 'Overview' ? (
+          <div className="p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Recent Reviews (latest 5)</h3>
+            {reviews.slice(0, 5).map(r => (
+              <div key={r.id} className="border border-gray-100 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-800">{r.reviewer_name} <Stars n={r.star_rating} /></p>
+                    <p className="text-xs text-gray-400">{r.reviewer_email} · {new Date(r.created_at).toLocaleDateString()}</p>
+                    {r.comment && <p className="text-sm text-gray-700 mt-2 line-clamp-2">{r.comment}</p>}
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === 'published' ? 'bg-green-100 text-green-700' : r.status === 'hidden' ? 'bg-gray-100 text-gray-500' : 'bg-amber-100 text-amber-700'}`}>{r.status}</span>
               </div>
-              <div className="flex gap-2 mt-2 items-center">
-                {r.status !== 'published' && <button onClick={() => transition(r.id, 'publish')} className="text-xs text-green-600 hover:underline">Publish</button>}
-                {r.status !== 'hidden' && <button onClick={() => transition(r.id, 'hide')} className="text-xs text-gray-400 hover:underline">Hide</button>}
-                {!r.staff_response && <RespondBox id={r.id} onDone={load} />}
-              </div>
+            ))}
+            {reviews.length === 0 && <p className="text-gray-400 text-sm">No reviews yet.</p>}
+          </div>
+        ) : (
+          <>
+            <div className="p-4 border-b border-gray-50">
+              <input
+                type="text"
+                placeholder="Search reviewer, email, or comment..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full max-w-sm border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
             </div>
-          ))}
-          {!visible.length && <p className="text-sm text-gray-400">No reviews yet.</p>}
-        </div>
-      )}
+            {loading ? (
+              <div className="p-8 text-center text-gray-400">Loading...</div>
+            ) : displayed.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">No reviews in this category.</div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {displayed.map(r => (
+                  <div key={r.id} className="p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-gray-900">{r.reviewer_name}</span>
+                          <Stars n={r.star_rating} />
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">{r.reviewer_email} · {new Date(r.created_at).toLocaleDateString()}</p>
+                        {r.comment && <p className="text-sm text-gray-700 mt-2">{r.comment}</p>}
+                        {r.staff_response && (
+                          <p className="text-xs text-indigo-700 bg-indigo-50 rounded p-2 mt-2">Staff: {r.staff_response}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-3 items-center">
+                      {r.status !== 'published' && (
+                        <button
+                          disabled={updating === r.id}
+                          onClick={() => updateStatus(r.id, 'published')}
+                          className="text-xs text-green-600 hover:underline disabled:opacity-50"
+                        >
+                          {updating === r.id ? '...' : 'Publish'}
+                        </button>
+                      )}
+                      {r.status !== 'hidden' && (
+                        <button
+                          disabled={updating === r.id}
+                          onClick={() => updateStatus(r.id, 'hidden')}
+                          className="text-xs text-gray-400 hover:underline disabled:opacity-50"
+                        >
+                          {updating === r.id ? '...' : 'Hide'}
+                        </button>
+                      )}
+                      {!r.staff_response && <RespondBox id={r.id} onDone={load} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

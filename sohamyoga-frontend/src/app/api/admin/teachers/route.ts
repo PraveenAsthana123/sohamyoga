@@ -1,68 +1,90 @@
 import { NextRequest } from 'next/server';
-import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
-import { SERVER_API_URL } from '@/lib/server-api';
+import { pool } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const DEMO_TENANT_ID = '16fb3a23-5370-4572-bc93-2076534a4e99';
-
-/**
- * Real teacher onboarding, replacing the previous DEMO_TEACHERS mock array.
- * GET lists teacher_profile rows (added in migration 075 — the table the
- * existing teacher_certification/teacher_schedule tables already referenced
- * by teacher_id but which never existed until now).
- * POST creates a real ASP.NET Identity account with the Teacher role (via
- * the existing admin-gated /api/admin/users endpoint) and then a matching
- * teacher_profile row — an actual onboarded teacher who can log in, not a
- * placeholder record.
- */
 export async function GET(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const rows = await query(
-    `SELECT id, user_id, first_name, last_name, email, phone, bio, status, contract_type, specializations, hire_date, created_at
-     FROM teacher_profile ORDER BY created_at DESC`,
-  );
-  return Response.json({ teachers: rows.rows });
+  const client = await pool.connect();
+  try {
+    const [teachers, kpi, ratings, certs] = await Promise.all([
+      client.query(
+        `SELECT tp.id, tp.first_name, tp.last_name, tp.email, tp.phone, tp.bio,
+                tp.status, tp.contract_type, tp.specializations, tp.hire_date, tp.created_at,
+                COALESCE(AVG(tr.rating), 0)::numeric(3,2) AS avg_rating,
+                COUNT(DISTINCT tr.id)::int AS rating_count,
+                COUNT(DISTINCT tc.id)::int AS cert_count,
+                COUNT(DISTINCT cs.id)::int AS session_count
+         FROM teacher_profile tp
+         LEFT JOIN teacher_rating tr ON tr.teacher_name = (tp.first_name || ' ' || tp.last_name)
+         LEFT JOIN teacher_certification tc ON tc.teacher_id = tp.id
+         LEFT JOIN class_session cs ON cs.teacher_id::text = tp.id::text
+           AND cs.starts_at > NOW()
+         GROUP BY tp.id
+         ORDER BY tp.created_at DESC`,
+      ),
+      client.query(
+        `SELECT
+           COUNT(*)::int AS total,
+           COUNT(*) FILTER (WHERE status = 'active')::int AS active,
+           COALESCE(AVG(tr.rating), 0)::numeric(3,2) AS avg_rating,
+           (SELECT COUNT(*)::int FROM teacher_certification) AS certs_issued
+         FROM teacher_profile tp
+         LEFT JOIN teacher_rating tr ON tr.teacher_name = (tp.first_name || ' ' || tp.last_name)`,
+      ),
+      client.query(
+        `SELECT teacher_name, COUNT(*)::int AS rating_count,
+                AVG(rating)::numeric(3,2) AS avg_rating,
+                MAX(created_at) AS latest_at
+         FROM teacher_rating
+         GROUP BY teacher_name ORDER BY avg_rating DESC LIMIT 50`,
+      ),
+      client.query(
+        `SELECT tc.id, tc.teacher_id, tp.first_name || ' ' || tp.last_name AS teacher_name,
+                tc.certification_type::text AS cert_type, tc.issued_at, tc.expires_at, tc.status::text AS status
+         FROM teacher_certification tc
+         JOIN teacher_profile tp ON tp.id = tc.teacher_id
+         ORDER BY tc.issued_at DESC LIMIT 100`,
+      ),
+    ]);
+
+    return Response.json({
+      teachers: teachers.rows,
+      kpi: kpi.rows[0],
+      ratings: ratings.rows,
+      certifications: certs.rows,
+    });
+  } finally {
+    client.release();
+  }
 }
 
-export async function POST(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const body = await req.json().catch(() => null) as {
-    firstName?: string; lastName?: string; email?: string; password?: string;
-    phone?: string; bio?: string; specializations?: string[]; contractType?: string;
-  } | null;
-
-  if (!body?.firstName || !body.lastName || !body.email || !body.password) {
-    return Response.json({ error: 'firstName, lastName, email and password are required.' }, { status: 400 });
+  const body = await req.json().catch(() => null) as { id?: string; status?: string } | null;
+  if (!body?.id || !body?.status) {
+    return Response.json({ error: 'id and status are required.' }, { status: 400 });
+  }
+  const valid = ['trainee', 'active', 'on_leave', 'retired', 'terminated'];
+  if (!valid.includes(body.status)) {
+    return Response.json({ error: `status must be one of: ${valid.join(', ')}.` }, { status: 400 });
   }
 
-  const identityRes = await fetch(`${SERVER_API_URL}/api/admin/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', cookie: req.headers.get('cookie') || '' },
-    body: JSON.stringify({ email: body.email, password: body.password, role: 'Teacher' }),
-  });
-  const identityData = await identityRes.json().catch(() => ({}));
-  if (!identityRes.ok) {
-    return Response.json({ error: identityData.detail || 'Failed to create teacher account.' }, { status: identityRes.status });
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `UPDATE teacher_profile SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id`,
+      [body.id, body.status],
+    );
+    if (!result.rowCount) return Response.json({ error: 'Teacher not found.' }, { status: 404 });
+    return Response.json({ ok: true });
+  } finally {
+    client.release();
   }
-
-  const teacher = await query(
-    `INSERT INTO teacher_profile (tenant_id, user_id, first_name, last_name, email, phone, bio, specializations, contract_type)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     RETURNING id, user_id, first_name, last_name, email, status, contract_type, specializations, hire_date, created_at`,
-    [
-      DEMO_TENANT_ID, identityData.id, body.firstName, body.lastName, body.email,
-      body.phone ?? null, body.bio ?? null, body.specializations ?? [], body.contractType ?? 'employee',
-    ],
-  );
-
-  return Response.json({ teacher: teacher.rows[0] }, { status: 201 });
 }
