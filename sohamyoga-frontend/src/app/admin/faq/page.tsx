@@ -1,181 +1,448 @@
-"use client";
-import { useState } from "react";
+'use client';
 
-type FAQScope = "class" | "membership" | "ai_feature" | "payment" | "global";
+import { useState, useEffect, useCallback } from 'react';
+
+type FAQCategory = 'general' | 'class' | 'membership' | 'payment' | 'ai_feature';
 
 interface FAQItem {
-  id: string;
-  scope: FAQScope;
-  entityId?: string;
+  id: number;
   question: string;
   answer: string;
-  displayOrder: number;
-  isActive: boolean;
+  category: FAQCategory;
+  sort_order: number;
+  published: boolean;
+  views: number;
+  helpful_yes: number;
+  helpful_no: number;
+  created_at: string;
+  updated_at: string;
 }
 
-const SEED_FAQS: FAQItem[] = [
-  { id: "faq_1", scope: "class", question: "What should I bring to class?", answer: "A yoga mat, water bottle, and towel. Blocks and straps are provided.", displayOrder: 0, isActive: true },
-  { id: "faq_2", scope: "class", question: "Can I attend if I am a complete beginner?", answer: "Absolutely! Our Beginner and All Levels classes welcome everyone.", displayOrder: 1, isActive: true },
-  { id: "faq_3", scope: "class", question: "What happens if I need to cancel?", answer: "Cancel up to 2 hours before class for a full refund.", displayOrder: 2, isActive: true },
-  { id: "faq_4", scope: "membership", question: "Can I switch plans?", answer: "Yes, upgrade or downgrade anytime from account settings.", displayOrder: 0, isActive: true },
-  { id: "faq_5", scope: "membership", question: "How does the free trial work?", answer: "7-day free trial on any paid plan. Cancel before it ends and pay nothing.", displayOrder: 1, isActive: true },
-  { id: "faq_6", scope: "payment", question: "What payment methods are accepted?", answer: "All major credit/debit cards via Stripe. Bank transfer for annual plans.", displayOrder: 0, isActive: true },
-  { id: "faq_7", scope: "ai_feature", question: "How does the AI pose coach work?", answer: "Your webcam captures a pose frame; our AI scores alignment and gives targeted corrections.", displayOrder: 0, isActive: true },
-];
+interface CategoryCount {
+  category: string;
+  total: number;
+  published_count: number;
+}
 
-const SCOPE_LABELS: Record<FAQScope, string> = {
-  class: "Classes",
-  membership: "Membership",
-  ai_feature: "AI Features",
-  payment: "Payments",
-  global: "Global",
+interface APIResponse {
+  faqs: FAQItem[];
+  counts: CategoryCount[];
+  total: number;
+}
+
+const CATEGORY_LABELS: Record<FAQCategory, string> = {
+  general: 'General',
+  class: 'Class',
+  membership: 'Membership',
+  payment: 'Payment',
+  ai_feature: 'AI Features',
 };
 
-const SCOPE_COLOR: Record<FAQScope, string> = {
-  class: "bg-green-100 text-green-700",
-  membership: "bg-purple-100 text-purple-700",
-  ai_feature: "bg-blue-100 text-blue-700",
-  payment: "bg-yellow-100 text-yellow-700",
-  global: "bg-gray-100 text-gray-700",
+const CATEGORY_COLOR: Record<FAQCategory, string> = {
+  general: 'bg-gray-100 text-gray-700',
+  class: 'bg-green-100 text-green-700',
+  membership: 'bg-purple-100 text-purple-700',
+  payment: 'bg-yellow-100 text-yellow-700',
+  ai_feature: 'bg-blue-100 text-blue-700',
 };
 
-export default function AdminFAQPage() {
-  const [faqs, setFaqs] = useState<FAQItem[]>(SEED_FAQS);
-  const [filter, setFilter] = useState<FAQScope | "all">("all");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState({ scope: "class" as FAQScope, question: "", answer: "", displayOrder: 0 });
+const EMPTY_DRAFT = {
+  question: '',
+  answer: '',
+  category: 'general' as FAQCategory,
+  sort_order: 0,
+  published: false,
+};
 
-  const filtered = filter === "all" ? faqs : faqs.filter(f => f.scope === filter);
-
-  function saveEdit(id: string, patch: Partial<FAQItem>) {
-    setFaqs(prev => prev.map(f => f.id === id ? { ...f, ...patch } : f));
-    setEditingId(null);
-  }
-
-  function toggleActive(id: string) {
-    setFaqs(prev => prev.map(f => f.id === id ? { ...f, isActive: !f.isActive } : f));
-  }
-
-  function deleteFAQ(id: string) {
-    setFaqs(prev => prev.filter(f => f.id !== id));
-  }
-
-  function addFAQ() {
-    if (!draft.question.trim() || !draft.answer.trim()) return;
-    const newFAQ: FAQItem = { id: `faq_${Date.now()}`, entityId: undefined, isActive: true, ...draft };
-    setFaqs(prev => [...prev, newFAQ]);
-    setDraft({ scope: "class", question: "", answer: "", displayOrder: 0 });
-    setAdding(false);
-  }
-
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">FAQ Management</h1>
-            <p className="text-gray-400 text-sm mt-0.5">Manage FAQs for classes, membership, AI features, and payments</p>
-          </div>
-          <button onClick={() => setAdding(true)}
-            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
-            + Add FAQ
+          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none"
+          >
+            ×
           </button>
         </div>
-
-        {/* Scope filter */}
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setFilter("all")}
-            className={`px-3 py-1.5 rounded-full text-sm ${filter === "all" ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300"}`}>
-            All ({faqs.length})
-          </button>
-          {(Object.keys(SCOPE_LABELS) as FAQScope[]).map(s => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-full text-sm ${filter === s ? "bg-green-700 text-white" : "bg-gray-800 text-gray-300"}`}>
-              {SCOPE_LABELS[s]} ({faqs.filter(f => f.scope === s).length})
-            </button>
-          ))}
-        </div>
-
-        {/* Add form */}
-        {adding && (
-          <div className="bg-gray-900 rounded-2xl p-5 space-y-3 border border-green-700">
-            <h3 className="font-semibold text-green-400">New FAQ</h3>
-            <select value={draft.scope} onChange={e => setDraft(d => ({ ...d, scope: e.target.value as FAQScope }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
-              {(Object.entries(SCOPE_LABELS)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-            <input type="text" value={draft.question} onChange={e => setDraft(d => ({ ...d, question: e.target.value }))}
-              placeholder="Question"
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500" />
-            <textarea value={draft.answer} onChange={e => setDraft(d => ({ ...d, answer: e.target.value }))}
-              placeholder="Answer"
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 resize-none" rows={3} />
-            <div className="flex gap-2">
-              <button onClick={addFAQ} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Save</button>
-              <button onClick={() => setAdding(false)} className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition-colors">Cancel</button>
-            </div>
-          </div>
-        )}
-
-        {/* FAQ list — one row per item */}
-        <div className="space-y-3">
-          {filtered.map(faq => (
-            <div key={faq.id} className={`bg-gray-900 rounded-2xl p-5 ${!faq.isActive ? "opacity-50" : ""}`}>
-              {editingId === faq.id ? (
-                <EditFAQForm faq={faq} onSave={patch => saveEdit(faq.id, patch)} onCancel={() => setEditingId(null)} scopeLabels={SCOPE_LABELS} />
-              ) : (
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${SCOPE_COLOR[faq.scope]}`}>{SCOPE_LABELS[faq.scope]}</span>
-                      {!faq.isActive && <span className="px-2 py-0.5 rounded-full text-xs bg-gray-700 text-gray-400">Hidden</span>}
-                    </div>
-                    <p className="font-semibold text-white text-sm">Q: {faq.question}</p>
-                    <p className="text-gray-400 text-sm">A: {faq.answer}</p>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button onClick={() => setEditingId(faq.id)} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs transition-colors">Edit</button>
-                    <button onClick={() => toggleActive(faq.id)} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs transition-colors">
-                      {faq.isActive ? "Hide" : "Show"}
-                    </button>
-                    <button onClick={() => deleteFAQ(faq.id)} className="px-3 py-1.5 bg-red-900 hover:bg-red-800 text-red-300 rounded-lg text-xs transition-colors">Delete</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        {children}
       </div>
     </div>
   );
 }
 
-function EditFAQForm({ faq, onSave, onCancel, scopeLabels }: {
-  faq: FAQItem;
-  onSave: (patch: Partial<FAQItem>) => void;
+function FAQForm({
+  initial,
+  onSubmit,
+  onCancel,
+  submitting,
+}: {
+  initial: typeof EMPTY_DRAFT;
+  onSubmit: (data: typeof EMPTY_DRAFT) => void;
   onCancel: () => void;
-  scopeLabels: Record<FAQScope, string>;
+  submitting: boolean;
 }) {
-  const [q, setQ] = useState(faq.question);
-  const [a, setA] = useState(faq.answer);
-  const [scope, setScope] = useState(faq.scope);
+  const [form, setForm] = useState(initial);
 
   return (
     <div className="space-y-3">
-      <select value={scope} onChange={e => setScope(e.target.value as FAQScope)}
-        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm">
-        {(Object.entries(scopeLabels)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-      </select>
-      <input value={q} onChange={e => setQ(e.target.value)}
-        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm" />
-      <textarea value={a} onChange={e => setA(e.target.value)} rows={3}
-        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white text-sm resize-none" />
-      <div className="flex gap-2">
-        <button onClick={() => onSave({ question: q, answer: a, scope })} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Save</button>
-        <button onClick={onCancel} className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition-colors">Cancel</button>
+      <div>
+        <label className="text-xs font-semibold text-gray-500 uppercase">Category</label>
+        <select
+          value={form.category}
+          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as FAQCategory }))}
+          className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          {(Object.entries(CATEGORY_LABELS) as [FAQCategory, string][]).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v}
+            </option>
+          ))}
+        </select>
       </div>
+      <div>
+        <label className="text-xs font-semibold text-gray-500 uppercase">Question</label>
+        <input
+          value={form.question}
+          onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))}
+          placeholder="Enter question"
+          className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
+      <div>
+        <label className="text-xs font-semibold text-gray-500 uppercase">Answer</label>
+        <textarea
+          value={form.answer}
+          onChange={(e) => setForm((f) => ({ ...f, answer: e.target.value }))}
+          placeholder="Enter answer"
+          rows={4}
+          className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+        />
+      </div>
+      <div className="flex items-center gap-4">
+        <div>
+          <label className="text-xs font-semibold text-gray-500 uppercase">Sort Order</label>
+          <input
+            type="number"
+            value={form.sort_order}
+            onChange={(e) => setForm((f) => ({ ...f, sort_order: parseInt(e.target.value) || 0 }))}
+            className="mt-1 w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+        <div className="flex items-center gap-2 mt-5">
+          <input
+            type="checkbox"
+            id="published"
+            checked={form.published}
+            onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))}
+            className="w-4 h-4 accent-green-600"
+          />
+          <label htmlFor="published" className="text-sm font-medium text-gray-700">
+            Published
+          </label>
+        </div>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <button
+          onClick={() => onSubmit(form)}
+          disabled={submitting || !form.question.trim() || !form.answer.trim()}
+          className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+        >
+          {submitting ? 'Saving…' : 'Save FAQ'}
+        </button>
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm text-gray-700 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminFAQPage() {
+  const [data, setData] = useState<APIResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<FAQCategory | 'all'>('all');
+  const [showCreate, setShowCreate] = useState(false);
+  const [editItem, setEditItem] = useState<FAQItem | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/faq');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as APIResponse;
+      setData(json);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load FAQs');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const filtered =
+    data?.faqs.filter((f) => activeTab === 'all' || f.category === activeTab) ?? [];
+
+  function getCategoryCount(cat: FAQCategory | 'all'): number {
+    if (cat === 'all') return data?.total ?? 0;
+    return data?.counts.find((c) => c.category === cat)?.total ?? 0;
+  }
+
+  async function handleCreate(form: typeof EMPTY_DRAFT) {
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/faq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(err.error ?? `HTTP ${res.status}`);
+      }
+      setShowCreate(false);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Create failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleEdit(form: typeof EMPTY_DRAFT) {
+    if (!editItem) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/faq', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editItem.id, ...form }),
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(err.error ?? `HTTP ${res.status}`);
+      }
+      setEditItem(null);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleTogglePublished(item: FAQItem) {
+    try {
+      const res = await fetch('/api/admin/faq', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, published: !item.published }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Toggle failed');
+    }
+  }
+
+  async function handleDelete(id: number) {
+    try {
+      const res = await fetch(`/api/admin/faq?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setDeleteConfirm(null);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Delete failed');
+    }
+  }
+
+  const TABS: Array<FAQCategory | 'all'> = ['all', 'general', 'class', 'membership', 'payment', 'ai_feature'];
+
+  return (
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">FAQ Management</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage frequently asked questions across all categories
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+        >
+          + Add FAQ
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b flex gap-1 overflow-x-auto">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              activeTab === tab
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab === 'all' ? 'All' : CATEGORY_LABELS[tab]} ({getCategoryCount(tab)})
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      {loading && (
+        <div className="text-center py-12 text-gray-400">Loading FAQs…</div>
+      )}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+          {error}{' '}
+          <button onClick={() => void load()} className="underline ml-2">
+            Retry
+          </button>
+        </div>
+      )}
+      {!loading && !error && (
+        <div className="space-y-3">
+          {filtered.length === 0 && (
+            <div className="text-center py-12 text-gray-400 border-2 border-dashed rounded-xl">
+              No FAQs in this category yet.
+            </div>
+          )}
+          {filtered.map((faq) => (
+            <div
+              key={faq.id}
+              className={`bg-white border rounded-2xl p-5 shadow-sm transition-opacity ${
+                !faq.published ? 'opacity-60' : ''
+              }`}
+            >
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1 space-y-2 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLOR[faq.category]}`}
+                    >
+                      {CATEGORY_LABELS[faq.category]}
+                    </span>
+                    {!faq.published && (
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">
+                        Hidden
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400">{faq.views} views</span>
+                    <span className="text-xs text-gray-400">
+                      👍 {faq.helpful_yes} · 👎 {faq.helpful_no}
+                    </span>
+                  </div>
+                  <p className="font-semibold text-gray-900 text-sm">Q: {faq.question}</p>
+                  <p className="text-gray-600 text-sm">A: {faq.answer}</p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() =>
+                      setEditItem(faq)
+                    }
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => void handleTogglePublished(faq)}
+                    className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                      faq.published
+                        ? 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700'
+                        : 'bg-green-100 hover:bg-green-200 text-green-700'
+                    }`}
+                  >
+                    {faq.published ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(faq.id)}
+                    className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreate && (
+        <Modal title="New FAQ" onClose={() => setShowCreate(false)}>
+          <FAQForm
+            initial={EMPTY_DRAFT}
+            onSubmit={(form) => void handleCreate(form)}
+            onCancel={() => setShowCreate(false)}
+            submitting={submitting}
+          />
+        </Modal>
+      )}
+
+      {/* Edit Modal */}
+      {editItem && (
+        <Modal title="Edit FAQ" onClose={() => setEditItem(null)}>
+          <FAQForm
+            initial={{
+              question: editItem.question,
+              answer: editItem.answer,
+              category: editItem.category,
+              sort_order: editItem.sort_order,
+              published: editItem.published,
+            }}
+            onSubmit={(form) => void handleEdit(form)}
+            onCancel={() => setEditItem(null)}
+            submitting={submitting}
+          />
+        </Modal>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteConfirm !== null && (
+        <Modal title="Confirm Delete" onClose={() => setDeleteConfirm(null)}>
+          <p className="text-sm text-gray-700">
+            Are you sure you want to delete this FAQ? This action cannot be undone.
+          </p>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => void handleDelete(deleteConfirm)}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

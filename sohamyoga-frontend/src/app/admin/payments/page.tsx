@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const TABS = ['Overview', 'Transactions', 'Invoices', 'Refunds', 'Commissions', 'Tax', 'Reports'] as const;
 type Tab = typeof TABS[number];
@@ -60,36 +60,119 @@ function OverviewTab() {
   );
 }
 
-function TransactionsTab() {
-  const txns = [
-    { id: 'TXN-4821', student: 'Aarav Shah',   amount: '$120', type: 'Membership',  method: 'Card', status: 'success',  date: 'Aug 5 10:14' },
-    { id: 'TXN-4820', student: 'Diya Patel',   amount: '$25',  type: 'Drop-in',     method: 'UPI',  status: 'success',  date: 'Aug 5 09:42' },
-    { id: 'TXN-4819', student: 'Riya Gupta',   amount: '$200', type: 'Workshop',    method: 'Card', status: 'success',  date: 'Aug 5 09:11' },
-    { id: 'TXN-4818', student: 'Kiran Mehta',  amount: '$80',  type: 'Membership',  method: 'Card', status: 'failed',   date: 'Aug 5 08:55' },
-    { id: 'TXN-4817', student: 'Priya Roy',    amount: '$120', type: 'Membership',  method: 'Card', status: 'success',  date: 'Aug 4 18:22' },
-  ];
+interface PaymentRow {
+  id: string;
+  order_id: string;
+  payment_method: string;
+  amount: string;
+  currency: string;
+  status: string;
+  provider_ref: string | null;
+  refunded_amount: string;
+  created_at: string;
+  order_number: string | null;
+  customer_email: string | null;
+}
+
+interface WalletRow {
+  id: string;
+  wallet_id: string;
+  type: string;
+  amount: string;
+  points_delta: number;
+  description: string | null;
+  created_at: string;
+}
+
+interface PaymentSummary {
+  total: number;
+  succeeded: number;
+  failed: number;
+  refunded: number;
+  totalAmount: number;
+}
+
+interface APIPaymentsResponse {
+  summary: PaymentSummary;
+  payments: PaymentRow[];
+  walletTransactions: WalletRow[];
+}
+
+function TransactionsTab({
+  payments,
+  loading,
+  error,
+}: {
+  payments: PaymentRow[];
+  loading: boolean;
+  error: string | null;
+}) {
+  if (loading) return <div className="py-8 text-center text-gray-400">Loading transactions…</div>;
+  if (error)
+    return (
+      <div className="py-8 text-center text-red-500 text-sm">Failed to load: {error}</div>
+    );
+
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 flex justify-between">
-        <h3 className="text-sm font-semibold">Recent Transactions</h3>
-        <button className="text-xs text-blue-600 hover:underline">Export CSV</button>
+        <h3 className="text-sm font-semibold">Recent Transactions ({payments.length})</h3>
+        <span className="text-xs text-gray-400">Live data from payment table</span>
       </div>
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>{['Txn ID', 'Student', 'Amount', 'Type', 'Method', 'Status', 'Date'].map(h => <th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead>
-        <tbody className="divide-y divide-gray-100">
-          {txns.map(t => (
-            <tr key={t.id} className="hover:bg-gray-50">
-              <td className="px-3 py-2 font-mono text-xs text-gray-500">{t.id}</td>
-              <td className="px-3 py-2 font-medium">{t.student}</td>
-              <td className="px-3 py-2 font-semibold text-green-700">{t.amount}</td>
-              <td className="px-3 py-2 text-gray-600">{t.type}</td>
-              <td className="px-3 py-2"><Badge color="blue">{t.method}</Badge></td>
-              <td className="px-3 py-2"><Badge color={t.status === 'success' ? 'green' : 'red'}>{t.status}</Badge></td>
-              <td className="px-3 py-2 text-gray-500 text-xs">{t.date}</td>
+      {payments.length === 0 ? (
+        <div className="p-8 text-center text-gray-400 text-sm">No payment transactions found.</div>
+      ) : (
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+              {['Payment ID', 'Customer', 'Order', 'Amount', 'Method', 'Status', 'Date'].map(
+                (h) => (
+                  <th key={h} className="px-3 py-2 text-left">
+                    {h}
+                  </th>
+                ),
+              )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {payments.map((p) => (
+              <tr key={p.id} className="hover:bg-gray-50">
+                <td className="px-3 py-2 font-mono text-xs text-gray-500">
+                  {p.id.slice(0, 8)}…
+                </td>
+                <td className="px-3 py-2 text-gray-700 text-xs">{p.customer_email ?? '—'}</td>
+                <td className="px-3 py-2 font-mono text-xs text-gray-500">
+                  {p.order_number ?? '—'}
+                </td>
+                <td className="px-3 py-2 font-semibold text-green-700">
+                  {p.currency.trim()} {Number(p.amount).toFixed(2)}
+                </td>
+                <td className="px-3 py-2">
+                  <Badge color="blue">{p.payment_method}</Badge>
+                </td>
+                <td className="px-3 py-2">
+                  <Badge
+                    color={
+                      p.status === 'succeeded'
+                        ? 'green'
+                        : p.status === 'failed'
+                          ? 'red'
+                          : p.status === 'refunded'
+                            ? 'purple'
+                            : 'amber'
+                    }
+                  >
+                    {p.status}
+                  </Badge>
+                </td>
+                <td className="px-3 py-2 text-gray-500 text-xs">
+                  {new Date(p.created_at).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -261,24 +344,61 @@ function ReportsTab() {
 
 export default function PaymentsAdminPage() {
   const [tab, setTab] = useState<Tab>('Overview');
+  const [apiData, setApiData] = useState<APIPaymentsResponse | null>(null);
+  const [apiLoading, setApiLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  const loadPayments = useCallback(async () => {
+    setApiLoading(true);
+    setApiError(null);
+    try {
+      const res = await fetch('/api/admin/payments');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as APIPaymentsResponse;
+      setApiData(json);
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : 'Failed to load payments');
+    } finally {
+      setApiLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadPayments();
+  }, [loadPayments]);
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Payments & Finance</h1>
-        <p className="text-sm text-gray-500 mt-1">Transactions, invoices, refunds, commissions, and tax reporting</p>
+        <h1 className="text-2xl font-bold text-gray-900">Payments &amp; Finance</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Transactions, invoices, refunds, commissions, and tax reporting
+        </p>
       </div>
       <div className="border-b flex gap-1 overflow-x-auto">
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${tab === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{t}</button>
+        {TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${tab === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            {t}
+          </button>
         ))}
       </div>
-      {tab === 'Overview'      && <OverviewTab />}
-      {tab === 'Transactions'  && <TransactionsTab />}
-      {tab === 'Invoices'      && <InvoicesTab />}
-      {tab === 'Refunds'       && <RefundsTab />}
-      {tab === 'Commissions'   && <CommissionsTab />}
-      {tab === 'Tax'           && <TaxTab />}
-      {tab === 'Reports'       && <ReportsTab />}
+      {tab === 'Overview' && <OverviewTab />}
+      {tab === 'Transactions' && (
+        <TransactionsTab
+          payments={apiData?.payments ?? []}
+          loading={apiLoading}
+          error={apiError}
+        />
+      )}
+      {tab === 'Invoices' && <InvoicesTab />}
+      {tab === 'Refunds' && <RefundsTab />}
+      {tab === 'Commissions' && <CommissionsTab />}
+      {tab === 'Tax' && <TaxTab />}
+      {tab === 'Reports' && <ReportsTab />}
     </div>
   );
 }
