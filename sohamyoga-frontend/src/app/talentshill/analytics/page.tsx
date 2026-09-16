@@ -140,13 +140,13 @@ export default function TalentsHillAnalyticsPage() {
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6 animate-pulse h-28" />
+            <div key={i} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6 animate-pulse h-28" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpiCards.map(({ label, value, icon, change }) => (
-            <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+            <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
               <div className="flex items-start justify-between mb-3">
                 <span className="text-2xl">{icon}</span>
                 <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-300">{change}</span>
@@ -159,7 +159,7 @@ export default function TalentsHillAnalyticsPage() {
       )}
 
       {/* Channel Breakdown */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Channel Breakdown</h2>
         </div>
@@ -197,7 +197,7 @@ export default function TalentsHillAnalyticsPage() {
       </div>
 
       {/* Top Performing Content */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-4">Top Performing Content</h2>
         {topContent.length === 0 ? (
           <div className="space-y-3">

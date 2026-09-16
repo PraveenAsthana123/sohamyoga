@@ -405,3 +405,29 @@ html {
 .prose-content img { @apply rounded-lg my-4 max-w-full; }
 .prose-content code { @apply bg-dark-100 px-2 py-1 rounded text-sm; }
 .prose-content pre { @apply bg-dark-900 text-dark-100 p-4 rounded-lg overflow-x-auto my-4; }
+
+/* Prevent re-render flicker — smooth opacity transition on all interactive elements */
+.glass-card {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Prevent layout shift during data load */
+[data-loading="true"] {
+  min-height: 200px;
+}
+
+/* Smooth tab content transitions */
+.tab-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Prevent backdrop-filter GPU thrash on scroll */
+* {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}

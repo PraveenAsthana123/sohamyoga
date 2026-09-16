@@ -152,7 +152,7 @@ function RoiCalculator() {
         </p>
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Inputs */}
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-8 space-y-8">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-8 space-y-8">
             <div>
               <div className="flex justify-between mb-2">
                 <label className="text-white/80 font-medium">Monthly Ad Spend</label>
@@ -192,7 +192,7 @@ function RoiCalculator() {
               { label: 'Revenue Lift', value: `+$${Math.round(lift).toLocaleString()}`, sub: 'vs. current', color: 'from-emerald-400 to-teal-400' },
               { label: 'Monthly ROI', value: `${Math.round(monthlyRoi)}%`, sub: 'After platform fee', color: 'from-amber-400 to-orange-400' },
             ].map(({ label, value, sub, color }) => (
-              <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+              <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 text-center">
                 <div className={`text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r ${color} mb-1`}>{value}</div>
                 <div className="text-white font-medium text-sm mb-1">{label}</div>
                 <div className="text-white/40 text-xs">{sub}</div>
@@ -244,7 +244,7 @@ function ModuleGrid() {
             <a
               key={mod.name}
               href={mod.href}
-              className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all group flex flex-col"
+              className="bg-slate-800/70 border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all group flex flex-col"
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="text-3xl group-hover:scale-110 transition-transform inline-block">{mod.icon}</span>
@@ -282,7 +282,7 @@ function OnboardingFlow() {
           {ONBOARDING_STEPS.map((step, idx) => (
             <div key={step.num} className="flex flex-col md:flex-row items-center flex-1">
               {/* Card */}
-              <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 text-center flex-1 w-full">
+              <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 text-center flex-1 w-full">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm mx-auto mb-3">
                   {step.num}
                 </div>
@@ -352,7 +352,7 @@ function ModuleFlowDiagram() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 flex-wrap">
             {FLOW_NODES.slice(0, 4).map((node, idx) => (
               <div key={node.label} className="flex items-center gap-2">
-                <a href={node.href} className={`backdrop-blur-md ${node.color} border rounded-xl px-4 py-3 text-white text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap`}>
+                <a href={node.href} className={` ${node.color} border rounded-xl px-4 py-3 text-white text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap`}>
                   {node.label}
                 </a>
                 {idx < 3 && <span className="text-white/40 text-xl font-bold">→</span>}
@@ -366,7 +366,7 @@ function ModuleFlowDiagram() {
             {FLOW_NODES.slice(4, 8).map((node, idx) => (
               <div key={node.label} className="flex items-center gap-2">
                 {idx < 3 && idx !== 0 && <span className="text-white/40 text-xl font-bold">←</span>}
-                <a href={node.href} className={`backdrop-blur-md ${node.color} border rounded-xl px-4 py-3 text-white text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap`}>
+                <a href={node.href} className={` ${node.color} border rounded-xl px-4 py-3 text-white text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap`}>
                   {node.label}
                 </a>
                 {idx === 0 && <span className="text-white/40 text-xl font-bold">←</span>}
@@ -379,7 +379,7 @@ function ModuleFlowDiagram() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 flex-wrap">
             {FLOW_NODES.slice(8).map((node, idx) => (
               <div key={node.label} className="flex items-center gap-2">
-                <a href={node.href} className={`backdrop-blur-md ${node.color} border rounded-xl px-4 py-3 text-white text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap`}>
+                <a href={node.href} className={` ${node.color} border rounded-xl px-4 py-3 text-white text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap`}>
                   {node.label}
                 </a>
                 {idx < 2 && <span className="text-white/40 text-xl font-bold">→</span>}
@@ -409,7 +409,7 @@ function PricingSection() {
           {PRICING.map(tier => (
             <div
               key={tier.name}
-              className={`backdrop-blur-md border rounded-2xl p-8 flex flex-col ${
+              className={` border rounded-2xl p-8 flex flex-col ${
                 tier.highlight
                   ? 'bg-purple-500/20 border-purple-400/50 ring-2 ring-purple-400/40 shadow-2xl shadow-purple-500/20 scale-105'
                   : 'bg-white/10 border-white/20'

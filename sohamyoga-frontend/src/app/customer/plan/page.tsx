@@ -25,7 +25,7 @@ export default function PlanPage() {
         <p className="mt-1 text-sm text-white/60">Your personalized practice plan, set by your teacher.</p>
       </div>
       {plans.map(plan => (
-        <div key={plan.id} className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+        <div key={plan.id} className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-white">{plan.name}</h2>
             <div className="flex items-center gap-2">

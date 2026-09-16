@@ -730,7 +730,7 @@ function CompetitorMatrix() {
       </div>
       <div className="grid grid-cols-4 gap-3 text-center">
         {(['critical', 'high', 'medium', 'low'] as ThreatLevel[]).map((t) => (
-          <div key={t} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-3">
+          <div key={t} className=" bg-white/5 border border-white/10 rounded-xl p-3">
             <div className="text-2xl font-bold text-white">{COMPETITORS.filter((c) => c.threatLevel === t).length}</div>
             <div className={`text-xs mt-1 ${t === 'critical' ? 'text-red-300' : t === 'high' ? 'text-orange-300' : t === 'medium' ? 'text-yellow-300' : 'text-green-300'}`}>
               {THREAT_EMOJI[t]} {t.charAt(0).toUpperCase() + t.slice(1)} Threat
@@ -770,7 +770,7 @@ function MarketPositioning() {
         &nbsp;·&nbsp; Dot color = threat level (🔴 critical / 🟠 high / 🟡 medium / 🟢 low)
         &nbsp;·&nbsp; <span className="text-purple-300">■ TalentsHill</span> &nbsp;·&nbsp; <span className="text-cyan-300">■ SohamYoga</span>
       </div>
-      <div className="relative backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl overflow-hidden" style={{ height: 560 }}>
+      <div className="relative  bg-white/5 border border-white/10 rounded-2xl overflow-hidden" style={{ height: 560 }}>
         {/* Axis labels */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 text-white/40 text-xs">← Premium</div>
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white/40 text-xs">Affordable →</div>
@@ -821,7 +821,7 @@ function MarketPositioning() {
 
       {/* Tooltip card */}
       {hoveredDot && (
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-4 text-sm text-white/80">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-4 text-sm text-white/80">
           <div className="font-bold text-white text-base mb-1">{hoveredDot.name}</div>
           {'description' in hoveredDot && <div className="text-white/70 mb-2">{hoveredDot.description}</div>}
           {hoveredDot.startingPrice && (
@@ -846,7 +846,7 @@ function FeatureGapAnalysis() {
     <div className="space-y-6">
       <p className="text-white/60 text-sm">Feature gap analysis for the 5 highest-threat competitors. Red = they have it, we don&apos;t (build opportunities). Green = we have it, they don&apos;t (our advantages).</p>
       {top5.map((c) => (
-        <div key={c.name} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+        <div key={c.name} className=" bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-3">
             <span className="text-lg font-bold text-white">{c.name}</span>
             <Badge label={c.category} className={CATEGORY_COLORS[c.category]} />
@@ -941,17 +941,17 @@ function PricingIntelligence() {
 
       {/* Pricing insight cards */}
       <div className="grid md:grid-cols-3 gap-4">
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4">
+        <div className=" bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="text-white/60 text-xs uppercase tracking-wide mb-2">Market Average (SMB)</div>
           <div className="text-2xl font-bold text-white">$49/mo</div>
           <div className="text-white/50 text-xs mt-1">For a starter plan with social + email</div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4">
+        <div className=" bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="text-white/60 text-xs uppercase tracking-wide mb-2">Market Average (Agency)</div>
           <div className="text-2xl font-bold text-white">$199/mo</div>
           <div className="text-white/50 text-xs mt-1">Multi-account management entry point</div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4">
+        <div className=" bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="text-white/60 text-xs uppercase tracking-wide mb-2">Open-Source Alternatives</div>
           <div className="text-2xl font-bold text-green-400">$0</div>
           <div className="text-white/50 text-xs mt-1">Postiz, Mautic, n8n all self-hostable free</div>
@@ -966,7 +966,7 @@ function PricingIntelligence() {
 function ResearchReport() {
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6 space-y-5 text-white/80 leading-relaxed">
+      <div className=" bg-white/5 border border-white/10 rounded-2xl p-6 space-y-5 text-white/80 leading-relaxed">
         <h2 className="text-xl font-bold text-white">Competitive Intelligence Report — Digital Marketing SaaS (2026)</h2>
         <p className="text-xs text-white/40">Researched: September 2026 &nbsp;·&nbsp; Scope: 19 platforms across 8 categories</p>
 
@@ -1043,7 +1043,7 @@ export default function CompetitorAnalysisPage() {
   return (
     <div className="min-h-screen p-6 space-y-6">
       {/* Header */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Market Intelligence</h1>
@@ -1069,7 +1069,7 @@ export default function CompetitorAnalysisPage() {
       </div>
 
       {/* Tab Bar */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-1.5 flex gap-1 overflow-x-auto">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-1.5 flex gap-1 overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -1086,7 +1086,7 @@ export default function CompetitorAnalysisPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6">
         {activeTab === 'Competitor Matrix' && <CompetitorMatrix />}
         {activeTab === 'Market Positioning' && <MarketPositioning />}
         {activeTab === 'Feature Gap Analysis' && <FeatureGapAnalysis />}

@@ -56,8 +56,8 @@ interface Step {
   decision_point: boolean;
 }
 
-const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
-const glassCard = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg';
+const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
+const glassCard = 'bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg';
 
 function MaturityBadge({ level }: { level: string }) {
   const colors: Record<string, string> = {

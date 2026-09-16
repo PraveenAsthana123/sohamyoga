@@ -88,7 +88,7 @@ const DIRECTIONS = ['higher_better','lower_better','target_range'];
 const FREQUENCIES = ['daily','weekly','monthly','quarterly'];
 const UNITS = ['%','$','count','ratio','days','hours','score','months'];
 
-const GLASS = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+const GLASS = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 const TAB_ACTIVE = 'bg-white/20 text-white rounded-lg px-4 py-2 text-sm font-medium';
 const TAB_INACTIVE = 'text-white/60 hover:bg-white/10 rounded-lg px-4 py-2 text-sm font-medium transition-colors';
 

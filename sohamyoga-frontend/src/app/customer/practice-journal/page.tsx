@@ -62,7 +62,7 @@ export default function PracticeJournalPage() {
         )}
       </div>
 
-      <form onSubmit={submit} className="space-y-3 rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 text-white">
+      <form onSubmit={submit} className="space-y-3 rounded-xl border border-white/20 bg-slate-800/70 p-5 text-white">
         <div className="grid grid-cols-2 gap-2">
           <input type="date" className="rounded border p-2 text-sm" value={form.entryDate} onChange={e => setForm({ ...form, entryDate: e.target.value })} />
           <select className="rounded border p-2 text-sm" value={form.sessionType} onChange={e => setForm({ ...form, sessionType: e.target.value })}>
@@ -82,7 +82,7 @@ export default function PracticeJournalPage() {
 
       <div className="space-y-2 text-white">
         {entries.map(e => (
-          <div key={e.id} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+          <div key={e.id} className="rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
             <div className="flex justify-between">
               <span className="font-medium">{new Date(e.entry_date).toLocaleDateString()} · {e.session_type}</span>
               {e.duration_minutes && <span className="text-white/40">{e.duration_minutes}m</span>}

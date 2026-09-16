@@ -47,7 +47,7 @@ function fmt(ts: string) {
 // ── Live Feed ────────────────────────────────────────────────────────────────
 function LiveFeed({ events }: { events: TrackEvent[] }) {
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl overflow-x-auto">
+    <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl overflow-x-auto">
       <p className="text-white/60 text-xs mb-4">Auto-refreshes every 30 seconds. Showing last 100 events.</p>
       <table className="w-full text-sm">
         <thead>
@@ -99,7 +99,7 @@ function ByPage({ events }: { events: TrackEvent[] }) {
     .sort((a, b) => b.views - a.views);
 
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl overflow-x-auto">
+    <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-white/60 text-left text-xs uppercase tracking-wider">
@@ -135,7 +135,7 @@ function ByEventType({ events }: { events: TrackEvent[] }) {
   const max = rows[0]?.[1] ?? 1;
 
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+    <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl">
       <h3 className="text-white font-semibold mb-4">Event Count Distribution</h3>
       <div className="space-y-3">
         {rows.length === 0 && <p className="text-white/40 text-sm">No data.</p>}
@@ -168,12 +168,12 @@ function CustomerJourneys({ events }: { events: TrackEvent[] }) {
   return (
     <div className="space-y-4">
       {customerMap.size === 0 && (
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl text-white/40 text-sm text-center">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl text-white/40 text-sm text-center">
           No identified customers in the last 100 events.
         </div>
       )}
       {[...customerMap.entries()].map(([customerId, evs]) => (
-        <div key={customerId} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+        <div key={customerId} className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl">
           <h3 className="text-white font-semibold mb-3">Customer #{customerId}</h3>
           <div className="space-y-1">
             {evs.slice(0, 10).map(ev => (
@@ -211,7 +211,7 @@ function FunnelAnalysis({ events }: { events: TrackEvent[] }) {
   const topCount = counts[0] || 1;
 
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+    <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl">
       <h3 className="text-white font-semibold mb-6">5-Step Conversion Funnel</h3>
       <div className="space-y-4">
         {steps.map((step, i) => {

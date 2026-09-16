@@ -61,7 +61,7 @@ export default function CustomerOnboardingPage() {
 
   return (
     <div className="min-h-screen bg-white/5 flex items-center justify-center p-6">
-      <div className="max-w-lg w-full backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-2xl p-8">
+      <div className="max-w-lg w-full bg-slate-800/70 border border-white/20 rounded-2xl-2xl p-8">
         <div className="flex gap-1 mb-6">
           {STEPS.map((s, i) => <div key={s} className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? 'bg-teal-600' : 'bg-gray-200'}`} />)}
         </div>

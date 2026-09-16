@@ -173,7 +173,7 @@ function AgencyRoiCalculator() {
         </p>
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Inputs */}
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-8 space-y-8">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-8 space-y-8">
             <div>
               <div className="flex justify-between mb-2">
                 <label className="text-white/80 font-medium">Number of Clients</label>
@@ -213,7 +213,7 @@ function AgencyRoiCalculator() {
               { label: 'Cost per Client', value: `$${Math.round(costPerClient)}`, sub: 'Agency Pro plan', color: 'from-teal-400 to-emerald-400' },
               { label: 'Platform ROI', value: `${Math.round(Math.max(0, platformRoi))}%`, sub: 'Est. return on platform fee', color: 'from-amber-400 to-orange-400' },
             ].map(({ label, value, sub, color }) => (
-              <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+              <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 text-center">
                 <div className={`text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r ${color} mb-1`}>{value}</div>
                 <div className="text-white font-medium text-sm mb-1">{label}</div>
                 <div className="text-white/40 text-xs">{sub}</div>
@@ -247,7 +247,7 @@ export default function TalentsHillSalesPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
 
       {/* Nav */}
-      <nav className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
+      <nav className="bg-slate-900/80 border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
           <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
             TalentsHill
@@ -265,7 +265,7 @@ export default function TalentsHillSalesPage() {
             </Link>
             <Link
               href="/talentshill/login"
-              className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-5 py-2 text-sm font-semibold transition-all"
+              className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-5 py-2 text-sm font-semibold transition-all"
             >
               Start Free Trial
             </Link>
@@ -275,7 +275,7 @@ export default function TalentsHillSalesPage() {
 
       {/* Hero */}
       <section className="max-w-7xl mx-auto px-6 pt-24 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 backdrop-blur-md bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-2 text-sm text-blue-300 mb-8">
+        <div className="inline-flex items-center gap-2  bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-2 text-sm text-blue-300 mb-8">
           <span>🏆</span>
           <span>Agency-Grade Digital Marketing Platform</span>
         </div>
@@ -293,16 +293,16 @@ export default function TalentsHillSalesPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
           <Link
             href="/talentshill/login"
-            className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-8 py-4 font-semibold text-lg transition-all shadow-lg shadow-blue-500/20"
+            className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-8 py-4 font-semibold text-lg transition-all shadow-lg shadow-blue-500/20"
           >
             Start Free Trial
           </Link>
-          <button className="backdrop-blur-md bg-white/10 border border-white/20 text-white rounded-xl px-8 py-4 font-semibold text-lg hover:bg-white/20 transition-all">
+          <button className="bg-slate-800/70 border border-white/20 text-white rounded-xl px-8 py-4 font-semibold text-lg hover:bg-white/20 transition-all">
             Book a Demo ▶
           </button>
         </div>
         {/* Stats */}
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { value: '500+', label: 'Campaigns Run' },
@@ -356,7 +356,7 @@ export default function TalentsHillSalesPage() {
               <a
                 key={mod.name}
                 href={mod.href}
-                className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all group flex flex-col"
+                className="bg-slate-800/70 border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all group flex flex-col"
               >
                 <div className="flex items-start justify-between mb-3">
                   <span className="text-3xl group-hover:scale-110 transition-transform inline-block">{mod.icon}</span>
@@ -388,7 +388,7 @@ export default function TalentsHillSalesPage() {
           <div className="flex flex-col md:flex-row items-stretch gap-0 flex-wrap justify-center">
             {ONBOARDING_STEPS.map((step, idx) => (
               <div key={step.num} className="flex flex-col md:flex-row items-center flex-1 min-w-0">
-                <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-5 text-center flex-1 w-full min-w-[140px]">
+                <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-5 text-center flex-1 w-full min-w-[140px]">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm mx-auto mb-3">
                     {step.num}
                   </div>
@@ -437,7 +437,7 @@ export default function TalentsHillSalesPage() {
                 item.isArrow ? (
                   <span key={i} className="text-white/40 text-xl font-bold">{item.label}</span>
                 ) : (
-                  <div key={i} className={`backdrop-blur-md ${item.color} border rounded-xl px-4 py-3 text-white text-sm font-medium whitespace-nowrap`}>
+                  <div key={i} className={` ${item.color} border rounded-xl px-4 py-3 text-white text-sm font-medium whitespace-nowrap`}>
                     {item.label}
                   </div>
                 )
@@ -458,7 +458,7 @@ export default function TalentsHillSalesPage() {
                 item.isArrow ? (
                   <span key={i} className="text-white/40 text-xl font-bold">{item.label}</span>
                 ) : (
-                  <div key={i} className={`backdrop-blur-md ${item.color} border rounded-xl px-4 py-3 text-white text-sm font-medium whitespace-nowrap`}>
+                  <div key={i} className={` ${item.color} border rounded-xl px-4 py-3 text-white text-sm font-medium whitespace-nowrap`}>
                     {item.label}
                   </div>
                 )
@@ -500,7 +500,7 @@ export default function TalentsHillSalesPage() {
             {RESEARCH_FEATURES.map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all group"
+                className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all group"
               >
                 <div className="text-3xl mb-4 group-hover:scale-110 transition-transform inline-block">{icon}</div>
                 <h3 className="text-white font-semibold mb-2">{title}</h3>
@@ -528,7 +528,7 @@ export default function TalentsHillSalesPage() {
             {PRICING.map(tier => (
               <div
                 key={tier.name}
-                className={`backdrop-blur-md border rounded-2xl p-8 flex flex-col ${
+                className={` border rounded-2xl p-8 flex flex-col ${
                   tier.highlight
                     ? 'bg-blue-500/20 border-blue-400/50 ring-2 ring-blue-400/40 shadow-2xl shadow-blue-500/20 scale-105'
                     : 'bg-white/10 border-white/20'
@@ -577,7 +577,7 @@ export default function TalentsHillSalesPage() {
 
       {/* CTA Footer */}
       <section className="max-w-4xl mx-auto px-6 py-24 text-center">
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-12">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Scale Your{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
@@ -588,7 +588,7 @@ export default function TalentsHillSalesPage() {
             Join 500+ agencies growing faster with TalentsHill. Get started in minutes.
           </p>
           {emailSubmitted ? (
-            <div className="backdrop-blur-md bg-emerald-500/20 border border-emerald-400/30 rounded-xl p-4 text-emerald-300">
+            <div className=" bg-emerald-500/20 border border-emerald-400/30 rounded-xl p-4 text-emerald-300">
               Thanks! We&apos;ll reach out to {email} within 24 hours.
             </div>
           ) : (
@@ -599,11 +599,11 @@ export default function TalentsHillSalesPage() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="agency@company.com"
                 required
-                className="flex-1 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 backdrop-blur-sm focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all"
+                className="flex-1 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3  focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all"
               />
               <button
                 type="submit"
-                className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 font-semibold transition-all whitespace-nowrap"
+                className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 font-semibold transition-all whitespace-nowrap"
               >
                 Get Started
               </button>
@@ -613,7 +613,7 @@ export default function TalentsHillSalesPage() {
       </section>
 
       {/* Page footer */}
-      <footer className="backdrop-blur-xl bg-white/5 border-t border-white/10 py-6 px-6 text-center">
+      <footer className="bg-slate-900/80 border-t border-white/10 py-6 px-6 text-center">
         <p className="text-white/30 text-sm">
           &copy; 2026 TalentsHill. Powered by SohamYoga Platform. All rights reserved.
         </p>

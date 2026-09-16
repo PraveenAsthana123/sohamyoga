@@ -97,7 +97,7 @@ function CustomerChatInner() {
       </div>
 
       {/* Message list */}
-      <div className="flex-1 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl overflow-y-auto p-4 space-y-3 min-h-0 text-white">
+      <div className="flex-1 bg-slate-800/70 border border-white/20 rounded-2xl-xl overflow-y-auto p-4 space-y-3 min-h-0 text-white">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />

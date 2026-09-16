@@ -68,7 +68,7 @@ export default function CustomerAdsPage() {
             { label: 'Leads Generated', value: String(totalConversions), color: 'text-green-600' },
             { label: 'Est. ROI', value: `${estimatedROI}%`, color: Number(estimatedROI) >= 0 ? 'text-green-600' : 'text-red-600' },
           ].map(k => (
-            <div key={k.label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl p-4 shadow-sm border-gray-100">
+            <div key={k.label} className="bg-slate-800/70 border border-white/20 rounded-2xl-xl p-4 shadow-sm border-gray-100">
               <p className="text-xs text-white/60">{k.label}</p>
               <p className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</p>
             </div>
@@ -77,7 +77,7 @@ export default function CustomerAdsPage() {
 
         {/* Spend vs Budget */}
         {campaigns.length > 0 && (
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl shadow-sm border-gray-100 p-5">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl-xl shadow-sm border-gray-100 p-5">
             <h3 className="font-semibold text-white mb-4">Spend vs. Budget</h3>
             <div className="space-y-3 text-white">
               {campaigns.map(c => {
@@ -100,7 +100,7 @@ export default function CustomerAdsPage() {
         )}
 
         {/* Campaign List */}
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl shadow-sm border-gray-100 p-5">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl-xl shadow-sm border-gray-100 p-5">
           <h3 className="font-semibold text-white mb-4">Active Campaigns</h3>
           {loading ? <EmptyState message="Loading…" /> : campaigns.length === 0 ? (
             <EmptyState message="No active campaigns at the moment. Contact your account manager to launch a new campaign." />
@@ -130,7 +130,7 @@ export default function CustomerAdsPage() {
         </div>
 
         {/* Performance Summary */}
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl shadow-sm border-gray-100 p-5">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl-xl shadow-sm border-gray-100 p-5">
           <h3 className="font-semibold text-white mb-3">Performance Summary</h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center">

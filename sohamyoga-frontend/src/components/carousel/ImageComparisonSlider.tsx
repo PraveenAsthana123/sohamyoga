@@ -147,7 +147,7 @@ export default function ImageComparisonSlider({
             draggable={false}
           />
           {afterLabel && (
-            <div className={`absolute bottom-3 ${isHorizontal ? "right-3" : "bottom-3 left-1/2 -translate-x-1/2"} bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full select-none pointer-events-none`}>
+            <div className={`absolute bottom-3 ${isHorizontal ? "right-3" : "bottom-3 left-1/2 -translate-x-1/2"} bg-black/60  text-white text-xs font-semibold px-3 py-1 rounded-full select-none pointer-events-none`}>
               {afterLabel}
             </div>
           )}
@@ -167,7 +167,7 @@ export default function ImageComparisonSlider({
             draggable={false}
           />
           {beforeLabel && (
-            <div className={`absolute bottom-3 ${isHorizontal ? "left-3" : "top-3 left-1/2 -translate-x-1/2"} bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full select-none pointer-events-none`}>
+            <div className={`absolute bottom-3 ${isHorizontal ? "left-3" : "top-3 left-1/2 -translate-x-1/2"} bg-black/60  text-white text-xs font-semibold px-3 py-1 rounded-full select-none pointer-events-none`}>
               {beforeLabel}
             </div>
           )}
@@ -199,7 +199,7 @@ export default function ImageComparisonSlider({
         </div>
 
         {/* Position indicator */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full backdrop-blur-sm pointer-events-none select-none z-20 opacity-0 hover:opacity-100 transition-opacity">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full  pointer-events-none select-none z-20 opacity-0 hover:opacity-100 transition-opacity">
           {Math.round(position)}%
         </div>
       </div>

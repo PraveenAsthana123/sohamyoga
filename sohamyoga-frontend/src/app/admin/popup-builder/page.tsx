@@ -117,7 +117,7 @@ function TriggerDesc({ type, value }: { type: TriggerType; value: string | null 
 
 function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+    <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl">
       <p className="text-white/60 text-sm mb-1">{label}</p>
       <p className="text-white text-2xl font-bold">{value}</p>
     </div>
@@ -394,14 +394,14 @@ export default function PopupBuilderPage() {
       {tab === 'live' && !loading && (
         <div>
           {livePopups.length === 0 ? (
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-12 text-center">
               <p className="text-white/40 text-4xl mb-3">🎯</p>
               <p className="text-white/60">No active popups. Create one and set it to Active.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {livePopups.map(p => (
-                <div key={p.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+                <div key={p.id} className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-white font-semibold">{p.name}</p>
@@ -482,7 +482,7 @@ export default function PopupBuilderPage() {
             ))}
           </div>
 
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
@@ -576,7 +576,7 @@ export default function PopupBuilderPage() {
             )}
 
             {/* Name */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-white font-semibold">Basic Info</h2>
               <div>
                 <label className="block text-white/80 text-sm mb-1">Name <span className="text-red-400">*</span></label>
@@ -592,7 +592,7 @@ export default function PopupBuilderPage() {
             </div>
 
             {/* Type */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-white font-semibold">Popup Type</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {TYPE_OPTIONS.map(opt => (
@@ -615,7 +615,7 @@ export default function PopupBuilderPage() {
             </div>
 
             {/* Trigger */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-white font-semibold">Trigger</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -650,7 +650,7 @@ export default function PopupBuilderPage() {
             </div>
 
             {/* Content */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-white font-semibold">Content</h2>
               <div>
                 <label className="block text-white/80 text-sm mb-1">Headline</label>
@@ -697,7 +697,7 @@ export default function PopupBuilderPage() {
             </div>
 
             {/* Targeting & Display */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-white font-semibold">Targeting &amp; Display</h2>
               <div>
                 <label className="block text-white/80 text-sm mb-1">
@@ -738,7 +738,7 @@ export default function PopupBuilderPage() {
             </div>
 
             {/* Colors */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-white font-semibold">Colors</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -789,7 +789,7 @@ export default function PopupBuilderPage() {
 
           {/* Preview Panel */}
           <div className="space-y-4">
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl sticky top-6">
+            <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl sticky top-6">
               <h2 className="text-white font-semibold mb-4">Live Preview</h2>
               <div className="bg-white/5 rounded-xl p-4 min-h-40 flex items-center justify-center">
                 <PopupPreview form={form} />
@@ -818,7 +818,7 @@ export default function PopupBuilderPage() {
           </div>
 
           {/* Top 5 by CTR */}
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl">
             <h2 className="text-white font-semibold mb-4">Top 5 Popups by CTR</h2>
             {top5.length === 0 ? (
               <p className="text-white/40 text-sm">No data yet.</p>
@@ -849,7 +849,7 @@ export default function PopupBuilderPage() {
           </div>
 
           {/* Bar chart — impressions per popup */}
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl">
             <h2 className="text-white font-semibold mb-4">Impressions by Popup</h2>
             {popups.length === 0 ? (
               <p className="text-white/40 text-sm">No data yet.</p>

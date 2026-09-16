@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 const tabBase = 'px-4 py-2 rounded-lg text-sm font-medium transition-colors';
 const tabActive = 'bg-white/20 text-white';
 const tabInactive = 'text-white/60 hover:bg-white/10';

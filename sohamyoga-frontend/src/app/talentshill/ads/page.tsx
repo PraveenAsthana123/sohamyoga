@@ -101,7 +101,7 @@ export default function TalentsHillAdsPage() {
           { label: 'Conversions', value: fmt(totalConversions), icon: '✅' },
           { label: 'Avg ROAS', value: `${avgRoas.toFixed(1)}x`, icon: '📈' },
         ].map(({ label, value, icon }) => (
-          <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-5 text-center">
+          <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-5 text-center">
             <div className="text-2xl mb-2">{icon}</div>
             <div className="text-xl font-bold text-white">{value}</div>
             <div className="text-white/50 text-xs mt-1">{label}</div>
@@ -110,7 +110,7 @@ export default function TalentsHillAdsPage() {
       </div>
 
       {/* Ad Groups Table */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Campaign / Ad Groups</h2>
         </div>

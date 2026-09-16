@@ -113,7 +113,7 @@ export default function TalentsHillLeadsPage() {
           { label: 'Converted', value: displayLeads.filter((l) => l.status === 'converted').length, icon: '✅' },
           { label: 'Pipeline Value', value: fmt(totalValue, '$'), icon: '💰' },
         ].map(({ label, value, icon }) => (
-          <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-5 text-center">
+          <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-5 text-center">
             <div className="text-2xl mb-2">{icon}</div>
             <div className="text-xl font-bold text-white">{value}</div>
             <div className="text-white/50 text-xs mt-1">{label}</div>
@@ -128,7 +128,7 @@ export default function TalentsHillLeadsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name or email…"
-          className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-2.5 text-sm backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all w-64"
+          className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-2.5 text-sm  focus:outline-none focus:border-blue-400/60 transition-all w-64"
         />
         <div className="flex items-center gap-2">
           <span className="text-white/50 text-sm">Status:</span>
@@ -145,7 +145,7 @@ export default function TalentsHillLeadsPage() {
       </div>
 
       {/* Leads Table */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-white/40">Loading leads…</div>
         ) : filtered.length === 0 ? (

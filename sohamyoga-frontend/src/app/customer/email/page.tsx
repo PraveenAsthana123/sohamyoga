@@ -60,7 +60,7 @@ export default function CustomerEmailPage() {
           <p className="text-sm text-white/60 mt-1">Manage your email subscriptions and opt-out settings.</p>
         </div>
 
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl p-5 space-y-3 text-white">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl-xl p-5 space-y-3 text-white">
           <label className="block text-sm font-medium text-white/80">Look up your subscription</label>
           <div className="flex gap-2">
             <input
@@ -83,7 +83,7 @@ export default function CustomerEmailPage() {
         </div>
 
         {subscriber && (
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl p-5 space-y-4 text-white">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl-xl p-5 space-y-4 text-white">
             <h2 className="text-sm font-semibold text-white/80">Your Subscription</h2>
             <div className="space-y-2 text-sm text-white">
               <div className="flex justify-between">
@@ -132,7 +132,7 @@ export default function CustomerEmailPage() {
           </div>
         )}
 
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl p-5">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl-xl p-5">
           <h2 className="text-sm font-semibold text-white/80 mb-3">Email History</h2>
           <p className="text-sm text-white/50">
             Demo mode — configure SMTP to track real email delivery history.

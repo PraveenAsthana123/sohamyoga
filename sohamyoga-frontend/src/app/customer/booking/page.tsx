@@ -77,7 +77,7 @@ export default function CustomerBookingPage() {
       )}
 
       {/* Book new appointment */}
-      <div className="rounded-xl border backdrop-blur-md bg-white/10 border-white/20 p-5">
+      <div className="rounded-xl border bg-slate-800/70 border-white/20 p-5">
         <h2 className="mb-3 font-semibold text-white/90">Book an Appointment</h2>
         {calConfigured ? (
           <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
@@ -106,7 +106,7 @@ export default function CustomerBookingPage() {
       </div>
 
       {/* Upcoming bookings */}
-      <div className="rounded-xl border backdrop-blur-md bg-white/10 border-white/20 p-5">
+      <div className="rounded-xl border bg-slate-800/70 border-white/20 p-5">
         <h2 className="mb-3 font-semibold text-white/90">Upcoming ({upcoming.length})</h2>
         {upcoming.length === 0 ? (
           <p className="text-sm text-white/40">No upcoming appointments.</p>
@@ -140,7 +140,7 @@ export default function CustomerBookingPage() {
 
       {/* Past bookings */}
       {past.length > 0 && (
-        <div className="rounded-xl border backdrop-blur-md bg-white/10 border-white/20 p-5">
+        <div className="rounded-xl border bg-slate-800/70 border-white/20 p-5">
           <h2 className="mb-3 font-semibold text-white/90">Past Appointments</h2>
           <div className="space-y-2 text-white">
             {past.map(b => (

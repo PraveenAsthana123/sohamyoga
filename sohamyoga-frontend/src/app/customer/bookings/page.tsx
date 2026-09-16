@@ -62,7 +62,7 @@ export default function BookingsPage() {
 
 function BookingCard({ b, onRated }: { b: Booking; onRated?: () => void }) {
   return (
-    <div className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+    <div className="rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
       <div className="flex justify-between">
         <span className="font-medium">{b.class_name}</span>
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs capitalize">{b.status.replaceAll('_', ' ')}</span>

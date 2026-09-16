@@ -181,7 +181,7 @@ export default function GalleryCarousel({
             </div>
             {/* Category badge */}
             {item.category && (
-              <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full backdrop-blur-sm">
+              <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full ">
                 {item.category}
               </div>
             )}

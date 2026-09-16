@@ -13,7 +13,7 @@ function BlogCard({ post }: { post: BlogPost }) {
   return (
     <Link
       href={`/customer/blog/${post.slug}`}
-      className="group block backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
+      className="group block bg-slate-800/70 border border-white/20 rounded-2xl-xl hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
     >
       {post.featuredImageUrl ? (
         <img

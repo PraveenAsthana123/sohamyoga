@@ -178,7 +178,7 @@ export default function CompetitorManagementPage() {
 
   const selected = competitors.find(c => c.id === selectedId);
 
-  const glassCard = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+  const glassCard = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
   const inputClass = 'w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400';
   const labelClass = 'block text-white/70 text-sm mb-1';
 

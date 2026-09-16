@@ -31,7 +31,7 @@ export default function IntegrationsPage() {
         {integrations.map(i => {
           const badge = STATUS_BADGE[i.status] ?? { label: i.status, className: 'bg-white/10 text-white/60' };
           return (
-            <div key={i.key} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-4 text-sm">
+            <div key={i.key} className="rounded-lg border border-white/20 bg-slate-800/70 p-4 text-sm">
               <div className="flex items-center justify-between">
                 <span className="font-medium">{i.label}</span>
                 <span className={`rounded-full px-2 py-0.5 text-xs ${badge.className}`}>{badge.label}</span>

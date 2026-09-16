@@ -51,8 +51,8 @@ interface PipelineRun {
   error_message: string | null;
 }
 
-const GLASS = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
-const GLASS_SM = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg';
+const GLASS = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
+const GLASS_SM = 'bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg';
 
 const TYPE_COLORS: Record<string, string> = {
   data: 'bg-blue-500/30 text-blue-200',
@@ -311,7 +311,7 @@ export default function PipelinesPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   {(Array.isArray(selectedPipeline.stages) ? selectedPipeline.stages : []).sort((a, b) => (a.order || 0) - (b.order || 0)).map((stage, i, arr) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-full px-5 py-3 flex flex-col items-center gap-1 min-w-[100px]">
+                      <div className="bg-slate-800/70 border border-white/20 rounded-full px-5 py-3 flex flex-col items-center gap-1 min-w-[100px]">
                         <span className="text-lg">{STAGE_ICONS[stage.type] || '⬜'}</span>
                         <span className="text-white text-xs font-medium text-center">{stage.name}</span>
                         <span className="text-white/50 text-xs">{stage.type}</span>

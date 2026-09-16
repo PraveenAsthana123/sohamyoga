@@ -99,7 +99,7 @@ export default function AboutSection() {
                   {stats.map((stat, index) => (
                     <div
                       key={index}
-                      className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center"
+                      className="bg-white/10  rounded-xl p-6 border border-white/10 text-center"
                     >
                       <div className="text-3xl lg:text-4xl font-bold text-white mb-1">
                         {stat.value}
@@ -112,7 +112,7 @@ export default function AboutSection() {
                 </div>
 
                 {/* Bottom section */}
-                <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <div className="mt-8 bg-white/10  rounded-xl p-6 border border-white/10">
                   <div className="flex items-center gap-4">
                     <div className="flex-shrink-0 w-12 h-12 bg-accent-500 rounded-xl flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

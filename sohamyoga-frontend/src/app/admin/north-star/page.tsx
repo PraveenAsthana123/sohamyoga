@@ -51,7 +51,7 @@ interface ApiData {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-const GLASS = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+const GLASS = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 const TAB_ACTIVE = 'bg-white/20 text-white rounded-lg px-4 py-2 text-sm font-medium';
 const TAB_INACTIVE = 'text-white/60 hover:bg-white/10 rounded-lg px-4 py-2 text-sm font-medium transition-colors';
 
@@ -595,7 +595,7 @@ export default function NorthStarPage() {
 
         {/* KR Update Modal */}
         {updatingKr && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50 p-4">
             <div className={GLASS + ' w-full max-w-md'}>
               <h3 className="text-white font-semibold mb-1">Update Key Result</h3>
               <p className="text-white/60 text-sm mb-4">KR{updatingKr.kr_number}: {updatingKr.description}</p>

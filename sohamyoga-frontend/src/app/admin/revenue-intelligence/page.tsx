@@ -78,7 +78,7 @@ function maskEmail(email: string) {
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
+    <div className={`bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
       {children}
     </div>
   );
@@ -392,7 +392,7 @@ function Forecast({ data }: { data: ApiData }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {scenarios.map(s => (
-          <div key={s.label} className={`backdrop-blur-md border rounded-2xl p-6 shadow-xl ${s.color}`}>
+          <div key={s.label} className={` border rounded-2xl p-6 shadow-xl ${s.color}`}>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">{s.icon}</span>
               <h3 className="text-white font-semibold">{s.label}</h3>
@@ -484,11 +484,11 @@ export default function RevenueIntelligencePage() {
           </div>
           {data && (
             <div className="flex gap-3">
-              <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl px-4 py-2">
+              <div className="bg-slate-800/70 border border-white/20 rounded-xl px-4 py-2">
                 <p className="text-white/50 text-xs">MRR</p>
                 <p className="text-white font-bold text-lg">{fmtMoney(data.mrr.current)}</p>
               </div>
-              <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl px-4 py-2">
+              <div className="bg-slate-800/70 border border-white/20 rounded-xl px-4 py-2">
                 <p className="text-white/50 text-xs">ARR</p>
                 <p className="text-white font-bold text-lg">{fmtMoney(data.arr.current, true)}</p>
               </div>

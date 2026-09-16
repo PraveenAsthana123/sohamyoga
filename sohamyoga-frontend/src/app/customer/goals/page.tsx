@@ -67,7 +67,7 @@ export default function GoalsPage() {
 
       <div className="space-y-2 text-white">
         {goals.map(g => (
-          <div key={g.goal_code} className="flex items-center justify-between rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+          <div key={g.goal_code} className="flex items-center justify-between rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
             <span><span className="mr-2 text-white/40">#{g.priority}</span>{g.label}</span>
             <button onClick={() => remove(g.goal_code)} className="text-xs text-red-500 hover:underline">Remove</button>
           </div>

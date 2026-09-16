@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 const tabBase = 'px-4 py-2 rounded-lg text-sm font-medium transition-colors';
 const tabActive = 'bg-white/20 text-white';
 const tabInactive = 'text-white/60 hover:bg-white/10';
@@ -179,7 +179,7 @@ export default function RegulatoryPage() {
 
       {/* Update Modal */}
       {updateForm.id && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60  z-40 flex items-center justify-center p-4">
           <div className={`${glass} w-full max-w-md`}>
             <h3 className="text-white font-bold mb-4">Update Regulation</h3>
             <div className="space-y-3">

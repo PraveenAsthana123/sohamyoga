@@ -58,7 +58,7 @@ export default function NewsletterSection() {
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Icon */}
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10  rounded-2xl mb-6">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
@@ -73,7 +73,7 @@ export default function NewsletterSection() {
         </p>
 
         {status === 'success' ? (
-          <div className="inline-flex items-center gap-3 px-6 py-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+          <div className="inline-flex items-center gap-3 px-6 py-4 bg-white/10  rounded-xl border border-white/20">
             <svg className="w-6 h-6 text-accent-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -91,7 +91,7 @@ export default function NewsletterSection() {
                     if (status === 'error') setStatus('idle');
                   }}
                   placeholder="Enter your email address"
-                  className="w-full px-5 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all"
+                  className="w-full px-5 py-4 bg-white/10  border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all"
                   required
                   disabled={status === 'loading'}
                 />

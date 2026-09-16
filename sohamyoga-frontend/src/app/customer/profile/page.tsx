@@ -50,7 +50,7 @@ export default function ProfilePage() {
         <p className="mt-1 text-sm text-white/60">Manage your saved addresses.</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-2 rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 text-white">
+      <form onSubmit={submit} className="space-y-2 rounded-xl border border-white/20 bg-slate-800/70 p-5 text-white">
         <input placeholder="Label (e.g. Home)" className="w-full rounded border p-2 text-sm" value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} />
         <input required placeholder="Address line 1" className="w-full rounded border p-2 text-sm" value={form.line1} onChange={e => setForm({ ...form, line1: e.target.value })} />
         <input placeholder="Address line 2 (optional)" className="w-full rounded border p-2 text-sm" value={form.line2} onChange={e => setForm({ ...form, line2: e.target.value })} />
@@ -68,7 +68,7 @@ export default function ProfilePage() {
 
       <div className="space-y-2 text-white">
         {addresses.map(a => (
-          <div key={a.id} className="flex items-start justify-between rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+          <div key={a.id} className="flex items-start justify-between rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
             <div>
               <span className="font-medium">{a.label}</span>
               <p className="text-white/70">{a.line1}{a.line2 ? `, ${a.line2}` : ''}, {a.city}{a.state ? `, ${a.state}` : ''} {a.postal_code ?? ''} {a.country}</p>

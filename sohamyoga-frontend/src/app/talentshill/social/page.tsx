@@ -114,7 +114,7 @@ export default function TalentsHillSocialPage() {
   return (
     <div className="space-y-8 relative">
       {toast && (
-        <div className="fixed top-6 right-6 z-[100] backdrop-blur-md bg-green-500/20 border border-green-400/30 rounded-xl px-5 py-3 text-green-300 text-sm shadow-xl max-w-sm">
+        <div className="fixed top-6 right-6 z-[100]  bg-green-500/20 border border-green-400/30 rounded-xl px-5 py-3 text-green-300 text-sm shadow-xl max-w-sm">
           {toast}
         </div>
       )}
@@ -131,13 +131,13 @@ export default function TalentsHillSocialPage() {
         {loading ? (
           <div className="grid md:grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-5 animate-pulse h-24" />
+              <div key={i} className="bg-slate-800/70 border border-white/20 rounded-2xl p-5 animate-pulse h-24" />
             ))}
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-4">
             {STATIC_ACCOUNTS.map((acc) => (
-              <div key={acc.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-5 flex items-center gap-4">
+              <div key={acc.id} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-5 flex items-center gap-4">
                 <div className="text-3xl">{getPlatformIcon(acc.platform ?? '')}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm">{acc.platform}</p>
@@ -155,7 +155,7 @@ export default function TalentsHillSocialPage() {
 
       {/* Content Drafts Awaiting Approval */}
       {drafts.length > 0 && (
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Drafts Awaiting Approval</h2>
           <div className="space-y-3">
             {drafts.slice(0, 5).map((draft, i) => (
@@ -175,7 +175,7 @@ export default function TalentsHillSocialPage() {
       )}
 
       {/* Recent Posts */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Recent Posts</h2>
         </div>
@@ -198,7 +198,7 @@ export default function TalentsHillSocialPage() {
       </div>
 
       {/* Schedule a Post */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-4">Schedule a Post</h2>
         <form onSubmit={handleSchedule} className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
@@ -207,7 +207,7 @@ export default function TalentsHillSocialPage() {
               <select
                 value={form.platform}
                 onChange={(e) => setForm({ ...form, platform: e.target.value })}
-                className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
               >
                 {SCHEDULE_PLATFORMS.map((p) => (
                   <option key={p} value={p} className="bg-slate-900">{p}</option>
@@ -220,7 +220,7 @@ export default function TalentsHillSocialPage() {
                 type="datetime-local"
                 value={form.scheduledDate}
                 onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
-                className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
               />
             </div>
           </div>
@@ -232,12 +232,12 @@ export default function TalentsHillSocialPage() {
               placeholder="Write your post content here…"
               rows={4}
               required
-              className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all resize-none"
+              className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all resize-none"
             />
           </div>
           <button
             type="submit"
-            className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all"
+            className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all"
           >
             📅 Submit for Scheduling
           </button>
@@ -245,7 +245,7 @@ export default function TalentsHillSocialPage() {
       </div>
 
       {/* Performance by Platform */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Performance by Platform</h2>
         </div>

@@ -97,7 +97,7 @@ export default function TalentsHillReportsPage() {
   return (
     <div className="space-y-8 relative">
       {toast && (
-        <div className="fixed top-6 right-6 z-[100] backdrop-blur-md bg-blue-500/20 border border-blue-400/30 rounded-xl px-5 py-3 text-blue-300 text-sm shadow-xl max-w-sm">
+        <div className="fixed top-6 right-6 z-[100]  bg-blue-500/20 border border-blue-400/30 rounded-xl px-5 py-3 text-blue-300 text-sm shadow-xl max-w-sm">
           {toast}
         </div>
       )}
@@ -111,7 +111,7 @@ export default function TalentsHillReportsPage() {
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {summaryStats.map(({ label, value, icon }) => (
-          <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-5 text-center">
+          <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-5 text-center">
             <div className="text-2xl mb-2">{icon}</div>
             <div className="text-xl font-bold text-white">{value}</div>
             <div className="text-white/50 text-xs mt-1">{label}</div>
@@ -126,7 +126,7 @@ export default function TalentsHillReportsPage() {
           {REPORTS.map((report) => (
             <div
               key={report.period}
-              className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6 flex flex-col gap-4"
+              className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6 flex flex-col gap-4"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -135,7 +135,7 @@ export default function TalentsHillReportsPage() {
                   </h3>
                   <p className="text-white/50 text-sm mt-0.5">Monthly Performance Report</p>
                 </div>
-                <span className="backdrop-blur-md bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs px-3 py-1.5 rounded-full">
+                <span className=" bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs px-3 py-1.5 rounded-full">
                   📋 Available
                 </span>
               </div>
@@ -147,7 +147,7 @@ export default function TalentsHillReportsPage() {
                   { label: 'Ad Spend', value: report.spend },
                   { label: 'Leads', value: report.leads },
                 ].map(({ label, value }) => (
-                  <div key={label} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                  <div key={label} className=" bg-white/5 border border-white/10 rounded-xl p-3 text-center">
                     <div className="text-white font-semibold text-sm">{value}</div>
                     <div className="text-white/40 text-xs mt-0.5">{label}</div>
                   </div>
@@ -176,7 +176,7 @@ export default function TalentsHillReportsPage() {
               {/* Download button */}
               <button
                 onClick={() => handleDownload(report)}
-                className="w-full bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all mt-auto"
+                className="w-full bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all mt-auto"
               >
                 ⬇ Download PDF
               </button>
@@ -186,7 +186,7 @@ export default function TalentsHillReportsPage() {
       </div>
 
       {/* Request custom report */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-8 text-center">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-8 text-center">
         <div className="text-4xl mb-3">📊</div>
         <h3 className="text-white font-semibold text-lg mb-2">Need a Custom Report?</h3>
         <p className="text-white/50 text-sm mb-6 max-w-md mx-auto">
@@ -194,7 +194,7 @@ export default function TalentsHillReportsPage() {
         </p>
         <a
           href="mailto:reports@talentshill.com?subject=Custom Report Request"
-          className="inline-block bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all"
+          className="inline-block bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all"
         >
           ✉️ Request Custom Report
         </a>

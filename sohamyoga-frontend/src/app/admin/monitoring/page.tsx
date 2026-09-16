@@ -66,7 +66,7 @@ interface ErrorLogsData { items: ErrorRow[]; total: number }
 // ── Shared UI atoms ────────────────────────────────────────────────────────
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-5 ${className}`}>
+    <div className={`bg-slate-800/70 border border-white/20 rounded-2xl p-5 ${className}`}>
       {children}
     </div>
   );
@@ -118,7 +118,7 @@ function SystemHealthTab() {
 
   useEffect(() => {
     void load();
-    timerRef.current = setInterval(() => { void load(); }, 30_000);
+    timerRef.current = setInterval(() => { void load(); }, 20_000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [load]);
 
@@ -172,7 +172,7 @@ function SystemHealthTab() {
           </tbody>
         </table>
       </GlassCard>
-      <p className="text-white/30 text-xs text-right">Auto-refreshes every 30s</p>
+      <p className="text-white/30 text-xs text-right">Auto-refreshes every 20s</p>
     </div>
   );
 }
@@ -580,7 +580,7 @@ function JobMonitorTab() {
 
   useEffect(() => {
     void load();
-    timerRef.current = setInterval(() => { void load(); }, 15_000);
+    timerRef.current = setInterval(() => { void load(); }, 20_000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [load]);
 
@@ -595,7 +595,7 @@ function JobMonitorTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-white/30 text-xs text-right">Auto-refreshes every 15s</p>
+      <p className="text-white/30 text-xs text-right">Auto-refreshes every 20s</p>
       <div className="grid grid-cols-3 gap-4">
         <GlassCard>
           <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Running Now</p>
@@ -678,7 +678,7 @@ function SessionMonitorTab() {
 
   useEffect(() => {
     void load();
-    timerRef.current = setInterval(() => { void load(); }, 15_000);
+    timerRef.current = setInterval(() => { void load(); }, 20_000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [load]);
 
@@ -716,7 +716,7 @@ function SessionMonitorTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-white/30 text-xs text-right">Auto-refreshes every 15s</p>
+      <p className="text-white/30 text-xs text-right">Auto-refreshes every 20s</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <GlassCard>
           <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Active Sessions</p>

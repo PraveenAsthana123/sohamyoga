@@ -162,7 +162,7 @@ export default function CouponsPage() {
     }
   };
 
-  const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+  const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
   const activeCoupons = coupons.filter(c => c.is_active && !c.is_expired);
   const totalDiscount = redemptions.reduce((a, r) => a + Number(r.discount_applied || 0), 0);
   const redemptionRate = coupons.length ? ((coupons.filter(c => c.used_count > 0).length / coupons.length) * 100).toFixed(1) : '0';

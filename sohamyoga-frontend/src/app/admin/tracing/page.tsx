@@ -26,8 +26,8 @@ interface Span {
   error_message: string | null;
 }
 
-const GLASS = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
-const GLASS_SM = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg';
+const GLASS = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
+const GLASS_SM = 'bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg';
 
 const STATUS_COLORS: Record<string, string> = {
   ok: 'bg-green-500/30 text-green-200',

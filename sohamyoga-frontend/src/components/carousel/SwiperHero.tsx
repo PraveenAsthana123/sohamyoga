@@ -201,7 +201,7 @@ export default function SwiperHero({
         <>
           <button
             onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center  transition-colors focus-visible:ring-2 focus-visible:ring-amber-400"
             aria-label="Previous slide"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export default function SwiperHero({
           </button>
           <button
             onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center  transition-colors focus-visible:ring-2 focus-visible:ring-amber-400"
             aria-label="Next slide"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,13 +239,13 @@ export default function SwiperHero({
       )}
 
       {/* Slide counter */}
-      <div className="absolute top-4 right-4 z-20 bg-black/40 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm" aria-live="polite" aria-atomic>
+      <div className="absolute top-4 right-4 z-20 bg-black/40 text-white text-xs px-3 py-1 rounded-full " aria-live="polite" aria-atomic>
         {current + 1} / {count}
       </div>
 
       {/* Pause indicator */}
       {isPaused && (
-        <div className="absolute top-4 left-4 z-20 bg-black/40 text-white/70 text-xs px-3 py-1 rounded-full backdrop-blur-sm">
+        <div className="absolute top-4 left-4 z-20 bg-black/40 text-white/70 text-xs px-3 py-1 rounded-full ">
           ⏸ Paused
         </div>
       )}

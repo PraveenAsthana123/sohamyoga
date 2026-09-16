@@ -182,7 +182,7 @@ export default async function HomePage() {
         <div className="text-center mt-12">
           <Link
             href="/services/generative-ai"
-            className="inline-flex items-center bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm rounded-xl px-8 py-3 text-white font-semibold transition-all shadow-xl"
+            className="inline-flex items-center bg-white/20 hover:bg-white/30 border border-white/30  rounded-xl px-8 py-3 text-white font-semibold transition-all shadow-xl"
           >
             View All Services
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

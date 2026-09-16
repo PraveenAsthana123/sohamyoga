@@ -40,12 +40,12 @@ export default function CaseStudiesSection({ caseStudies }: CaseStudiesSectionPr
 
                 <div className="relative z-10">
                   {/* Tag */}
-                  <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full mb-4">
+                  <span className="inline-block px-3 py-1 bg-white/20  text-white text-xs font-medium rounded-full mb-4">
                     {study.tag}
                   </span>
 
                   {/* Icon */}
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-5">
+                  <div className="w-12 h-12 bg-white/20  rounded-xl flex items-center justify-center mb-5">
                     {study.iconSvg ? (
                       <SafeHtml html={study.iconSvg} className="w-6 h-6 text-white [&>svg]:w-full [&>svg]:h-full" svg />
                     ) : (

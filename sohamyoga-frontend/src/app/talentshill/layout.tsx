@@ -36,7 +36,7 @@ export default function TalentsHillLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex flex-col">
       {/* Top Nav */}
-      <nav className="backdrop-blur-xl bg-white/5 border-b border-white/10 sticky top-0 z-50">
+      <nav className="bg-slate-900/80 border-b border-white/10 sticky top-0 z-50">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <button
@@ -70,7 +70,7 @@ export default function TalentsHillLayout({ children }: { children: React.ReactN
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {sidebarOpen && (
-          <aside className="w-64 backdrop-blur-xl bg-white/5 border-r border-white/10 flex flex-col py-6 shrink-0">
+          <aside className="w-64 bg-slate-900/80 border-r border-white/10 flex flex-col py-6 shrink-0">
             <nav className="flex flex-col gap-1 px-3">
               {navLinks.map(({ href, label, icon }) => {
                 const active = pathname === href;
@@ -91,7 +91,7 @@ export default function TalentsHillLayout({ children }: { children: React.ReactN
               })}
             </nav>
             <div className="mt-auto px-4">
-              <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+              <div className=" bg-white/5 border border-white/10 rounded-xl p-3 text-center">
                 <p className="text-white/40 text-xs">Need help?</p>
                 <a
                   href="mailto:support@talentshill.com"
@@ -109,7 +109,7 @@ export default function TalentsHillLayout({ children }: { children: React.ReactN
       </div>
 
       {/* Footer */}
-      <footer className="backdrop-blur-xl bg-white/5 border-t border-white/10 py-3 px-6 text-center">
+      <footer className="bg-slate-900/80 border-t border-white/10 py-3 px-6 text-center">
         <p className="text-white/30 text-xs">
           © 2026 TalentsHill. Powered by SohamYoga Platform.
         </p>

@@ -46,7 +46,7 @@ interface SessionsData {
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
+    <div className={`bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
       {children}
     </div>
   );

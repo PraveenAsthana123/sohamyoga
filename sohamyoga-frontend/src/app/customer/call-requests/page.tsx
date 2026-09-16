@@ -64,7 +64,7 @@ export default function CustomerCallRequestsPage() {
         <p className="text-sm text-white/60">Let us know you'll be calling in, or ask us to call you back. Our team follows up personally — this isn't an automated dialer.</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-3 rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-5 shadow-sm text-white">
+      <form onSubmit={submit} className="space-y-3 rounded-2xl border border-white/20 bg-slate-800/70 p-5 shadow-sm text-white">
         <div className="flex gap-2">
           <button type="button" onClick={() => setForm({ ...form, direction: 'call_out' })}
             className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${form.direction === 'call_out' ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-white/20 text-white/60'}`}>
@@ -87,7 +87,7 @@ export default function CustomerCallRequestsPage() {
       <div className="space-y-2 text-white">
         <h2 className="text-sm font-semibold text-white/70">Your requests</h2>
         {requests.map(r => (
-          <div key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3">
+          <div key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-white/20 bg-slate-800/70 p-3">
             <div>
               <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">{r.direction === 'call_in' ? 'I\'ll call in' : 'Please call me'}</span>
               <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/60">{STATUS_LABEL[r.status]}</span>

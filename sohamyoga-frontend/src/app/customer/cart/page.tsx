@@ -71,7 +71,7 @@ export default function CartPage() {
       ) : (
         <div className="space-y-2 text-white">
           {cart.items.map(it => (
-            <div key={it.id} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm flex items-center justify-between">
+            <div key={it.id} className="rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm flex items-center justify-between">
               <div>
                 <p className="font-medium">{it.productName}</p>
                 <p className="text-xs text-white/40">SKU {it.sku}</p>

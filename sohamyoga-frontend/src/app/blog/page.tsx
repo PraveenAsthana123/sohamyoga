@@ -95,7 +95,7 @@ function BlogPostCard({ post, index }: { post: BlogPost; index: number }) {
           <p className="text-sm font-medium text-center opacity-80 line-clamp-2">{post.title}</p>
         </div>
         {post.category && (
-          <span className="absolute top-3 left-3 px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/20">
+          <span className="absolute top-3 left-3 px-3 py-1 bg-white/20  text-white text-xs font-semibold rounded-full border border-white/20">
             {post.category.name}
           </span>
         )}

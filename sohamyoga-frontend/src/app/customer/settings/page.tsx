@@ -37,7 +37,7 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm text-white/60">Turn off features you don't want to see. This actually hides them from your sidebar.</p>
       </div>
 
-      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 space-y-3 text-white">
+      <div className="rounded-xl border border-white/20 bg-slate-800/70 p-5 space-y-3 text-white">
         {features.map(f => (
           <label key={f.key} className="flex items-center justify-between text-sm">
             <span>{f.label}</span>

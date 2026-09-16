@@ -53,7 +53,7 @@ export default function PreferencesPage() {
         <p className="mt-1 text-sm text-white/60">Saved to your real account — used by class recommendations and reminders.</p>
       </div>
 
-      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 space-y-4 text-white">
+      <div className="rounded-xl border border-white/20 bg-slate-800/70 p-5 space-y-4 text-white">
         <div>
           <label className="text-sm font-medium">Preferred styles</label>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -99,7 +99,7 @@ export default function PreferencesPage() {
         {status && <p className="text-sm text-white/60">{status}</p>}
       </div>
 
-      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 space-y-2 text-white">
+      <div className="rounded-xl border border-white/20 bg-slate-800/70 p-5 space-y-2 text-white">
         <label className="text-sm font-medium">Browser push notifications</label>
         <p className="text-xs text-white/60">Get class reminders and alerts on this device, even when SohamYoga isn&apos;t open in a tab.</p>
         {push.state === 'unsupported' && <p className="text-sm text-white/60">Not supported in this browser.</p>}

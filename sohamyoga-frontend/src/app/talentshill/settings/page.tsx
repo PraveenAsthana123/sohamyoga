@@ -86,7 +86,7 @@ export default function TalentsHillSettingsPage() {
   return (
     <div className="space-y-8 max-w-2xl relative">
       {toast && (
-        <div className="fixed top-6 right-6 z-[100] backdrop-blur-md bg-green-500/20 border border-green-400/30 rounded-xl px-5 py-3 text-green-300 text-sm shadow-xl">
+        <div className="fixed top-6 right-6 z-[100]  bg-green-500/20 border border-green-400/30 rounded-xl px-5 py-3 text-green-300 text-sm shadow-xl">
           {toast}
         </div>
       )}
@@ -98,7 +98,7 @@ export default function TalentsHillSettingsPage() {
       </div>
 
       {/* Profile Form */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-5">Profile</h2>
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
@@ -108,7 +108,7 @@ export default function TalentsHillSettingsPage() {
                 type="text"
                 value={profile.displayName}
                 onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
-                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
               />
             </div>
             <div>
@@ -117,7 +117,7 @@ export default function TalentsHillSettingsPage() {
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
               />
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function TalentsHillSettingsPage() {
                 type="text"
                 value={profile.company}
                 onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
               />
             </div>
             <div>
@@ -138,7 +138,7 @@ export default function TalentsHillSettingsPage() {
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                 placeholder="+1 555 000 0000"
-                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function TalentsHillSettingsPage() {
             <select
               value={profile.timezone}
               onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
-              className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+              className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
             >
               {TIMEZONES.map((tz) => (
                 <option key={tz} value={tz} className="bg-slate-900">{tz}</option>
@@ -157,7 +157,7 @@ export default function TalentsHillSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving…' : 'Save Profile'}
           </button>
@@ -165,7 +165,7 @@ export default function TalentsHillSettingsPage() {
       </div>
 
       {/* Notification Preferences */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-5">Notification Preferences</h2>
         <div className="space-y-4">
           {notifItems.map(({ key, label, desc }) => (
@@ -189,14 +189,14 @@ export default function TalentsHillSettingsPage() {
         </div>
         <button
           onClick={() => showToast('✅ Notification preferences saved.')}
-          className="mt-5 bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all"
+          className="mt-5 bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all"
         >
           Save Preferences
         </button>
       </div>
 
       {/* Danger Zone */}
-      <div className="backdrop-blur-md bg-red-500/10 border border-red-400/20 rounded-2xl shadow-xl p-6">
+      <div className=" bg-red-500/10 border border-red-400/20 rounded-2xl shadow-xl p-6">
         <h2 className="text-lg font-semibold text-red-300 mb-2">Danger Zone</h2>
         <p className="text-white/50 text-sm mb-4">
           These actions are irreversible. Please contact your account manager before proceeding.
@@ -204,13 +204,13 @@ export default function TalentsHillSettingsPage() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => showToast('📧 Request sent to your account manager.')}
-            className="backdrop-blur-md bg-white/5 border border-white/10 text-white/70 hover:text-white rounded-xl px-5 py-2.5 text-sm transition-all hover:bg-white/10"
+            className=" bg-white/5 border border-white/10 text-white/70 hover:text-white rounded-xl px-5 py-2.5 text-sm transition-all hover:bg-white/10"
           >
             Request Data Export
           </button>
           <button
             onClick={() => showToast('📧 Account closure request sent to your account manager.')}
-            className="backdrop-blur-md bg-red-500/20 border border-red-400/30 text-red-300 hover:bg-red-500/30 rounded-xl px-5 py-2.5 text-sm transition-all"
+            className=" bg-red-500/20 border border-red-400/30 text-red-300 hover:bg-red-500/30 rounded-xl px-5 py-2.5 text-sm transition-all"
           >
             Close Account
           </button>

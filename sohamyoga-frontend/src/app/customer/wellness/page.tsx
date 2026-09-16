@@ -42,7 +42,7 @@ export default function WellnessPage() {
         <p className="mt-1 text-sm text-white/60">Computed from your real practice journal entries — mood and energy after each session.</p>
       </div>
 
-      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+      <div className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-white/60">30-day average</span>
           <span className="text-2xl font-bold text-green-600">{avg}<span className="text-sm text-white/40">/100</span></span>

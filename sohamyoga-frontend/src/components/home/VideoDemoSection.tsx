@@ -83,7 +83,7 @@ export default function VideoDemoSection({ videos }: VideoDemoSectionProps) {
 
                       {/* Duration badge */}
                       {video.duration && (
-                        <div className="absolute bottom-3 right-3 px-2 py-1 bg-dark-900/80 backdrop-blur-sm text-white text-xs font-medium rounded">
+                        <div className="absolute bottom-3 right-3 px-2 py-1 bg-dark-900/80  text-white text-xs font-medium rounded">
                           {video.duration}
                         </div>
                       )}
@@ -115,7 +115,7 @@ export default function VideoDemoSection({ videos }: VideoDemoSectionProps) {
       {/* Video modal */}
       {activeVideo && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-dark-900/90 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-dark-900/90  p-4"
           onClick={() => setActiveVideo(null)}
           role="dialog"
           aria-modal="true"

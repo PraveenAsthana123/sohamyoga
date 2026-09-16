@@ -48,7 +48,7 @@ export default function ShopPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {products.map(p => (
-            <div key={p.id} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-4 text-sm">
+            <div key={p.id} className="rounded-lg border border-white/20 bg-slate-800/70 p-4 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium">{p.name}</span>
                 <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs capitalize">{p.type.replaceAll('_', ' ')}</span>

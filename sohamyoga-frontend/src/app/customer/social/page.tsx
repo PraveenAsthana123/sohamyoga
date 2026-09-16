@@ -165,7 +165,7 @@ function FeedTab() {
         ) : (
           <div className="space-y-3">
             {posts.map(post => (
-              <div key={post.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4">
+              <div key={post.id} className="bg-slate-800/70 border border-white/20 rounded-xl p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <PlatformBadge platform={post.platform} />

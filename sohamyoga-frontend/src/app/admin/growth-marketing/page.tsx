@@ -83,7 +83,7 @@ const CHANNEL_COLORS: Record<string, string> = {
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
+    <div className={`bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
       {children}
     </div>
   );
@@ -176,7 +176,7 @@ function AARRRDashboard({ aarrr }: { aarrr: AARRRData }) {
         const trendColor = pct >= 80 ? 'text-green-300' : pct >= 40 ? 'text-yellow-300' : 'text-red-300';
 
         return (
-          <div key={s.label} className={`backdrop-blur-md border rounded-2xl p-4 shadow-xl ${s.color}`}>
+          <div key={s.label} className={` border rounded-2xl p-4 shadow-xl ${s.color}`}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xl">{s.icon}</span>
               <span className={`text-lg font-bold ${trendColor}`}>{trend}</span>
@@ -625,7 +625,7 @@ export default function GrowthMarketingPage() {
             <p className="text-white/50 text-sm mt-1">AARRR funnel · experiments · metrics · playbooks</p>
           </div>
           {runningCount > 0 && (
-            <div className="backdrop-blur-md bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-2">
+            <div className=" bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-2">
               <p className="text-green-300 font-semibold text-sm">🟢 {runningCount} experiments running</p>
             </div>
           )}

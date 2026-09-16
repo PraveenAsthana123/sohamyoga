@@ -28,7 +28,7 @@ export default function InboxPage() {
       </div>
       <div className="space-y-2 text-white">
         {notifications?.map(n => (
-          <div key={n.id} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+          <div key={n.id} className="rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="font-medium">{TEMPLATE_LABEL[n.template_slug] ?? n.template_slug}</span>
               <span className="text-xs text-white/50">{new Date(n.created_at).toLocaleString()}</span>

@@ -25,8 +25,8 @@ interface BenchmarkHistory {
   status: string;
 }
 
-const GLASS = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
-const GLASS_SM = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg';
+const GLASS = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
+const GLASS_SM = 'bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg';
 
 const CATEGORY_COLORS: Record<string, string> = {
   api: 'bg-blue-500/30 text-blue-200',

@@ -68,7 +68,7 @@ export default function CustomerReferralPage() {
       </header>
 
       {!data.hasCode ? (
-        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-6 text-center">
+        <div className="rounded-2xl border border-white/20 bg-slate-800/70 p-6 text-center">
           <p className="text-sm text-white/70 mb-4">You don't have a referral code yet.</p>
           <button
             onClick={handleGenerate}
@@ -79,7 +79,7 @@ export default function CustomerReferralPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-6 space-y-4 text-white">
+        <div className="rounded-2xl border border-white/20 bg-slate-800/70 p-6 space-y-4 text-white">
           <div>
             <p className="text-xs text-white/60 mb-1">Your referral link</p>
             <div className="flex items-center gap-2">
@@ -114,12 +114,12 @@ export default function CustomerReferralPage() {
       )}
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-4">
+        <div className="rounded-2xl border border-white/20 bg-slate-800/70 p-4">
           <p className="text-xs text-white/60">Wallet Balance</p>
           <p className="text-2xl font-bold text-primary-700 mt-1">${data.wallet.balance.toLocaleString()}</p>
           <p className="text-xs text-white/50 mt-1">${data.wallet.lifetimeEarned.toLocaleString()} lifetime earned</p>
         </div>
-        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-4">
+        <div className="rounded-2xl border border-white/20 bg-slate-800/70 p-4">
           <p className="text-xs text-white/60">Current Reward</p>
           {data.activeCampaign ? (
             <>
@@ -132,7 +132,7 @@ export default function CustomerReferralPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-6">
+      <div className="rounded-2xl border border-white/20 bg-slate-800/70 p-6">
         <h2 className="font-semibold text-gray-800 mb-3">Your Referral History</h2>
         {data.history.length === 0 ? (
           <p className="text-sm text-white/40">No referrals yet — share your link above to get started.</p>

@@ -41,7 +41,7 @@ export default function EmergencyContactsPage() {
         <p className="mt-1 text-sm text-white/60">Who should we contact if there's an emergency during class?</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-2 rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 text-white">
+      <form onSubmit={submit} className="space-y-2 rounded-xl border border-white/20 bg-slate-800/70 p-5 text-white">
         <input required placeholder="Full name" className="w-full rounded border p-2 text-sm" value={form.guardianName} onChange={e => setForm({ ...form, guardianName: e.target.value })} />
         <select className="w-full rounded border p-2 text-sm" value={form.relationship} onChange={e => setForm({ ...form, relationship: e.target.value })}>
           {RELATIONSHIPS.map(r => <option key={r} value={r}>{r.replaceAll('_', ' ')}</option>)}
@@ -57,7 +57,7 @@ export default function EmergencyContactsPage() {
 
       <div className="space-y-2 text-white">
         {contacts.map(c => (
-          <div key={c.id} className="flex items-start justify-between rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+          <div key={c.id} className="flex items-start justify-between rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
             <div>
               <span className="font-medium">{c.guardian_name}</span>
               {c.is_emergency && <span className="ml-2 rounded-full bg-red-500/20 px-2 py-0.5 text-xs text-red-300">Primary</span>}

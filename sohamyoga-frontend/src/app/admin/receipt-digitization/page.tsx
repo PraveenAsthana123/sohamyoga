@@ -166,7 +166,7 @@ export default function ReceiptDigitizationPage() {
     a.click();
   };
 
-  const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+  const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">

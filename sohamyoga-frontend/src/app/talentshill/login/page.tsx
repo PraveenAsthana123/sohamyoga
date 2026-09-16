@@ -58,11 +58,11 @@ export default function TalentsHillLoginPage() {
         </div>
 
         {/* Card */}
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-8">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-8">
           <h1 className="text-xl font-bold text-white mb-6 text-center">Welcome back</h1>
 
           {error && (
-            <div className="backdrop-blur-md bg-red-500/20 border border-red-400/30 rounded-xl p-3 mb-5 text-red-300 text-sm text-center">
+            <div className=" bg-red-500/20 border border-red-400/30 rounded-xl p-3 mb-5 text-red-300 text-sm text-center">
               {error}
             </div>
           )}
@@ -80,7 +80,7 @@ export default function TalentsHillLoginPage() {
                 placeholder="you@company.com"
                 required
                 autoComplete="email"
-                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all"
+                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all"
               />
             </div>
             <div>
@@ -95,7 +95,7 @@ export default function TalentsHillLoginPage() {
                 placeholder="••••••••"
                 required
                 autoComplete="current-password"
-                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all"
+                className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 focus:bg-white/15 transition-all"
               />
             </div>
             <div className="flex justify-end">
@@ -123,13 +123,13 @@ export default function TalentsHillLoginPage() {
           <div className="grid grid-cols-2 gap-3">
             <a
               href="/api/auth/google"
-              className="flex items-center justify-center gap-2 backdrop-blur-md bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white/80 hover:bg-white/20 hover:text-white transition-all text-sm font-medium"
+              className="flex items-center justify-center gap-2 bg-slate-800/70 border border-white/20 rounded-xl px-4 py-3 text-white/80 hover:bg-white/20 hover:text-white transition-all text-sm font-medium"
             >
               <span>🔵</span> Google
             </a>
             <a
               href="/api/auth/github"
-              className="flex items-center justify-center gap-2 backdrop-blur-md bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white/80 hover:bg-white/20 hover:text-white transition-all text-sm font-medium"
+              className="flex items-center justify-center gap-2 bg-slate-800/70 border border-white/20 rounded-xl px-4 py-3 text-white/80 hover:bg-white/20 hover:text-white transition-all text-sm font-medium"
             >
               <span>⚫</span> GitHub
             </a>

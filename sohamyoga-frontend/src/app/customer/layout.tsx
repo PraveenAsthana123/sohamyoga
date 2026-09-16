@@ -134,7 +134,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex">
       {/* Sidebar — frosted glass */}
-      <aside className="w-64 shrink-0 bg-indigo-950/70 backdrop-blur-md border-r border-white/10 flex flex-col">
+      <aside className="w-64 shrink-0 bg-indigo-950/70  border-r border-white/10 flex flex-col">
         <div className="p-6 border-b border-white/10">
           <Link href="/" className="block">
             <span className="text-xl font-bold text-white">SohamYoga</span>
@@ -156,7 +156,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
                       href={item.href}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         pathname === item.href
-                          ? 'bg-white/20 text-white shadow-sm backdrop-blur-sm'
+                          ? 'bg-white/20 text-white shadow-sm '
                           : 'text-white/60 hover:bg-white/10 hover:text-white'
                       }`}
                     >

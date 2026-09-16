@@ -99,7 +99,7 @@ export default function CustomerFeaturesPage() {
 
       <div className="space-y-6 text-white">
         {FEATURE_GROUPS.map(group => (
-          <section key={group.title} className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+          <section key={group.title} className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
             <h2 className="text-lg font-semibold text-white">{group.title}</h2>
             <p className="mt-0.5 text-sm text-white/60">{group.description}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">

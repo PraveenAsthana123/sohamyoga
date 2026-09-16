@@ -18,7 +18,7 @@ interface MlRun {
   created_at: string;
 }
 
-const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 const tabBase = 'px-4 py-2 rounded-lg text-sm font-medium transition-colors';
 const tabActive = 'bg-white/20 text-white';
 const tabInactive = 'text-white/60 hover:bg-white/10';
@@ -119,7 +119,7 @@ export default function MlTechnicalPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 p-6">
       {toast && (
-        <div className="fixed top-4 right-4 z-50 rounded-xl bg-white/20 px-4 py-2 text-white backdrop-blur-md shadow-xl">{toast}</div>
+        <div className="fixed top-4 right-4 z-50 rounded-xl bg-white/20 px-4 py-2 text-white  shadow-xl">{toast}</div>
       )}
       <h1 className="mb-6 text-3xl font-bold text-white">ML Technical Dashboard 🤖</h1>
 

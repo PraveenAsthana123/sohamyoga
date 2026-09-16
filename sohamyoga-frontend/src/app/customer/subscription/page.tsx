@@ -67,7 +67,7 @@ export default function SubscriptionPage() {
       {!sub ? (
         <p className="text-sm text-white/50">No active subscription. <a href="/payments" className="text-blue-600 underline">Browse plans</a>.</p>
       ) : (
-        <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+        <div className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
           <div className="flex items-center justify-between">
             <div>
               <div className="font-semibold text-white">{sub.planName}</div>

@@ -42,8 +42,8 @@ interface ConsensusItem {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
-const glassCard = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg';
+const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
+const glassCard = 'bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg';
 const tabBase = 'px-4 py-2 rounded-lg text-sm font-medium transition-all';
 const tabActive = `${tabBase} bg-white/20 text-white`;
 const tabInactive = `${tabBase} text-white/60 hover:bg-white/10 hover:text-white`;
@@ -356,7 +356,7 @@ function SwotTab({ analyses, onAnalyze, onAdd }: {
           {/* 2×2 Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {quadrants.map(q => (
-              <div key={q.key} className={`backdrop-blur-md border rounded-2xl p-5 shadow-xl ${q.bg}`}>
+              <div key={q.key} className={` border rounded-2xl p-5 shadow-xl ${q.bg}`}>
                 <h4 className="text-white font-bold mb-3 flex items-center gap-2">
                   <span className="text-xl">{q.icon}</span> {q.label}
                 </h4>
@@ -465,7 +465,7 @@ function PestelTab({ analyses, onAnalyze, onAdd }: {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {categories.map(cat => (
-              <div key={cat.key} className={`backdrop-blur-md border rounded-2xl p-5 shadow-xl ${cat.color}`}>
+              <div key={cat.key} className={` border rounded-2xl p-5 shadow-xl ${cat.color}`}>
                 <h4 className="text-white font-bold mb-3 flex items-center gap-2">
                   <span className="text-xl">{cat.icon}</span> {cat.label}
                 </h4>
@@ -542,7 +542,7 @@ function PorterTab({ analyses, onAnalyze }: {
 
   function ForceBox({ label, data, className }: { label: string; data: { intensity: string; factors: string[]; rating: number }; className?: string }) {
     return (
-      <div className={`backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg ${className ?? ''}`}>
+      <div className={`bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg ${className ?? ''}`}>
         <h5 className="text-white/80 font-semibold text-sm mb-2">{label}</h5>
         <span className={`text-xs font-bold uppercase ${intensityColor(data.intensity)}`}>{data.intensity}</span>
         <div className="my-1"><StarRating rating={data.rating} /></div>
@@ -570,7 +570,7 @@ function PorterTab({ analyses, onAnalyze }: {
         <div className="flex flex-col md:flex-row items-center gap-4 w-full justify-center">
           <ForceBox label="🏭 Supplier Power" data={c.supplier_power} className="w-full max-w-xs" />
           {/* Center */}
-          <div className="backdrop-blur-md bg-gradient-to-br from-blue-600/30 to-purple-600/30 border-2 border-blue-400/40 rounded-2xl p-6 shadow-2xl text-center w-full max-w-xs">
+          <div className=" bg-gradient-to-br from-blue-600/30 to-purple-600/30 border-2 border-blue-400/40 rounded-2xl p-6 shadow-2xl text-center w-full max-w-xs">
             <p className="text-xs text-white/50 uppercase tracking-widest mb-1">Industry</p>
             <h4 className="text-white font-bold text-lg">COMPETITIVE</h4>
             <h4 className="text-white font-bold text-lg">RIVALRY</h4>

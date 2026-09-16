@@ -110,7 +110,7 @@ export default function TalentsHillCampaignsPage() {
     <div className="space-y-6 relative">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-6 right-6 z-[100] backdrop-blur-md bg-green-500/20 border border-green-400/30 rounded-xl px-5 py-3 text-green-300 text-sm shadow-xl max-w-sm">
+        <div className="fixed top-6 right-6 z-[100]  bg-green-500/20 border border-green-400/30 rounded-xl px-5 py-3 text-green-300 text-sm shadow-xl max-w-sm">
           {toast}
         </div>
       )}
@@ -123,7 +123,7 @@ export default function TalentsHillCampaignsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-medium transition-all"
+          className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-medium transition-all"
         >
           + Request New Campaign
         </button>
@@ -148,7 +148,7 @@ export default function TalentsHillCampaignsPage() {
           <select
             value={filterPlatform}
             onChange={(e) => setFilterPlatform(e.target.value)}
-            className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400/60 backdrop-blur-sm"
+            className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400/60 "
           >
             {PLATFORMS.map((p) => (
               <option key={p} value={p} className="bg-slate-900">
@@ -160,7 +160,7 @@ export default function TalentsHillCampaignsPage() {
       </div>
 
       {/* Table / List */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-white/40">Loading campaigns…</div>
         ) : filtered.length === 0 ? (
@@ -170,7 +170,7 @@ export default function TalentsHillCampaignsPage() {
             <p className="text-white/50 text-sm mb-6">Request your first campaign above and we'll get it set up.</p>
             <button
               onClick={() => setShowModal(true)}
-              className="bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-medium transition-all"
+              className="bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-3 text-sm font-medium transition-all"
             >
               + Request New Campaign
             </button>
@@ -259,8 +259,8 @@ export default function TalentsHillCampaignsPage() {
 
       {/* New Campaign Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-2xl w-full max-w-lg p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 ">
+          <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-2xl w-full max-w-lg p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">Request New Campaign</h2>
               <button
@@ -279,7 +279,7 @@ export default function TalentsHillCampaignsPage() {
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="e.g. Q4 Product Launch"
                   required
-                  className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                  className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -288,7 +288,7 @@ export default function TalentsHillCampaignsPage() {
                   <select
                     value={form.platform}
                     onChange={(e) => setForm({ ...form, platform: e.target.value })}
-                    className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                    className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
                   >
                     {PLATFORMS.filter((p) => p !== 'All').map((p) => (
                       <option key={p} value={p} className="bg-slate-900">{p}</option>
@@ -304,7 +304,7 @@ export default function TalentsHillCampaignsPage() {
                     placeholder="5000"
                     required
                     min="0"
-                    className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                    className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
                   />
                 </div>
               </div>
@@ -315,7 +315,7 @@ export default function TalentsHillCampaignsPage() {
                   onChange={(e) => setForm({ ...form, goals: e.target.value })}
                   placeholder="e.g. Generate 200 leads, 3x ROAS on product sales…"
                   rows={3}
-                  className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all resize-none"
+                  className="bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all resize-none"
                 />
               </div>
               <div>
@@ -324,14 +324,14 @@ export default function TalentsHillCampaignsPage() {
                   type="date"
                   value={form.startDate}
                   onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                  className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full backdrop-blur-sm focus:outline-none focus:border-blue-400/60 transition-all"
+                  className="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 w-full  focus:outline-none focus:border-blue-400/60 transition-all"
                 />
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 backdrop-blur-md bg-white/10 border border-white/20 text-white/70 rounded-xl py-3 text-sm font-medium hover:bg-white/15 transition-all"
+                  className="flex-1 bg-slate-800/70 border border-white/20 text-white/70 rounded-xl py-3 text-sm font-medium hover:bg-white/15 transition-all"
                 >
                   Cancel
                 </button>

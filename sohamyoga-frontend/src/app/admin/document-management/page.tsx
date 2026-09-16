@@ -124,7 +124,7 @@ export default function DocumentManagementPage() {
   const statusCounts: Record<string, number> = { draft: 0, under_review: 0, approved: 0, signed: 0, archived: 0 };
   for (const d of docs) { if (d.status in statusCounts) statusCounts[d.status]++; }
 
-  const glassCard = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+  const glassCard = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
   const inputClass = 'w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:border-indigo-400';
   const labelClass = 'block text-white/70 text-sm mb-1';
 

@@ -113,7 +113,7 @@ export default function TalentsHillContentPage() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">{MONTH_NAME}</h2>
           <span className="text-white/40 text-sm">{staticDrafts.length} items scheduled</span>
@@ -160,7 +160,7 @@ export default function TalentsHillContentPage() {
       </div>
 
       {/* Drafts List */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">All Content Drafts</h2>
         </div>

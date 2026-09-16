@@ -39,7 +39,7 @@ export default function CustomerOrdersPage() {
       {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
       <div className="space-y-2 text-white">
         {orders?.map(o => (
-          <Link key={o.id} href={`/customer/orders/${o.id}`} className="block rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm hover:border-indigo-300">
+          <Link key={o.id} href={`/customer/orders/${o.id}`} className="block rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm hover:border-indigo-300">
             <div className="flex items-center justify-between">
               <span className="font-medium">{o.orderNumber}</span>
               <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[o.status] ?? 'bg-white/10'}`}>{o.status.replaceAll('_', ' ')}</span>

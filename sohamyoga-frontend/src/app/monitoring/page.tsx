@@ -42,23 +42,23 @@ export default async function MonitoringPage() {
           </div>
 
           <div className="mt-2 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-4">
               <div className="text-sm text-primary-100">Ollama</div>
               <div className="mt-2 text-3xl font-semibold">{s.ollamaUp ? 'Up' : 'Down'}</div>
             </div>
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-4">
               <div className="text-sm text-primary-100">Model in use</div>
               <div className="mt-2 text-lg font-semibold">{s.summary.modelInUse}</div>
             </div>
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-4">
               <div className="text-sm text-primary-100">Running / Queued</div>
               <div className="mt-2 text-3xl font-semibold">{s.summary.running} / {s.summary.queued}</div>
             </div>
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-4">
               <div className="text-sm text-primary-100">Installed models</div>
               <div className="mt-2 text-3xl font-semibold">{s.installedCount}</div>
             </div>
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-4">
               <div className="text-sm text-primary-100">Traced generations</div>
               <div className="mt-2 text-3xl font-semibold">{formatNumber(s.tracedGenerations)}</div>
             </div>

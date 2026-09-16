@@ -183,7 +183,7 @@ export default function BarcodesPage() {
     ? scanLogs.filter(s => s.barcode_code === scanFilter)
     : scanLogs;
 
-  const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+  const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 p-6">
@@ -193,7 +193,7 @@ export default function BarcodesPage() {
 
         {/* QR Modal */}
         {modal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setModal(null)}>
+          <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50" onClick={() => setModal(null)}>
             <div className={`${glass} max-w-sm w-full mx-4`} onClick={e => e.stopPropagation()}>
               <h3 className="text-white font-semibold mb-3">{modal.label ?? modal.code}</h3>
               <p className="text-white/50 text-xs mb-3">Type: {modal.barcode_type}</p>

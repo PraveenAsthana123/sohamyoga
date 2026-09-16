@@ -64,8 +64,8 @@ interface ProductivityData {
   teamSummary: TeamSummary[];
 }
 
-const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
-const glassCard = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 shadow-lg';
+const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
+const glassCard = 'bg-slate-800/70 border border-white/20 rounded-xl p-4 shadow-lg';
 
 function TeamDashboardTab({ data }: { data: ProductivityData | null }) {
   if (!data) return <p className="text-white/40 text-sm">Loading…</p>;

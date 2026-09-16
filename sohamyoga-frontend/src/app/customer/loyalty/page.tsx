@@ -64,7 +64,7 @@ export default function LoyaltyPage() {
 
       {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
 
-      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+      <div className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-lg font-bold capitalize text-white">{currentTier?.label ?? data.tier}</div>
@@ -78,7 +78,7 @@ export default function LoyaltyPage() {
         <p className="mt-2 text-xs text-white/40">Lifetime spend: ${data.lifetimeSpendCad.toFixed(2)} CAD</p>
       </div>
 
-      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+      <section className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
         <h2 className="font-semibold text-white">Tiers</h2>
         <div className="mt-3 space-y-1 text-sm text-white">
           {data.allTiers.map(t => (
@@ -90,7 +90,7 @@ export default function LoyaltyPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+      <section className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
         <h2 className="font-semibold text-white">Redeem Points</h2>
         {message && <p className="mt-2 text-xs text-white/70 bg-white/5 rounded p-2">{message}</p>}
         <div className="mt-3 space-y-2 text-white">
@@ -113,7 +113,7 @@ export default function LoyaltyPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+      <section className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
         <h2 className="font-semibold text-white">Recent activity</h2>
         {data.history.length ? (
           <div className="mt-3 space-y-1 text-sm text-white">

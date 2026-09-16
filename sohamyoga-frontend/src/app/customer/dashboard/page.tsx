@@ -12,7 +12,7 @@ function FeaturedCarousel({ posts }: { posts: BlogPost[] }) {
   const start = () => {
     timerRef.current = setInterval(() => {
       setCurrent((p) => (p + 1) % posts.length);
-    }, 5000);
+    }, 8000);
   };
 
   const stop = () => {
@@ -67,7 +67,7 @@ function FeaturedCarousel({ posts }: { posts: BlogPost[] }) {
         <div className="relative z-10 p-6 flex flex-col justify-end h-full" style={{ minHeight: '220px' }}>
           <div className="mt-auto">
             {post.category && (
-              <span className="inline-block text-xs font-semibold bg-white/20 text-white px-2.5 py-0.5 rounded-full mb-2 backdrop-blur-sm">
+              <span className="inline-block text-xs font-semibold bg-white/20 text-white px-2.5 py-0.5 rounded-full mb-2 ">
                 {post.category.name}
               </span>
             )}
@@ -98,14 +98,14 @@ function FeaturedCarousel({ posts }: { posts: BlogPost[] }) {
           <>
             <button
               onClick={() => go((current - 1 + posts.length) % posts.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40  rounded-full flex items-center justify-center text-white transition-colors"
               aria-label="Previous"
             >
               ‹
             </button>
             <button
               onClick={() => go((current + 1) % posts.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40  rounded-full flex items-center justify-center text-white transition-colors"
               aria-label="Next"
             >
               ›
@@ -132,13 +132,20 @@ function FeaturedCarousel({ posts }: { posts: BlogPost[] }) {
 }
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
+type DashboardState = {
+  loading: boolean;
+  user: CustomerUser | null;
+  chatSessions: { sessionId: string; messageCount: number; lastMessage?: string; lastMessageAt?: string }[];
+  featuredPosts: BlogPost[];
+};
+
 export default function CustomerDashboardPage() {
-  const [user, setUser] = useState<CustomerUser | null>(null);
-  const [chatSessions, setChatSessions] = useState<
-    { sessionId: string; messageCount: number; lastMessage?: string; lastMessageAt?: string }[]
-  >([]);
-  const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<DashboardState>({
+    loading: true,
+    user: null,
+    chatSessions: [],
+    featuredPosts: [],
+  });
 
   useEffect(() => {
     Promise.all([
@@ -147,13 +154,19 @@ export default function CustomerDashboardPage() {
       blogApi.getRecent(5),
     ])
       .then(([u, sessions, posts]) => {
-        setUser(u);
-        setChatSessions(sessions);
-        setFeaturedPosts(posts.filter((p) => p.isPublished !== false));
+        setState({
+          loading: false,
+          user: u,
+          chatSessions: sessions,
+          featuredPosts: posts.filter((p) => p.isPublished !== false),
+        });
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {
+        setState(prev => ({ ...prev, loading: false }));
+      });
   }, []);
+
+  const { loading, user, chatSessions, featuredPosts } = state;
 
   if (loading) {
     return (
@@ -178,11 +191,11 @@ export default function CustomerDashboardPage() {
 
       {/* Stats — glass KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
           <p className="text-sm text-white/60">Chat Sessions</p>
           <p className="text-3xl font-bold text-white mt-1">{chatSessions.length}</p>
         </div>
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
           <p className="text-sm text-white/60">Total Messages</p>
           <p className="text-3xl font-bold text-white mt-1">
             {chatSessions.reduce((s, c) => s + c.messageCount, 0)}
@@ -196,19 +209,19 @@ export default function CustomerDashboardPage() {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/customer/chat"
-            className="bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm rounded-xl px-6 py-3 text-white font-semibold transition-all text-sm"
+            className="bg-white/20 hover:bg-white/30 border border-white/30  rounded-xl px-6 py-3 text-white font-semibold transition-all text-sm"
           >
             💬 Start Live Chat
           </Link>
           <Link
             href="/customer/blog"
-            className="bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm rounded-xl px-6 py-3 text-white font-semibold transition-all text-sm"
+            className="bg-white/20 hover:bg-white/30 border border-white/30  rounded-xl px-6 py-3 text-white font-semibold transition-all text-sm"
           >
             📖 Browse Articles
           </Link>
           <Link
             href="/contact"
-            className="bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm rounded-xl px-6 py-3 text-white font-semibold transition-all text-sm"
+            className="bg-white/20 hover:bg-white/30 border border-white/30  rounded-xl px-6 py-3 text-white font-semibold transition-all text-sm"
           >
             📧 Contact Support
           </Link>
@@ -224,7 +237,7 @@ export default function CustomerDashboardPage() {
               <Link
                 key={s.sessionId}
                 href={`/customer/chat?session=${s.sessionId}`}
-                className="block backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4 hover:bg-white/20 transition-all"
+                className="block bg-slate-800/70 border border-white/20 rounded-xl p-4 hover:bg-white/20 transition-all"
               >
                 <div className="flex justify-between items-start">
                   <div>

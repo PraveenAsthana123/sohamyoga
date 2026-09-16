@@ -31,7 +31,7 @@ export default function PoseMasteryPage() {
         <p className="mt-1 text-sm text-white/60">Real teacher assessments of your pose progression.</p>
       </div>
 
-      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+      <section className="rounded-xl border border-white/20 bg-slate-800/70 p-5">
         <h2 className="mb-3 text-sm font-semibold text-white/70">Mastery distribution</h2>
         <svg viewBox="0 0 300 120" className="w-full" role="img" aria-label="Bar chart of pose mastery levels">
           {LEVELS.map((level, i) => {
@@ -51,7 +51,7 @@ export default function PoseMasteryPage() {
 
       <div className="space-y-2 text-white">
         {assessments.map((a, i) => (
-          <div key={i} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
+          <div key={i} className="rounded-lg border border-white/20 bg-slate-800/70 p-3 text-sm">
             <div className="flex justify-between">
               <span className="font-medium">{a.english_name} <span className="text-white/50">({a.sanskrit_name})</span></span>
               <span className="rounded-full px-2 py-0.5 text-xs text-white" style={{ background: LEVEL_COLOR[a.mastery_level] }}>{a.mastery_level}</span>

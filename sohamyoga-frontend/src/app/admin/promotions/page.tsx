@@ -134,7 +134,7 @@ export default function PromotionsPage() {
     }
   };
 
-  const glass = 'backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl';
+  const glass = 'bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl';
   const activePromos = promotions.filter(p => p.status === 'active');
 
   // Performance estimates

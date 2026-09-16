@@ -81,7 +81,7 @@ function ActiveTests({ tests, onStatusChange }: { tests: ABTest[]; onStatusChang
 
   if (running.length === 0) {
     return (
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl text-center text-white/40">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-8 shadow-xl text-center text-white/40">
         No tests currently running. Create a test and set it to "running" to see it here.
       </div>
     );
@@ -90,7 +90,7 @@ function ActiveTests({ tests, onStatusChange }: { tests: ABTest[]; onStatusChang
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {running.map(t => (
-        <div key={t.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+        <div key={t.id} className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
           <div className="flex items-start justify-between gap-2">
             <div>
               <h3 className="text-white font-semibold">{t.name}</h3>
@@ -176,7 +176,7 @@ function AllTests({ tests, onStatusChange }: { tests: ABTest[]; onStatusChange: 
           </button>
         ))}
       </div>
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl overflow-x-auto">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-white/60 text-left text-xs uppercase tracking-wider">
@@ -264,7 +264,7 @@ function CreateNew({ onCreated }: { onCreated: () => void }) {
   const labelCls = 'block text-white/60 text-xs mb-1';
 
   return (
-    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl max-w-2xl">
+    <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl max-w-2xl">
       <h2 className="text-white font-semibold text-lg mb-6">New A/B Test</h2>
       <form onSubmit={submit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -341,7 +341,7 @@ function Results({ tests }: { tests: ABTest[] }) {
 
   if (completed.length === 0) {
     return (
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl text-center text-white/40">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl p-8 shadow-xl text-center text-white/40">
         No completed tests yet.
       </div>
     );
@@ -354,7 +354,7 @@ function Results({ tests }: { tests: ABTest[] }) {
         const winnerLabel = t.winner ?? (winnerA ? t.variant_a_name : t.variant_b_name);
         const maxCvr = Math.max(t.cvr_a, t.cvr_b, 0.001);
         return (
-          <div key={t.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
+          <div key={t.id} className="bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl space-y-4">
             {/* Winner announcement */}
             <div className="flex items-center gap-3">
               <span className="text-2xl">🏆</span>

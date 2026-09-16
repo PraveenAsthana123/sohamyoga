@@ -119,13 +119,13 @@ export default function TalentsHillDashboardPage() {
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6 animate-pulse h-28" />
+            <div key={i} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6 animate-pulse h-28" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpiCards.map(({ label, value, icon, change, positive }) => (
-            <div key={label} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+            <div key={label} className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
               <div className="flex items-start justify-between mb-3">
                 <span className="text-2xl">{icon}</span>
                 <span className={`text-xs px-2 py-1 rounded-full ${positive ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
@@ -147,7 +147,7 @@ export default function TalentsHillDashboardPage() {
             <a
               key={label}
               href={href}
-              className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-5 text-center hover:bg-white/15 transition-all group"
+              className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-5 text-center hover:bg-white/15 transition-all group"
             >
               <div className="text-3xl mb-2 group-hover:scale-110 transition-transform inline-block">
                 {icon}
@@ -161,7 +161,7 @@ export default function TalentsHillDashboardPage() {
       {/* Activity + Tasks */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
           <div className="space-y-3">
             {recentActivity.map(({ time, action, type }, i) => (
@@ -177,7 +177,7 @@ export default function TalentsHillDashboardPage() {
         </div>
 
         {/* Upcoming Tasks */}
-        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6">
+        <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Upcoming Tasks</h2>
           <div className="space-y-3">
             {upcomingTasks.map(({ due, task, icon }, i) => (
@@ -194,7 +194,7 @@ export default function TalentsHillDashboardPage() {
       </div>
 
       {/* Performance Chart Placeholder */}
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-xl p-8 text-center">
+      <div className="bg-slate-800/70 border border-white/20 rounded-2xl shadow-xl p-8 text-center">
         <div className="text-4xl mb-3">📈</div>
         <h3 className="text-white font-semibold mb-2">Campaign Performance</h3>
         <p className="text-white/50 text-sm max-w-md mx-auto">
@@ -202,7 +202,7 @@ export default function TalentsHillDashboardPage() {
         </p>
         <a
           href="/talentshill/settings"
-          className="inline-block mt-4 bg-blue-500/80 hover:bg-blue-400/90 backdrop-blur-sm border border-blue-400/30 text-white rounded-xl px-6 py-2.5 text-sm font-medium transition-all"
+          className="inline-block mt-4 bg-blue-500/80 hover:bg-blue-400/90  border border-blue-400/30 text-white rounded-xl px-6 py-2.5 text-sm font-medium transition-all"
         >
           Connect Accounts
         </a>

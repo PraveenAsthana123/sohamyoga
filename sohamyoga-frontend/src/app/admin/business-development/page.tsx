@@ -87,7 +87,7 @@ function daysSince(dateStr: string) {
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
+    <div className={`bg-slate-800/70 border border-white/20 rounded-2xl p-6 shadow-xl ${className}`}>
       {children}
     </div>
   );
@@ -149,7 +149,7 @@ function PipelineBoard({ opportunities, stageCounts, onMoveStage }: {
 
           return (
             <div key={stage} className="w-64 flex-shrink-0">
-              <div className={`backdrop-blur-md border rounded-2xl p-4 shadow-xl ${STAGE_COLORS[stage]} ${isWon ? 'shadow-green-500/30' : isLost ? 'shadow-red-500/20' : ''}`}>
+              <div className={` border rounded-2xl p-4 shadow-xl ${STAGE_COLORS[stage]} ${isWon ? 'shadow-green-500/30' : isLost ? 'shadow-red-500/20' : ''}`}>
                 <div className="mb-3">
                   <h3 className="text-white font-semibold capitalize text-sm">
                     {stage.replace('_', ' ')}
@@ -160,7 +160,7 @@ function PipelineBoard({ opportunities, stageCounts, onMoveStage }: {
                 </div>
                 <div className="space-y-2">
                   {opps.map(opp => (
-                    <div key={opp.id} className="backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl p-3 text-sm">
+                    <div key={opp.id} className=" bg-white/5 border border-white/10 rounded-xl p-3 text-sm">
                       <p className="text-white font-medium truncate">{opp.company_name}</p>
                       {opp.contact_name && <p className="text-white/50 text-xs truncate">{opp.contact_name}</p>}
                       <div className="flex items-center justify-between mt-2">
@@ -603,7 +603,7 @@ export default function BusinessDevelopmentPage() {
             <p className="text-white/50 text-sm mt-1">Manage opportunities, pipeline, and BD activities</p>
           </div>
           {data && (
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl px-4 py-2">
+            <div className="bg-slate-800/70 border border-white/20 rounded-xl px-4 py-2">
               <p className="text-white/50 text-xs">Weighted Pipeline</p>
               <p className="text-white font-bold text-lg">{fmtMoney(data.totalWeightedPipeline)}</p>
             </div>
