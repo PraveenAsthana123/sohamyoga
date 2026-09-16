@@ -159,13 +159,16 @@ export default async function HomePage() {
       {/* Hero carousel — SwiperHero with gradient slides */}
       <SwiperHero slides={HERO_SLIDES} autoplayDelay={6000} />
 
-      {/* Services — InfiniteMarquee */}
-      <section className="py-20 bg-dark-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-          <h2 className="section-title text-dark-900">
-            Our <span className="text-primary-600">Services</span>
+      {/* Services — glass section on dark gradient */}
+      <section className="py-20 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+        {/* Subtle blur orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <h2 className="section-title text-white">
+            Our <span className="text-pink-300">Services</span>
           </h2>
-          <p className="section-subtitle">
+          <p className="section-subtitle text-white/70">
             Comprehensive yoga programs and wellness solutions designed to support every stage of your practice.
           </p>
         </div>
@@ -176,7 +179,10 @@ export default async function HomePage() {
           pauseOnHover
         />
         <div className="text-center mt-12">
-          <Link href="/services/generative-ai" className="btn-primary">
+          <Link
+            href="/services/generative-ai"
+            className="inline-flex items-center bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm rounded-xl px-8 py-3 text-white font-semibold transition-all shadow-xl"
+          >
             View All Services
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -188,13 +194,14 @@ export default async function HomePage() {
       {/* About */}
       <AboutSection />
 
-      {/* Testimonials — TestimonialCarousel */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="section-title text-dark-900">
-            What Our <span className="text-primary-600">Clients Say</span>
+      {/* Testimonials — glass cards on gradient */}
+      <section className="py-20 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+        <div className="absolute top-1/2 left-0 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="section-title text-white">
+            What Our <span className="text-pink-300">Clients Say</span>
           </h2>
-          <p className="section-subtitle">
+          <p className="section-subtitle text-white/70">
             Trusted by yoga practitioners of all levels — from first-timers to seasoned teachers.
           </p>
           <TestimonialCarousel
@@ -215,13 +222,14 @@ export default async function HomePage() {
       {/* Video Demos */}
       <VideoDemoSection videos={data?.videoDemos ?? []} />
 
-      {/* Team — TeacherCarousel */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="section-title text-dark-900">
-            Meet Our <span className="text-primary-600">Teachers</span>
+      {/* Team — glass cards on gradient */}
+      <section className="py-20 bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 relative overflow-hidden">
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="section-title text-white">
+            Meet Our <span className="text-pink-300">Teachers</span>
           </h2>
-          <p className="section-subtitle">
+          <p className="section-subtitle text-white/70">
             Passionate, certified yoga instructors dedicated to guiding your practice with care and expertise.
           </p>
           <TeacherCarousel

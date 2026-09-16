@@ -37,6 +37,7 @@ const navItems = [
     ),
     requiredRoles: ['Admin', 'Editor'],
   },
+  { href: '/admin/blog/new', label: 'New Blog Post', icon: <span aria-hidden="true">✏️</span>, requiredRoles: ['Admin', 'Editor'] },
   {
     href: '/admin/services',
     label: 'Services',
@@ -819,6 +820,10 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/ai-ingestion/auth', label: 'Auth Sources', icon: <span aria-hidden="true">🔑</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-ingestion/google-drive', label: 'Google Drive Ingestion', icon: <span aria-hidden="true">📂</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-ingestion/local-folder', label: 'Local Folder Ingestion', icon: <span aria-hidden="true">🗂️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-ingestion/source-registry', label: 'Source Registry', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/chatgpt-feedback',
     label: 'ChatGPT Feedback',
@@ -1006,12 +1011,14 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/market-research/projects', label: 'Market Research Projects', icon: <span aria-hidden="true">🔬</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/branding',
     label: '🎨 Branding Hub',
     icon: <span aria-hidden="true" className="text-base">🎨</span>,
     requiredRoles: ['Admin', 'Editor'] as string[],
   },
+  { href: '/admin/brand-guide/control-mapping', label: 'Brand Control Mapping', icon: <span aria-hidden="true">🗺️</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/contact-us',
     label: '📬 Contact Us',
@@ -1057,6 +1064,8 @@ const navItems = [
   { href: '/admin/platform-workflows', label: '⚡ Workflows & Automation', icon: <span aria-hidden="true">⚡</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/workflows', label: 'Approval Workflows', icon: <span aria-hidden="true">✅</span>, requiredRoles: ['Admin'] },
   { href: '/admin/social/platform-setup-guide', label: 'Platform Setup Guide 🗺️', icon: <span aria-hidden="true">🗺️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/social/analytics', label: 'Social Analytics', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/social/compose', label: 'Compose Post', icon: <span aria-hidden="true">✏️</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/social',
     label: 'Social Media Portal',
@@ -1077,6 +1086,7 @@ const navItems = [
     ),
     requiredRoles: ['Admin', 'Editor', 'Sales'],
   },
+  { href: '/admin/campaigns/new', label: 'New Campaign', icon: <span aria-hidden="true">➕</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/ad-planner',
     label: 'Ad Planner',

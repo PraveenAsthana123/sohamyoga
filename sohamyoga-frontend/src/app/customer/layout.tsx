@@ -123,8 +123,8 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/60" />
       </div>
     );
   }
@@ -132,14 +132,14 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   if (publicPaths.includes(pathname)) return <>{children}</>;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0 bg-white shadow-sm border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex">
+      {/* Sidebar — frosted glass */}
+      <aside className="w-64 shrink-0 bg-indigo-950/70 backdrop-blur-md border-r border-white/10 flex flex-col">
+        <div className="p-6 border-b border-white/10">
           <Link href="/" className="block">
-            <span className="text-xl font-bold text-primary-700">SohamYoga</span>
+            <span className="text-xl font-bold text-white">SohamYoga</span>
           </Link>
-          <p className="text-xs text-gray-500 mt-1">Customer Portal</p>
+          <p className="text-xs text-white/50 mt-1">Customer Portal</p>
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -148,16 +148,16 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
             if (!visible.length) return null;
             return (
               <div key={group.title}>
-                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{group.title}</p>
+                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-white/40">{group.title}</p>
                 <div className="space-y-0.5">
                   {visible.map(item => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         pathname === item.href
-                          ? 'bg-primary-50 text-primary-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-white/20 text-white shadow-sm backdrop-blur-sm'
+                          : 'text-white/60 hover:bg-white/10 hover:text-white'
                       }`}
                     >
                       <span>{item.icon}</span>
@@ -170,16 +170,16 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-white/10">
           {user && (
             <div className="mb-3">
-              <p className="text-sm font-medium text-gray-800">{user.name}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
+              <p className="text-sm font-medium text-white">{user.name}</p>
+              <p className="text-xs text-white/50">{user.email}</p>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className="w-full text-left text-sm text-red-600 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
+            className="w-full text-left text-sm text-red-400 hover:text-red-300 px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors"
           >
             Sign Out
           </button>
@@ -187,7 +187,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto p-8">{children}</main>
+      <main className="flex-1 overflow-auto p-8 text-white">{children}</main>
     </div>
   );
 }
