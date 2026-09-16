@@ -234,6 +234,9 @@ const navItems = [
   { href: '/admin/faq', label: 'FAQ', icon: <span aria-hidden="true">❓</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/yoga', label: 'Yoga Content', icon: <span aria-hidden="true">🌿</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/features', label: 'Features Showcase', icon: <span aria-hidden="true">✨</span>, requiredRoles: ['Admin', 'Editor'] },
+  { href: '/admin/case-studies', label: 'Case Studies', icon: <span aria-hidden="true">📂</span>, requiredRoles: ['Admin', 'Editor'] },
+  { href: '/admin/chat', label: 'Chat Management', icon: <span aria-hidden="true">💬</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ads', label: 'Ads Management', icon: <span aria-hidden="true">📣</span>, requiredRoles: ['Admin'] },
   { href: '/admin/banners', label: 'Banners', icon: <span aria-hidden="true">🎨</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/carousel', label: 'Carousel', icon: <span aria-hidden="true">🖼️</span>, requiredRoles: ['Admin', 'Editor'] },
   // ── Growth ─────────────────────────────────
@@ -413,6 +416,8 @@ const navItems = [
   { href: '/admin/email', label: 'Email Management', icon: <span aria-hidden="true">📧</span>, requiredRoles: ['Admin'] },
   { href: '/admin/drip-campaigns', label: 'Drip Campaigns', icon: <span aria-hidden="true">💧</span>, requiredRoles: ['Admin'] },
   { href: 'divider', label: 'Growth', icon: null, requiredRoles: [] as string[] },
+  { href: '/admin/engagement', label: 'Engagement Analytics', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/coupons', label: 'Coupons & Discounts', icon: <span aria-hidden="true">🎟️</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/landing-pages',
     label: 'Landing Pages',
@@ -692,6 +697,10 @@ const navItems = [
   },
   // ── Student Care ─────────────────────────────────
   { href: 'divider', label: 'Student Care', icon: null, requiredRoles: [] as string[] },
+  { href: '/admin/teachers', label: 'Teachers', icon: <span aria-hidden="true">👩‍🏫</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/teacher', label: 'Teacher HR', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/qr-kiosk', label: 'QR Kiosk', icon: <span aria-hidden="true">📱</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/calendar', label: 'Calendar', icon: <span aria-hidden="true">📅</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/students',
     label: 'Students',
@@ -922,6 +931,8 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/mcp', label: 'MCP Servers & Calls', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/platform-scenarios', label: 'Platform Scenarios', icon: <span aria-hidden="true">🎭</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/usecase-registry',
     label: 'Use Case Tracking',
