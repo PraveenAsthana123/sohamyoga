@@ -1,9 +1,11 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
-import { chat } from '@/lib/ollama';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? 'qwen2.5:latest';
 
 const LENDER_RATE_GUIDE = {
   banks: { label: 'Big 6 Banks', typical_range: '5.09% – 5.79%', credit: 'A only', pros: 'Full service, branch network, bundled products', cons: 'Less flexible, posted rates higher' },
@@ -22,47 +24,59 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const { mortgage_amount, amortization = 25, credit_tier = 'A', down_payment_pct = 20 } = b;
 
-  const systemPrompt = `You are a Canadian mortgage broker expert. Provide concise, accurate rate comparison advice for Canadian mortgage clients.
-Use current approximate market rates. Focus on actionable lender recommendations. Always mention CMHC if applicable.`;
+  const prompt = `You are a Canadian mortgage broker expert. Compare lender options for this client:
 
-  const userPrompt = `Compare lender options for:
-- Mortgage amount: $${Number(mortgage_amount).toLocaleString()} CAD
-- Amortization: ${amortization} years
-- Credit tier: ${credit_tier}
-- Down payment: ${down_payment_pct}%
+Mortgage amount: $${Number(mortgage_amount).toLocaleString()} CAD
+Amortization: ${amortization} years
+Credit tier: ${credit_tier}
+Down payment: ${down_payment_pct}%
 
 Lender categories:
 ${JSON.stringify(LENDER_RATE_GUIDE, null, 2)}
 
 Provide:
-1. Top 3 recommended lender categories for this client profile and why
+1. Top 3 recommended lender categories for this profile and why
 2. Estimated rate range they can expect
-3. Any CMHC considerations (down < 20% + price < $1.5M)
+3. CMHC considerations if down payment under 20% and price under $1.5M
 4. Key conditions/requirements per lender type
-5. One sentence broker tip for negotiating
+5. One broker tip for negotiating
 
-Keep response under 400 words. Be specific to Canadian market.`;
+Keep response under 400 words. Be specific to the Canadian market.`;
 
   try {
-    const messages = [
-      { role: 'system' as const, content: systemPrompt },
-      { role: 'user' as const, content: userPrompt },
-    ];
-    const advice = await chat(messages, { timeout: AbortSignal.timeout(30000) });
+    const resp = await fetch(`${OLLAMA_URL}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: OLLAMA_MODEL, prompt, stream: false }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!resp.ok) throw new Error(`Ollama ${resp.status}`);
+    const data = await resp.json() as { response?: string };
     return Response.json({
-      advice,
+      advice: data.response ?? '',
       lender_guide: LENDER_RATE_GUIDE,
       inputs: { mortgage_amount, amortization, credit_tier, down_payment_pct },
     });
   } catch {
-    const fallback = `For a ${credit_tier}-credit borrower with $${Number(mortgage_amount).toLocaleString()} at ${amortization}yr amortization:
+    const cmhcNote = Number(down_payment_pct) < 20
+      ? '• CMHC insurance required — adds a 2.8%–4.0% premium to your mortgage balance'
+      : '• No CMHC required (20%+ down payment)';
 
-${credit_tier === 'A' ? `• **Monoline lenders** (First National, MCAP, Merix) typically offer the best rates (4.89%–5.49%) for A-credit borrowers
-• **Big 6 Banks** are competitive for bundled clients (5.09%–5.79%)` : `• **Alt-B lenders** (Home Trust, Equitable Bank) are your primary options (5.99%–8.49%)
-• Improve credit score to access A-lender rates`}
-${Number(down_payment_pct) < 20 ? `• CMHC insurance is required — adds a premium (2.8%–4.0%) to your mortgage` : '• No CMHC required with 20%+ down payment'}
+    const creditNote = credit_tier === 'A'
+      ? '• Monoline lenders (First National, MCAP, Merix) typically offer best rates (4.89%–5.49%)\n• Big 6 Banks competitive for bundled clients (5.09%–5.79%)'
+      : credit_tier === 'B'
+      ? '• Alt-B lenders (Home Trust, Equitable Bank, Haventree Bank) are primary options (5.99%–8.49%)\n• Improving credit score opens access to A-lender rates'
+      : '• Private lenders / MIC networks for C-tier — expect 10%–15%+ rates\n• Bridge to Alt-B as credit improves';
 
-Tip: Always compare at least 3 lenders. Monolines are broker-only — they cannot be accessed by clients directly.`;
+    const fallback = `**Lender Comparison (Offline Mode)**
+
+For $${Number(mortgage_amount).toLocaleString()} at ${amortization}yr amortization, ${credit_tier}-credit:
+
+${creditNote}
+${cmhcNote}
+
+Broker tip: Always compare at least 3 lenders. Monolines are broker-only — clients cannot access them directly. Rate holds are typically 90–120 days.`;
+
     return Response.json({
       advice: fallback,
       lender_guide: LENDER_RATE_GUIDE,

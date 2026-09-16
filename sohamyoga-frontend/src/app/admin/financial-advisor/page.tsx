@@ -1,735 +1,792 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-const RISK_TOLERANCES = ['conservative', 'moderate', 'balanced', 'growth', 'aggressive'];
-const INVESTMENT_HORIZONS = ['<1 year', '1-3 years', '3-5 years', '5-10 years', '10-20 years', '20+ years'];
-const PRIMARY_GOALS = ['Retirement', 'Home Purchase', 'Education', 'Wealth Building', 'Income', 'Estate Planning', 'Emergency Fund', 'Travel'];
-const ACCOUNT_TYPES = ['RRSP', 'TFSA', 'RESP', 'RRIF', 'FHSA', 'Non-Registered', 'Corporate', 'LIRA', 'LIF'];
-const INSTITUTIONS = ['RBC', 'TD', 'BMO', 'Scotiabank', 'CIBC', 'National Bank', 'Questrade', 'Wealthsimple', 'Fidelity', 'CI Investments', 'Manulife', 'Sun Life', 'iA Financial', 'Other'];
+// ─── Canadian Financial Providers ────────────────────────────────────────────
+const INSTITUTIONS = {
+  banks: ['RBC', 'TD', 'BMO', 'Scotiabank', 'CIBC', 'National Bank', 'ATB Financial', 'EQ Bank', 'Oaken Financial'],
+  investment: ['Manulife Investments', 'Sun Life Global Investments', 'Fidelity Canada', 'iShares BlackRock', 'Vanguard Canada', 'CI Financial', 'Mackenzie Investments', 'AGF', 'Dynamic Funds', 'IG Wealth'],
+  robo: ['Wealthsimple', 'Questrade', 'Questwealth', 'CI Direct Investing', 'Nest Wealth', 'ModernAdvisor'],
+  resp: ['CST (Canadian Scholarship Trust)', 'Heritage RESP', 'Universitas'],
+  annuities: ['Sun Life', 'Manulife', 'Canada Life', 'Equitable Life', 'iA Financial', 'Empire Life'],
+};
+const ALL_INSTITUTIONS = [...new Set([...INSTITUTIONS.banks, ...INSTITUTIONS.investment, ...INSTITUTIONS.robo, ...INSTITUTIONS.resp, ...INSTITUTIONS.annuities])];
+const ACCOUNT_TYPES = ['RRSP', 'TFSA', 'RESP', 'RRIF', 'LIRA', 'LIF', 'FHSA', 'non_registered', 'corporate'];
 
-const RISK_COLORS: Record<string, string> = {
-  conservative: 'bg-blue-100 text-blue-800',
-  moderate:     'bg-green-100 text-green-800',
-  balanced:     'bg-teal-100 text-teal-800',
-  growth:       'bg-orange-100 text-orange-800',
-  aggressive:   'bg-red-100 text-red-800',
+// ─── Types ────────────────────────────────────────────────────────────────────
+type FAStats = {
+  aum: { total_aum: string; avg_account_value: string; total_accounts: string; clients_with_accounts: string };
+  clients: { total: string; active: string; kyc_done: string; avg_investable_assets: string };
+  accounts_by_type: { account_type: string; count: string; total_value: string }[];
+  risk_distribution: { risk_tolerance: string; count: string }[];
+  recommendations: { status: string; count: string }[];
 };
 
-const TABS = ['dashboard', 'clients', 'portfolios', 'ai-planning', 'compliance'] as const;
+type FAClient = {
+  id: number; name: string; email: string | null; phone: string | null;
+  province: string; employment_status: string | null;
+  annual_income: string | null; net_worth: string | null; investable_assets: string | null;
+  risk_tolerance: string; investment_horizon: string | null; primary_goal: string | null;
+  retirement_age_target: number | null; tax_bracket: string | null;
+  rrsp_room: string | null; tfsa_room: string | null; fhsa_eligible: boolean;
+  status: string; kyc_completed: boolean; kyc_date: string | null;
+  advisor_notes: string | null; created_at: string;
+  account_count?: string; total_portfolio_value?: string;
+};
+
+type FAAccount = {
+  id: number; client_id: number; client_name?: string; account_type: string;
+  institution: string; account_number: string | null;
+  current_value: string; book_value: string; unrealized_gain: string;
+  annual_contribution: string | null; currency: string; status: string;
+  opened_date: string | null; created_at: string;
+  holdings?: FAHolding[] | null;
+};
+
+type FAHolding = {
+  id: number; account_id: number; ticker: string | null; fund_name: string;
+  asset_class: string | null; geography: string | null;
+  quantity: string | null; avg_cost: string | null; current_price: string | null;
+  market_value: string | null; weight_pct: string | null;
+  asset_type: string | null; provider: string | null; mer_pct: string | null;
+};
+
+type FARecommendation = {
+  id: number; client_id: number; client_name: string;
+  recommendation_type: string | null; description: string;
+  products: unknown[]; estimated_impact: string | null;
+  priority: string; status: string; created_at: string;
+};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const TABS = ['dashboard', 'clients', 'portfolios', 'recommendations', 'ai-planning', 'compliance'] as const;
 type Tab = typeof TABS[number];
 
-const fmt$ = (v: number) => '$' + Number(v).toLocaleString('en-CA', { maximumFractionDigits: 0 });
-const fmt$dec = (v: number) => '$' + Number(v).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const RISK_COLORS: Record<string, string> = {
+  conservative: 'bg-blue-100 text-blue-700',
+  moderate: 'bg-green-100 text-green-700',
+  balanced: 'bg-teal-100 text-teal-700',
+  growth: 'bg-orange-100 text-orange-700',
+  aggressive: 'bg-red-100 text-red-700',
+};
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-interface DashData {
-  aum: { total_aum: number; client_count: number; avg_account_value: number };
-  clients: { total: number };
-  accounts_by_type: { account_type: string; count: number; total_value: number }[];
-  contributions: { annual_contributions: number };
-  risk_distribution: { risk_tolerance: string; count: number }[];
+const PRIORITY_COLORS: Record<string, string> = {
+  high: 'bg-red-100 text-red-700',
+  medium: 'bg-yellow-100 text-yellow-700',
+  low: 'bg-green-100 text-green-700',
+};
+
+const REC_STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  presented: 'bg-blue-100 text-blue-700',
+  accepted: 'bg-green-100 text-green-700',
+  declined: 'bg-red-100 text-red-600',
+};
+
+function fmt$(v: string | number | null | undefined) {
+  const n = Number(v ?? 0);
+  if (isNaN(n)) return '$0';
+  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${n.toFixed(0)}`;
+}
+function fmt$2(v: string | number | null | undefined) {
+  const n = Number(v ?? 0);
+  return isNaN(n) ? '$0.00' : `$${n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+function Badge({ label, colorClass }: { label: string; colorClass: string }) {
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${colorClass}`}>{label}</span>;
 }
 
-interface FAClient {
-  id: number; name: string; email: string; phone: string;
-  risk_tolerance: string; investable_assets: number; primary_goal: string;
-  annual_income: number; investment_horizon: string;
-  rrsp_room: number; tfsa_room: number; fhsa_eligible: boolean;
-  kyc_completed: boolean; kyc_date: string; status: string;
-  advisor_notes: string; created_at: string;
-}
-
-interface FAAccount {
-  id: number; client_id: number; account_type: string; institution: string;
-  account_number: string; current_value: number; book_value: number;
-  unrealized_gain: number; annual_contribution: number; currency: string;
-  status: string; opened_date: string;
-}
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function FinancialAdvisorPage() {
   const [tab, setTab] = useState<Tab>('dashboard');
-  const [dash, setDash] = useState<DashData | null>(null);
+  const [stats, setStats] = useState<FAStats | null>(null);
   const [clients, setClients] = useState<FAClient[]>([]);
-  const [accounts, setAccounts] = useState<FAAccount[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [selectedClient, setSelectedClient] = useState<FAClient | null>(null);
+  const [clientAccounts, setClientAccounts] = useState<FAAccount[]>([]);
+  const [recommendations, setRecommendations] = useState<FARecommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Modals
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showAddHolding, setShowAddHolding] = useState<FAAccount | null>(null);
+  const [showAddRec, setShowAddRec] = useState(false);
 
-  // AI Planning
-  const [aiMode, setAiMode] = useState<'plan' | 'tax' | 'rebalance'>('plan');
-  const [aiClientId, setAiClientId] = useState('');
-  const [aiAllocation, setAiAllocation] = useState('moderate');
-  const [aiResult, setAiResult] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiClient, setAiClient] = useState('');
+  const [financialPlan, setFinancialPlan] = useState('');
+  const [rebalanceAdvice, setRebalanceAdvice] = useState('');
+  const [taxTips, setTaxTips] = useState('');
+  const [aiLoading, setAiLoading] = useState<'plan' | 'rebalance' | 'tax' | null>(null);
 
-  // Forms
-  const [clientForm, setClientForm] = useState({
-    name: '', email: '', phone: '', date_of_birth: '', annual_income: '',
-    investable_assets: '', risk_tolerance: 'moderate', investment_horizon: '5-10 years',
-    primary_goal: 'Retirement', rrsp_room: '', tfsa_room: '', fhsa_eligible: false,
+  const [recStatusFilter, setRecStatusFilter] = useState('');
+
+  const [newClient, setNewClient] = useState({
+    name: '', email: '', phone: '', province: 'AB', employment_status: 'employed',
+    annual_income: '', net_worth: '', investable_assets: '',
+    risk_tolerance: 'moderate', investment_horizon: 'long_term(7y+)',
+    primary_goal: 'retirement', retirement_age_target: '65',
+    tax_bracket: '33', rrsp_room: '', tfsa_room: '',
+    fhsa_eligible: false, status: 'prospect', advisor_notes: '',
   });
-  const [accountForm, setAccountForm] = useState({
-    client_id: '', account_type: 'RRSP', institution: 'RBC',
-    account_number: '', current_value: '', book_value: '', annual_contribution: '', opened_date: '',
+
+  const [newAccount, setNewAccount] = useState({
+    client_id: '', account_type: 'RRSP', institution: '', account_number: '',
+    current_value: '', book_value: '', annual_contribution: '', opened_date: '',
   });
 
-  const load = useCallback(async (t: Tab) => {
-    setLoading(true); setError('');
-    try {
-      if (t === 'dashboard') {
-        const r = await fetch('/api/admin/financial-advisor');
-        if (!r.ok) throw new Error(await r.text());
-        setDash(await r.json());
-      } else if (t === 'clients' || t === 'compliance' || t === 'ai-planning') {
-        const r = await fetch('/api/admin/financial-advisor/clients');
-        if (!r.ok) throw new Error(await r.text());
-        const d = await r.json() as { clients?: FAClient[] } | FAClient[];
-        setClients(Array.isArray(d) ? d : (d.clients ?? []));
-      }
-    } catch (e) { setError(String(e)); }
-    finally { setLoading(false); }
+  const [newHolding, setNewHolding] = useState({
+    ticker: '', fund_name: '', asset_class: 'equities', geography: 'canada',
+    quantity: '', avg_cost: '', current_price: '', market_value: '',
+    asset_type: 'etf', provider: '', mer_pct: '',
+  });
+
+  const [newRec, setNewRec] = useState({
+    client_id: '', recommendation_type: 'rebalance', description: '', estimated_impact: '', priority: 'medium',
+  });
+
+  const loadStats = useCallback(async () => {
+    const r = await fetch('/api/admin/financial-advisor/stats');
+    if (r.ok) setStats(await r.json());
   }, []);
 
-  useEffect(() => { load(tab); }, [tab, load]);
-
-  const loadAccounts = useCallback(async (clientId: number) => {
-    const r = await fetch(`/api/admin/financial-advisor/accounts?client_id=${clientId}`);
-    if (!r.ok) return;
-    const d = await r.json() as { accounts?: FAAccount[] } | FAAccount[];
-    setAccounts(Array.isArray(d) ? d : (d.accounts ?? []));
+  const loadClients = useCallback(async () => {
+    const r = await fetch('/api/admin/financial-advisor/clients');
+    if (r.ok) { const d = await r.json(); setClients(d.clients); }
   }, []);
 
-  useEffect(() => {
-    if (selectedClientId) loadAccounts(selectedClientId);
-  }, [selectedClientId, loadAccounts]);
+  const loadRecommendations = useCallback(async () => {
+    const params = recStatusFilter ? `?status=${recStatusFilter}` : '';
+    const r = await fetch(`/api/admin/financial-advisor/recommendations${params}`);
+    if (r.ok) { const d = await r.json(); setRecommendations(d.recommendations); }
+  }, [recStatusFilter]);
 
-  // ---- Submit client ----
-  const submitClient = async () => {
+  const loadClientDetail = useCallback(async (clientId: number) => {
+    const r = await fetch(`/api/admin/financial-advisor/clients/${clientId}`);
+    if (r.ok) { const d = await r.json(); setSelectedClient(d.client); setClientAccounts(d.accounts); }
+  }, []);
+
+  useEffect(() => { loadStats(); loadClients(); }, [loadStats, loadClients]);
+  useEffect(() => { if (tab === 'recommendations') loadRecommendations(); }, [tab, loadRecommendations]);
+
+  const saveClient = async () => {
+    if (!newClient.name.trim()) { setError('Name required'); return; }
+    setLoading(true);
     const r = await fetch('/api/admin/financial-advisor/clients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(clientForm),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newClient),
     });
-    if (r.ok) { setShowAddClient(false); load('clients'); }
-    else { alert(await r.text()); }
+    setLoading(false);
+    if (r.ok) {
+      setShowAddClient(false);
+      setNewClient({ name: '', email: '', phone: '', province: 'AB', employment_status: 'employed', annual_income: '', net_worth: '', investable_assets: '', risk_tolerance: 'moderate', investment_horizon: 'long_term(7y+)', primary_goal: 'retirement', retirement_age_target: '65', tax_bracket: '33', rrsp_room: '', tfsa_room: '', fhsa_eligible: false, status: 'prospect', advisor_notes: '' });
+      loadClients(); loadStats();
+    } else { const d = await r.json(); setError(d.error || 'Failed'); }
   };
 
-  // ---- Submit account ----
-  const submitAccount = async () => {
+  const saveAccount = async () => {
+    if (!newAccount.client_id || !newAccount.account_type || !newAccount.institution) { setError('Client, account type, institution required'); return; }
+    setLoading(true);
     const r = await fetch('/api/admin/financial-advisor/accounts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...accountForm, client_id: accountForm.client_id || selectedClientId }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newAccount),
     });
-    if (r.ok) { setShowAddAccount(false); if (selectedClientId) loadAccounts(selectedClientId); }
-    else { alert(await r.text()); }
+    setLoading(false);
+    if (r.ok) {
+      setShowAddAccount(false);
+      setNewAccount({ client_id: '', account_type: 'RRSP', institution: '', account_number: '', current_value: '', book_value: '', annual_contribution: '', opened_date: '' });
+      if (selectedClient) loadClientDetail(selectedClient.id); loadStats();
+    } else { const d = await r.json(); setError(d.error || 'Failed'); }
   };
 
-  // ---- Mark KYC complete ----
-  const markKyc = async (clientId: number) => {
-    const r = await fetch('/api/admin/financial-advisor', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: clientId, kyc_completed: true }),
+  const saveHolding = async (accountId: number) => {
+    if (!newHolding.fund_name) { setError('Fund name required'); return; }
+    setLoading(true);
+    const r = await fetch(`/api/admin/financial-advisor/accounts/${accountId}/holdings`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newHolding),
     });
-    if (r.ok) load('compliance');
-    else { alert(await r.text()); }
+    setLoading(false);
+    if (r.ok) {
+      setShowAddHolding(null);
+      setNewHolding({ ticker: '', fund_name: '', asset_class: 'equities', geography: 'canada', quantity: '', avg_cost: '', current_price: '', market_value: '', asset_type: 'etf', provider: '', mer_pct: '' });
+      if (selectedClient) loadClientDetail(selectedClient.id); loadStats();
+    } else { const d = await r.json(); setError(d.error || 'Failed'); }
   };
 
-  // ---- AI planning ----
-  const runAi = async () => {
-    setAiLoading(true); setAiResult('');
-    const client = clients.find(c => c.id === Number(aiClientId));
-    if (!client && aiClientId) {
-      setAiResult('Client not found.'); setAiLoading(false); return;
+  const saveRec = async () => {
+    if (!newRec.client_id || !newRec.description) { setError('Client and description required'); return; }
+    setLoading(true);
+    const r = await fetch('/api/admin/financial-advisor/recommendations', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newRec),
+    });
+    setLoading(false);
+    if (r.ok) {
+      setShowAddRec(false);
+      setNewRec({ client_id: '', recommendation_type: 'rebalance', description: '', estimated_impact: '', priority: 'medium' });
+      loadRecommendations();
+    } else { const d = await r.json(); setError(d.error || 'Failed'); }
+  };
+
+  const updateRecStatus = async (id: number, action: 'accept' | 'decline') => {
+    const r = await fetch(`/api/admin/financial-advisor/recommendations/${id}?action=${action}`, { method: 'POST' });
+    if (r.ok) loadRecommendations();
+  };
+
+  const runAI = async (type: 'plan' | 'rebalance' | 'tax') => {
+    if (!aiClient) { setError('Select a client first'); return; }
+    setAiLoading(type);
+    const endpoint = type === 'plan' ? 'financial-plan' : type === 'rebalance' ? 'rebalance-advice' : 'tax-optimizer';
+    const r = await fetch(`/api/admin/financial-advisor/${endpoint}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: Number(aiClient) }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (type === 'plan') setFinancialPlan(d.plan);
+      else if (type === 'rebalance') setRebalanceAdvice(d.advice);
+      else setTaxTips(d.tips);
     }
-    let prompt = '';
-    if (aiMode === 'plan') {
-      prompt = `You are a Certified Financial Planner in Canada. Create a comprehensive financial plan for:
-Name: ${client?.name ?? 'Client'}
-Annual Income: ${client?.annual_income ? fmt$(Number(client.annual_income)) : 'unknown'}
-Investable Assets: ${client?.investable_assets ? fmt$(Number(client.investable_assets)) : 'unknown'}
-Risk Tolerance: ${client?.risk_tolerance ?? 'moderate'}
-Investment Horizon: ${client?.investment_horizon ?? 'unknown'}
-Primary Goal: ${client?.primary_goal ?? 'Retirement'}
-RRSP Room: ${client?.rrsp_room ? fmt$(Number(client.rrsp_room)) : 'unknown'}
-TFSA Room: ${client?.tfsa_room ? fmt$(Number(client.tfsa_room)) : 'unknown'}
-FHSA Eligible: ${client?.fhsa_eligible ? 'Yes' : 'No'}
-Provide specific, actionable recommendations covering: account prioritization, asset allocation, and timeline.`;
-    } else if (aiMode === 'tax') {
-      prompt = `You are a Canadian tax and financial planning expert. Provide RRSP vs TFSA vs FHSA optimization advice for:
-Name: ${client?.name ?? 'Client'}
-Annual Income: ${client?.annual_income ? fmt$(Number(client.annual_income)) : 'unknown'}
-RRSP Room: ${client?.rrsp_room ? fmt$(Number(client.rrsp_room)) : 'unknown'}
-TFSA Room: ${client?.tfsa_room ? fmt$(Number(client.tfsa_room)) : 'unknown'}
-FHSA Eligible: ${client?.fhsa_eligible ? 'Yes' : 'No'}
-Provide: contribution priority order, tax deduction amounts, withdrawal strategy, and income splitting tips if applicable.`;
-    } else {
-      prompt = `You are a portfolio rebalancing advisor. Suggest rebalancing steps for a ${aiAllocation} investor profile.
-Client: ${client?.name ?? 'Client'}
-Current investable assets: ${client?.investable_assets ? fmt$(Number(client.investable_assets)) : 'unknown'}
-Target allocation: ${aiAllocation}
-Accounts: ${accounts.map(a => `${a.account_type} at ${a.institution} (${fmt$(Number(a.current_value))})`).join(', ') || 'unknown'}
-Provide specific ETF/fund recommendations, target percentages, and rebalancing steps.`;
-    }
-    try {
-      const r = await fetch('/api/ai/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const d = await r.json() as { text?: string };
-      setAiResult(d.text ?? '');
-    } catch (e) { setAiResult(String(e)); }
-    finally { setAiLoading(false); }
+    setAiLoading(null);
   };
 
-  // ---------------------------------------------------------------------------
-  // Render helpers
-  // ---------------------------------------------------------------------------
-  const riskBadge = (r: string) => (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${RISK_COLORS[r] ?? 'bg-gray-100 text-gray-700'}`}>{r}</span>
-  );
-  const kycBadge = (completed: boolean) => (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${completed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
-      {completed ? '✓ KYC' : 'KYC Pending'}
-    </span>
-  );
+  const totalAUM = Number(stats?.aum?.total_aum ?? 0);
 
-  const selectedClient = clients.find(c => c.id === selectedClientId);
-
-  // ---------------------------------------------------------------------------
-  // Dashboard
-  // ---------------------------------------------------------------------------
-  const renderDashboard = () => {
-    if (!dash) return null;
-    const totalAum = Number(dash.aum.total_aum ?? 0);
-    const clientCount = Number(dash.clients.total ?? 0);
-    const avgPortfolio = clientCount > 0 ? totalAum / clientCount : 0;
-    const maxAccountValue = Math.max(...dash.accounts_by_type.map(a => Number(a.total_value)), 1);
-    const totalRisk = dash.risk_distribution.reduce((s, r) => s + Number(r.count), 0);
-
-    return (
-      <div className="space-y-6">
-        {/* KPI cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="text-3xl font-bold text-indigo-600">{fmt$(totalAum)}</div>
-            <div className="text-sm text-gray-500 mt-1">Total AUM</div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="text-3xl font-bold text-blue-600">{clientCount}</div>
-            <div className="text-sm text-gray-500 mt-1">Total Clients</div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="text-3xl font-bold text-green-600">{fmt$(avgPortfolio)}</div>
-            <div className="text-sm text-gray-500 mt-1">Avg Portfolio Size</div>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="text-3xl font-bold text-purple-600">{fmt$(Number(dash.contributions.annual_contributions ?? 0))}</div>
-            <div className="text-sm text-gray-500 mt-1">Annual Contributions</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Accounts by type */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-800 mb-4">AUM by Account Type</h3>
-            <div className="space-y-3">
-              {dash.accounts_by_type.map(a => (
-                <div key={a.account_type}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-700 font-medium">{a.account_type}</span>
-                    <span className="text-gray-500">{a.count} accts · {fmt$(Number(a.total_value))}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((Number(a.total_value)/maxAccountValue)*100)}%` }} />
-                  </div>
-                </div>
-              ))}
-              {dash.accounts_by_type.length === 0 && <div className="text-gray-400 text-sm text-center py-4">No accounts yet.</div>}
-            </div>
-          </div>
-
-          {/* Risk tolerance distribution */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-800 mb-4">Risk Tolerance Distribution</h3>
-            <div className="space-y-3">
-              {dash.risk_distribution.map(r => (
-                <div key={r.risk_tolerance}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${RISK_COLORS[r.risk_tolerance] ?? 'bg-gray-100 text-gray-700'}`}>{r.risk_tolerance}</span>
-                    <span className="text-gray-500">{r.count} ({totalRisk > 0 ? Math.round((Number(r.count)/totalRisk)*100) : 0}%)</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-400 rounded-full" style={{ width: `${totalRisk > 0 ? Math.round((Number(r.count)/totalRisk)*100) : 0}%` }} />
-                  </div>
-                </div>
-              ))}
-              {dash.risk_distribution.length === 0 && <div className="text-gray-400 text-sm text-center py-4">No clients yet.</div>}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // ---------------------------------------------------------------------------
-  // Clients tab
-  // ---------------------------------------------------------------------------
-  const renderClients = () => (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-gray-800">Clients ({clients.length})</h3>
-        <button onClick={() => setShowAddClient(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">+ Add Client</button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 text-left text-gray-500">
-              <th className="pb-2 pr-4">Name</th>
-              <th className="pb-2 pr-4">Risk</th>
-              <th className="pb-2 pr-4">Assets</th>
-              <th className="pb-2 pr-4">Goal</th>
-              <th className="pb-2 pr-4">KYC</th>
-              <th className="pb-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clients.map(c => (
-              <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedClientId(c.id); setTab('portfolios'); }}>
-                <td className="py-2 pr-4">
-                  <div className="font-medium text-gray-900">{c.name}</div>
-                  <div className="text-gray-400 text-xs">{c.email}</div>
-                </td>
-                <td className="py-2 pr-4">{riskBadge(c.risk_tolerance)}</td>
-                <td className="py-2 pr-4 text-gray-700">{c.investable_assets ? fmt$(Number(c.investable_assets)) : '—'}</td>
-                <td className="py-2 pr-4 text-gray-600 text-xs">{c.primary_goal}</td>
-                <td className="py-2 pr-4">{kycBadge(c.kyc_completed)}</td>
-                <td className="py-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${c.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>{c.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {clients.length === 0 && <div className="text-center text-gray-400 py-8">No clients yet. Add your first client.</div>}
-      </div>
-    </div>
-  );
-
-  // ---------------------------------------------------------------------------
-  // Portfolios tab
-  // ---------------------------------------------------------------------------
-  const renderPortfolios = () => {
-    const gain = accounts.reduce((s, a) => s + Number(a.unrealized_gain ?? 0), 0);
-    const totalValue = accounts.reduce((s, a) => s + Number(a.current_value ?? 0), 0);
-
-    return (
-      <div className="space-y-4">
-        {/* Client selector */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <label className="text-sm text-gray-600 font-medium block mb-2">Select Client</label>
-          <select
-            value={selectedClientId ?? ''}
-            onChange={e => setSelectedClientId(Number(e.target.value) || null)}
-            className="w-full max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="">— choose client —</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-
-        {selectedClient && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="font-semibold text-indigo-900">{selectedClient.name}</div>
-                <div className="text-indigo-600 text-sm">{riskBadge(selectedClient.risk_tolerance)} · {selectedClient.investment_horizon} · {selectedClient.primary_goal}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-indigo-700">{fmt$(totalValue)}</div>
-                <div className={`text-sm font-medium ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {gain >= 0 ? '+' : ''}{fmt$dec(gain)} unrealized
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {selectedClientId && (
-          <>
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-800">Accounts ({accounts.length})</h3>
-              <button onClick={() => setShowAddAccount(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">+ Add Account</button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {accounts.map(a => {
-                const g = Number(a.unrealized_gain ?? 0);
-                return (
-                  <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <div className="font-semibold text-gray-900">{a.account_type}</div>
-                        <div className="text-gray-500 text-xs">{a.institution}</div>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${a.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{a.status}</span>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">{fmt$(Number(a.current_value ?? 0))}</div>
-                    <div className="text-xs text-gray-500 mt-1">Book: {fmt$(Number(a.book_value ?? 0))}</div>
-                    <div className={`text-sm font-medium mt-1 ${g >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {g >= 0 ? '+' : ''}{fmt$dec(g)} ({g !== 0 && Number(a.book_value) > 0 ? ((g / Number(a.book_value)) * 100).toFixed(1) + '%' : '—'})
-                    </div>
-                    {a.annual_contribution && (
-                      <div className="text-xs text-gray-400 mt-1">Annual contrib: {fmt$(Number(a.annual_contribution))}</div>
-                    )}
-                    {a.opened_date && (
-                      <div className="text-xs text-gray-400">Opened: {a.opened_date?.slice(0, 10)}</div>
-                    )}
-                  </div>
-                );
-              })}
-              {accounts.length === 0 && <div className="col-span-3 text-center text-gray-400 py-8">No accounts for this client.</div>}
-            </div>
-          </>
-        )}
-
-        {!selectedClientId && (
-          <div className="text-center text-gray-400 py-12">Select a client to view their portfolio.</div>
-        )}
-      </div>
-    );
-  };
-
-  // ---------------------------------------------------------------------------
-  // AI Planning tab
-  // ---------------------------------------------------------------------------
-  const renderAiPlanning = () => (
-    <div className="space-y-6 max-w-2xl">
-      <h3 className="font-semibold text-gray-800">AI Financial Planning</h3>
-
-      {/* Mode selector */}
-      <div className="flex gap-2 flex-wrap">
-        {(['plan', 'tax', 'rebalance'] as const).map(m => (
-          <button key={m} onClick={() => setAiMode(m)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${aiMode === m ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
-            {m === 'plan' ? 'Generate Financial Plan' : m === 'tax' ? 'Tax Optimizer' : 'Rebalance Advice'}
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-        <div>
-          <label className="text-sm text-gray-600 font-medium block mb-2">Client</label>
-          <select value={aiClientId} onChange={e => { setAiClientId(e.target.value); if (e.target.value) loadAccounts(Number(e.target.value)); }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-            <option value="">— select client —</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.name} · {c.risk_tolerance} · {c.primary_goal}</option>)}
-          </select>
-        </div>
-
-        {aiMode === 'rebalance' && (
-          <div>
-            <label className="text-sm text-gray-600 font-medium block mb-2">Target Allocation</label>
-            <select value={aiAllocation} onChange={e => setAiAllocation(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              {RISK_TOLERANCES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-            </select>
-          </div>
-        )}
-
-        {aiMode === 'plan' && (
-          <p className="text-sm text-gray-500">Generates a comprehensive financial plan based on the selected client&apos;s profile including account prioritization, asset allocation, and timeline.</p>
-        )}
-        {aiMode === 'tax' && (
-          <p className="text-sm text-gray-500">Analyzes RRSP vs TFSA vs FHSA priority, contribution amounts, withdrawal strategy, and income-splitting tips for the selected client.</p>
-        )}
-        {aiMode === 'rebalance' && (
-          <p className="text-sm text-gray-500">Provides specific rebalancing steps, ETF recommendations, and target percentages for the selected allocation profile.</p>
-        )}
-
-        <button onClick={runAi} disabled={aiLoading || !aiClientId}
-          className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50">
-          {aiLoading ? 'Generating…' : `Generate ${aiMode === 'plan' ? 'Plan' : aiMode === 'tax' ? 'Tax Advice' : 'Rebalance Advice'}`}
-        </button>
-
-        {aiResult && (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-            {aiResult}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // ---------------------------------------------------------------------------
-  // Compliance tab
-  // ---------------------------------------------------------------------------
-  const renderCompliance = () => {
-    const today = new Date();
-    const oneYearAgo = new Date(today); oneYearAgo.setFullYear(today.getFullYear() - 1);
-
-    const kycPending = clients.filter(c => !c.kyc_completed);
-    const kycStale = clients.filter(c => c.kyc_completed && c.kyc_date && new Date(c.kyc_date) < oneYearAgo);
-
-    return (
-      <div className="space-y-6">
-        {/* KYC summary */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-            <div className="text-3xl font-bold text-green-700">{clients.filter(c => c.kyc_completed).length}</div>
-            <div className="text-sm text-green-600 mt-1">KYC Complete</div>
-          </div>
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-            <div className="text-3xl font-bold text-red-600">{kycPending.length}</div>
-            <div className="text-sm text-red-600 mt-1">KYC Pending</div>
-          </div>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
-            <div className="text-3xl font-bold text-yellow-600">{kycStale.length}</div>
-            <div className="text-sm text-yellow-600 mt-1">KYC Stale (&gt;12 months)</div>
-          </div>
-        </div>
-
-        {/* KYC Pending */}
-        {kycPending.length > 0 && (
-          <div className="bg-white rounded-xl border border-red-200 p-5">
-            <h3 className="font-semibold text-red-700 mb-3">KYC Pending — Action Required</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead><tr className="border-b border-gray-200 text-left text-gray-500">
-                  <th className="pb-2 pr-4">Client</th><th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2 pr-4">Investable Assets</th><th className="pb-2">Action</th>
-                </tr></thead>
-                <tbody>
-                  {kycPending.map(c => (
-                    <tr key={c.id} className="border-b border-gray-100">
-                      <td className="py-2 pr-4">
-                        <div className="font-medium">{c.name}</div>
-                        <div className="text-gray-400 text-xs">{c.email}</div>
-                      </td>
-                      <td className="py-2 pr-4">{kycBadge(c.kyc_completed)}</td>
-                      <td className="py-2 pr-4">{c.investable_assets ? fmt$(Number(c.investable_assets)) : '—'}</td>
-                      <td className="py-2">
-                        <button onClick={() => markKyc(c.id)} className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200">
-                          Mark KYC Complete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* KYC Stale */}
-        {kycStale.length > 0 && (
-          <div className="bg-white rounded-xl border border-yellow-200 p-5">
-            <h3 className="font-semibold text-yellow-700 mb-3">KYC Stale — Review Required</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead><tr className="border-b border-gray-200 text-left text-gray-500">
-                  <th className="pb-2 pr-4">Client</th><th className="pb-2 pr-4">KYC Date</th>
-                  <th className="pb-2 pr-4">Age (months)</th><th className="pb-2">Action</th>
-                </tr></thead>
-                <tbody>
-                  {kycStale.map(c => {
-                    const months = c.kyc_date ? Math.floor((Date.now() - new Date(c.kyc_date).getTime()) / (1000*60*60*24*30)) : null;
-                    return (
-                      <tr key={c.id} className="border-b border-gray-100">
-                        <td className="py-2 pr-4">
-                          <div className="font-medium">{c.name}</div>
-                          <div className="text-gray-400 text-xs">{c.email}</div>
-                        </td>
-                        <td className="py-2 pr-4 text-gray-600 text-xs">{c.kyc_date?.slice(0,10)}</td>
-                        <td className="py-2 pr-4">
-                          <span className="text-yellow-700 font-medium">{months ? `${months} months` : '—'}</span>
-                        </td>
-                        <td className="py-2">
-                          <button onClick={() => markKyc(c.id)} className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200">
-                            Renew KYC
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* All clients suitability table */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-800 mb-3">All Clients — Suitability Overview</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b border-gray-200 text-left text-gray-500">
-                <th className="pb-2 pr-4">Name</th><th className="pb-2 pr-4">Risk</th>
-                <th className="pb-2 pr-4">Goal</th><th className="pb-2 pr-4">Horizon</th>
-                <th className="pb-2 pr-4">KYC</th><th className="pb-2">Notes</th>
-              </tr></thead>
-              <tbody>
-                {clients.map(c => (
-                  <tr key={c.id} className="border-b border-gray-100">
-                    <td className="py-2 pr-4 font-medium">{c.name}</td>
-                    <td className="py-2 pr-4">{riskBadge(c.risk_tolerance)}</td>
-                    <td className="py-2 pr-4 text-gray-600 text-xs">{c.primary_goal}</td>
-                    <td className="py-2 pr-4 text-gray-500 text-xs">{c.investment_horizon}</td>
-                    <td className="py-2 pr-4">{kycBadge(c.kyc_completed)}</td>
-                    <td className="py-2 text-gray-400 text-xs truncate max-w-xs">{c.advisor_notes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {clients.length === 0 && <div className="text-center text-gray-400 py-6">No clients yet.</div>}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // ---------------------------------------------------------------------------
-  // Modals
-  // ---------------------------------------------------------------------------
-  const Modal = ({ title, onClose, onSubmit, children }: { title: string; onClose: () => void; onSubmit: () => void; children: React.ReactNode }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-screen overflow-y-auto">
-        <div className="p-5 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="font-semibold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-        </div>
-        <div className="p-5 space-y-3">{children}</div>
-        <div className="p-5 border-t border-gray-200 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={onSubmit} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700">Save</button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const F = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div><label className="text-xs text-gray-600 block mb-1">{label}</label>{children}</div>
-  );
-  const I = ({ value, onChange, placeholder, type = 'text' }: { value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) => (
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-  );
-  const S = ({ value, onChange, children }: { value: string; onChange: (v: string) => void; children: React.ReactNode }) => (
-    <select value={value} onChange={e => onChange(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{children}</select>
-  );
-
-  // ---------------------------------------------------------------------------
-  // Main render
-  // ---------------------------------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">Financial Advisor</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage client portfolios, AUM, compliance and AI-powered planning.</p>
+      <div className="bg-slate-800 text-white px-6 py-4">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold">Financial Advisor Portal</h1>
+          <p className="text-slate-300 text-sm mt-1">Canadian Investment Management — RRSP · TFSA · RESP · FHSA · Seg Funds · ETFs</p>
+        </div>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white border-b border-gray-200 px-6">
-        <div className="flex gap-1 overflow-x-auto">
+        <div className="max-w-7xl mx-auto flex gap-1 overflow-x-auto">
           {TABS.map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${tab === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-              {t.charAt(0).toUpperCase() + t.slice(1).replace(/-/g, ' ')}
+            <button key={t} onClick={() => { setTab(t); setError(''); }}
+              className={`px-4 py-3 text-sm font-medium capitalize whitespace-nowrap border-b-2 transition-colors ${tab === t ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              {t.replace(/-/g, ' ')}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Body */}
-      <div className="p-6 max-w-7xl mx-auto">
-        {loading && <div className="text-center py-12 text-gray-400">Loading…</div>}
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-4 text-sm">{error}</div>}
-        {!loading && (
-          <>
-            {tab === 'dashboard'   && renderDashboard()}
-            {tab === 'clients'     && renderClients()}
-            {tab === 'portfolios'  && renderPortfolios()}
-            {tab === 'ai-planning' && renderAiPlanning()}
-            {tab === 'compliance'  && renderCompliance()}
-          </>
+      {error && (
+        <div className="max-w-7xl mx-auto px-6 mt-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm flex justify-between">
+            {error}<button onClick={() => setError('')} className="font-bold">x</button>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-6 py-6">
+
+        {tab === 'dashboard' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Total AUM', value: fmt$(totalAUM), sub: `${stats?.aum?.total_accounts ?? 0} accounts` },
+                { label: 'Total Clients', value: stats?.clients?.total ?? '0', sub: `${stats?.clients?.kyc_done ?? 0} KYC complete` },
+                { label: 'Avg Portfolio', value: fmt$(stats?.aum?.avg_account_value), sub: 'per account' },
+                { label: 'Avg Investable Assets', value: fmt$(stats?.clients?.avg_investable_assets), sub: 'per client' },
+              ].map(({ label, value, sub }) => (
+                <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
+                  <div className="text-slate-500 text-xs font-medium uppercase tracking-wide">{label}</div>
+                  <div className="text-2xl font-bold text-slate-800 mt-1">{value}</div>
+                  <div className="text-xs text-gray-400 mt-1">{sub}</div>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="font-semibold text-slate-700 mb-3">Assets by Account Type</h2>
+                {(stats?.accounts_by_type ?? []).map(({ account_type, total_value }) => {
+                  const pct = totalAUM > 0 ? (Number(total_value) / totalAUM * 100) : 0;
+                  return (
+                    <div key={account_type} className="flex items-center gap-3 mb-2">
+                      <div className="w-20 text-sm text-gray-600 font-medium">{account_type}</div>
+                      <div className="flex-1 bg-gray-100 rounded h-4 overflow-hidden">
+                        <div className="h-4 bg-slate-600 rounded" style={{ width: `${Math.min(100, pct)}%` }} />
+                      </div>
+                      <div className="w-16 text-xs text-gray-600 text-right">{fmt$(total_value)}</div>
+                    </div>
+                  );
+                })}
+                {(!stats?.accounts_by_type?.length) && <p className="text-gray-400 text-sm">No accounts yet</p>}
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="font-semibold text-slate-700 mb-3">Clients by Risk Tolerance</h2>
+                {(stats?.risk_distribution ?? []).map(({ risk_tolerance, count }) => (
+                  <div key={risk_tolerance} className="flex items-center gap-3 mb-2">
+                    <div className="w-28"><Badge label={risk_tolerance} colorClass={RISK_COLORS[risk_tolerance] ?? 'bg-gray-100 text-gray-600'} /></div>
+                    <div className="flex-1 bg-gray-100 rounded h-4 overflow-hidden">
+                      <div className="h-4 bg-slate-500 rounded" style={{ width: `${Math.min(100, Number(count) * 15)}%` }} />
+                    </div>
+                    <div className="w-6 text-sm font-semibold text-gray-700 text-right">{count}</div>
+                  </div>
+                ))}
+                {(!stats?.risk_distribution?.length) && <p className="text-gray-400 text-sm">No clients yet</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'clients' && (
+          <div>
+            <div className="flex justify-end mb-4">
+              <button onClick={() => setShowAddClient(true)} className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium">+ Add Client</button>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b"><tr>
+                  {['Name','Province','Income','Portfolio','Risk','Goal','KYC','Status','Accounts'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {clients.map(c => (
+                    <tr key={c.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedClient(c); setNewAccount(p => ({ ...p, client_id: String(c.id) })); }}>
+                      <td className="px-4 py-3"><div className="font-medium text-slate-800">{c.name}</div><div className="text-xs text-gray-400">{c.email}</div></td>
+                      <td className="px-4 py-3 text-gray-600">{c.province}</td>
+                      <td className="px-4 py-3">{c.annual_income ? fmt$(c.annual_income) : '—'}</td>
+                      <td className="px-4 py-3 font-medium">{c.total_portfolio_value ? fmt$(c.total_portfolio_value) : '—'}</td>
+                      <td className="px-4 py-3"><Badge label={c.risk_tolerance} colorClass={RISK_COLORS[c.risk_tolerance] ?? 'bg-gray-100 text-gray-600'} /></td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{c.primary_goal?.replace(/_/g,' ') ?? '—'}</td>
+                      <td className="px-4 py-3">{c.kyc_completed ? <Badge label="Done" colorClass="bg-green-100 text-green-700" /> : <Badge label="Pending" colorClass="bg-yellow-100 text-yellow-700" />}</td>
+                      <td className="px-4 py-3"><Badge label={c.status} colorClass="bg-gray-100 text-gray-600" /></td>
+                      <td className="px-4 py-3 text-center">{c.account_count ?? '0'}</td>
+                    </tr>
+                  ))}
+                  {clients.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">No clients yet</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {tab === 'portfolios' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <select value={selectedClient?.id ?? ''} onChange={e => {
+                const id = Number(e.target.value);
+                const c = clients.find(x => x.id === id);
+                setSelectedClient(c ?? null);
+                setClientAccounts([]);
+                if (id) loadClientDetail(id);
+              }} className="border border-gray-300 rounded px-3 py-2 text-sm min-w-52">
+                <option value="">Select client...</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              {selectedClient && (
+                <button onClick={() => { setNewAccount(p => ({ ...p, client_id: String(selectedClient.id) })); setShowAddAccount(true); }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm">+ Add Account</button>
+              )}
+            </div>
+
+            {selectedClient && (
+              <>
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="font-semibold text-slate-800">{selectedClient.name}</h2>
+                      <p className="text-sm text-gray-500">{selectedClient.risk_tolerance} risk · {selectedClient.primary_goal?.replace(/_/g,' ')} · {selectedClient.investment_horizon}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-slate-800">{fmt$2(clientAccounts.reduce((s, a) => s + Number(a.current_value), 0))}</div>
+                      <div className="text-xs text-gray-400">Total Portfolio</div>
+                    </div>
+                  </div>
+                </div>
+
+                {clientAccounts.map(account => {
+                  const gain = Number(account.unrealized_gain);
+                  return (
+                    <div key={account.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                      <div className="flex justify-between items-center mb-3">
+                        <div>
+                          <span className="font-semibold text-slate-700">{account.account_type}</span>
+                          <span className="text-gray-400 text-sm ml-2">@ {account.institution}</span>
+                          {account.account_number && <span className="text-gray-300 text-xs ml-2">#{account.account_number}</span>}
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-slate-800">{fmt$2(account.current_value)}</div>
+                          <div className={`text-xs ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {gain >= 0 ? '+' : ''}{fmt$2(account.unrealized_gain)} unrealized
+                          </div>
+                        </div>
+                      </div>
+                      {account.holdings && account.holdings.length > 0 ? (
+                        <table className="w-full text-xs">
+                          <thead className="bg-gray-50"><tr>
+                            {['Fund','Ticker','Class','Geography','Qty','Avg Cost','Price','Market Value','Weight','MER'].map(h =>
+                              <th key={h} className="px-2 py-1.5 text-left text-gray-500">{h}</th>)}
+                          </tr></thead>
+                          <tbody>
+                            {account.holdings.map(h => (
+                              <tr key={h.id} className="border-b">
+                                <td className="px-2 py-1.5 font-medium">{h.fund_name}</td>
+                                <td className="px-2 py-1.5 text-gray-400">{h.ticker ?? '—'}</td>
+                                <td className="px-2 py-1.5">{h.asset_class ?? '—'}</td>
+                                <td className="px-2 py-1.5">{h.geography ?? '—'}</td>
+                                <td className="px-2 py-1.5">{h.quantity ?? '—'}</td>
+                                <td className="px-2 py-1.5">{h.avg_cost ? `$${Number(h.avg_cost).toFixed(2)}` : '—'}</td>
+                                <td className="px-2 py-1.5">{h.current_price ? `$${Number(h.current_price).toFixed(2)}` : '—'}</td>
+                                <td className="px-2 py-1.5 font-semibold">{h.market_value ? fmt$2(h.market_value) : '—'}</td>
+                                <td className="px-2 py-1.5">{h.weight_pct ? `${Number(h.weight_pct).toFixed(1)}%` : '—'}</td>
+                                <td className={`px-2 py-1.5 ${Number(h.mer_pct) > 2 ? 'text-red-600 font-semibold' : ''}`}>{h.mer_pct ? `${Number(h.mer_pct).toFixed(2)}%` : '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : <p className="text-xs text-gray-400">No holdings recorded</p>}
+                      <button onClick={() => setShowAddHolding(account)} className="mt-3 px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">+ Add Holding</button>
+                    </div>
+                  );
+                })}
+                {clientAccounts.length === 0 && <p className="text-gray-400 text-sm py-4">No accounts for this client — add one above.</p>}
+              </>
+            )}
+          </div>
+        )}
+
+        {tab === 'recommendations' && (
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <select value={recStatusFilter} onChange={e => setRecStatusFilter(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm">
+                <option value="">All Statuses</option>
+                {['pending','presented','accepted','declined'].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <button onClick={loadRecommendations} className="px-4 py-2 bg-slate-700 text-white rounded text-sm">Filter</button>
+              <button onClick={() => setShowAddRec(true)} className="ml-auto px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium">+ Add Recommendation</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {recommendations.map(rec => (
+                <div key={rec.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="font-semibold text-slate-800 text-sm">{rec.client_name}</div>
+                      <div className="text-xs text-gray-400">{rec.recommendation_type?.replace(/_/g,' ') ?? '—'}</div>
+                    </div>
+                    <Badge label={rec.priority} colorClass={PRIORITY_COLORS[rec.priority] ?? 'bg-gray-100 text-gray-600'} />
+                  </div>
+                  <p className="text-sm text-gray-700 mb-2">{rec.description}</p>
+                  {rec.estimated_impact && <div className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded mb-2">Impact: {rec.estimated_impact}</div>}
+                  <div className="flex justify-between items-center">
+                    <Badge label={rec.status} colorClass={REC_STATUS_COLORS[rec.status] ?? 'bg-gray-100 text-gray-600'} />
+                    {rec.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <button onClick={() => updateRecStatus(rec.id, 'accept')} className="px-2 py-1 bg-green-600 text-white rounded text-xs">Accept</button>
+                        <button onClick={() => updateRecStatus(rec.id, 'decline')} className="px-2 py-1 bg-red-500 text-white rounded text-xs">Decline</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {recommendations.length === 0 && <div className="col-span-3 text-center py-12 text-gray-400">No recommendations yet</div>}
+            </div>
+          </div>
+        )}
+
+        {tab === 'ai-planning' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h2 className="font-semibold text-slate-700 mb-3">AI Financial Planning — Powered by Ollama</h2>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Select Client</label>
+                <select value={aiClient} onChange={e => { setAiClient(e.target.value); setFinancialPlan(''); setRebalanceAdvice(''); setTaxTips(''); }}
+                  className="border border-gray-300 rounded px-3 py-2 text-sm min-w-64">
+                  <option value="">— select client —</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name} ({c.risk_tolerance}, {fmt$(c.investable_assets)})</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {([
+                { key: 'plan' as const, label: 'Generate Financial Plan', desc: 'RRSP/TFSA/FHSA/RESP/retirement projection', color: 'bg-slate-700' },
+                { key: 'rebalance' as const, label: 'Rebalance Advice', desc: 'Drift analysis vs target, buy/sell recommendations', color: 'bg-teal-700' },
+                { key: 'tax' as const, label: 'Tax Optimizer', desc: 'RRSP vs TFSA, income splitting, CPP/OAS, FHSA, capital gains', color: 'bg-purple-700' },
+              ]).map(({ key, label, desc, color }) => (
+                <div key={key} className="bg-white rounded-xl border border-gray-200 p-5">
+                  <h3 className="font-semibold text-slate-700 mb-1">{label}</h3>
+                  <p className="text-xs text-gray-500 mb-3">{desc}</p>
+                  <button onClick={() => runAI(key)} disabled={!aiClient || aiLoading !== null}
+                    className={`w-full py-2 ${color} text-white rounded text-sm font-medium disabled:opacity-50`}>
+                    {aiLoading === key ? 'Generating...' : label.split(' ')[0] + ' ' + label.split(' ')[1]}
+                  </button>
+                </div>
+              ))}
+            </div>
+            {financialPlan && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="font-semibold text-slate-700 mb-3">Financial Plan</h2>
+                <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{financialPlan}</div>
+              </div>
+            )}
+            {rebalanceAdvice && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="font-semibold text-slate-700 mb-3">Rebalance Advice</h2>
+                <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{rebalanceAdvice}</div>
+              </div>
+            )}
+            {taxTips && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="font-semibold text-slate-700 mb-3">Tax Optimizer</h2>
+                <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{taxTips}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'compliance' && (
+          <div className="space-y-4">
+            <h2 className="font-semibold text-slate-700">KYC and Suitability by Client</h2>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b"><tr>
+                  {['Client','KYC','KYC Date','Risk','Horizon','Goal','Tax Bracket','RRSP Room','TFSA Room','FHSA','Notes'].map(h => (
+                    <th key={h} className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {clients.map(c => (
+                    <tr key={c.id} className={`border-b ${!c.kyc_completed ? 'bg-yellow-50' : ''}`}>
+                      <td className="px-3 py-3 font-medium text-slate-800 whitespace-nowrap">{c.name}</td>
+                      <td className="px-3 py-3">{c.kyc_completed ? <Badge label="Complete" colorClass="bg-green-100 text-green-700" /> : <Badge label="Pending" colorClass="bg-yellow-100 text-yellow-700" />}</td>
+                      <td className="px-3 py-3 text-gray-500 text-xs">{c.kyc_date ? new Date(c.kyc_date).toLocaleDateString('en-CA') : '—'}</td>
+                      <td className="px-3 py-3"><Badge label={c.risk_tolerance} colorClass={RISK_COLORS[c.risk_tolerance] ?? 'bg-gray-100 text-gray-600'} /></td>
+                      <td className="px-3 py-3 text-gray-600 text-xs">{c.investment_horizon?.replace(/_/g,' ') ?? '—'}</td>
+                      <td className="px-3 py-3 text-gray-600 text-xs">{c.primary_goal?.replace(/_/g,' ') ?? '—'}</td>
+                      <td className="px-3 py-3 text-gray-600">{c.tax_bracket ? `${c.tax_bracket}%` : '—'}</td>
+                      <td className="px-3 py-3">{c.rrsp_room ? fmt$(c.rrsp_room) : '—'}</td>
+                      <td className="px-3 py-3">{c.tfsa_room ? fmt$(c.tfsa_room) : '—'}</td>
+                      <td className="px-3 py-3">{c.fhsa_eligible ? <Badge label="Eligible" colorClass="bg-blue-100 text-blue-700" /> : '—'}</td>
+                      <td className="px-3 py-3 text-gray-500 text-xs max-w-48 truncate">{c.advisor_notes ?? '—'}</td>
+                    </tr>
+                  ))}
+                  {clients.length === 0 && <tr><td colSpan={11} className="px-4 py-8 text-center text-gray-400">No clients</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Add Client Modal */}
       {showAddClient && (
-        <Modal title="Add Client" onClose={() => setShowAddClient(false)} onSubmit={submitClient}>
-          <F label="Full Name *"><I value={clientForm.name} onChange={v => setClientForm(p => ({ ...p, name: v }))} placeholder="Jane Smith" /></F>
-          <F label="Email"><I type="email" value={clientForm.email} onChange={v => setClientForm(p => ({ ...p, email: v }))} /></F>
-          <F label="Phone"><I value={clientForm.phone} onChange={v => setClientForm(p => ({ ...p, phone: v }))} placeholder="403-555-0100" /></F>
-          <F label="Date of Birth"><I type="date" value={clientForm.date_of_birth} onChange={v => setClientForm(p => ({ ...p, date_of_birth: v }))} /></F>
-          <div className="grid grid-cols-2 gap-3">
-            <F label="Annual Income ($)"><I type="number" value={clientForm.annual_income} onChange={v => setClientForm(p => ({ ...p, annual_income: v }))} placeholder="80000" /></F>
-            <F label="Investable Assets ($)"><I type="number" value={clientForm.investable_assets} onChange={v => setClientForm(p => ({ ...p, investable_assets: v }))} placeholder="150000" /></F>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-screen overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Add FA Client</h2>
+              <button onClick={() => setShowAddClient(false)} className="text-gray-400 text-xl">x</button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {([
+                { label: 'Full Name *', key: 'name', type: 'text' },
+                { label: 'Email', key: 'email', type: 'email' },
+                { label: 'Phone', key: 'phone', type: 'tel' },
+                { label: 'Annual Income ($)', key: 'annual_income', type: 'number' },
+                { label: 'Net Worth ($)', key: 'net_worth', type: 'number' },
+                { label: 'Investable Assets ($)', key: 'investable_assets', type: 'number' },
+                { label: 'Retirement Age Target', key: 'retirement_age_target', type: 'number' },
+                { label: 'RRSP Room ($)', key: 'rrsp_room', type: 'number' },
+                { label: 'TFSA Room ($)', key: 'tfsa_room', type: 'number' },
+              ] as { label: string; key: keyof typeof newClient; type: string }[]).map(({ label, key, type }) => (
+                <div key={key}>
+                  <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                  <input type={type} value={String(newClient[key])} onChange={e => setNewClient(p => ({ ...p, [key]: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+                </div>
+              ))}
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Province</label>
+                <select value={newClient.province} onChange={e => setNewClient(p => ({ ...p, province: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['AB','BC','ON','QC','SK','MB','NS','NB','NL','PE','NT','NU','YT'].map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Risk Tolerance</label>
+                <select value={newClient.risk_tolerance} onChange={e => setNewClient(p => ({ ...p, risk_tolerance: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['conservative','moderate','balanced','growth','aggressive'].map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Primary Goal</label>
+                <select value={newClient.primary_goal} onChange={e => setNewClient(p => ({ ...p, primary_goal: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['retirement','education','home_purchase','wealth_building','income_generation','estate_planning'].map(v => <option key={v} value={v}>{v.replace(/_/g,' ')}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Investment Horizon</label>
+                <select value={newClient.investment_horizon} onChange={e => setNewClient(p => ({ ...p, investment_horizon: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['short_term(<3y)','medium_term(3-7y)','long_term(7y+)'].map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Tax Bracket (%)</label>
+                <select value={newClient.tax_bracket} onChange={e => setNewClient(p => ({ ...p, tax_bracket: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['20','26','33','43','53'].map(v => <option key={v} value={v}>{v}%</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 pt-4">
+                <input type="checkbox" id="fhsa_chk" checked={newClient.fhsa_eligible} onChange={e => setNewClient(p => ({ ...p, fhsa_eligible: e.target.checked }))} />
+                <label htmlFor="fhsa_chk" className="text-sm text-gray-600">FHSA Eligible (first-time home buyer)</label>
+              </div>
+              <div className="col-span-2">
+                <label className="text-xs text-gray-500 block mb-1">Advisor Notes / Suitability</label>
+                <textarea value={newClient.advisor_notes} onChange={e => setNewClient(p => ({ ...p, advisor_notes: e.target.value }))} rows={3} className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={saveClient} disabled={loading} className="px-5 py-2 bg-blue-600 text-white rounded text-sm font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Client'}</button>
+              <button onClick={() => setShowAddClient(false)} className="px-5 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+            </div>
           </div>
-          <F label="Risk Tolerance">
-            <S value={clientForm.risk_tolerance} onChange={v => setClientForm(p => ({ ...p, risk_tolerance: v }))}>
-              {RISK_TOLERANCES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-            </S>
-          </F>
-          <F label="Investment Horizon">
-            <S value={clientForm.investment_horizon} onChange={v => setClientForm(p => ({ ...p, investment_horizon: v }))}>
-              {INVESTMENT_HORIZONS.map(h => <option key={h} value={h}>{h}</option>)}
-            </S>
-          </F>
-          <F label="Primary Goal">
-            <S value={clientForm.primary_goal} onChange={v => setClientForm(p => ({ ...p, primary_goal: v }))}>
-              {PRIMARY_GOALS.map(g => <option key={g} value={g}>{g}</option>)}
-            </S>
-          </F>
-          <div className="grid grid-cols-2 gap-3">
-            <F label="RRSP Room ($)"><I type="number" value={clientForm.rrsp_room} onChange={v => setClientForm(p => ({ ...p, rrsp_room: v }))} /></F>
-            <F label="TFSA Room ($)"><I type="number" value={clientForm.tfsa_room} onChange={v => setClientForm(p => ({ ...p, tfsa_room: v }))} /></F>
-          </div>
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input type="checkbox" checked={clientForm.fhsa_eligible} onChange={e => setClientForm(p => ({ ...p, fhsa_eligible: e.target.checked }))} className="rounded" />
-            FHSA Eligible (first-time home buyer)
-          </label>
-        </Modal>
+        </div>
       )}
 
-      {/* Add Account Modal */}
       {showAddAccount && (
-        <Modal title="Add Account" onClose={() => setShowAddAccount(false)} onSubmit={submitAccount}>
-          {!selectedClientId && (
-            <F label="Client ID"><I type="number" value={accountForm.client_id} onChange={v => setAccountForm(p => ({ ...p, client_id: v }))} /></F>
-          )}
-          <F label="Account Type">
-            <S value={accountForm.account_type} onChange={v => setAccountForm(p => ({ ...p, account_type: v }))}>
-              {ACCOUNT_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
-            </S>
-          </F>
-          <F label="Institution">
-            <S value={accountForm.institution} onChange={v => setAccountForm(p => ({ ...p, institution: v }))}>
-              {INSTITUTIONS.map(i => <option key={i} value={i}>{i}</option>)}
-            </S>
-          </F>
-          <F label="Account Number"><I value={accountForm.account_number} onChange={v => setAccountForm(p => ({ ...p, account_number: v }))} placeholder="Optional" /></F>
-          <div className="grid grid-cols-2 gap-3">
-            <F label="Current Value ($)"><I type="number" value={accountForm.current_value} onChange={v => setAccountForm(p => ({ ...p, current_value: v }))} /></F>
-            <F label="Book Value ($)"><I type="number" value={accountForm.book_value} onChange={v => setAccountForm(p => ({ ...p, book_value: v }))} /></F>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Add Account</h2>
+              <button onClick={() => setShowAddAccount(false)} className="text-gray-400 text-xl">x</button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="text-xs text-gray-500 block mb-1">Client *</label>
+                <select value={newAccount.client_id} onChange={e => setNewAccount(p => ({ ...p, client_id: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  <option value="">Select client...</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Account Type *</label>
+                <select value={newAccount.account_type} onChange={e => setNewAccount(p => ({ ...p, account_type: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {ACCOUNT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Institution *</label>
+                <select value={newAccount.institution} onChange={e => setNewAccount(p => ({ ...p, institution: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  <option value="">Select...</option>
+                  {ALL_INSTITUTIONS.map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
+              </div>
+              {([
+                { label: 'Account Number', key: 'account_number' },
+                { label: 'Current Value ($)', key: 'current_value' },
+                { label: 'Book Value ($)', key: 'book_value' },
+                { label: 'Annual Contribution ($)', key: 'annual_contribution' },
+              ] as { label: string; key: keyof typeof newAccount }[]).map(({ label, key }) => (
+                <div key={key}>
+                  <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                  <input value={newAccount[key]} onChange={e => setNewAccount(p => ({ ...p, [key]: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+                </div>
+              ))}
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Opened Date</label>
+                <input type="date" value={newAccount.opened_date} onChange={e => setNewAccount(p => ({ ...p, opened_date: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={saveAccount} disabled={loading} className="px-5 py-2 bg-blue-600 text-white rounded text-sm font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Account'}</button>
+              <button onClick={() => setShowAddAccount(false)} className="px-5 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+            </div>
           </div>
-          <F label="Annual Contribution ($)"><I type="number" value={accountForm.annual_contribution} onChange={v => setAccountForm(p => ({ ...p, annual_contribution: v }))} /></F>
-          <F label="Opened Date"><I type="date" value={accountForm.opened_date} onChange={v => setAccountForm(p => ({ ...p, opened_date: v }))} /></F>
-        </Modal>
+        </div>
+      )}
+
+      {showAddHolding && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Add Holding — {showAddHolding.account_type} @ {showAddHolding.institution}</h2>
+              <button onClick={() => setShowAddHolding(null)} className="text-gray-400 text-xl">x</button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="text-xs text-gray-500 block mb-1">Fund Name *</label>
+                <input value={newHolding.fund_name} onChange={e => setNewHolding(p => ({ ...p, fund_name: e.target.value }))} placeholder="e.g. Vanguard S&P 500 ETF" className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+              </div>
+              {([
+                { label: 'Ticker', key: 'ticker', placeholder: 'VFV' },
+                { label: 'Provider', key: 'provider', placeholder: 'Vanguard Canada' },
+                { label: 'Quantity', key: 'quantity', placeholder: '100' },
+                { label: 'Avg Cost ($)', key: 'avg_cost', placeholder: '95.00' },
+                { label: 'Current Price ($)', key: 'current_price', placeholder: '105.00' },
+                { label: 'Market Value ($)', key: 'market_value', placeholder: 'auto from qty x price' },
+                { label: 'MER (%)', key: 'mer_pct', placeholder: '0.09' },
+                { label: 'Weight (%)', key: 'weight_pct', placeholder: '25' },
+              ] as { label: string; key: keyof typeof newHolding; placeholder: string }[]).map(({ label, key, placeholder }) => (
+                <div key={key}>
+                  <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                  <input value={newHolding[key]} onChange={e => setNewHolding(p => ({ ...p, [key]: e.target.value }))} placeholder={placeholder} className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+                </div>
+              ))}
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Asset Class</label>
+                <select value={newHolding.asset_class} onChange={e => setNewHolding(p => ({ ...p, asset_class: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['equities','fixed_income','real_estate','commodities','cash','alternatives'].map(v => <option key={v} value={v}>{v.replace('_',' ')}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Geography</label>
+                <select value={newHolding.geography} onChange={e => setNewHolding(p => ({ ...p, geography: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['canada','us','international','global','emerging'].map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Asset Type</label>
+                <select value={newHolding.asset_type} onChange={e => setNewHolding(p => ({ ...p, asset_type: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['etf','mutual_fund','stock','gic','bond','seg_fund','annuity'].map(v => <option key={v} value={v}>{v.replace('_',' ')}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => saveHolding(showAddHolding.id)} disabled={loading} className="px-5 py-2 bg-blue-600 text-white rounded text-sm font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Holding'}</button>
+              <button onClick={() => setShowAddHolding(null)} className="px-5 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddRec && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Add Recommendation</h2>
+              <button onClick={() => setShowAddRec(false)} className="text-gray-400 text-xl">x</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Client *</label>
+                <select value={newRec.client_id} onChange={e => setNewRec(p => ({ ...p, client_id: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  <option value="">Select client...</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Type</label>
+                <select value={newRec.recommendation_type} onChange={e => setNewRec(p => ({ ...p, recommendation_type: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['rebalance','contribution','withdrawal','product_change','tax_optimization'].map(v => <option key={v} value={v}>{v.replace(/_/g,' ')}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Description *</label>
+                <textarea value={newRec.description} onChange={e => setNewRec(p => ({ ...p, description: e.target.value }))} rows={3} className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Estimated Impact</label>
+                <input value={newRec.estimated_impact} onChange={e => setNewRec(p => ({ ...p, estimated_impact: e.target.value }))} placeholder="e.g. Save $3,000 in taxes annually" className="border border-gray-300 rounded px-3 py-2 text-sm w-full" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Priority</label>
+                <select value={newRec.priority} onChange={e => setNewRec(p => ({ ...p, priority: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                  {['high','medium','low'].map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={saveRec} disabled={loading} className="px-5 py-2 bg-blue-600 text-white rounded text-sm font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Recommendation'}</button>
+              <button onClick={() => setShowAddRec(false)} className="px-5 py-2 border border-gray-300 rounded text-sm">Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

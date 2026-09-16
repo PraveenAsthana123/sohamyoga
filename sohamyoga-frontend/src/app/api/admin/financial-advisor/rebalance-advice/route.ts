@@ -107,7 +107,7 @@ Keep under 500 words. Be specific and actionable.`;
       client: clientData,
     });
   } catch {
-    const drifts = Object.entries(targetAllocation).map(([cls, target]) => {
+    const drifts = Object.entries(targetAllocation as Record<string, number>).map(([cls, target]) => {
       const current = currentAllocation[cls] ?? 0;
       const drift = current - target;
       return `${cls}: current ${current}% vs target ${target}% (${drift > 0 ? '+' : ''}${drift}%)`;
