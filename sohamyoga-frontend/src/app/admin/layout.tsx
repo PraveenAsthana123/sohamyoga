@@ -1253,6 +1253,15 @@ const navItems = [
   // ── Review & Video Intelligence ─────────────────────────────────────────
   { href: '/admin/review-scraper', label: 'Review Scraper ⭐', icon: <span aria-hidden="true">⭐</span>, requiredRoles: ['Admin'] },
   { href: '/admin/youtube-transcript', label: 'YT Transcripts 🎬', icon: <span aria-hidden="true">🎬</span>, requiredRoles: ['Admin'] },
+  // ── AI Voice & Language ──────────────────────────────────────────────────
+  { href: '/admin/elevenlabs', label: 'ElevenLabs TTS 🎙️', icon: <span aria-hidden="true">🎙️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/sarvam', label: 'Sarvam AI 🇮🇳', icon: <span aria-hidden="true">🇮🇳</span>, requiredRoles: ['Admin'] },
+  // ── Retail AI ───────────────────────────────────────────────────────────
+  { href: '/admin/retail-ai', label: 'Retail AI 🛒', icon: <span aria-hidden="true">🛒</span>, requiredRoles: ['Admin'] },
+  // ── Video Studio & Reels ────────────────────────────────────────────────
+  { href: '/admin/video-editor', label: 'Video Studio 🎬', icon: <span aria-hidden="true">🎬</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/reels', label: 'Reels Manager 📱', icon: <span aria-hidden="true">📱</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/video-posting', label: 'Video Posting 🚀', icon: <span aria-hidden="true">🚀</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
