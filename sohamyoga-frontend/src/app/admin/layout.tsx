@@ -1248,6 +1248,7 @@ const navItems = [
   // ── Integrations ────────────────────────────────────────────────────────
   { href: '/admin/google-drive', label: 'Google Drive 💾', icon: <span aria-hidden="true">💾</span>, requiredRoles: ['Admin'] },
   { href: '/admin/gmail-integration', label: 'Gmail Integration 📧', icon: <span aria-hidden="true">📧</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/communications', label: 'Unified Inbox 🌐', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
   // ── Review & Video Intelligence ─────────────────────────────────────────
   { href: '/admin/review-scraper', label: 'Review Scraper ⭐', icon: <span aria-hidden="true">⭐</span>, requiredRoles: ['Admin'] },
   { href: '/admin/youtube-transcript', label: 'YT Transcripts 🎬', icon: <span aria-hidden="true">🎬</span>, requiredRoles: ['Admin'] },
