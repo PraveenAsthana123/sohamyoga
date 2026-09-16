@@ -17,6 +17,14 @@ interface SubRow {
   proration_credit: string; notes: string | null; created_at: Date; updated_at: Date;
 }
 
+// Explicit column list — avoids SELECT * so the TypeScript interface is
+// the authoritative shape and no unexpected columns are returned to the client.
+const SUB_COLS = `id, customer_id, plan_id, plan_name, plan_type, status, billing_cycle,
+  billing_amount, currency, billing_cycle_days, started_at, expires_at, renews_at,
+  cancelled_at, cancel_reason, paused_at, pause_reason, frozen_from, frozen_to,
+  grace_period_ends_at, auto_renew, pending_downgrade_plan_id, corporate_department,
+  corporate_contract_id, proration_credit, notes, created_at, updated_at`;
+
 function toSubscription(r: SubRow): Subscription {
   return new Subscription({
     id: r.id, customerId: r.customer_id, planId: r.plan_id, planName: r.plan_name, planType: r.plan_type,
@@ -53,7 +61,7 @@ export async function GET(req: NextRequest) {
   if (!customerId) return Response.json({ error: 'No customer record found for this account.' }, { status: 404 });
 
   const result = await query<SubRow>(
-    `SELECT * FROM subscription_master WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
+    `SELECT ${SUB_COLS} FROM subscription_master WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [customerId],
   );
   if (!result.rowCount) return Response.json({ subscription: null });
@@ -82,7 +90,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const existing = await query<SubRow>(
-    `SELECT * FROM subscription_master WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
+    `SELECT ${SUB_COLS} FROM subscription_master WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [customerId],
   );
   if (!existing.rowCount) return Response.json({ error: 'No subscription found for this account.' }, { status: 404 });

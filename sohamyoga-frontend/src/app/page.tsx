@@ -12,6 +12,7 @@ import IndustriesSection from '@/components/home/IndustriesSection';
 import VideoDemoSection from '@/components/home/VideoDemoSection';
 import BlogSection from '@/components/home/BlogSection';
 import NewsletterSection from '@/components/home/NewsletterSection';
+import DigitalMarketingSections from '@/components/home/DigitalMarketingSections';
 import { SERVER_API_URL as API_URL } from '@/lib/server-api';
 
 export const metadata: Metadata = {
@@ -247,6 +248,10 @@ export default async function HomePage() {
       {/* Real A/B-tested CTA — see docs/modules or module_registry key
           'homepage-final-cta' for the experiment this is wired to. */}
       <CtaExperimentBanner />
+
+      {/* Digital Marketing Sales Sections: module showcase, onboarding flow,
+          platform architecture diagram, pricing tiers, ROI calculator */}
+      <DigitalMarketingSections />
 
       {/* Newsletter */}
       <NewsletterSection />

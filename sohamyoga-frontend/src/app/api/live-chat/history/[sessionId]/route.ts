@@ -25,6 +25,12 @@ const CREATE_MESSAGE = `
   )
 `;
 
+// Index for the most common query: fetch messages by session ordered by time.
+const CREATE_MESSAGE_IDX = `
+  CREATE INDEX IF NOT EXISTS idx_live_chat_message_session_id
+  ON live_chat_message (session_id, created_at ASC)
+`;
+
 // GET: return messages for a session (public — visitor needs session id to access)
 export async function GET(
   _req: NextRequest,
@@ -41,6 +47,7 @@ export async function GET(
   try {
     await client.query(CREATE_SESSION);
     await client.query(CREATE_MESSAGE);
+    await client.query(CREATE_MESSAGE_IDX);
 
     const sessionCheck = await client.query(
       `SELECT id, visitor_id, status, started_at, ended_at FROM live_chat_session WHERE id = $1`,
@@ -97,13 +104,19 @@ export async function POST(
     return Response.json({ error: `sender_role must be one of: ${validRoles.join(', ')}` }, { status: 400 });
   }
 
+  // FIX: wrap INSERT + optional UPDATE in a transaction so the message row
+  // and the session's unread_count are always in sync — a visitor message
+  // cannot appear in history without its corresponding unread_count increment.
   const client = await pool.connect();
   try {
+    await client.query('BEGIN');
+
     const sessionCheck = await client.query(
       `SELECT id FROM live_chat_session WHERE id = $1 AND status = 'active'`,
       [sessionId],
     );
     if (!sessionCheck.rows.length) {
+      await client.query('ROLLBACK');
       return Response.json({ error: 'Session not found or not active' }, { status: 404 });
     }
 
@@ -122,7 +135,12 @@ export async function POST(
       );
     }
 
+    await client.query('COMMIT');
     return Response.json({ message: result.rows[0] }, { status: 201 });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[live-chat POST message]', err);
+    return Response.json({ error: 'Failed to send message' }, { status: 500 });
   } finally {
     client.release();
   }

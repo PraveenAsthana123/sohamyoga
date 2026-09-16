@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type TabId = 'system' | 'api' | 'audit' | 'cache' | 'errors';
+type TabId = 'system' | 'api' | 'audit' | 'cache' | 'errors' | 'jobs' | 'sessions';
 
 interface ServiceHealth {
   name: string;
@@ -541,6 +541,237 @@ function ErrorLogsTab() {
   );
 }
 
+// ── Tab: Job Monitor ──────────────────────────────────────────────────────
+interface JobMonitorJob {
+  id: number;
+  job_name: string;
+  status: string;
+  fail_count: number;
+  run_count: number;
+  latest_run_status: string | null;
+  latest_started_at: string | null;
+}
+
+interface JobMonitorLog {
+  id: number;
+  job_name: string;
+  status: string;
+  started_at: string;
+  duration_ms: number | null;
+  triggered_by: string;
+  error_message: string | null;
+}
+
+function JobMonitorTab() {
+  const [jobs, setJobs] = useState<JobMonitorJob[]>([]);
+  const [logs, setLogs] = useState<JobMonitorLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const load = useCallback(async () => {
+    const [jobsRes, logsRes] = await Promise.all([
+      fetch('/api/admin/job-scheduler', { cache: 'no-store' }).then(r => r.ok ? r.json() : { jobs: [] }),
+      fetch('/api/admin/job-scheduler/logs', { cache: 'no-store' }).then(r => r.ok ? r.json() : { logs: [] }),
+    ]).catch(() => [{ jobs: [] }, { logs: [] }]);
+    setJobs((jobsRes as { jobs: JobMonitorJob[] }).jobs ?? []);
+    setLogs((logsRes as { logs: JobMonitorLog[] }).logs ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void load();
+    timerRef.current = setInterval(() => { void load(); }, 15_000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [load]);
+
+  if (loading) return <div className="py-12 text-center"><Spinner /></div>;
+
+  const oneDayAgo = Date.now() - 86400000;
+  const runningNow = logs.filter(l => l.status === 'running');
+  const recentFails = logs.filter(l => l.status === 'failed' && new Date(l.started_at).getTime() > oneDayAgo);
+  const totalRuns = logs.length;
+  const successRuns = logs.filter(l => l.status === 'success').length;
+  const healthScore = totalRuns > 0 ? Math.round((successRuns / totalRuns) * 100) : 100;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-white/30 text-xs text-right">Auto-refreshes every 15s</p>
+      <div className="grid grid-cols-3 gap-4">
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Running Now</p>
+          <p className="text-blue-300 text-2xl font-bold">{runningNow.length}</p>
+        </GlassCard>
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Failures (24h)</p>
+          <p className={`text-2xl font-bold ${recentFails.length > 0 ? 'text-red-300' : 'text-emerald-300'}`}>{recentFails.length}</p>
+        </GlassCard>
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Job Health Score</p>
+          <p className={`text-2xl font-bold ${healthScore < 80 ? 'text-red-300' : healthScore < 95 ? 'text-amber-300' : 'text-emerald-300'}`}>{healthScore}%</p>
+        </GlassCard>
+      </div>
+      {runningNow.length > 0 && (
+        <GlassCard>
+          <h3 className="text-white/80 text-sm font-semibold mb-2">Currently Running</h3>
+          {runningNow.map(l => (
+            <div key={l.id} className="flex justify-between text-xs py-1 border-b border-white/5">
+              <span className="text-white/90">{l.job_name}</span>
+              <span className="text-blue-300">running • {l.triggered_by}</span>
+            </div>
+          ))}
+        </GlassCard>
+      )}
+      {recentFails.length > 0 && (
+        <GlassCard>
+          <h3 className="text-red-300 text-sm font-semibold mb-2">Recent Failures (24h)</h3>
+          {recentFails.slice(0, 10).map(l => (
+            <div key={l.id} className="py-1 border-b border-white/5">
+              <div className="flex justify-between text-xs">
+                <span className="text-white/90">{l.job_name}</span>
+                <span className="text-white/50">{new Date(l.started_at).toLocaleString()}</span>
+              </div>
+              {l.error_message && <p className="text-red-300/70 text-xs mt-0.5 truncate">{l.error_message.slice(0, 100)}</p>}
+            </div>
+          ))}
+        </GlassCard>
+      )}
+      <GlassCard>
+        <h3 className="text-white/80 text-sm font-semibold mb-2">Jobs Overview</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {jobs.slice(0, 8).map(j => (
+            <div key={j.id} className="p-2 bg-white/5 rounded-xl">
+              <p className="text-white/90 text-xs font-medium truncate">{j.job_name}</p>
+              <StatusBadge status={j.latest_run_status ?? j.status} />
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
+// ── Tab: Session Monitor ───────────────────────────────────────────────────
+interface SessionMonitorData {
+  sessions: Array<{
+    user_email: string | null;
+    user_role: string;
+    ip_address: string | null;
+    country: string | null;
+    created_at: string;
+    is_active: boolean;
+  }>;
+  stats: { active_sessions: number; active_tokens: number };
+}
+
+function SessionMonitorTab() {
+  const [data, setData] = useState<SessionMonitorData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const load = useCallback(async () => {
+    fetch('/api/admin/sessions', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: SessionMonitorData | null) => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    void load();
+    timerRef.current = setInterval(() => { void load(); }, 15_000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [load]);
+
+  if (loading) return <div className="py-12 text-center"><Spinner /></div>;
+  if (!data) return <p className="text-white/50 text-sm">No session data available.</p>;
+
+  const sessions = data.sessions ?? [];
+
+  // By role
+  const roleCounts = sessions.reduce<Record<string, number>>((acc, s) => {
+    acc[s.user_role] = (acc[s.user_role] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  // New sessions last hour
+  const oneHourAgo = Date.now() - 3600000;
+  const newLastHour = sessions.filter(s => new Date(s.created_at).getTime() > oneHourAgo).length;
+
+  // Country counts
+  const countryCounts = sessions.reduce<Record<string, number>>((acc, s) => {
+    const c = s.country ?? 'unknown';
+    acc[c] = (acc[c] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  // Suspicious: same user >3 IPs
+  const ipsByEmail = sessions.reduce<Record<string, Set<string>>>((acc, s) => {
+    if (s.user_email && s.ip_address) {
+      if (!acc[s.user_email]) acc[s.user_email] = new Set();
+      acc[s.user_email].add(s.ip_address);
+    }
+    return acc;
+  }, {});
+  const suspicious = Object.entries(ipsByEmail).filter(([, ips]) => ips.size > 3);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-white/30 text-xs text-right">Auto-refreshes every 15s</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Active Sessions</p>
+          <p className="text-white text-2xl font-bold">{data.stats.active_sessions}</p>
+        </GlassCard>
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">New (1h)</p>
+          <p className="text-blue-300 text-2xl font-bold">{newLastHour}</p>
+        </GlassCard>
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Suspicious</p>
+          <p className={`text-2xl font-bold ${suspicious.length > 0 ? 'text-red-300' : 'text-emerald-300'}`}>{suspicious.length}</p>
+        </GlassCard>
+        <GlassCard>
+          <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Countries</p>
+          <p className="text-white text-2xl font-bold">{Object.keys(countryCounts).length}</p>
+        </GlassCard>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <GlassCard>
+          <h3 className="text-white/80 text-sm font-semibold mb-3">Sessions by Role</h3>
+          {Object.entries(roleCounts).map(([role, count]) => (
+            <div key={role} className="flex justify-between text-xs py-1 border-b border-white/5">
+              <span className="text-white/80">{role}</span>
+              <span className="text-white/60">{count}</span>
+            </div>
+          ))}
+          {Object.keys(roleCounts).length === 0 && <p className="text-white/40 text-xs">No sessions.</p>}
+        </GlassCard>
+        <GlassCard>
+          <h3 className="text-white/80 text-sm font-semibold mb-3">Geographic Distribution</h3>
+          {Object.entries(countryCounts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([country, count]) => (
+            <div key={country} className="flex justify-between text-xs py-1 border-b border-white/5">
+              <span className="text-white/80">{country}</span>
+              <span className="text-white/60">{count}</span>
+            </div>
+          ))}
+          {Object.keys(countryCounts).length === 0 && <p className="text-white/40 text-xs">No sessions.</p>}
+        </GlassCard>
+      </div>
+      {suspicious.length > 0 && (
+        <GlassCard>
+          <h3 className="text-red-300 font-semibold mb-2">Suspicious Activity Alerts</h3>
+          {suspicious.map(([email, ips]) => (
+            <div key={email} className="p-2 bg-red-500/10 border border-red-400/30 rounded-lg mb-2">
+              <p className="text-red-200 text-xs font-semibold">{email}</p>
+              <p className="text-white/60 text-xs">{ips.size} IPs: {Array.from(ips).join(', ')}</p>
+            </div>
+          ))}
+        </GlassCard>
+      )}
+    </div>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────
 const TABS: { id: TabId; label: string }[] = [
   { id: 'system', label: 'System Health' },
@@ -548,6 +779,8 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'audit', label: 'Audit Logs' },
   { id: 'cache', label: 'Cache & Performance' },
   { id: 'errors', label: 'Error Logs' },
+  { id: 'jobs', label: 'Job Monitor' },
+  { id: 'sessions', label: 'Session Monitor' },
 ];
 
 export default function MonitoringPage() {
@@ -586,6 +819,8 @@ export default function MonitoringPage() {
           {activeTab === 'audit' && <AuditLogsTab />}
           {activeTab === 'cache' && <CacheTab />}
           {activeTab === 'errors' && <ErrorLogsTab />}
+          {activeTab === 'jobs' && <JobMonitorTab />}
+          {activeTab === 'sessions' && <SessionMonitorTab />}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (!body.session_token || !body.message?.trim()) {
-      return NextResponse.json({ error: 'session_token and message are required' }, { status: 400 });
+      return Response.json({ error: 'session_token and message are required' }, { status: 400 });
     }
 
     // Resolve session
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       [body.session_token],
     );
     if (!sessions.length) {
-      return NextResponse.json({ error: 'Session not found or already resolved' }, { status: 404 });
+      return Response.json({ error: 'Session not found or already resolved' }, { status: 404 });
     }
     const session = sessions[0];
 
@@ -151,41 +151,53 @@ export async function POST(req: NextRequest) {
 
     const responseTimeMs = Date.now() - started;
 
-    // Store user message
-    await pool.query(
-      `INSERT INTO bot_message (session_id, role, content, intent_detected, confidence, response_time_ms)
-       VALUES ($1, 'user', $2, $3, $4, $5)`,
-      [session.id, body.message.trim(), intent, confidence, responseTimeMs],
-    );
+    // FIX: persist the user message, assistant reply and session stats
+    // atomically — the session must not have a user message with no
+    // corresponding assistant reply, or a message_count that diverges from
+    // the actual row count.
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `INSERT INTO bot_message (session_id, role, content, intent_detected, confidence, response_time_ms)
+         VALUES ($1, 'user', $2, $3, $4, $5)`,
+        [session.id, body.message.trim(), intent, confidence, responseTimeMs],
+      );
+      await client.query(
+        `INSERT INTO bot_message (session_id, role, content, intent_detected, confidence, response_time_ms, tokens_used)
+         VALUES ($1, 'assistant', $2, $3, $4, $5, $6)`,
+        [session.id, replyText, intent, confidence, responseTimeMs, tokensUsed],
+      );
+      await client.query(
+        `UPDATE bot_session
+         SET message_count = message_count + 2,
+             last_message_at = NOW(),
+             context_type = $1
+         WHERE id = $2`,
+        [contextType, session.id],
+      );
+      await client.query('COMMIT');
+    } catch (persistErr) {
+      await client.query('ROLLBACK');
+      console.error('[bot/chat persist]', persistErr);
+      // Return the AI reply even if persistence fails — the user already got
+      // their answer from Ollama; losing the log is better than a hard error.
+    } finally {
+      client.release();
+    }
 
-    // Store assistant reply
-    await pool.query(
-      `INSERT INTO bot_message (session_id, role, content, intent_detected, confidence, response_time_ms, tokens_used)
-       VALUES ($1, 'assistant', $2, $3, $4, $5, $6)`,
-      [session.id, replyText, intent, confidence, responseTimeMs, tokensUsed],
-    );
-
-    // Update session stats
-    await pool.query(
-      `UPDATE bot_session
-       SET message_count = message_count + 2,
-           last_message_at = NOW(),
-           context_type = $1
-       WHERE id = $2`,
-      [contextType, session.id],
-    );
-
-    // Update knowledge base usage count if intent matches a known entry
+    // Update knowledge base usage count outside the main transaction
+    // (best-effort — failure must not fail the whole chat turn).
     if (intent !== 'general') {
       const category = intent.replace('_query', '').replace('complaint', 'faq');
-      await pool.query(
+      pool.query(
         `UPDATE bot_knowledge_base SET usage_count = usage_count + 1
          WHERE category = $1 AND is_active = true LIMIT 1`,
         [category],
       ).catch(() => {});
     }
 
-    return NextResponse.json({
+    return Response.json({
       reply: replyText,
       intent,
       confidence,
@@ -195,6 +207,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (e) {
     console.error('[bot/chat]', e);
-    return NextResponse.json({ error: 'Chat failed' }, { status: 500 });
+    return Response.json({ error: 'Chat failed' }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       totalSlides: carouselsRes.rows.reduce((a, r) => a + Number(r.slide_count ?? 0), 0),
     };
 
-    return NextResponse.json({
+    return Response.json({
       carousels: carouselsRes.rows,
       banners: bannerRes.rows,
       analytics: analyticsRes.rows,
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   const { name, location, description, autoplay, autoplay_delay, effect } = body;
 
   if (!name || !location) {
-    return NextResponse.json({ error: 'name and location required' }, { status: 400 });
+    return Response.json({ error: 'name and location required' }, { status: 400 });
   }
 
   const client = await pool.connect();
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [name, location, description ?? null, autoplay ?? true, autoplay_delay ?? 5000, effect ?? 'slide']
     );
-    return NextResponse.json({ carousel: res.rows[0] }, { status: 201 });
+    return Response.json({ carousel: res.rows[0] }, { status: 201 });
   } finally {
     client.release();
   }
@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json() as Record<string, unknown>;
   const { id, ...fields } = body;
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 });
 
   const allowed = ['name', 'location', 'status', 'description', 'autoplay', 'autoplay_delay',
     'pause_on_hover', 'loop', 'speed', 'effect', 'slides_per_view', 'show_arrows', 'show_dots'];
@@ -92,7 +92,7 @@ export async function PATCH(req: NextRequest) {
       values.push(v);
     }
   }
-  if (!updates.length) return NextResponse.json({ error: 'no valid fields' }, { status: 400 });
+  if (!updates.length) return Response.json({ error: 'no valid fields' }, { status: 400 });
   values.push(id);
 
   const client = await pool.connect();
@@ -101,10 +101,10 @@ export async function PATCH(req: NextRequest) {
       `UPDATE carousel SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${i} RETURNING *`,
       values
     );
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ carousel: res.rows[0] });
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ carousel: res.rows[0] });
   } catch {
-    return NextResponse.json({ error: 'carousel table may not have updated_at column — update skipped' }, { status: 500 });
+    return Response.json({ error: 'carousel table may not have updated_at column — update skipped' }, { status: 500 });
   } finally {
     client.release();
   }
@@ -116,14 +116,23 @@ export async function DELETE(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 });
 
+  // FIX: wrap in a transaction so carousel_slide delete and carousel delete
+  // are atomic — if carousel DELETE fails after slides are deleted, ROLLBACK
+  // restores the slides (prevents orphaned slide rows or partially-deleted data).
   const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     await client.query('DELETE FROM carousel_slide WHERE carousel_id = $1', [id]);
     const res = await client.query('DELETE FROM carousel WHERE id = $1', [id]);
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ ok: true });
+    await client.query('COMMIT');
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[carousel DELETE]', err);
+    return Response.json({ error: 'Failed to delete carousel' }, { status: 500 });
   } finally {
     client.release();
   }
