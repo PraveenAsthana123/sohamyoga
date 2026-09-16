@@ -1377,6 +1377,10 @@ const navItems = [
   { href: '/admin/beauty-salon', label: 'Beauty Salon & Spa 💅', icon: <span aria-hidden="true">💅</span>, requiredRoles: ['Admin'] },
   // Events & Hospitality
   { href: '/admin/event-planning', label: 'Event Planning Hub 🎪', icon: <span aria-hidden="true">🎪</span>, requiredRoles: ['Admin'] },
+  // Property & Care Services
+  { href: '/admin/property-management', label: 'Property Management 🏢', icon: <span aria-hidden="true">🏢</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/senior-care', label: 'Senior Care & Home Health 👴', icon: <span aria-hidden="true">👴</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/veterinary-clinic', label: 'Veterinary Clinic 🐾', icon: <span aria-hidden="true">🐾</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
