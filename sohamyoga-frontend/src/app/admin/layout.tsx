@@ -231,6 +231,11 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/faq', label: 'FAQ', icon: <span aria-hidden="true">❓</span>, requiredRoles: ['Admin', 'Editor'] },
+  { href: '/admin/yoga', label: 'Yoga Content', icon: <span aria-hidden="true">🌿</span>, requiredRoles: ['Admin', 'Editor'] },
+  { href: '/admin/features', label: 'Features Showcase', icon: <span aria-hidden="true">✨</span>, requiredRoles: ['Admin', 'Editor'] },
+  { href: '/admin/banners', label: 'Banners', icon: <span aria-hidden="true">🎨</span>, requiredRoles: ['Admin', 'Editor'] },
+  { href: '/admin/carousel', label: 'Carousel', icon: <span aria-hidden="true">🖼️</span>, requiredRoles: ['Admin', 'Editor'] },
   // ── Growth ─────────────────────────────────
   { href: 'divider', label: 'Business', icon: null, requiredRoles: [] as string[] },
   {
@@ -404,6 +409,9 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/ecommerce', label: 'E-commerce', icon: <span aria-hidden="true">🛒</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/email', label: 'Email Management', icon: <span aria-hidden="true">📧</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/drip-campaigns', label: 'Drip Campaigns', icon: <span aria-hidden="true">💧</span>, requiredRoles: ['Admin'] },
   { href: 'divider', label: 'Growth', icon: null, requiredRoles: [] as string[] },
   {
     href: '/admin/landing-pages',
@@ -784,6 +792,11 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/wellness', label: 'Wellness Tracking', icon: <span aria-hidden="true">🧘</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/attendance', label: 'Attendance', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/classes', label: 'Classes & Schedule', icon: <span aria-hidden="true">📅</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/booking', label: 'Booking Management', icon: <span aria-hidden="true">🗓️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/payments', label: 'Payments', icon: <span aria-hidden="true">💳</span>, requiredRoles: ['Admin'] },
   // ── AI Ingestion ─────────────────────────────────
   { href: 'divider', label: 'AI Ingestion', icon: null, requiredRoles: [] as string[] },
   {
@@ -1107,6 +1120,13 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  { href: '/admin/voice-ai', label: 'Voice AI', icon: <span aria-hidden="true">🎙️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/integrations', label: 'Integrations Health', icon: <span aria-hidden="true">🔌</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/google-ads', label: 'Google Ads', icon: <span aria-hidden="true">📈</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/geo-aeo', label: 'GEO / AEO Tracking', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/enterprise', label: 'Enterprise Accounts', icon: <span aria-hidden="true">🏢</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/verticals', label: 'Vertical Packs', icon: <span aria-hidden="true">📦</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/roles', label: 'Roles & Permissions', icon: <span aria-hidden="true">🔐</span>, requiredRoles: ['Admin'] },
   { href:'/admin/module-assurance',label:'Module Assurance',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>),requiredRoles:['Admin'] },
   { href:'/admin/social/scheduler',label:'Campaign Scheduler',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>),requiredRoles:['Admin'] },
   { href:'/admin/social/calendar',label:'Content Calendar',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>),requiredRoles:['Admin'] },
