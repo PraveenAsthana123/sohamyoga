@@ -1392,6 +1392,20 @@ const navItems = [
   { href: '/admin/elearning-platform', label: 'E-Learning Platform 🎓', icon: <span aria-hidden="true">🎓</span>, requiredRoles: ['Admin'] },
   // Pet Services
   { href: '/admin/pet-grooming', label: 'Pet Grooming & Boarding 🐕', icon: <span aria-hidden="true">🐕</span>, requiredRoles: ['Admin'] },
+  // Entertainment & Events
+  { href: '/admin/music-school', label: 'Music School & Performing Arts 🎵', icon: <span aria-hidden="true">🎵</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/escape-room', label: 'Escape Room & Entertainment 🔐', icon: <span aria-hidden="true">🔐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/wedding-venue', label: 'Wedding Venue & Banquet Hall 💒', icon: <span aria-hidden="true">💒</span>, requiredRoles: ['Admin'] },
+  // Wellness & Allied Health
+  { href: '/admin/spa-wellness', label: 'Spa & Wellness / Massage 💆', icon: <span aria-hidden="true">💆</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/optometry-clinic', label: 'Optometry & Vision Care 👁️', icon: <span aria-hidden="true">👁️</span>, requiredRoles: ['Admin'] },
+  // Field & Trades Services
+  { href: '/admin/landscaping', label: 'Landscaping & Snow Removal 🌿', icon: <span aria-hidden="true">🌿</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/security-services', label: 'Security & Guard Services 🛡️', icon: <span aria-hidden="true">🛡️</span>, requiredRoles: ['Admin'] },
+  // Education & Tutoring
+  { href: '/admin/tutoring-center', label: 'Tutoring Center 📚', icon: <span aria-hidden="true">📚</span>, requiredRoles: ['Admin'] },
+  // Food & Hospitality
+  { href: '/admin/personal-chef', label: 'Personal Chef & Catering 👨‍🍳', icon: <span aria-hidden="true">👨‍🍳</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
