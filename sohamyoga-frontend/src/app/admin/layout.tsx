@@ -1235,6 +1235,19 @@ const navItems = [
     ),
     requiredRoles: ['Admin'],
   },
+  // ── Agency / Client Management ──────────────────────────────────────────
+  { href: '/admin/agency-clients', label: 'Agency Clients 🏢', icon: <span aria-hidden="true">🏢</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/client-portal', label: 'Client Portals 🌐', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/campaign-approvals', label: 'Campaign Approvals ✅', icon: <span aria-hidden="true">✅</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/retainer-billing', label: 'Retainer Billing 💰', icon: <span aria-hidden="true">💰</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agency-benchmark', label: 'Agency Benchmark 📈', icon: <span aria-hidden="true">📈</span>, requiredRoles: ['Admin'] },
+  // ── Document & Asset Management ─────────────────────────────────────────
+  { href: '/admin/contracts', label: 'Contracts ✍️', icon: <span aria-hidden="true">✍️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/brochures', label: 'Brochures 📰', icon: <span aria-hidden="true">📰</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/export-center', label: 'Export Center 📤', icon: <span aria-hidden="true">📤</span>, requiredRoles: ['Admin'] },
+  // ── Integrations ────────────────────────────────────────────────────────
+  { href: '/admin/google-drive', label: 'Google Drive 💾', icon: <span aria-hidden="true">💾</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/gmail-integration', label: 'Gmail Integration 📧', icon: <span aria-hidden="true">📧</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
