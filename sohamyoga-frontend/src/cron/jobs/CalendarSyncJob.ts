@@ -19,3 +19,5 @@ export const CalendarSyncJob = {
     return { ok: true, synced: 0 };
   },
 };
+
+export async function run() { await CalendarSyncJob.run(); }

@@ -1,61 +1,250 @@
 'use client';
-// /customer/support — real support ticket creation/tracking (support_ticket).
-// Previously dead schema with no customer-facing page anywhere.
+// /customer/support — AI-powered bot chat with escalation and satisfaction rating.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-interface Ticket { id: string; subject: string; category: string; priority: string; status: string; created_at: string }
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
 
-const CATEGORY_LABELS: Record<string, string> = {
-  billing: 'Billing', class_change: 'Class change', complaint: 'Complaint', health_concern: 'Health concern', general: 'General', technical: 'Technical',
-};
+const QUICK_REPLIES = ['Check my plan', 'Platform status', 'How to post', 'Talk to human'];
+const CONTEXTS = [
+  { value: 'billing', label: '💳 Billing' },
+  { value: 'features', label: '⚡ Features' },
+  { value: 'general', label: '💬 General' },
+  { value: 'troubleshooting', label: '🔧 Troubleshooting' },
+];
 
-export default function SupportPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [form, setForm] = useState({ subject: '', category: 'general' });
-  const [error, setError] = useState('');
+export default function CustomerSupportPage() {
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [context, setContext] = useState('general');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [escalated, setEscalated] = useState(false);
+  const [ticketCreated, setTicketCreated] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const load = () => fetch('/api/customer/support-tickets', { cache: 'no-store' }).then(r => r.json()).then(d => { setTickets(d.tickets ?? []); setCategories(d.categories ?? []); });
-  useEffect(() => { load() }, []);
+  useEffect(() => {
+    // Restore session from localStorage
+    const stored = localStorage.getItem('sohambot_session_token');
+    if (stored) {
+      setSessionToken(stored);
+    }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    const res = await fetch('/api/customer/support-tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-    const d = await res.json();
-    if (!res.ok) { setError(d.error); return; }
-    setForm({ subject: '', category: 'general' });
-    load();
-  }
+    // Add greeting message
+    setMessages([{
+      role: 'assistant',
+      content: "Hi! I'm SohamBot 👋 How can I help you today? Select a topic above or just ask me anything.",
+      timestamp: new Date(),
+    }]);
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, typing]);
+
+  const startSession = async (ctx: string) => {
+    if (sessionToken) return sessionToken;
+    const res = await fetch('/api/bot/session/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_type: 'customer', context_type: ctx }),
+    });
+    const data = await res.json();
+    const token = data.session_token as string;
+    setSessionToken(token);
+    localStorage.setItem('sohambot_session_token', token);
+    return token;
+  };
+
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || loading) return;
+
+    if (text === 'Talk to human') {
+      await handleEscalate();
+      return;
+    }
+
+    const userMsg: ChatMessage = { role: 'user', content: text, timestamp: new Date() };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setTyping(true);
+    setLoading(true);
+
+    try {
+      const token = await startSession(context);
+      const res = await fetch('/api/bot/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_token: token, message: text, context_type: context }),
+      });
+      const data = await res.json();
+      setTyping(false);
+      if (data.reply) {
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply as string, timestamp: new Date() }]);
+      }
+    } catch {
+      setTyping(false);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I\'m having trouble connecting. Please try again.', timestamp: new Date() }]);
+    }
+    setLoading(false);
+  };
+
+  const handleEscalate = async () => {
+    if (escalated) return;
+    setEscalated(true);
+    setTyping(true);
+    try {
+      const token = sessionToken ?? await startSession(context);
+      await fetch('/api/bot/escalate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_token: token, reason: 'Customer requested human agent' }),
+      });
+      setTicketCreated(true);
+    } catch { /* escalation failed, but still show message */ }
+    setTyping(false);
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: ticketCreated
+        ? '✅ A support ticket has been created. Our team will contact you within 2 business hours.'
+        : '✅ Your request has been logged. A human agent will follow up with you shortly.',
+      timestamp: new Date(),
+    }]);
+  };
+
+  const submitRating = async (stars: number) => {
+    setRating(stars);
+    setRatingSubmitted(true);
+    if (sessionToken) {
+      await fetch(`/api/bot/session/${sessionToken}/rate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ satisfaction_score: stars }),
+      }).catch(() => { /* best effort */ });
+    }
+  };
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Support</h1>
-        <p className="mt-1 text-sm text-gray-500">Open a ticket and our team will follow up.</p>
+    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-80px)]">
+      {/* Header */}
+      <div className="bg-white border border-gray-200 rounded-t-2xl p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white text-lg">🤖</div>
+          <div>
+            <p className="font-semibold text-gray-900">SohamBot</p>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs text-gray-500">Online — AI-powered support</span>
+            </div>
+          </div>
+        </div>
+        {/* Context selector */}
+        <div className="flex gap-2">
+          {CONTEXTS.map(c => (
+            <button key={c.value} onClick={() => setContext(c.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${context === c.value ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <form onSubmit={submit} className="space-y-2 rounded-xl border border-gray-200 bg-white p-5">
-        <input required placeholder="What's this about?" className="w-full rounded border p-2 text-sm" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} />
-        <select className="w-full rounded border p-2 text-sm" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-          {categories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}
-        </select>
-        <button className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white">Open ticket</button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-      </form>
-
-      <div className="space-y-2">
-        {tickets.map(t => (
-          <div key={t.id} className="rounded-lg border border-gray-200 bg-white p-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">{t.subject}</span>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs capitalize">{t.status.replaceAll('_', ' ')}</span>
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50 border-x border-gray-200 p-4 space-y-3">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-xs lg:max-w-sm px-4 py-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm'}`}>
+              {msg.content}
+              <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-indigo-200' : 'text-gray-400'}`}>
+                {msg.timestamp.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
-            <p className="mt-1 text-xs text-gray-500">{CATEGORY_LABELS[t.category] ?? t.category} · {new Date(t.created_at).toLocaleDateString()}</p>
           </div>
         ))}
-        {!tickets.length && <p className="text-sm text-gray-400">No support tickets yet.</p>}
+
+        {/* Typing indicator */}
+        {typing && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+              <div className="flex gap-1 items-center">
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Satisfaction rating */}
+        {escalated && !ratingSubmitted && (
+          <div className="flex justify-center">
+            <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
+              <p className="text-sm font-medium text-gray-700 mb-2">Rate this conversation</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button key={star} onClick={() => submitRating(star)}
+                    className={`text-2xl transition-transform hover:scale-125 ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {ratingSubmitted && (
+          <div className="flex justify-center">
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-sm text-green-700">
+              Thank you for your feedback! ⭐ {rating}/5
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick replies */}
+      <div className="bg-gray-50 border-x border-gray-200 px-4 py-2">
+        <div className="flex gap-2 overflow-x-auto">
+          {QUICK_REPLIES.map(qr => (
+            <button key={qr} onClick={() => sendMessage(qr)} disabled={loading}
+              className="whitespace-nowrap px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700 hover:bg-gray-50 hover:border-indigo-400 transition-colors disabled:opacity-50">
+              {qr}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Input area */}
+      <div className="bg-white border border-gray-200 rounded-b-2xl p-4">
+        <div className="flex gap-3">
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
+            placeholder="Type your message…"
+            disabled={loading}
+            className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+          />
+          <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
+            className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+            {loading ? '⏳' : '➤'}
+          </button>
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-gray-400">Powered by SohamBot (Ollama llama3.2)</p>
+          <button onClick={handleEscalate} disabled={escalated}
+            className="text-xs text-orange-600 hover:text-orange-700 disabled:opacity-50">
+            👤 Talk to a human
+          </button>
+        </div>
       </div>
     </div>
   );

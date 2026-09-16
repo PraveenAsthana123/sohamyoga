@@ -31,3 +31,5 @@ export const GoogleAdsSyncJob = {
     }
   },
 };
+
+export async function run() { await GoogleAdsSyncJob.run(); }

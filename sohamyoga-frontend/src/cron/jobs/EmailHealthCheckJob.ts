@@ -60,3 +60,5 @@ export const EmailHealthCheckJob = {
     return { ok: warnings.length === 0, summary };
   },
 };
+
+export async function run() { await EmailHealthCheckJob.run(); }

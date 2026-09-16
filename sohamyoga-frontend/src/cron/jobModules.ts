@@ -61,6 +61,7 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   ModuleRegistryDriftSweepJob: () => import('./jobs/ModuleRegistryDriftSweepJob'),
   DripSequenceProcessorJob: () => import('./jobs/DripSequenceProcessorJob'),
   MarketResearchPricingDigestJob: () => import('./jobs/MarketResearchPricingDigestJob'),
+  MarketResearchSchedulerJob:     () => import('./jobs/MarketResearchSchedulerJob'),
   IngestionSourceRefreshJob:  () => import('./jobs/IngestionSourceRefreshJob'),
   ConnectorTokenRefreshJob:   () => import('./jobs/ConnectorTokenRefreshJob'),
   LocalFolderScanJob:         () => import('./jobs/LocalFolderScanJob'),
@@ -99,4 +100,35 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   RateLimitSnapshotJob:        () => import('./jobs/RateLimitSnapshotJob'),
   RetryQueueJob:               () => import('./jobs/RetryQueueJob'),
   ApiLogCleanupJob:            () => import('./jobs/ApiLogCleanupJob'),
+  // Broadcast & Notifications
+  BroadcastSendJob:            () => import('./jobs/BroadcastSendJob'),
+  NotificationAlertScanJob:    () => import('./jobs/NotificationAlertScanJob'),
+  // Calendar & Scheduling
+  CalendarSyncJob:             () => import('./jobs/CalendarSyncJob'),
+  // Bot & Customer Service
+  BotSessionCleanupJob:        () => import('./jobs/BotSessionCleanupJob'),
+  // AI & Data
+  SyntheticDataGeneratorJob:   () => import('./jobs/SyntheticDataGeneratorJob'),
+  // Ad & Geo
+  AdPlannerSyncJob:            () => import('./jobs/AdPlannerSyncJob'),
+  GoogleAdsSyncJob:            () => import('./jobs/GoogleAdsSyncJob'),
+  PaidAdsSyncJob:              () => import('./jobs/PaidAdsSyncJob'),
+  GeoAeoTrackingJob:           () => import('./jobs/GeoAeoTrackingJob'),
+  // Email & Drip
+  DripSequenceJob:             () => import('./jobs/DripSequenceJob'),
+  EmailHealthCheckJob:         () => import('./jobs/EmailHealthCheckJob'),
+  // Social
+  FacebookAutoPublishJob:      () => import('./jobs/FacebookAutoPublishJob'),
+  // Registry & QR
+  VerticalRegistryAuditJob:    () => import('./jobs/VerticalRegistryAuditJob'),
+  QrSessionCleanupJob:         () => import('./jobs/QrSessionCleanupJob'),
+  // Voice AI
+  VoiceAiScriptRefreshJob:     () => import('./jobs/VoiceAiScriptRefreshJob'),
+  // MCP
+  McpHealthCheckJob:           () => import('./jobs/McpHealthCheckJob'),
+  // Vector Store
+  VectorEmbeddingUpdateJob:    () => import('./jobs/VectorEmbeddingUpdateJob'),
+  // AI Governance
+  AIGovernanceAuditJob:        () => import('./jobs/AIGovernanceAuditJob'),
+  QualityBenchmarkJob:         () => import('./jobs/QualityBenchmarkJob'),
 };

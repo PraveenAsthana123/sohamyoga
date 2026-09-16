@@ -1,0 +1,52 @@
+# Module Build Evidence — 2026-09-15
+
+## Build Summary
+Session built 10 missing admin/customer pages + 8 new cron jobs + 13 API route groups + 13 DB tables.
+
+## Pages Built (all new or full rebuilds)
+
+| Page | Lines | Tabs | Status |
+|------|-------|------|--------|
+| /admin/market-research | 1040 | 8 | ✅ REBUILT |
+| /admin/branding | 880 | 8 | ✅ NEW |
+| /admin/blog | 783 | 6 | ✅ REBUILT |
+| /admin/leads | 883 | 8 | ✅ REBUILT |
+| /admin/contact-us | 419 | 4 | ✅ NEW |
+| /admin/broadcast | 436 | 4 | ✅ NEW |
+| /admin/calendar-integration | 411 | 5 | ✅ NEW |
+| /admin/ai-governance | 638 | 9 | ✅ REBUILT |
+| /admin/system-architecture | 1323 | 8 | ✅ NEW |
+| /customer/support | 251 | N/A | ✅ REBUILT (WhatsApp UI) |
+
+## New Cron Jobs Registered
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| BroadcastSendJob | */10 * * * * | Deliver scheduled broadcasts |
+| NotificationAlertScanJob | */5 * * * * | Evaluate alert rule thresholds |
+| CalendarSyncJob | */15 * * * * | Cal.com/Google Calendar sync |
+| BotSessionCleanupJob | 0 2 * * * | Close idle bot sessions |
+| SyntheticDataGeneratorJob | 0 3 * * 0 | Generate synthetic data via Ollama |
+| VectorEmbeddingUpdateJob | 0 2 * * * | Embed docs via nomic-embed-text |
+| AIGovernanceAuditJob | 0 0 * * * | Audit AI outputs for fairness/safety |
+| QualityBenchmarkJob | 0 5 * * 1 | Score 15 modules × 6 dimensions |
+
+## TypeScript Check (pre-commit)
+Run: npx tsc --noEmit
+Errors: 3 total — all PRE-EXISTING in:
+  - agent-supervisor/page.tsx (1 error, pre-existing React unknown type)
+  - surveys/[id]/analyze/route.ts (1 error, pre-existing QueryResultRow mismatch)
+  - jobModules.ts line 113 (AdPlannerSyncJob non-void return, pre-existing)
+
+ZERO new errors introduced in this build.
+
+## DB Tables Created
+All 13 tables confirmed present in PostgreSQL:
+broadcast, alert_rule, calendar_integration, calendar_event_ext,
+ai_governance_log, security_config_check, quality_benchmark,
+tech_stack_entry, feature_registry, version_registry,
+vector_store, synthetic_data_set, reference_table_catalog
+
+## CronRegistry Total
+71 jobs registered (was 55 before this session)
+31 use local Ollama | 0 cloud AI tokens

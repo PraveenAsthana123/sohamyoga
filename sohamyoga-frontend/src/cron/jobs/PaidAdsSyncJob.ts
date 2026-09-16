@@ -33,3 +33,5 @@ export const PaidAdsSyncJob = {
     }
   },
 };
+
+export async function run() { await PaidAdsSyncJob.run(); }

@@ -100,6 +100,16 @@ const navItems = [
     requiredRoles: ['Admin', 'Editor'],
   },
   {
+    href: '/admin/branding',
+    label: 'Branding Hub',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin', 'Editor'],
+  },
+  {
     href: '/admin/brand-kits',
     label: 'Brand Kits',
     icon: (
@@ -254,6 +264,36 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   {
+    href: '/admin/broadcast',
+    label: 'Broadcast',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
+    href: '/admin/calendar-integration',
+    label: 'Calendar Integration',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
+    href: '/admin/customer-service',
+    label: 'Customer Service',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
     href: '/admin/occasions',
     label: 'Customer Occasions',
     icon: (
@@ -319,6 +359,16 @@ const navItems = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+    requiredRoles: ['Admin'],
+  },
+  {
+    href: '/admin/contact-us',
+    label: 'Contact Submissions',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     ),
     requiredRoles: ['Admin'],
@@ -393,6 +443,12 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4v-4z" />
       </svg>
     ),
+    requiredRoles: ['Admin'],
+  },
+  {
+    href: '/admin/agent-supervisor',
+    label: 'Agent Supervisor',
+    icon: <span aria-hidden="true" className="text-base">🤖</span>,
     requiredRoles: ['Admin'],
   },
   {
@@ -926,6 +982,18 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   {
+    href: '/admin/branding',
+    label: '🎨 Branding Hub',
+    icon: <span aria-hidden="true" className="text-base">🎨</span>,
+    requiredRoles: ['Admin', 'Editor'] as string[],
+  },
+  {
+    href: '/admin/contact-us',
+    label: '📬 Contact Us',
+    icon: <span aria-hidden="true" className="text-base">📬</span>,
+    requiredRoles: ['Admin', 'Editor'] as string[],
+  },
+  {
     href: '/admin/operations-center',
     label: 'AI Operations Centre',
     icon: (
@@ -1045,6 +1113,7 @@ const navItems = [
   { href:'/admin/social/setup',label:'Developer App Setup',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>),requiredRoles:['Admin'] },
   { href:'/admin/quality-center',label:'Quality & Test Stories',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M5 4h14v16H5z"/></svg>),requiredRoles:['Admin'] },
   { href:'/admin/architecture-center',label:'Architecture & Processes',icon:(<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16"/></svg>),requiredRoles:['Admin'] },
+  { href:'/admin/system-architecture',label:'System Architecture Hub',icon:<span aria-hidden="true" className="text-base">🏗️</span>,requiredRoles:['Admin'] },
   {
     href: '/admin/logs',
     label: 'Log Viewer',

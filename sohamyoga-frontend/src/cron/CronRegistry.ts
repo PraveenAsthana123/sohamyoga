@@ -464,6 +464,14 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   60_000,
   },
   {
+    name:        'market-research-scheduler',
+    schedule:    '0 6 * * 1',
+    description: 'Auto-generates weekly short Ollama research reports for market_research_project rows tagged scheduled-report; saves to market_research_document',
+    module:      'MarketResearchSchedulerJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+  {
     name:        'community-digest',
     schedule:    '0 9 * * 1',
     description: 'Generate weekly community activity digest: top achievers, leaderboard movers, new badges',
@@ -813,6 +821,178 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   60_000,
   },
+  {
+    name:        'synthetic-data-generator',
+    schedule:    '0 3 * * 0',
+    description: 'Sunday 3am: generates synthetic data for each pending synthetic_data_set record using Ollama llama3.2',
+    module:      'SyntheticDataGeneratorJob',
+    enabled:     true,
+    timeoutMs:   600_000,
+  },
+  {
+    name:        'vector-embedding-update',
+    schedule:    '0 2 * * *',
+    description: 'Daily 2am: processes up to 100 vector_store rows with empty embeddings — calls Ollama nomic-embed-text',
+    module:      'VectorEmbeddingUpdateJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+
+  // ── AI Governance ─────────────────────────────────────────────────────────
+  {
+    name:        'ai-governance-audit',
+    schedule:    '0 1 * * *',
+    description: 'Daily 1am: audits AI model outputs for fairness, explainability, safety; logs to ai_governance_log',
+    module:      'AIGovernanceAuditJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+  {
+    name:        'quality-benchmark',
+    schedule:    '0 5 * * 1',
+    description: 'Weekly Monday 5am: computes quality benchmark scores for all active modules and stores to quality_benchmark table',
+    module:      'QualityBenchmarkJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+
+  // ── Broadcast & Notifications ─────────────────────────────────────────────
+  {
+    name:        'broadcast-send',
+    schedule:    '*/10 * * * *',
+    description: 'Every 10 min: finds broadcasts with status=scheduled and scheduled_at<=NOW(), delivers them and records open/click metrics',
+    module:      'BroadcastSendJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'notification-alert-scan',
+    schedule:    '*/5 * * * *',
+    description: 'Every 5 min: evaluates active alert rules against platform metrics — triggers notification when threshold breached',
+    module:      'NotificationAlertScanJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
+
+  // ── Calendar & Scheduling ─────────────────────────────────────────────────
+  {
+    name:        'calendar-sync',
+    schedule:    '*/15 * * * *',
+    description: 'Every 15 min: syncs Cal.com/Google Calendar bookings into local calendar_integration tables',
+    module:      'CalendarSyncJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Bot & Customer Service ────────────────────────────────────────────────
+  {
+    name:        'bot-session-cleanup',
+    schedule:    '0 2 * * *',
+    description: 'Daily 2am: closes bot sessions idle for more than 24 hours',
+    module:      'BotSessionCleanupJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
+
+  // ── Ad Platforms ──────────────────────────────────────────────────────────
+  {
+    name:        'ad-planner-sync',
+    schedule:    '0 6 * * *',
+    description: 'Daily 6am: syncs ad planner campaigns and refreshes performance snapshots',
+    module:      'AdPlannerSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'google-ads-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Every 6 hrs: syncs Google Ads campaign metrics into local tables',
+    module:      'GoogleAdsSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'paid-ads-sync',
+    schedule:    '30 */6 * * *',
+    description: 'Every 6 hrs (offset 30m): aggregates paid ads performance from all platforms',
+    module:      'PaidAdsSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'geo-aeo-tracking',
+    schedule:    '30 7 * * *',
+    description: 'Daily 7:30am: tracks geo-targeted and answer-engine-optimized content performance',
+    module:      'GeoAeoTrackingJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Email & Drip ──────────────────────────────────────────────────────────
+  {
+    name:        'drip-sequence',
+    schedule:    '30 8 * * *',
+    description: 'Daily 8:30am: advances subscribers through drip email sequences',
+    module:      'DripSequenceJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'email-health-check',
+    schedule:    '30 9 * * *',
+    description: 'Daily 9:30am: checks email delivery rates and bounce health across active campaigns',
+    module:      'EmailHealthCheckJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Social Publishing ─────────────────────────────────────────────────────
+  {
+    name:        'facebook-auto-publish',
+    schedule:    '*/30 * * * *',
+    description: 'Every 30 min: publishes approved Facebook posts via direct API (complement to Postiz workflow)',
+    module:      'FacebookAutoPublishJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Registry & QR ─────────────────────────────────────────────────────────
+  {
+    name:        'vertical-registry-audit',
+    schedule:    '30 4 * * *',
+    description: 'Daily 4:30am: audits vertical registry for stale or missing entries',
+    module:      'VerticalRegistryAuditJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'qr-session-cleanup',
+    schedule:    '0 1 * * *',
+    description: 'Daily 1am: cleans up expired QR kiosk sessions',
+    module:      'QrSessionCleanupJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
+
+  // ── Voice AI ──────────────────────────────────────────────────────────────
+  {
+    name:        'voice-ai-script-refresh',
+    schedule:    '30 5 * * *',
+    description: 'Daily 5:30am: refreshes voice AI scripts using Ollama llama3.2 for active voice campaigns',
+    module:      'VoiceAiScriptRefreshJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+
+  // ── MCP Integration ───────────────────────────────────────────────────────
+  {
+    name:        'mcp-health-check',
+    schedule:    '*/15 * * * *',
+    description: 'Every 15 min: checks MCP gateway health and records latency/availability metrics',
+    module:      'McpHealthCheckJob',
+    enabled:     true,
+    timeoutMs:   30_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -873,5 +1053,22 @@ Daily  08:00  content-calendar-reminder (real, no AI)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Every  4 hrs  api-quota-monitor (real, no AI)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 55 jobs | 29 use Ollama | 0 cloud AI tokens
+Every 10 min  broadcast-send (real, no AI)
+Every  5 min  notification-alert-scan (real, no AI)
+Every 15 min  calendar-sync (real, no AI)
+Daily  02:00  bot-session-cleanup (real, no AI)
+Daily  03:30  synthetic-data-generator (Ollama)
+Daily  06:00  ad-planner-sync (real, no AI)
+Every  6 hrs  google-ads-sync (real, no AI)
+Every  6 hrs  paid-ads-sync (real, no AI)
+Daily  07:30  geo-aeo-tracking (real, no AI)
+Daily  08:30  drip-sequence (real, no AI)
+Daily  09:30  email-health-check (real, no AI)
+Every 30 min  facebook-auto-publish (real, no AI)
+Daily  04:30  vertical-registry-audit (real, no AI)
+Daily  01:00  qr-session-cleanup (real, no AI)
+Daily  05:30  voice-ai-script-refresh (Ollama)
+Every 15 min  mcp-health-check (real, no AI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total: 71 jobs | 31 use Ollama | 0 cloud AI tokens
 `;
