@@ -1,5 +1,6 @@
+import type { PoolClient } from 'pg';
 import { NextRequest } from 'next/server';
-import { databaseConfigured, query } from '@/lib/postgres';
+import { databaseConfigured, query, transaction } from '@/lib/postgres';
 import { requireCustomer, getCustomerPrincipal } from '@/lib/customer-auth';
 
 export const runtime = 'nodejs';
@@ -10,9 +11,11 @@ export const dynamic = 'force-dynamic';
 // rather than inventing a parallel cart table. abandoned_cart_recovery even
 // already assumes this design (its order_id FK requires a real sales_order
 // to exist). A cart IS a draft order; checkout is draft -> pending.
-async function findOrCreateCart(customerEmail: string): Promise<string> {
+async function findOrCreateCart(client: PoolClient, customerEmail: string): Promise<string> {
+  const query=client.query.bind(client);
+  await query('SELECT pg_advisory_xact_lock(hashtext($1))',[customerEmail]);
   const existing = await query<{ id: string }>(
-    `SELECT id FROM sales_order WHERE customer_email = $1 AND status = 'draft' ORDER BY created_at DESC LIMIT 1`,
+    `SELECT id FROM sales_order WHERE customer_email = $1 AND status = 'draft' ORDER BY created_at DESC LIMIT 1 FOR UPDATE`,
     [customerEmail],
   );
   if (existing.rowCount) return existing.rows[0].id;
@@ -24,8 +27,8 @@ async function findOrCreateCart(customerEmail: string): Promise<string> {
   return created.rows[0].id;
 }
 
-async function recalcTotals(orderId: string): Promise<void> {
-  await query(
+async function recalcTotals(client: PoolClient, orderId: string): Promise<void> {
+  await client.query(
     `UPDATE sales_order SET subtotal = COALESCE((SELECT SUM(total_amount) FROM order_item WHERE order_id = $1), 0),
        total = COALESCE((SELECT SUM(total_amount) FROM order_item WHERE order_id = $1), 0), updated_at = now()
      WHERE id = $1`,
@@ -80,7 +83,9 @@ export async function POST(req: NextRequest) {
   if (!product.rowCount) return Response.json({ error: 'Product not found or not available for sale.' }, { status: 404 });
   const p = product.rows[0];
 
-  const cartId = await findOrCreateCart(customer.rows[0].email);
+  return transaction(async client => {
+  const query=client.query.bind(client);
+  const cartId = await findOrCreateCart(client,customer.rows[0].email);
   const existingItem = await query<{ id: string; quantity: number }>(
     `SELECT id, quantity FROM order_item WHERE order_id = $1 AND product_id = $2`,
     [cartId, p.id],
@@ -99,7 +104,8 @@ export async function POST(req: NextRequest) {
       [cartId, p.id, p.name, p.product_type, p.sku, quantity, p.base_price, totalAmount],
     );
   }
-  await recalcTotals(cartId);
+  await recalcTotals(client,cartId);
 
   return Response.json({ ok: true, cartId }, { status: 201 });
+  });
 }

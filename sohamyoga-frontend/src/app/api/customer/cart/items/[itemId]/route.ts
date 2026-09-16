@@ -1,21 +1,22 @@
+import type { PoolClient } from 'pg';
 import { NextRequest } from 'next/server';
-import { databaseConfigured, query } from '@/lib/postgres';
+import { databaseConfigured, query, transaction } from '@/lib/postgres';
 import { requireCustomer, getCustomerPrincipal } from '@/lib/customer-auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function ownsCartItem(itemId: string, customerEmail: string): Promise<string | null> {
-  const row = await query<{ order_id: string }>(
+async function ownsCartItem(client: PoolClient, itemId: string, customerEmail: string): Promise<string | null> {
+  const row = await client.query<{ order_id: string }>(
     `SELECT oi.order_id FROM order_item oi JOIN sales_order so ON so.id = oi.order_id
-     WHERE oi.id = $1 AND so.customer_email = $2 AND so.status = 'draft'`,
+     WHERE oi.id = $1 AND so.customer_email = $2 AND so.status = 'draft' FOR UPDATE OF so`,
     [itemId, customerEmail],
   );
   return row.rows[0]?.order_id ?? null;
 }
 
-async function recalcTotals(orderId: string): Promise<void> {
-  await query(
+async function recalcTotals(client: PoolClient, orderId: string): Promise<void> {
+  await client.query(
     `UPDATE sales_order SET subtotal = COALESCE((SELECT SUM(total_amount) FROM order_item WHERE order_id = $1), 0),
        total = COALESCE((SELECT SUM(total_amount) FROM order_item WHERE order_id = $1), 0), updated_at = now()
      WHERE id = $1`,
@@ -40,12 +41,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ it
   const customer = await query<{ email: string }>(`SELECT email FROM customer WHERE user_id = $1`, [principal!.id]);
   if (!customer.rowCount) return Response.json({ error: 'No customer record found for this account.' }, { status: 404 });
 
-  const orderId = await ownsCartItem(itemId, customer.rows[0].email);
+  return transaction(async client => {
+  const query=client.query.bind(client);
+  const orderId = await ownsCartItem(client,itemId, customer.rows[0].email);
   if (!orderId) return Response.json({ error: 'Cart item not found.' }, { status: 404 });
 
   await query(`UPDATE order_item SET quantity = $2, total_amount = $2::int * unit_price WHERE id = $1`, [itemId, quantity]);
-  await recalcTotals(orderId);
+  await recalcTotals(client,orderId);
   return Response.json({ ok: true });
+  });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ itemId: string }> }) {
@@ -58,10 +62,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const customer = await query<{ email: string }>(`SELECT email FROM customer WHERE user_id = $1`, [principal!.id]);
   if (!customer.rowCount) return Response.json({ error: 'No customer record found for this account.' }, { status: 404 });
 
-  const orderId = await ownsCartItem(itemId, customer.rows[0].email);
+  return transaction(async client => {
+  const query=client.query.bind(client);
+  const orderId = await ownsCartItem(client,itemId, customer.rows[0].email);
   if (!orderId) return Response.json({ error: 'Cart item not found.' }, { status: 404 });
 
   await query(`DELETE FROM order_item WHERE id = $1`, [itemId]);
-  await recalcTotals(orderId);
+  await recalcTotals(client,orderId);
   return Response.json({ ok: true });
+  });
 }

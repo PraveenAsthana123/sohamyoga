@@ -119,3 +119,6 @@ data/kaggle/*/
 
 # Health monitor logs — operational output, not source
 .health-logs/
+
+# Private uploaded media and generated artifacts
+ai-orchestrator-platform/backend/data/media/

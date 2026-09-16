@@ -1,0 +1,17 @@
+import {acceptedPostId,providerFor,publicationReceipt} from '@/domain/social/PostizProtocol';
+import {buildPostizPayload,type Candidate} from '@/cron/jobs/PostizSocialAutoPublishJob';
+const candidate:Candidate={draft_id:'d',tenant_id:'t',workspace_id:'w',account_id:'a',postiz_account_id:'integration',scheduled_at:'2026-09-14T00:00:00Z',platform:'facebook',adapted_text:'Yoga class',video_title:null,postiz_media_id:null,postiz_media_path:null,youtube_visibility:'private',youtube_tags:[]};
+it('reads documented array acknowledgement as job ID',()=>expect(acceptedPostId([{postId:'job',integration:'integration'}],'integration')).toBe('job'));
+it.each([{},[],[{postId:'job',integration:'other'}],[{id:'job'}],[{postId:'one',integration:'integration'},{postId:'two',integration:'integration'}]])('rejects uncertain acceptance %p',body=>expect(()=>acceptedPostId(body,'integration')).toThrow());
+it('does not treat acceptance as a publication receipt',()=>expect(()=>publicationReceipt([{postId:'job',integration:'integration'}],'job','integration')).toThrow());
+it.each(['QUEUE','DRAFT','PUBLISHED'])('requires a release URL even for %s',state=>expect(publicationReceipt({posts:[{id:'job',state,integration:{id:'integration'}}]},'job','integration').status).toBe('queued'));
+it('confirms matched published release only',()=>expect(publicationReceipt({posts:[{id:'job',state:'PUBLISHED',releaseURL:'https://linkedin.com/feed/update/123',integration:{id:'integration'}}]},'job','integration')).toEqual({status:'published',url:'https://linkedin.com/feed/update/123'}));
+it('does not use a different integration receipt',()=>expect(publicationReceipt({posts:[{id:'job',state:'PUBLISHED',releaseURL:'https://example.com/post',integration:{id:'other'}}]},'job','integration').status).toBe('queued'));
+it('surfaces Postiz provider failure',()=>expect(publicationReceipt({posts:[{id:'job',state:'ERROR',integration:{id:'integration'}}]},'job','integration').status).toBe('failed'));
+it('rejects provider mismatch',()=>expect(()=>providerFor('linkedin','facebook')).toThrow());
+it('uses company page provider when explicitly bound',()=>expect(buildPostizPayload({...candidate,platform:'linkedin',provider_identifier:'linkedin-page'}).posts[0].settings.__type).toBe('linkedin-page'));
+it('adds Facebook settings',()=>expect(buildPostizPayload(candidate).posts[0].settings.__type).toBe('facebook'));
+it('maps x_twitter to x with reply setting',()=>expect(buildPostizPayload({...candidate,platform:'x_twitter'}).posts[0].settings).toMatchObject({__type:'x',who_can_reply_post:'everyone'}));
+it('rejects Instagram text-only posts',()=>expect(()=>buildPostizPayload({...candidate,platform:'instagram'})).toThrow('media'));
+it('builds Instagram story with uploaded media',()=>expect(buildPostizPayload({...candidate,platform:'instagram',provider_identifier:'instagram-standalone',content_type:'story',postiz_media_id:'m',postiz_media_path:'https://uploads.example/image.jpg'}).posts[0]).toMatchObject({settings:{__type:'instagram-standalone',post_type:'story'},value:[{image:[{id:'m',path:'https://uploads.example/image.jpg'}]}]}));
+it('rejects oversized X content',()=>expect(()=>buildPostizPayload({...candidate,platform:'x_twitter',adapted_text:'a'.repeat(281)})).toThrow());

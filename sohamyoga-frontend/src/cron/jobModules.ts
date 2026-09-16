@@ -5,6 +5,8 @@
  * place that knows how to load a job by name.
  */
 export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void> }>> = {
+  WorkflowEngineJob:          () => import('./jobs/WorkflowEngineJob'),
+  AIContentAdaptJob:          () => import('./jobs/AIContentAdaptJob'),
   MarketingAutomationJob:     () => import('./jobs/MarketingAutomationJob'),
   NotificationDispatchJob:    () => import('./jobs/NotificationDispatchJob'),
   LeaderboardRefreshJob:      () => import('./jobs/LeaderboardRefreshJob'),
@@ -69,4 +71,32 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   SecurityScanJob:            () => import('./jobs/SecurityScanJob'),
   BacklogPrioritizationJob:   () => import('./jobs/BacklogPrioritizationJob'),
   DeepTestAdvisoryJob:        () => import('./jobs/DeepTestAdvisoryJob'),
+  FacebookReportSyncJob:      () => import('./jobs/FacebookReportSyncJob'),
+  LinkedInReportSyncJob:      () => import('./jobs/LinkedInReportSyncJob'),
+  YouTubeReportSyncJob:       () => import('./jobs/YouTubeReportSyncJob'),
+  TelegramReportSyncJob:      () => import('./jobs/TelegramReportSyncJob'),
+  AffiliatePartnerTierJob:    () => import('./jobs/AffiliatePartnerTierJob'),
+  AffiliatePayoutJob:         () => import('./jobs/AffiliatePayoutJob'),
+  AffiliateFraudScanJob:      () => import('./jobs/AffiliateFraudScanJob'),
+  AffiliateCommissionSettleJob: () => import('./jobs/AffiliateCommissionSettleJob'),
+  ModuleTestSchedulerJob:      () => import('./jobs/ModuleTestSchedulerJob'),
+  SocialAnalyticsSyncJob:      () => import('./jobs/SocialAnalyticsSyncJob'),
+  HashtagTrendJob:             () => import('./jobs/HashtagTrendJob'),
+  SocialAlertScanJob:          () => import('./jobs/SocialAlertScanJob'),
+  ContentCalendarReminderJob:  () => import('./jobs/ContentCalendarReminderJob'),
+  CommandCenterSyncJob:        () => import('./jobs/CommandCenterSyncJob'),
+  // Extended platform jobs
+  WhatsAppMessageQueueJob:     () => import('./jobs/WhatsAppMessageQueueJob'),
+  PinterestPinSyncJob:         () => import('./jobs/PinterestPinSyncJob'),
+  GitHubReleaseSyncJob:        () => import('./jobs/GitHubReleaseSyncJob'),
+  GoogleBusinessSyncJob:       () => import('./jobs/GoogleBusinessSyncJob'),
+  TrustpilotReviewSyncJob:     () => import('./jobs/TrustpilotReviewSyncJob'),
+  VimeoAnalyticsSyncJob:       () => import('./jobs/VimeoAnalyticsSyncJob'),
+  PatreonPostSyncJob:          () => import('./jobs/PatreonPostSyncJob'),
+  ApiQuotaMonitorJob:          () => import('./jobs/ApiQuotaMonitorJob'),
+  // Platform Monitoring Jobs
+  PlatformHealthCheckJob:      () => import('./jobs/PlatformHealthCheckJob'),
+  RateLimitSnapshotJob:        () => import('./jobs/RateLimitSnapshotJob'),
+  RetryQueueJob:               () => import('./jobs/RetryQueueJob'),
+  ApiLogCleanupJob:            () => import('./jobs/ApiLogCleanupJob'),
 };

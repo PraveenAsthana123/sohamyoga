@@ -26,6 +26,7 @@
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
     "@sohamyoga/shared-backend": "file:../packages/shared-backend",
+    "@sohamyoga/shared-social-platforms": "file:../packages/shared-social-platforms",
     "@tiptap/extension-placeholder": "^3.20.0",
     "@tiptap/react": "^3.20.0",
     "@tiptap/starter-kit": "^3.20.0",

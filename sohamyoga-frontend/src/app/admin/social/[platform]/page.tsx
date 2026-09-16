@@ -1,17 +1,15 @@
 'use client';
-// /admin/social/[platform] — per-platform admin page with the mandatory
-// 10-tab Operational Portal standard (Manual/Pipeline/Agentic/Monitoring/
-// Dashboard/Report/Governance/User Story/Testing/Log & Tracking), per the
-// user's explicit requirement: "each social media should have separate
-// page with list of tabs and each tab should have separate feature ...
-// mandatory." One shared template serves every platform in PLATFORM_CONFIG
-// (and beyond) with zero per-platform code.
+// /admin/social/[platform] — per-platform admin page with platform-specific feature tabs
+// (from PLATFORM_SPECIFIC_TABS) prepended BEFORE the mandatory 10-tab Operational Portal
+// standard (Manual/Pipeline/Agentic/Monitoring/Dashboard/Report/Governance/User Story/
+// Testing/Log & Tracking).
 
 import { Fragment, useEffect, useState } from 'react';
+import { PLATFORM_SPECIFIC_TABS, type PlatformTab } from '@/lib/platform-tab-config';
 
-const TABS = ['manual', 'pipeline', 'agentic', 'monitoring', 'dashboard', 'report', 'governance', 'user-story', 'testing', 'log-tracking'] as const;
-type Tab = typeof TABS[number];
-const TAB_LABELS: Record<Tab, string> = {
+const OPERATIONAL_TABS = ['manual', 'pipeline', 'agentic', 'monitoring', 'dashboard', 'report', 'governance', 'user-story', 'testing', 'log-tracking'] as const;
+type OperationalTab = typeof OPERATIONAL_TABS[number];
+const OPERATIONAL_TAB_LABELS: Record<OperationalTab, string> = {
   manual: 'Manual', pipeline: 'Pipeline', agentic: 'Agentic', monitoring: 'Monitoring',
   dashboard: 'Dashboard', report: 'Report', governance: 'Governance', 'user-story': 'User Story',
   testing: 'Testing', 'log-tracking': 'Log & Tracking',
@@ -24,28 +22,196 @@ function Kpi({ label, value }: { label: string; value: string | number }) {
   return <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"><p className="text-xs text-gray-500">{label}</p><p className="text-2xl font-bold mt-1 text-blue-600">{value}</p></div>;
 }
 
+// ── Platform-specific tab content renderer ──────────────────────────────────
+interface PlatformDataRow {
+  id: string;
+  title?: string;
+  content_type?: string;
+  status?: string;
+  impressions?: number;
+  clicks?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  rating?: number;
+  reviewer_name?: string;
+  created_at?: string;
+  published_at?: string;
+  [key: string]: unknown;
+}
+
+interface PlatformDataResponse {
+  rows: PlatformDataRow[];
+  kpis?: Record<string, number | string>;
+  lastSynced?: string;
+  totalRows?: number;
+}
+
+function PlatformTabContent({ platform, tab }: { platform: string; tab: PlatformTab }) {
+  const [data, setData] = useState<PlatformDataResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = () => {
+    setLoading(true); setError('');
+    fetch(`/api/admin/social/platform-data?platform=${encodeURIComponent(platform)}&tab=${encodeURIComponent(tab.id)}`)
+      .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error ?? 'Request failed'); return d; })
+      .then((d) => setData(d))
+      .catch((e) => setError(String(e)))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, [platform, tab.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const syncNow = async () => {
+    setSyncing(true);
+    await new Promise((r) => setTimeout(r, 800)); // represent async work
+    load();
+    setSyncing(false);
+  };
+
+  const isAnalyticsTab = tab.id === 'analytics';
+  const isReviewTab = ['reviews', 'responses', 'flagged'].includes(tab.id);
+
+  return (
+    <div>
+      <SubSection title={`${tab.label} — ${tab.description}`}>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-gray-400">
+            {data?.lastSynced ? `Last synced: ${new Date(data.lastSynced).toLocaleString()}` : 'Not yet synced'}
+          </p>
+          <button onClick={syncNow} disabled={syncing || loading}
+            className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-md hover:bg-blue-100 disabled:opacity-50">
+            {syncing ? 'Syncing…' : 'Sync now'}
+          </button>
+        </div>
+
+        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+        {loading && <p className="text-sm text-gray-500">Loading…</p>}
+
+        {!loading && data && (
+          <>
+            {/* KPI cards for analytics tabs */}
+            {isAnalyticsTab && data.kpis && Object.keys(data.kpis).length > 0 && (
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                {Object.entries(data.kpis).map(([k, v]) => (
+                  <Kpi key={k} label={k.replace(/_/g, ' ')} value={v} />
+                ))}
+              </div>
+            )}
+
+            {/* Data table */}
+            {data.rows.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
+                <p className="text-sm text-gray-500">No data yet — connect your {platform.replace(/_/g, ' ')} account first.</p>
+                <a href="/admin/platform-setup" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Set up credentials →</a>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border bg-white">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {isReviewTab
+                        ? ['Reviewer', 'Rating', 'Content', 'Status', 'Date'].map((h) => (
+                            <th key={h} className="px-4 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
+                          ))
+                        : ['Title / Content', 'Type', 'Status', 'Impressions', 'Clicks', 'Likes', 'Date'].map((h) => (
+                            <th key={h} className="px-4 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
+                          ))
+                      }
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {data.rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-gray-50">
+                        {isReviewTab ? (
+                          <>
+                            <td className="px-4 py-2 text-xs">{row.reviewer_name ?? '—'}</td>
+                            <td className="px-4 py-2">{row.rating != null ? `${'★'.repeat(Math.round(Number(row.rating)))} (${row.rating})` : '—'}</td>
+                            <td className="px-4 py-2 max-w-xs truncate text-xs">{String(row.title ?? row.content_type ?? '—')}</td>
+                            <td className="px-4 py-2"><span className={`text-xs rounded-full px-2 py-0.5 ${row.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{row.status ?? '—'}</span></td>
+                            <td className="px-4 py-2 text-xs text-gray-500">{row.created_at ? new Date(String(row.created_at)).toLocaleDateString() : '—'}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-4 py-2 max-w-xs truncate font-medium">{String(row.title ?? row.id.slice(0, 8))}</td>
+                            <td className="px-4 py-2 text-xs text-gray-500">{row.content_type ?? '—'}</td>
+                            <td className="px-4 py-2"><span className={`text-xs rounded-full px-2 py-0.5 ${row.status === 'published' ? 'bg-green-100 text-green-700' : row.status === 'draft' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>{row.status ?? '—'}</span></td>
+                            <td className="px-4 py-2">{row.impressions ?? 0}</td>
+                            <td className="px-4 py-2">{row.clicks ?? 0}</td>
+                            <td className="px-4 py-2">{row.likes ?? 0}</td>
+                            <td className="px-4 py-2 text-xs text-gray-500">{(row.published_at ?? row.created_at) ? new Date(String(row.published_at ?? row.created_at)).toLocaleDateString() : '—'}</td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {data.totalRows != null && data.totalRows > data.rows.length && (
+              <p className="text-xs text-gray-400 mt-2">Showing {data.rows.length} of {data.totalRows} rows.</p>
+            )}
+          </>
+        )}
+      </SubSection>
+    </div>
+  );
+}
+
+// ── Main page ────────────────────────────────────────────────────────────────
 export default function PlatformSocialPage({ params }: { params: { platform: string } }) {
   const { platform } = params;
-  const [activeTab, setActiveTab] = useState<Tab>('manual');
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1).replace(/_/g, ' ');
+
+  const platformTabs: PlatformTab[] = PLATFORM_SPECIFIC_TABS[platform] ?? [];
+
+  // Active tab is either a platform-specific tab id or an operational tab id
+  const [activeTab, setActiveTab] = useState<string>(
+    platformTabs.length > 0 ? platformTabs[0].id : 'manual'
+  );
+
+  const isOperationalTab = (OPERATIONAL_TABS as readonly string[]).includes(activeTab);
+  const activePlatformTab = platformTabs.find((t) => t.id === activeTab);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <header className="border-l-4 border-primary-600 pl-4">
           <h1 className="text-2xl font-bold">{platformLabel}</h1>
-          <p className="text-sm text-gray-500">Manual / Pipeline (deterministic) / Agentic (local LLM) execution modes, real data throughout.</p>
+          <p className="text-sm text-gray-500">
+            {platformTabs.length} platform-specific tabs + 10 operational tabs (Manual / Pipeline / Agentic / Monitoring / Dashboard / Report / Governance / User Story / Testing / Log &amp; Tracking).
+          </p>
         </header>
 
+        {/* Tab bar: platform-specific first, then operational */}
         <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200 overflow-x-auto">
-          {TABS.map((t) => (
+          {platformTabs.length > 0 && (
+            <>
+              {platformTabs.map((t) => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${activeTab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  {t.label}
+                </button>
+              ))}
+              <span className="self-center text-gray-300 mx-1 select-none">|</span>
+            </>
+          )}
+          {OPERATIONAL_TABS.map((t) => (
             <button key={t} onClick={() => setActiveTab(t)}
-              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${activeTab === t ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-              {TAB_LABELS[t]}
+              className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${activeTab === t ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+              {OPERATIONAL_TAB_LABELS[t]}
             </button>
           ))}
         </div>
 
+        {/* Platform-specific tab content */}
+        {!isOperationalTab && activePlatformTab && (
+          <PlatformTabContent platform={platform} tab={activePlatformTab} />
+        )}
+
+        {/* Operational tab content */}
         {activeTab === 'manual' && <ManualTab platform={platform} platformLabel={platformLabel} />}
         {activeTab === 'pipeline' && <PipelineTab platform={platform} />}
         {activeTab === 'agentic' && <AgenticTab platform={platform} />}
@@ -53,7 +219,7 @@ export default function PlatformSocialPage({ params }: { params: { platform: str
         {activeTab === 'dashboard' && <DashboardTab platform={platform} />}
         {activeTab === 'report' && <ReportTab platform={platform} />}
         {activeTab === 'governance' && <GovernanceTab platformLabel={platformLabel} />}
-        {activeTab === 'user-story' && <UserStoryTab platformLabel={platformLabel} />}
+        {activeTab === 'user-story' && <UserStoryTab platformLabel={platformLabel} platformTabs={platformTabs} />}
         {activeTab === 'testing' && <TestingTab platform={platform} />}
         {activeTab === 'log-tracking' && <LogTrackingTab platform={platform} />}
       </div>
@@ -344,16 +510,23 @@ function GovernanceTab({ platformLabel }: { platformLabel: string }) {
 }
 
 // ── User Story ──
-function UserStoryTab({ platformLabel }: { platformLabel: string }) {
-  const STORIES = [
+function UserStoryTab({ platformLabel, platformTabs }: { platformLabel: string; platformTabs: PlatformTab[] }) {
+  const BASE_STORIES = [
     { role: 'Content Editor', want: `to see all drafts targeting ${platformLabel} and their approval status`, so: 'I know what is pending review', status: 'Built — Manual tab' },
     { role: 'Growth/Marketing', want: 'real trending hashtags and viral-signal detection specific to this platform', so: 'I can act on what is actually working, not a guess', status: 'Built — Pipeline tab' },
     { role: 'Growth/Marketing', want: 'an AI agent to recommend a next action from this platform\'s real performance data', so: 'I get a fast, grounded suggestion', status: 'Built — Agentic tab' },
     { role: 'Admin', want: 'real-time Ollama health and operation history for this platform', so: 'I know the automation is actually working', status: 'Built — Monitoring tab' },
   ];
+  const platformStories = platformTabs.map((t) => ({
+    role: 'Growth/Marketing',
+    want: `to view and manage ${t.label} data for ${platformLabel}`,
+    so: `I can track ${t.description.toLowerCase()}`,
+    status: `Platform tab — ${t.label}`,
+  }));
+  const ALL = [...platformStories, ...BASE_STORIES];
   return (
     <SubSection title="User stories">
-      {STORIES.map((s, i) => (
+      {ALL.map((s, i) => (
         <div key={i} className="bg-white rounded-xl border p-4 mb-3">
           <p className="text-sm text-gray-700"><b>As a</b> {s.role}, <b>I want</b> {s.want}, <b>so that</b> {s.so}.</p>
           <p className="text-xs text-gray-400 mt-1">{s.status}</p>

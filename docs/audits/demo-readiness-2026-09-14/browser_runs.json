@@ -1,0 +1,90 @@
+[
+  {
+    "id": "21e47b08-871f-4653-84fe-d5bf23e78b96",
+    "started_at": "2026-09-14T09:00:06.231+00:00",
+    "finished_at": "2026-09-14T09:19:40.111212+00:00",
+    "git_commit": "6951da6",
+    "total_tests": 672,
+    "passed": 486,
+    "failed": 87,
+    "skipped": 99,
+    "status": "completed"
+  },
+  {
+    "id": "bbbae778-1653-4c23-93f5-b142a572d75e",
+    "started_at": "2026-09-13T09:00:08.71+00:00",
+    "finished_at": "2026-09-13T09:19:49.285742+00:00",
+    "git_commit": "4832312",
+    "total_tests": 672,
+    "passed": 497,
+    "failed": 76,
+    "skipped": 99,
+    "status": "completed"
+  },
+  {
+    "id": "07dd2845-00b2-4394-b69e-0df2f100cdd1",
+    "started_at": "2026-09-12T09:00:07.365+00:00",
+    "finished_at": "2026-09-12T09:20:08.445634+00:00",
+    "git_commit": "4832312",
+    "total_tests": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "status": "crashed"
+  },
+  {
+    "id": "f1280c2c-85de-4afb-81a0-7663c2b8c488",
+    "started_at": "2026-09-11T09:00:06.684+00:00",
+    "finished_at": "2026-09-11T09:19:23.484024+00:00",
+    "git_commit": "4832312",
+    "total_tests": 672,
+    "passed": 481,
+    "failed": 92,
+    "skipped": 99,
+    "status": "completed"
+  },
+  {
+    "id": "897f9c2a-7354-46a5-8cb6-e3e3ba6e2baf",
+    "started_at": "2026-09-10T09:00:07.083+00:00",
+    "finished_at": "2026-09-10T09:18:54.963908+00:00",
+    "git_commit": "4832312",
+    "total_tests": 672,
+    "passed": 485,
+    "failed": 88,
+    "skipped": 99,
+    "status": "completed"
+  },
+  {
+    "id": "1f617bba-acfc-4344-b71f-dea2424dc23e",
+    "started_at": "2026-09-09T14:22:50.345+00:00",
+    "finished_at": "2026-09-09T14:22:53.281668+00:00",
+    "git_commit": "8fb3ea8",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "status": "completed"
+  },
+  {
+    "id": "f5f50041-4dfd-4a5c-a44a-0e1750c93c25",
+    "started_at": "2026-09-09T06:18:19.969+00:00",
+    "finished_at": "2026-09-09T06:24:49.54355+00:00",
+    "git_commit": "6088ec5",
+    "total_tests": 224,
+    "passed": 162,
+    "failed": 29,
+    "skipped": 33,
+    "status": "completed"
+  },
+  {
+    "id": "99f5085a-36bf-400d-af02-468f7bd306f1",
+    "started_at": "2026-09-09T05:29:04.613+00:00",
+    "finished_at": "2026-09-09T05:29:07.520748+00:00",
+    "git_commit": "5a4d65c",
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "status": "completed"
+  }
+]

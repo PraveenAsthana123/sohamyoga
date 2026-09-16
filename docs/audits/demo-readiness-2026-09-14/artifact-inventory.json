@@ -1,0 +1,2157 @@
+{
+  "summary": {
+    "source": "sohamyoga-frontend/test-results/unified-quality.json",
+    "bytes": 4988429,
+    "stats": {
+      "startTime": "2026-09-14T09:00:07.944Z",
+      "duration": 1167181.175,
+      "expected": 486,
+      "skipped": 99,
+      "unexpected": 87,
+      "flaky": 0
+    },
+    "attachments_total": 355,
+    "attachments_present": 338,
+    "attachment_types": {
+      "error-context": 141,
+      "trace": 87,
+      "screenshot": 55,
+      "video": 55,
+      "axe-results": 9,
+      "story": 5,
+      "cdp-accessibility-tree": 3
+    }
+  },
+  "attachments": [
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/complaint-alert-CA-004-end-519d5-n-complaint-alert-queues-it-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-5d035-e-errors-or-failed-requests-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-5d035-e-errors-or-failed-requests-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-5d035-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-5d035-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-5d035-e-errors-or-failed-requests-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-efe8a-e-errors-or-failed-requests-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-8f43c-e-errors-or-failed-requests-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-a81ec-e-errors-or-failed-requests-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-9e87f-hers-id-with-a-real-teacher-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-fb909-ith-the-real-seeded-student-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/console-error-sweep-CONSOL-4dba0--Tooling-tabs-are-all-clean-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-interaction-track-617d1-and-actually-grants-consent-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-interaction-track-617d1-and-actually-grants-consent-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-interaction-track-617d1-and-actually-grants-consent-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-interaction-track-617d1-and-actually-grants-consent-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-interaction-track-617d1-and-actually-grants-consent-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/customer-self-service-CSS--86fe9-rejects-unauthenticated-GET-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-005-ef556-ds-with-correct-auth-gating-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-005-ef556-ds-with-correct-auth-gating-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-005-ef556-ds-with-correct-auth-gating-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-005-ef556-ds-with-correct-auth-gating-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-005-ef556-ds-with-correct-auth-gating-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-006-5cc6a-d-is-a-safe-no-op-on-re-run-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-006-5cc6a-d-is-a-safe-no-op-on-re-run-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-006-5cc6a-d-is-a-safe-no-op-on-re-run-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-006-5cc6a-d-is-a-safe-no-op-on-re-run-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-006-5cc6a-d-is-a-safe-no-op-on-re-run-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/demo-showcase-hub-DEMO-006-5cc6a-d-is-a-safe-no-op-on-re-run-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-cc360-e-mathematically-consistent-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-cc360-e-mathematically-consistent-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-cc360-e-mathematically-consistent-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-cc360-e-mathematically-consistent-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-cc360-e-mathematically-consistent-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-cc360-e-mathematically-consistent-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-1a303-real-text-not-a-placeholder-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-1a303-real-text-not-a-placeholder-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-1a303-real-text-not-a-placeholder-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-1a303-real-text-not-a-placeholder-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-1a303-real-text-not-a-placeholder-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-1a303-real-text-not-a-placeholder-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/funnel-stage-engine-FUN-00-e3465-ars-and-transition-findings-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-002--d9ad0-are-present-none-fabricated-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-002--d9ad0-are-present-none-fabricated-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-002--d9ad0-are-present-none-fabricated-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-002--d9ad0-are-present-none-fabricated-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-003--839a7-r-count-and-a-matched-query-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-003--839a7-r-count-and-a-matched-query-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-003--839a7-r-count-and-a-matched-query-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-003--839a7-r-count-and-a-matched-query-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/github-repo-scout-GHS-004--95255-t-and-discovered-candidates-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--a03e1-p-pair-is-rejected-with-404-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--a03e1-p-pair-is-rejected-with-404-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--ae724-nown-step-returns-real-rows-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--ae724-nown-step-returns-real-rows-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--a03e1-p-pair-is-rejected-with-404-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--a03e1-p-pair-is-rejected-with-404-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--ae724-nown-step-returns-real-rows-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-001--ae724-nown-step-returns-real-rows-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-002--fd288-t-end-to-end-in-the-browser-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/guided-simulation-SIM-003--fe68d-s-the-walkthrough-to-step-1-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-002--b4273-tribution-gets-a-real-score-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/influencer-engine-INF-004--f185a-luencers-shows-real-content-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-002-fra-a3f5f-shows-the-right-topic-count-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-003-top-8fe31-hat-order-with-real-content-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-003-top-8fe31-hat-order-with-real-content-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-003-top-8fe31-hat-order-with-real-content-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-003-top-8fe31-hat-order-with-real-content-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/market-research-MR-003-top-8fe31-hat-order-with-real-content-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/mcp-gateway-MCPG-005-appro-ae9ae-log-and-can-run-a-live-tool-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/public-site-yoga-alignment-79321-yles-each-with-real-content-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/public-site-yoga-alignment-79321-yles-each-with-real-content-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/public-site-yoga-alignment-79321-yles-each-with-real-content-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/public-site-yoga-alignment-79321-yles-each-with-real-content-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/public-site-yoga-alignment-79321-yles-each-with-real-content-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/public-site-yoga-alignment-79321-yles-each-with-real-content-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/social-platform-expansion--dd39c-ked-with-real-env-var-names-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-6a7f9-e-teacher-email-is-rejected-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-6a7f9-e-teacher-email-is-rejected-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-6a7f9-e-teacher-email-is-rejected-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7dc36--form-and-real-fetched-data-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-42cac-eal-record-not-a-fixed-mock-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/teacher-student-onboarding-7562f-te-specific-data-end-to-end-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-BOOKING-00-7913c-itive-route-and-UI-contract-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-BOOKING-00-7913c-itive-route-and-UI-contract-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-BOOKING-00-7913c-itive-route-and-UI-contract-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-BOOKING-00-7913c-itive-route-and-UI-contract-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "story",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "cdp-accessibility-tree",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-chrome-desktop/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-chrome-desktop/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-chrome-desktop/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-chrome-desktop/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "story",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "story",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "story",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-44252-gin-remains-unauthenticated-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-44252-gin-remains-unauthenticated-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-44252-gin-remains-unauthenticated-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-44252-gin-remains-unauthenticated-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "cdp-accessibility-tree",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-mobile-pwa/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-mobile-pwa/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-mobile-pwa/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-mobile-pwa/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-PUBLIC-CAT-414e5-itive-route-and-UI-contract-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "story",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-MEMBERSHIP-f268c-itive-route-and-UI-contract-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-MEMBERSHIP-f268c-itive-route-and-UI-contract-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-MEMBERSHIP-f268c-itive-route-and-UI-contract-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-MEMBERSHIP-f268c-itive-route-and-UI-contract-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "axe-results",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-A-59159-itive-route-and-UI-contract-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-CUSTOMER-AUTH-001-WCAG-automated-scan-color-blind-protanopia/trace.zip",
+      "exists": true
+    },
+    {
+      "name": "cdp-accessibility-tree",
+      "contentType": "application/json",
+      "path": null,
+      "exists": false
+    },
+    {
+      "name": "screenshot",
+      "contentType": "image/png",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-color-blind-protanopia/test-failed-1.png",
+      "exists": true
+    },
+    {
+      "name": "video",
+      "contentType": "video/webm",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-color-blind-protanopia/video.webm",
+      "exists": true
+    },
+    {
+      "name": "error-context",
+      "contentType": "text/markdown",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-color-blind-protanopia/error-context.md",
+      "exists": true
+    },
+    {
+      "name": "trace",
+      "contentType": "application/zip",
+      "path": "/mnt/deepa/sohamyoga/sohamyoga-frontend/test-results/artifacts/unified-quality-Chrome-Dev-3c17e-work-and-accessibility-tree-color-blind-protanopia/trace.zip",
+      "exists": true
+    }
+  ]
+}

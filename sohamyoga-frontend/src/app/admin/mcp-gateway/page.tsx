@@ -43,7 +43,7 @@ const STATUS_STYLE: Record<string, string> = {
   success: 'bg-green-100 text-green-700', failed: 'bg-red-100 text-red-700',
   rejected: 'bg-gray-100 text-gray-500', timeout: 'bg-amber-100 text-amber-700',
 };
-const TABS = ['Dashboard', 'Integrations', 'Bot Console', 'Reports'] as const;
+const TABS = ['Dashboard', 'User Flow', 'Integrations', 'Bot Console', 'Reports'] as const;
 
 export default function McpGatewayPage() {
   const [data, setData] = useState<Catalog | null>(null);
@@ -133,6 +133,56 @@ export default function McpGatewayPage() {
                 ))}
               </div>
             ) : <p className="text-sm text-gray-400">No tool has been called yet — try one from the Bot Console tab.</p>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'User Flow' && (
+        <div className="space-y-4">
+          <div className="rounded-xl border bg-white p-5">
+            <h2 className="mb-3 font-semibold text-gray-800">Customer-Facing AI Assistant</h2>
+            <p className="mb-4 text-sm text-gray-600">
+              The MCP Gateway enables an AI assistant to answer customer questions, look up real data,
+              and perform actions on their behalf — all through structured, governed tool calls.
+            </p>
+            <div className="space-y-3">
+              {[
+                { prompt: 'Ask about yoga poses', tool: 'knowledge.search_knowledge_base', description: 'Customer asks "What is Warrior II pose?" → AI calls the knowledge-base MCP tool → returns real pose description from the content library.' },
+                { prompt: 'Book a class', tool: 'booking.get_available_slots + booking.create_booking', description: 'Customer says "I want to book a Tuesday morning class" → AI calls slot-availability tool → presents options → customer confirms → AI calls booking tool with customer_confirm tier (customer sees confirmation before it fires).' },
+                { prompt: 'Check my account', tool: 'customer.get_profile', description: 'Logged-in customer asks "When is my next class?" → AI calls customer profile tool with auto tier → returns real upcoming booking data.' },
+                { prompt: 'Ask about pricing', tool: 'booking.get_service_types', description: 'Customer asks "How much is a private session?" → AI queries real service/pricing data via the booking MCP server.' },
+                { prompt: 'Request support', tool: 'notification.send_notification (staff_approval tier)', description: 'Customer raises an issue → AI drafts a support ticket and flags it for staff approval before sending — high-risk action never fires automatically.' },
+              ].map((item, i) => (
+                <div key={i} className="rounded-lg border border-gray-100 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">{i + 1}</span>
+                    <div>
+                      <p className="font-medium text-gray-800">{item.prompt}</p>
+                      <p className="mt-0.5 font-mono text-xs text-blue-600">{item.tool}</p>
+                      <p className="mt-1 text-xs text-gray-500">{item.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border bg-white p-5">
+            <h2 className="mb-3 font-semibold text-gray-800">Health Check Job</h2>
+            <p className="text-sm text-gray-600">
+              <span className="font-mono text-xs">McpHealthCheckJob</span> runs daily at 2am.
+              It probes each registered external-platform MCP server for credential presence
+              and updates their <span className="font-mono text-xs">is_configured</span> status.
+              This prevents stale "configured" indicators after credential rotation.
+            </p>
+            <div className="mt-3 space-y-1">
+              {['GITHUB_TOKEN', 'STRIPE_SECRET_KEY', 'GOOGLE_ADS_DEVELOPER_TOKEN', 'META_ACCESS_TOKEN', 'KLAVIYO_API_KEY', 'HUBSPOT_API_KEY'].map(k => (
+                <div key={k} className="flex items-center gap-2 text-xs">
+                  <span className="font-mono text-gray-500">{k}</span>
+                  <span className="text-gray-300">→</span>
+                  <span className="text-gray-400">checked daily</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

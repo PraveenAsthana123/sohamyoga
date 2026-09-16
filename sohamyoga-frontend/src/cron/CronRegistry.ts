@@ -13,6 +13,22 @@ export interface CronJobDef {
 
 export const CRON_JOBS: CronJobDef[] = [
   {
+    name:        'workflow-engine',
+    schedule:    '*/5 * * * *',
+    description: 'Executes active schedule-triggered platform workflows — creates run records and step results in platform_workflow_run/platform_workflow_step_run',
+    module:      'WorkflowEngineJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'ai-content-adapt',
+    schedule:    '0 */2 * * *',
+    description: 'Processes pending platform_ai_content_job records — calls Ollama llama3.2 to adapt source content for each target platform and stores results',
+    module:      'AIContentAdaptJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+  {
     name:        'marketing-automation',
     schedule:    '*/2 * * * *',
     description: 'Claim tenant campaign briefs and generate approval-ready copy, banner prompts, and video scripts with local Ollama',
@@ -272,6 +288,16 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   120_000,
   },
 
+  // ── Every 2 hours ────────────────────────────────────────────────────────
+  {
+    name:        'command-center-sync',
+    schedule:    '0 */2 * * *',
+    description: 'Sync live metrics (impressions, reach, clicks, engagement, spend) from social_post_analytics and ad_engagement into unified_content_item for all live/published items',
+    module:      'CommandCenterSyncJob',
+    enabled:     true,
+    timeoutMs:   180_000,
+  },
+
   // ── Every 6 hours ────────────────────────────────────────────────────────
   {
     name:        'ingestion-source-refresh',
@@ -280,6 +306,38 @@ export const CRON_JOBS: CronJobDef[] = [
     module:      'IngestionSourceRefreshJob',
     enabled:     true,
     timeoutMs:   120_000,
+  },
+  {
+    name:        'facebook-report-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Sync Facebook post analytics from Postiz into social_post_analytics; honestly skips when POSTIZ_PUBLIC_API_KEY is not set',
+    module:      'FacebookReportSyncJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'linkedin-report-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Sync LinkedIn post analytics from Postiz into social_post_analytics; honestly skips when POSTIZ_PUBLIC_API_KEY is not set',
+    module:      'LinkedInReportSyncJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'youtube-report-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Sync YouTube video analytics from Postiz into social_post_analytics; honestly skips when POSTIZ_PUBLIC_API_KEY is not set',
+    module:      'YouTubeReportSyncJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'telegram-report-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Sync Telegram channel post view counts via Bot API into social_post_analytics; honestly skips when TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are not set',
+    module:      'TelegramReportSyncJob',
+    enabled:     true,
+    timeoutMs:   60_000,
   },
 
   // ── Daily 01:00 UTC ───────────────────────────────────────────────────────
@@ -371,6 +429,15 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   60_000,
   },
 
+  // ── Weekly Monday 06:00 UTC ───────────────────────────────────────────────
+  {
+    name:        'module-test-scheduler',
+    schedule:    '0 6 * * 1',
+    description: 'Weekly: run all API-level test cases for modules with automatic_enabled=true suites; record results in test_run_session + test_run_result; update test_case_extended.last_run_at',
+    module:      'ModuleTestSchedulerJob',
+    enabled:     true,
+    timeoutMs:   600_000,
+  },
   // ── Weekly Monday 07:00 UTC ───────────────────────────────────────────────
   {
     name:        'churn-prediction',
@@ -511,6 +578,40 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   120_000,
   },
 
+  // ── Affiliate jobs ────────────────────────────────────────────────────────
+  {
+    name:        'affiliate-partner-tier',
+    schedule:    '0 2 * * 0',
+    description: 'Weekly: re-evaluate every approved affiliate_partner against affiliate_tier_rule thresholds, promote/demote tier and commission rate (unless custom_rate_override=true), flag inactive partners as at_risk. No AI.',
+    module:      'AffiliatePartnerTierJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'affiliate-payout',
+    schedule:    '0 3 1 * *',
+    description: 'Monthly 1st: creates affiliate_payout rows (status=pending) for all approved partners with outstanding balance > $10. Does not transfer money — triggers admin review. Idempotent per partner+period.',
+    module:      'AffiliatePayoutJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'affiliate-fraud-scan',
+    schedule:    '0 4 * * *',
+    description: 'Daily: scans for self-referrals, click flooding (>200 clicks/24h), and IP clustering (>10 conversions/24-subnet/7d). Inserts affiliate_fraud_flag rows; skips duplicates within 7 days. No AI — deterministic rules only.',
+    module:      'AffiliateFraudScanJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'affiliate-commission-settle',
+    schedule:    '0 5 * * *',
+    description: 'Daily: marks pending commission rows as settled when the linked order is confirmed/delivered, and increments affiliate_partner.total_earned accordingly. Pure accounting — no AI.',
+    module:      'AffiliateCommissionSettleJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+
   // ── Monthly, 1st 06:00 UTC ────────────────────────────────────────────────
   {
     name:        'github-repo-scout',
@@ -559,6 +660,108 @@ export const CRON_JOBS: CronJobDef[] = [
     timeoutMs:   180_000,
   },
 
+  // ── Social Intelligence Jobs ─────────────────────────────────────────────
+  {
+    name:        'social-analytics-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Sync social_platform_analytics for all 6 platforms (YouTube/Facebook/Instagram/Twitter/LinkedIn/TikTok) — aggregates real social_post + social_post_analytics data into monthly period rows; skips platforms with no connected account',
+    module:      'SocialAnalyticsSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'hashtag-trend',
+    schedule:    '0 7 * * *',
+    description: 'Daily: regenerate trending_score for top 120 hashtags in social_hashtag_performance using Ollama analysis of post_count_this_week vs avg_reach — advisory only, never modifies published content',
+    module:      'HashtagTrendJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
+  {
+    name:        'social-alert-scan',
+    schedule:    '*/30 * * * *',
+    description: 'Every 30 min: check social_alert_rule conditions against social_platform_analytics and social_post — viral spikes, failed posts, follower loss; inserts into social_alert_event and updates last_triggered_at; never takes autonomous action',
+    module:      'SocialAlertScanJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'content-calendar-reminder',
+    schedule:    '0 8 * * *',
+    description: 'Daily 08:00 UTC: find social_calendar_entry records scheduled in next 24h, queue email reminder notifications for staff review — advisory only, never publishes or modifies content',
+    module:      'ContentCalendarReminderJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
+  // ── Extended Platform Jobs ────────────────────────────────────────────────
+  {
+    name:        'whatsapp-message-queue',
+    schedule:    '*/15 * * * *',
+    description: 'Process scheduled WhatsApp Business messages: dispatch via Cloud API when credentials available, flag expired 24h customer-initiated windows, update social_post status; honest no-op until WHATSAPP_PHONE_NUMBER_ID + WHATSAPP_ACCESS_TOKEN configured',
+    module:      'WhatsAppMessageQueueJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'pinterest-pin-sync',
+    schedule:    '0 */4 * * *',
+    description: 'Every 4 hours: fetch analytics (impressions, saves, clicks, outbound_clicks) from Pinterest API v5 for published pins and upsert to social_post_analytics; honest no-op without PINTEREST_ACCESS_TOKEN',
+    module:      'PinterestPinSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'github-release-sync',
+    schedule:    '0 8 * * *',
+    description: 'Daily 08:00 UTC: fetch latest GitHub releases, create social_post records for new releases, sync download stats to unified_content_item; honest no-op without GITHUB_TOKEN + GITHUB_OWNER + GITHUB_REPO',
+    module:      'GitHubReleaseSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'google-business-sync',
+    schedule:    '0 9 * * *',
+    description: 'Daily 09:00 UTC: fetch local post insights (impressions, clicks, direction_requests, phone_calls) from Google Business Profile API for each configured location; upsert to social_platform_analytics; honest no-op without GOOGLE_BUSINESS_ACCOUNT_ID + GOOGLE_BUSINESS_ACCESS_TOKEN',
+    module:      'GoogleBusinessSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'trustpilot-review-sync',
+    schedule:    '0 */6 * * *',
+    description: 'Every 6 hours: fetch latest Trustpilot reviews, insert new rows into reputation_review table (auto-creates if needed), flag rating<=2 reviews as urgent for staff response; honest no-op without TRUSTPILOT_API_KEY + TRUSTPILOT_API_SECRET + TRUSTPILOT_BUSINESS_UNIT_ID',
+    module:      'TrustpilotReviewSyncJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'vimeo-analytics-sync',
+    schedule:    '0 10 * * *',
+    description: 'Daily 10:00 UTC: fetch video stats (plays, likes, comments, downloads) from Vimeo API for all published videos and upsert to unified_content_item metrics; honest no-op without VIMEO_ACCESS_TOKEN',
+    module:      'VimeoAnalyticsSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'patreon-post-sync',
+    schedule:    '0 11 * * *',
+    description: 'Daily 11:00 UTC: fetch Patreon post stats (likes, comments, patron_count) from Patreon API and upsert metrics to unified_content_item; honest no-op without PATREON_ACCESS_TOKEN + PATREON_CAMPAIGN_ID',
+    module:      'PatreonPostSyncJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+
+  // ── Every 4 hours ────────────────────────────────────────────────────────
+  {
+    name:        'api-quota-monitor',
+    schedule:    '0 */4 * * *',
+    description: 'Every 4 hours: aggregate today\'s platform API test call counts into platform_api_quota, fire social_alert_event for any platform over 85% daily quota. Real counts only — no AI.',
+    module:      'ApiQuotaMonitorJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+
   // ── Daily 01:30 UTC ──────────────────────────────────────────────────────
   {
     name:        'security-scan',
@@ -575,6 +778,40 @@ export const CRON_JOBS: CronJobDef[] = [
     module:      'BacklogPrioritizationJob',
     enabled:     true,
     timeoutMs:   1_800_000,
+  },
+
+  // ── Platform Monitoring Jobs ──────────────────────────────────────────────
+  {
+    name:        'platform-health-check',
+    schedule:    '*/5 * * * *',
+    description: 'Every 5 min: check health of all 36 platforms in ref_social_platform — HEAD request to known API endpoints, insert platform_health_check row per platform, prune to last 1000 rows',
+    module:      'PlatformHealthCheckJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'rate-limit-snapshot',
+    schedule:    '0 * * * *',
+    description: 'Hourly: snapshot rate limit state for all 36 platforms into platform_rate_limit_snapshot — uses real Facebook/Instagram response headers when credentials are set, synthetic data otherwise; prunes to last 168 rows per platform',
+    module:      'RateLimitSnapshotJob',
+    enabled:     true,
+    timeoutMs:   120_000,
+  },
+  {
+    name:        'retry-queue',
+    schedule:    '*/15 * * * *',
+    description: 'Every 15 min: process pending platform_retry_queue items whose next_retry_at is due — exponential backoff, marks exhausted after max_attempts, 50/50 simulated success until real operation handlers are wired',
+    module:      'RetryQueueJob',
+    enabled:     true,
+    timeoutMs:   60_000,
+  },
+  {
+    name:        'api-log-cleanup',
+    schedule:    '0 3 * * *',
+    description: 'Daily 3am: delete platform_api_log rows >30 days, platform_health_check rows >7 days, processed platform_webhook_event rows >30 days, completed platform_retry_queue rows >30 days',
+    module:      'ApiLogCleanupJob',
+    enabled:     true,
+    timeoutMs:   60_000,
   },
 ];
 
@@ -621,9 +858,20 @@ Thu    09:00  influencer-value (Ollama)
 Daily  01:30  security-scan (real tools -- no AI)
 Daily  02:30  backlog-prioritization (Ollama)
 Daily  03:15  opportunity-scoring (Ollama)
+Daily  04:00  affiliate-fraud-scan (real, no AI)
 Daily  04:15  deep-test-advisory (Ollama) -- reads the real Playwright run written by
               scripts/run-deep-test-suite.sh (host-level, OS crontab 03:00 UTC daily,
               NOT in this in-app scheduler -- the cron container has no browser runtime)
+Daily  05:00  affiliate-commission-settle (real, no AI)
+Sun    02:00  affiliate-partner-tier (real, no AI)
+1st    03:00  affiliate-payout (real, no AI)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 42 jobs | 27 use Ollama | 0 cloud AI tokens
+Every 30 min  social-alert-scan (real checks, no AI)
+Every  6 hrs  social-analytics-sync (real aggregation, no AI)
+Daily  07:00  hashtag-trend (Ollama)
+Daily  08:00  content-calendar-reminder (real, no AI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Every  4 hrs  api-quota-monitor (real, no AI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total: 55 jobs | 29 use Ollama | 0 cloud AI tokens
 `;

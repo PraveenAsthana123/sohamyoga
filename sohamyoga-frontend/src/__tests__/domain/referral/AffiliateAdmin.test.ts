@@ -1,0 +1,17 @@
+import {NextRequest} from 'next/server';
+import {GET,POST} from '@/app/api/admin/affiliates/route';
+import {getAdminPrincipal} from '@/lib/admin-auth';
+import {databaseConfigured,query,transaction} from '@/lib/postgres';
+jest.mock('@/lib/admin-auth',()=>({getAdminPrincipal:jest.fn()}));
+jest.mock('@/lib/postgres',()=>({databaseConfigured:jest.fn(),query:jest.fn(),transaction:jest.fn()}));
+const id='d894e787-cd8c-47ea-9909-e3125c147639';
+const sql=jest.fn();
+const request=(body:unknown)=>new NextRequest('https://portal.example/api/admin/affiliates',{method:'POST',body:JSON.stringify(body)});
+beforeEach(()=>{jest.resetAllMocks();(getAdminPrincipal as jest.Mock).mockResolvedValue({principal:{id:'admin',roles:['Admin']}});(databaseConfigured as jest.Mock).mockReturnValue(true);(transaction as jest.Mock).mockImplementation(fn=>fn({query:sql}));});
+test('non-admin roles cannot see or mutate financial records',async()=>{(getAdminPrincipal as jest.Mock).mockResolvedValue({principal:{id:'sales',roles:['Sales']}});expect((await GET(request({}))).status).toBe(403);expect((await POST(request({action:'policy'}))).status).toBe(403);expect(query).not.toHaveBeenCalled();});
+test.each([-1,10001,10.5,'1000',null])('rejects invalid rate %p',async rateBps=>{expect((await POST(request({action:'policy',vendorId:id,rateBps,enabled:true}))).status).toBe(400);expect(query).not.toHaveBeenCalled();});
+test('unknown partner is not silently configured',async()=>{(query as jest.Mock).mockResolvedValue({rowCount:0});expect((await POST(request({action:'policy',vendorId:id,rateBps:1000,enabled:true}))).status).toBe(404);});
+test('records receipt and audit actor',async()=>{sql.mockResolvedValueOnce({}).mockResolvedValueOnce({rowCount:1,rows:[{balance:'10'}]}).mockResolvedValueOnce({rowCount:0}).mockResolvedValueOnce({rowCount:1}).mockResolvedValueOnce({});const r=await POST(request({action:'payout',orderId:id,amountCents:500,reference:'BANK-1'}));expect(r.status).toBe(200);expect((await r.json()).note).toContain('No money');expect(sql.mock.calls[4][1]).toEqual([id,500,'BANK-1','admin']);});
+test('duplicate receipt returns original success without paying again',async()=>{sql.mockResolvedValueOnce({}).mockResolvedValueOnce({rowCount:1,rows:[{balance:'0'}]}).mockResolvedValueOnce({rowCount:1,rows:[{amount:'5.00'}]});const r=await POST(request({action:'payout',orderId:id,amountCents:500,reference:'BANK-1'}));expect(await r.json()).toEqual({ok:true,replayed:true});expect(sql).toHaveBeenCalledTimes(3);});
+test('duplicate reference with changed amount conflicts',async()=>{sql.mockResolvedValueOnce({}).mockResolvedValueOnce({rowCount:1,rows:[{balance:'10'}]}).mockResolvedValueOnce({rowCount:1,rows:[{amount:'5.00'}]});expect((await POST(request({action:'payout',orderId:id,amountCents:600,reference:'BANK-1'}))).status).toBe(409);});
+test('overpayment or negative recovery balance blocks payout receipt',async()=>{sql.mockResolvedValueOnce({}).mockResolvedValueOnce({rowCount:1,rows:[{balance:'-5'}]}).mockResolvedValueOnce({rowCount:0}).mockResolvedValueOnce({rowCount:0});expect((await POST(request({action:'payout',orderId:id,amountCents:500,reference:'BANK-2'}))).status).toBe(409);expect(sql).toHaveBeenCalledTimes(4);});

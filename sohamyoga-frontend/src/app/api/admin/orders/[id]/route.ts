@@ -1,6 +1,8 @@
+import { reconcileAffiliate } from '@/domain/referral/AffiliateLedger';
+import { getAdminPrincipal } from '@/lib/admin-auth';
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
-import { databaseConfigured, query } from '@/lib/postgres';
+import { databaseConfigured, query, transaction } from '@/lib/postgres';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -48,7 +50,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const denied = await requireAdmin(req);
+  const { denied, principal } = await getAdminPrincipal(req);
   if (denied) return denied;
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
@@ -58,7 +60,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } | null;
   if (!body?.status && !body?.markPaid) return Response.json({ error: 'status or markPaid is required.' }, { status: 400 });
 
-  const current = await query<{ status: string; total: string; payment_status: string }>(`SELECT status, total, payment_status FROM sales_order WHERE id = $1`, [id]);
+  return transaction(async client => {
+  const query=client.query.bind(client);
+  const actor=principal!.id;
+  const current = await query<{ status: string; total: string; payment_status: string }>(`SELECT status, total, payment_status FROM sales_order WHERE id = $1 FOR UPDATE`, [id]);
   if (!current.rowCount) return Response.json({ error: 'Order not found.' }, { status: 404 });
 
   // Real "mark paid" -- sales_order.payment_status could already be set to
@@ -67,10 +72,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // the manual/pay-later counterpart for orders placed with no payment
   // gateway connected -- staff collects payment out of band, then records it.
   if (body.markPaid) {
-    if (!['pending', 'partially_paid'].includes(current.rows[0].payment_status)) {
+    if (['draft','cancelled','returned','refunded'].includes(current.rows[0].status) || !['pending', 'partially_paid'].includes(current.rows[0].payment_status)) {
       return Response.json({ error: `Cannot mark a "${current.rows[0].payment_status}" order as paid.` }, { status: 409 });
     }
     await query(`UPDATE sales_order SET payment_status = 'paid', updated_at = now() WHERE id = $1`, [id]);
+    await reconcileAffiliate(client,id,actor);
     return Response.json({ ok: true });
   }
   if (!body.status) return Response.json({ error: 'status is required.' }, { status: 400 });
@@ -84,16 +90,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // sales_order but no write path ever set them; a refunded order silently
   // kept refund_amount=0. Require both when transitioning into 'refunded'.
   if (body.status === 'refunded') {
-    if (!body.refundAmount || body.refundAmount <= 0 || body.refundAmount > Number(current.rows[0].total)) {
+    if (typeof body.refundAmount !== 'number' || !Number.isFinite(body.refundAmount) || body.refundAmount <= 0 || body.refundAmount > Number(current.rows[0].total)) {
       return Response.json({ error: `refundAmount must be > 0 and <= order total (${current.rows[0].total}).` }, { status: 400 });
     }
-    if (!body.refundReason?.trim()) {
+    if (current.rows[0].payment_status !== 'paid') return Response.json({error:'Only paid orders can be refunded.'},{status:409});
+    if (typeof body.refundReason !== 'string' || !body.refundReason.trim()) {
       return Response.json({ error: 'refundReason is required.' }, { status: 400 });
     }
     await query(
       `UPDATE sales_order SET status = $2, payment_status = 'refunded', refund_amount = $3, refund_reason = $4, updated_at = now() WHERE id = $1`,
       [id, body.status, body.refundAmount, body.refundReason.trim()],
     );
+    await reconcileAffiliate(client,id,actor);
     return Response.json({ ok: true });
   }
 
@@ -131,5 +139,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     await query(`UPDATE shipment SET status = 'delivered', delivered_at = now() WHERE order_id = $1 AND status = 'shipped'`, [id]);
   }
 
+  await reconcileAffiliate(client,id,actor);
   return Response.json({ ok: true });
+  });
 }

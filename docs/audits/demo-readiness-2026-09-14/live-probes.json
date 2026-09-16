@@ -1,0 +1,54 @@
+[
+  {
+    "base": "http://127.0.0.1:3110",
+    "operation": "demo customer login",
+    "status": 200,
+    "authenticated": true
+  },
+  {
+    "base": "http://127.0.0.1:3110",
+    "operation": "/api/customer/profile",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:3110",
+    "operation": "/api/customer/orders",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:3110",
+    "operation": "/api/customer/referral",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:3110",
+    "operation": "/api/customer/cart",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:8085",
+    "operation": "demo customer login",
+    "status": 200,
+    "authenticated": true
+  },
+  {
+    "base": "http://127.0.0.1:8085",
+    "operation": "/api/customer/profile",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:8085",
+    "operation": "/api/customer/orders",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:8085",
+    "operation": "/api/customer/referral",
+    "status": 404
+  },
+  {
+    "base": "http://127.0.0.1:8085",
+    "operation": "/api/customer/cart",
+    "status": 404
+  }
+]

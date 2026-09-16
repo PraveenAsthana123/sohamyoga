@@ -1,0 +1,35 @@
+// Requires DATABASE_URL; all tables are temporary and transaction is rolled back.
+const fs=require('fs'),ts=require('typescript'),Module=require('module'),assert=require('node:assert/strict');
+const {Client}=require('pg');
+const source=fs.readFileSync('src/domain/referral/AffiliateLedger.ts','utf8');
+const m=new Module('affiliate-probe',module);m._compile(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,'affiliate-probe.js');
+const {attachAffiliate,reconcileAffiliate}=m.exports;
+(async()=>{const c=new Client({connectionString:process.env.DATABASE_URL});await c.connect();try{
+ await c.query('BEGIN');
+ for(const table of ['vendor','sales_order','referral_code','referral_click'])await c.query(`CREATE TEMP TABLE ${table} (LIKE public.${table} INCLUDING ALL) ON COMMIT DROP`);
+ await c.query(fs.readFileSync('src/domain/referral/db-schema-affiliate-ledger.sql','utf8').replaceAll('CREATE TABLE IF NOT EXISTS','CREATE TEMP TABLE'));
+ const v=(await c.query("INSERT INTO vendor(name,slug,vendor_type,email,commission_type,commission_rate) VALUES('Affiliate test','affiliate-test','affiliate','partner@example.test','percentage',0) RETURNING id")).rows[0].id;
+ const rc=(await c.query("INSERT INTO referral_code(code,referrer_id,referrer_type,referral_url) VALUES('TEST',$1,'affiliate','https://example.test/r/TEST') RETURNING id",[v])).rows[0].id;
+ const click=(await c.query("INSERT INTO referral_click(referral_code_id,channel) VALUES($1,'direct_link') RETURNING id",[rc])).rows[0].id;
+ const o=(await c.query("INSERT INTO sales_order(order_number,customer_email,status,subtotal,total,discount_amount) VALUES('TEST','buyer@example.test','draft',100,100,10) RETURNING id")).rows[0].id;
+ await attachAffiliate(c,o,click);assert.equal((await c.query('SELECT * FROM affiliate_conversion')).rowCount,0,'missing policy must not earn');
+ await c.query('INSERT INTO affiliate_policy VALUES($1,1000,true,now())',[v]);
+ await attachAffiliate(c,o,click);await attachAffiliate(c,o,click);
+ assert.equal((await c.query('SELECT used_count FROM referral_code')).rows[0].used_count,1,'retry reserves one use');
+ assert.equal((await c.query('SELECT basis FROM affiliate_conversion')).rows[0].basis,'90.00');
+ await reconcileAffiliate(c,o,'test');assert.equal((await c.query('SELECT * FROM affiliate_event')).rowCount,0,'draft not paid');
+ await c.query("UPDATE sales_order SET status='pending',payment_status='paid' WHERE id=$1",[o]);
+ await reconcileAffiliate(c,o,'test');await reconcileAffiliate(c,o,'test');
+ assert.equal((await c.query('SELECT earned FROM affiliate_conversion')).rows[0].earned,'9.00');
+ assert.equal((await c.query("SELECT * FROM affiliate_event WHERE kind='earned'")).rowCount,1,'paid retry no duplicate');
+ await c.query('UPDATE affiliate_policy SET rate_bps=5000');
+ await reconcileAffiliate(c,o,'test');assert.equal((await c.query('SELECT earned FROM affiliate_conversion')).rows[0].earned,'9.00','rate snapshot');
+ await c.query('UPDATE affiliate_conversion SET paid=9');
+ await c.query("UPDATE sales_order SET refund_amount=50,payment_status='refunded',status='refunded' WHERE id=$1",[o]);
+ await reconcileAffiliate(c,o,'test');await reconcileAffiliate(c,o,'test');
+ assert.equal((await c.query('SELECT reversed,earned-reversed-paid AS balance FROM affiliate_conversion')).rows[0].balance,'-4.50');
+ assert.equal((await c.query("SELECT * FROM affiliate_event WHERE kind='reversal'")).rowCount,1,'refund retry no duplicate');
+ await c.query('UPDATE sales_order SET refund_amount=100 WHERE id=$1',[o]);await reconcileAffiliate(c,o,'test');
+ assert.equal((await c.query('SELECT reversed FROM affiliate_conversion')).rows[0].reversed,'9.00');
+ console.log('PASS: policy gate, attribution retry, rate/basis snapshot, paid-only earnings, retry dedup, partial/full refund and post-payout recovery. Temporary tables rolled back.');
+ }finally{await c.query('ROLLBACK');await c.end();}})().catch(e=>{console.error(e.message);process.exit(1)});

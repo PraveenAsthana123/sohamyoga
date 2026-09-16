@@ -3,6 +3,8 @@ import { api, auth, WS_BASE, type Attachment, type Conversation, type Integratio
 import { Markdown } from './components/Markdown'
 import { FilesView } from './components/FilesView'
 import { Dashboard } from './components/Dashboard'
+import { MediaStudio } from './components/MediaStudio'
+import { OperationsCenter } from './components/OperationsCenter'
 import { Login } from './components/Login'
 import { SharedConversation } from './components/SharedConversation'
 import { computeStats, fastestProvider, fmtMs, type ProviderStat } from './stats'
@@ -156,7 +158,7 @@ function AuthedApp({ onLogout }: { onLogout: () => void }) {
   const [modelTags, setModelTags] = useState<Record<string, ModelTag>>({})
   const [modelPerformance, setModelPerformance] = useState<Record<string, ModelPerformance>>({})
   const [modelOverride, setModelOverride] = useState<string>('')
-  const [view, setView] = useState<'chat' | 'tasks' | 'files' | 'dashboard' | 'integrations'>('chat')
+  const [view, setView] = useState<'chat' | 'tasks' | 'files' | 'dashboard' | 'integrations' | 'media' | 'operations'>('chat')
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([])
   const [attachError, setAttachError] = useState<string>('')
   const [integrations, setIntegrations] = useState<IntegrationTool[]>([])
@@ -549,6 +551,8 @@ function AuthedApp({ onLogout }: { onLogout: () => void }) {
         )}
 
         <div className="section">
+          <button className={`btn-tab ${view === 'operations' ? 'active' : ''}`} onClick={() => setView('operations')}>Operations Center</button>
+          <button className={`btn-tab ${view === 'media' ? 'active' : ''}`} onClick={() => setView('media')}>Media Studio</button>
           <button className={`btn-tab ${view === 'chat' ? 'active' : ''}`} onClick={() => setView('chat')}>Chat</button>
           <button className={`btn-tab ${view === 'tasks' ? 'active' : ''}`} onClick={() => setView('tasks')}>Task History</button>
           <button className={`btn-tab ${view === 'files' ? 'active' : ''}`} onClick={() => { setSidebarTab('folders'); setView('files') }}>Files</button>
@@ -559,7 +563,11 @@ function AuthedApp({ onLogout }: { onLogout: () => void }) {
 
       <main className="main">
         {connErr && <div className="conn-err">{connErr}</div>}
-        {view === 'files' ? (
+        {view === 'operations' ? (
+          <OperationsCenter key={project} project={project} />
+        ) : view === 'media' ? (
+          <MediaStudio key={project} project={project} />
+        ) : view === 'files' ? (
           <FilesView onAssign={assignContextToNewConversation} />
         ) : view === 'dashboard' ? (
           <Dashboard />

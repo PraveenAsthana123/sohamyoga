@@ -84,3 +84,45 @@ The conversation contains exactly two numbered "usecase" catalogs (its own term,
 ### Total
 
 **130 use cases enumerated. 0 fully built. 17 have partial underlying infrastructure to extend. 113 have zero existing code to build from.**
+
+## Staleness check (added 2026-09-14, second pass — link re-pasted by user, no accompanying text)
+
+The user re-pasted this exact conversation's share link with no new text. Per the extraction policy's search-first discipline, this was **not** re-extracted from scratch — this file already satisfies the mandatory enumeration/cross-check requirements. Instead, the "0 of 130 built" verdict above was re-checked against `module_registry` as it stands now, since a large TalentsHill gap-analysis backlog (55+ new modules) was built and live-verified in the days after 2026-09-13.
+
+**Verdict: the "0 of 130 built" framing is now stale for 4 of the 23 "zero coverage" marketing-type items**, plus one "partial infrastructure" item materially strengthened. The 90-item market-research table is **unchanged** — no TAM/SAM/SOM/PESTLE/Porter's/conjoint/etc. methodology was built as a distinct capability; `market_research`'s only 2026-09-14 change was an analyst-scored opportunity-ranking feature, not a new methodology.
+
+Moved from **zero coverage → real underlying module exists**:
+
+| # | Use case | New module | What it actually does | Important caveat |
+|---|---|---|---|---|
+| 10 | AEO/GEO | `geo_visibility` | Real admin-entered AI-answer-engine (ChatGPT/Perplexity/Gemini/Copilot) mention logging + mention-rate computation, live-verified (2 obs, 50% rate) | Manual logging, no AI-search-engine API integration |
+| 22 | ABM | `b2b_abm_engine` | Real named-account rollup grouping `contact_submissions` by normalized company name for multi-stakeholder visibility, live-verified (accountScore=85) | Tracks TalentsHill's *own* inbound leads, not a client-facing ABM campaign tool |
+| 23 | Partner Marketing | `partner_ecosystem` | Real admin-entered partner tracking (6 types, prospecting/active/inactive), live-verified status transition | No partner-portal/CRM-sync integration; tracks TalentsHill's own partners |
+| 24 | CRO | `cro_friction_engine` | Real logged friction findings (7 types, severity 1-5) with a disclosed readiness-score formula, live-verified (severity-4 finding dropped score 100→76) | No automated site crawler/UX-analytics integration; manual entry only |
+
+Strengthened within **partial infrastructure** (was already partial, now has more real logic underneath):
+
+| # | Use case | Change |
+|---|---|---|
+| 39 | Competitive Intelligence Marketing | `competitor_benchmark_engine` added real 8-dimension numeric head-to-head scoring on top of the pre-existing `competitor_analysis` module, live-verified (Microsoft digital_presence gap = -18) |
+
+Checked and confirmed **still genuinely zero coverage** despite the adjacent-sounding `pr_earned_media` module (real Share-of-Voice computation over sentiment-tagged brand mentions, live-verified 25% positive share): this measures PR/media-mention sentiment, not customer review management (Google/Yelp-style), so **#19 Reputation/Review Marketing stays zero coverage** — flagged here only so it isn't mistaken for a match later.
+
+**Net revised total: 130 use cases. 0 fully built as the AI-driven, client-facing demo the conversation describes. 18 have partial infrastructure (up from 17). 19 have zero coverage but a reusable internal module now exists to extend (up from 0, down from 23). 94 have zero existing code to build from (down from 113).**
+
+One structural caveat that applies to all 5 newly-real modules above: they were built as **TalentsHill's own internal growth-ops tooling** (tracking TalentsHill's own accounts/partners/website/AI-visibility), not as a **productized service offering to demo to prospective clients** — which is what the conversation's 40-item catalog actually describes. The underlying logic (rollup, scoring, friction-weighting) is real and reusable, but turning any of these into a client-facing demo is still unbuilt work, not a relabeling exercise.
+
+No build action has been taken on this refreshed picture. Still waiting on the user for direction: update in place is now done (this section); building any specific still-zero-coverage item, or repurposing one of the 5 internal modules into a client-facing demo, both remain open asks.
+
+## Build executed (added 2026-09-15) — 7 prioritized client-facing demos
+
+User instructed "investigate all older module as well", then "build all", then clarified: an autonomous, end-to-end demo list for a digital marketing agency to showcase. Rather than building all 40 marketing-type use cases shallowly, adopted the source conversation's own "Best demos to build first" recommendation (msg 19: "I would not build all 40 separately... build a single platform and expose these as modules") — 7 prioritized demos + a master Control Tower.
+
+Built in TalentsHill (`/mnt/deepa/talentshill`), commit `c487c56`, pushed to `origin/main`:
+- **Control Tower** and **Lead Generation AI** — `readiness=ready`, pure composition of already-real engines (KPI Engine, Growth Readiness, Opportunity Engine, Scenario Simulator, Lead Scoring/NBA/Research-Router).
+- **Affiliate Revenue Control Tower** and **Lifecycle/Churn AI** — net-new real engines (recruit→link→click→conversion→commission→fraud-check; deterministic lifecycle/churn classification), `readiness=partial` (disclosed gaps: no payout gateway, no behavioral-event log).
+- **SEO+Content AI**, **Social+Influencer AI**, **Performance Marketing AI** — real composition/extension of existing partial modules, `readiness=partial`, each honestly disclosing its real gap in the UI.
+
+Full evidence: `docs/testing/2026-09-15_demo-showcase-log.txt` in the TalentsHill repo (10/10 new unit tests, 285/285 full suite, 0 typecheck errors, live curl walkthrough including the fraud-heuristic boundary). Live at `/admin/demos` once TalentsHill's dev server is running.
+
+**Still explicitly out of scope, by design, not by omission**: 33 of the 40 marketing-type use cases and all 90 market-research use cases from this conversation's two catalogs remain un-demoed.

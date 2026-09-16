@@ -1,0 +1,280 @@
+[
+  {
+    "suite_key": "customer-daily-e2e",
+    "case_key": "booking-capacity",
+    "name": "Full class rejects booking and offers waitlist",
+    "polarity": "boundary",
+    "scenario": {
+      "action": "booking.capacity_boundary",
+      "fixture": "full_class"
+    },
+    "expected_result": {
+      "overbooked": false,
+      "waitlistOffered": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "customer-daily-e2e",
+    "case_key": "booking-lifecycle",
+    "name": "Book, waitlist, reschedule and cancel",
+    "polarity": "positive",
+    "scenario": {
+      "action": "booking.full_lifecycle",
+      "fixture": "customer_with_membership"
+    },
+    "expected_result": {
+      "states": [
+        "booked",
+        "rescheduled",
+        "cancelled"
+      ],
+      "historyComplete": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "customer-daily-e2e",
+    "case_key": "privacy-export-delete",
+    "name": "Customer exports then requests deletion",
+    "polarity": "positive",
+    "scenario": {
+      "action": "privacy.export_delete",
+      "fixture": "customer_with_history"
+    },
+    "expected_result": {
+      "exportReady": true,
+      "deletionAudited": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "customer-daily-e2e",
+    "case_key": "register-duplicate",
+    "name": "Duplicate email is rejected idempotently",
+    "polarity": "negative",
+    "scenario": {
+      "action": "customer.register",
+      "fixture": "existing_email"
+    },
+    "expected_result": {
+      "httpStatus": 409,
+      "duplicateRows": 0
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "customer-daily-e2e",
+    "case_key": "register-valid",
+    "name": "Customer registers with valid consent",
+    "polarity": "positive",
+    "scenario": {
+      "action": "customer.register",
+      "fixture": "new_customer_with_consent"
+    },
+    "expected_result": {
+      "httpStatus": 201,
+      "customerCreated": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "customer-daily-e2e",
+    "case_key": "unauthorized-account-access",
+    "name": "Customer cannot read another account",
+    "polarity": "negative",
+    "scenario": {
+      "action": "security.cross_customer_access",
+      "fixture": "two_customers"
+    },
+    "expected_result": {
+      "piiLeaked": false,
+      "httpStatus": 403
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "marketing-positive-negative",
+    "case_key": "ab-winner",
+    "name": "A/B test promotes statistically eligible winner",
+    "polarity": "boundary",
+    "scenario": {
+      "action": "campaign.ab_evaluate",
+      "fixture": "minimum_sample_boundary"
+    },
+    "expected_result": {
+      "prematureWinner": false
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "marketing-positive-negative",
+    "case_key": "campaign-approve-publish",
+    "name": "Draft, approve, schedule and publish campaign",
+    "polarity": "positive",
+    "scenario": {
+      "action": "campaign.full_lifecycle",
+      "channels": [
+        "email",
+        "facebook",
+        "youtube"
+      ]
+    },
+    "expected_result": {
+      "approved": true,
+      "deliveryTracked": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "marketing-positive-negative",
+    "case_key": "campaign-no-consent",
+    "name": "Suppress non-consenting recipients",
+    "polarity": "negative",
+    "scenario": {
+      "action": "campaign.send",
+      "fixture": "mixed_consent_segment"
+    },
+    "expected_result": {
+      "suppressed": true,
+      "unauthorizedSends": 0
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "marketing-positive-negative",
+    "case_key": "provider-outage",
+    "name": "Provider outage opens breaker and preserves retry",
+    "polarity": "failure_injection",
+    "scenario": {
+      "action": "campaign.provider_outage",
+      "provider": "postiz"
+    },
+    "expected_result": {
+      "circuit": "open",
+      "retryQueued": true,
+      "duplicatePublishes": 0
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "platform-load-1000",
+    "case_key": "customer-mixed-load",
+    "name": "One thousand concurrent customer journeys",
+    "polarity": "positive",
+    "scenario": {
+      "action": "load.customer",
+      "targetKey": "customer-portal-1000"
+    },
+    "expected_result": {
+      "thresholdsPass": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "platform-load-1000",
+    "case_key": "marketing-mixed-load",
+    "name": "One thousand concurrent campaign operations",
+    "polarity": "positive",
+    "scenario": {
+      "action": "load.marketing",
+      "targetKey": "marketing-campaign-1000"
+    },
+    "expected_result": {
+      "thresholdsPass": true,
+      "duplicateOperations": 0
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "platform-load-1000",
+    "case_key": "voice-control-load",
+    "name": "One thousand concurrent voice control operations",
+    "polarity": "positive",
+    "scenario": {
+      "action": "load.voice",
+      "targetKey": "voice-operations-1000"
+    },
+    "expected_result": {
+      "lostEvents": 0,
+      "thresholdsPass": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "voice-positive-negative",
+    "case_key": "asterisk-unavailable",
+    "name": "Asterisk outage opens breaker and schedules retry",
+    "polarity": "failure_injection",
+    "scenario": {
+      "action": "voice.provider_outage",
+      "provider": "asterisk"
+    },
+    "expected_result": {
+      "circuit": "open",
+      "retryQueued": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "voice-positive-negative",
+    "case_key": "do-not-call",
+    "name": "Outbound call is blocked for DNC contact",
+    "polarity": "negative",
+    "scenario": {
+      "action": "voice.outbound_call",
+      "fixture": "do_not_call_contact"
+    },
+    "expected_result": {
+      "blockedReason": "do_not_call",
+      "providerCalls": 0
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "voice-positive-negative",
+    "case_key": "duplicate-provider-webhook",
+    "name": "Repeated provider webhook is idempotent",
+    "polarity": "boundary",
+    "scenario": {
+      "action": "voice.replay_webhook",
+      "repetitions": 3
+    },
+    "expected_result": {
+      "callRows": 1,
+      "eventRows": 1
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "voice-positive-negative",
+    "case_key": "inbound-known-caller",
+    "name": "Inbound known caller loads contact and script",
+    "polarity": "positive",
+    "scenario": {
+      "action": "voice.inbound_webhook",
+      "fixture": "known_caller"
+    },
+    "expected_result": {
+      "callCreated": true,
+      "contactMatched": true,
+      "scriptSelected": true
+    },
+    "enabled": true
+  },
+  {
+    "suite_key": "voice-positive-negative",
+    "case_key": "outbound-consented",
+    "name": "Outbound consented call records full lifecycle",
+    "polarity": "positive",
+    "scenario": {
+      "action": "voice.outbound_call",
+      "fixture": "consented_contact"
+    },
+    "expected_result": {
+      "historyComplete": true,
+      "providerCallCreated": true
+    },
+    "enabled": true
+  }
+]

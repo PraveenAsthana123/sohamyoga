@@ -1,5 +1,6 @@
+import { attachAffiliate, AFFILIATE_COOKIE } from '@/domain/referral/AffiliateLedger';
 import { NextRequest } from 'next/server';
-import { databaseConfigured, query } from '@/lib/postgres';
+import { databaseConfigured, query, transaction } from '@/lib/postgres';
 import { requireCustomer, getCustomerPrincipal } from '@/lib/customer-auth';
 
 export const runtime = 'nodejs';
@@ -20,14 +21,16 @@ export async function POST(req: NextRequest) {
   const customer = await query<{ email: string }>(`SELECT email FROM customer WHERE user_id = $1`, [principal!.id]);
   if (!customer.rowCount) return Response.json({ error: 'No customer record found for this account.' }, { status: 404 });
 
-  const cart = await query<{ id: string; total: string }>(
-    `SELECT id, total FROM sales_order WHERE customer_email = $1 AND status = 'draft' ORDER BY created_at DESC LIMIT 1`,
-    [customer.rows[0].email],
-  );
-  if (!cart.rowCount) return Response.json({ error: 'Your cart is empty.' }, { status: 400 });
-  const itemCount = await query<{ count: string }>(`SELECT COUNT(*) AS count FROM order_item WHERE order_id = $1`, [cart.rows[0].id]);
-  if (Number(itemCount.rows[0].count) === 0) return Response.json({ error: 'Your cart is empty.' }, { status: 400 });
-
-  await query(`UPDATE sales_order SET status = 'pending', updated_at = now() WHERE id = $1`, [cart.rows[0].id]);
-  return Response.json({ ok: true, orderId: cart.rows[0].id, note: 'Order placed as pending -- no payment gateway is connected, so a staff member will follow up to complete payment.' });
+  return transaction(async client => {
+    const cart = await client.query<{id:string}>(
+      `SELECT id FROM sales_order WHERE customer_email=$1 AND status='draft'
+       ORDER BY created_at DESC LIMIT 1 FOR UPDATE`, [customer.rows[0].email]);
+    if (!cart.rowCount) return Response.json({error:'Your cart is empty.'},{status:400});
+    const orderId=cart.rows[0].id;
+    const items=await client.query('SELECT id FROM order_item WHERE order_id=$1',[orderId]);
+    if (!items.rowCount) return Response.json({error:'Your cart is empty.'},{status:400});
+    await attachAffiliate(client,orderId,req.cookies.get(AFFILIATE_COOKIE)?.value);
+    await client.query("UPDATE sales_order SET status='pending',updated_at=now() WHERE id=$1",[orderId]);
+    return Response.json({ok:true,orderId,note:'Order placed as pending. Staff must confirm payment; no payment was charged.'});
+  });
 }

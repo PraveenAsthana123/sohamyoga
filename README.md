@@ -1,8 +1,8 @@
 # SohamYoga Portal
 
-> A full-stack platform for a yoga studio: public website, admin panel, and customer portal.
+> A full-stack enterprise digital-marketing suite and yoga studio platform: public website, admin panel, customer portal, and a 36-platform social integration layer.
 
-**Last updated:** 2026-09-08 00:55 MDT · Feature counts and portal breakdown verified live against the `module_registry` Postgres table at that moment — see [Tech / Module / Feature stack](#tech--module--feature-stack-at-a-glance-sohamyoga-frontend-verified-2026-09-08) below.
+**Last updated:** 2026-09-16 · Platform integration suite added (36 platforms, 27 DB tables, 104 cron jobs, 6 new admin modules). Feature counts and portal breakdown verified live against the `module_registry` Postgres table — see [Tech / Module / Feature stack](#tech--module--feature-stack-at-a-glance-sohamyoga-frontend-verified-2026-09-08) below.
 
 ---
 
@@ -29,11 +29,35 @@ SohamYoga is a multi-role, full-stack web application serving three audiences:
 - Local AI: `/api/ai/*` routes stream from a local Ollama daemon — no cloud AI tokens
 - Social publishing: Postiz-backed multi-platform scheduling (`/admin/social`)
 - Marketing automation: Ollama-drafted campaigns with human approval gates (`/admin/marketing-command`)
+- **Platform Integration Suite** — 36 social/ad/communication platforms, 27 DB tables, 6 new admin modules (see below)
+
+### Platform Integration Suite (added 2026-09-16)
+| Item | Count |
+|------|-------|
+| Social/ad/communication platforms integrated | **36** |
+| Platform DB tables | **27** |
+| Cron jobs registered | **104** |
+| New admin modules | **6** |
+| Shared package wired to TalentsHill | `@sohamyoga/shared-social-platforms` |
+
+**6 new admin modules:**
+- **Platform Integration Manager** — enable/disable per-platform, system users, OAuth flows, webhooks (`/admin/platform-integration`)
+- **Workflow & AI Automation Engine** — 8 trigger types, 8 action types, Ollama-powered content lab (`/admin/platform-workflow`)
+- **Platform Monitoring & Debugging Hub** — health checks, API logs, rate-limit snapshots, retry queue, debug console (`/admin/platform-monitoring`)
+- **API Capabilities Catalog** — 185 endpoints across 36 platforms, filterable by platform/category (`/admin/platform-api-catalog`)
+- **Platform Scenarios + Feature Gating** — 645 pre-built scenarios, approval workflows (`/admin/platform-scenarios`)
+- **Developer Credentials Wizard** — 36 platforms, 203 setup steps, per-credential status tracking (`/admin/platform-credentials`)
+
+### Python Backend (ai-orchestrator-platform)
+- UV-managed `pyproject.toml` — FastAPI + uvicorn + LangChain + LangSmith + LangGraph
+- Multi-agent supervisor architecture (LangGraph) with Ollama local model preference
+- LangFlow visual workflow editor available at port **7860** (`langflow` optional dependency)
+- Media processing workers: `media.py`, `media_worker.py`, `operations.py`
 
 ### Infrastructure
 - Docker + Docker Compose (`docker-compose.yml`) — Postgres, backend, frontend, cron, Nginx
 - Reverse proxy: Nginx (`nginx/nginx.conf`)
-- Background jobs: `sohamyoga-frontend/src/cron` — Ollama-driven cron jobs (marketing, SEO, feature-gap advisory, etc.)
+- Background jobs: `sohamyoga-frontend/src/cron` — 104 Ollama-driven cron jobs (marketing, SEO, social sync, platform health, retry queue, etc.)
 
 ## Project Structure
 

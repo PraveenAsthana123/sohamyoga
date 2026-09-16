@@ -18,7 +18,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from . import attachments, auth, config, db, fsops, health, providers, router
+from . import attachments, auth, config, db, fsops, health, providers, router, media, operations
+from . import agents_router
+from .langsmith_config import configure_langsmith
+from .agents.registry import ensure_schema as _ensure_agent_schema
 
 # Cache entries never expire on their own (None) -- an exact repeat of the
 # same provider+model+prompt should always be free; the /cache/clear
@@ -30,6 +33,9 @@ def _cache_key(provider: str, model: str, prompt: str) -> str:
     return hashlib.sha256(f"{provider}\x00{model}\x00{prompt}".encode("utf-8")).hexdigest()
 
 app = FastAPI(title="AI Orchestrator Platform", version="0.1.0")
+app.include_router(media.api)
+app.include_router(operations.api)
+app.include_router(agents_router.api)
 
 # Order matters: CORSMiddleware must be OUTERMOST (added last) so an OPTIONS
 # preflight from a browser gets CORS-handled and short-circuited before ever
@@ -92,6 +98,10 @@ def _startup():
             "ORCH_AUTH_PASSWORD in backend/.env."
         )
     db.init()
+    media.init()
+    operations.init()
+    _ensure_agent_schema()  # create agents.db tables + seed test cases
+    configure_langsmith()   # enable LangSmith tracing if API key is set
     _warm_all_models()
 
 

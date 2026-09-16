@@ -1,3 +1,4 @@
+import { affiliateDestination } from '@/domain/referral/AffiliateDestination';
 import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
@@ -52,8 +53,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id } = await params;
   const body = await req.json().catch(() => null) as { destinationPath?: string } | null;
-  const destinationPath = body?.destinationPath?.trim();
-  if (!destinationPath || !destinationPath.startsWith('/') || destinationPath.startsWith('//')) {
+  const destinationPath = typeof body?.destinationPath === 'string' ? body.destinationPath.trim() : '';
+  if (!affiliateDestination(destinationPath, SITE_URL)) {
     return Response.json({ error: 'destinationPath must be a portal-owned relative path starting with "/" (e.g. /catalog/product-slug) -- external URLs are not allowed.' }, { status: 400 });
   }
 

@@ -1,0 +1,171 @@
+[
+  {
+    "spec_file": "advocacy-referral.spec.ts",
+    "module_keys": [
+      "referral-loyalty"
+    ]
+  },
+  {
+    "spec_file": "ai-governance.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "campaign-health-findings.spec.ts",
+    "module_keys": [
+      "campaign-management"
+    ]
+  },
+  {
+    "spec_file": "complaint-alert.spec.ts",
+    "module_keys": [
+      "feedback-lifecycle",
+      "feedback-health-score"
+    ]
+  },
+  {
+    "spec_file": "consent-automation.spec.ts",
+    "module_keys": [
+      "marketing-consent-suppression"
+    ]
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "contact-lead-capture.spec.ts",
+    "module_keys": [
+      "lead-detection-flow"
+    ]
+  },
+  {
+    "spec_file": "customer-interaction-tracking.spec.ts",
+    "module_keys": [
+      "heatmap-session-replay",
+      "utm-tracking"
+    ]
+  },
+  {
+    "spec_file": "customer-referral.spec.ts",
+    "module_keys": [
+      "referral-loyalty"
+    ]
+  },
+  {
+    "spec_file": "customer-registration.spec.ts",
+    "module_keys": [
+      "customer-business-onboarding"
+    ]
+  },
+  {
+    "spec_file": "customer-self-service.spec.ts",
+    "module_keys": [
+      "customer-journey-gamification",
+      "customer-wellness-journal",
+      "booking",
+      "customer-billing-invoices",
+      "customer-support-tickets",
+      "customer-subscription-self-service",
+      "customer-goals"
+    ]
+  },
+  {
+    "spec_file": "demo-showcase-hub.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ]
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "module_keys": [
+      "mcp-gateway"
+    ]
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "influencer-engine.spec.ts",
+    "module_keys": [
+      "influencer-management"
+    ]
+  },
+  {
+    "spec_file": "market-research.spec.ts",
+    "module_keys": [
+      "market-research-core-cards",
+      "market-research-screen-01",
+      "methodology-designer"
+    ]
+  },
+  {
+    "spec_file": "mcp-gateway.spec.ts",
+    "module_keys": [
+      "mcp-gateway"
+    ]
+  },
+  {
+    "spec_file": "nps-feedback.spec.ts",
+    "module_keys": [
+      "voice-of-customer",
+      "feedback-health-score"
+    ]
+  },
+  {
+    "spec_file": "public-site-yoga-alignment.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "social-platform-expansion.spec.ts",
+    "module_keys": [
+      "social-media-management"
+    ]
+  },
+  {
+    "spec_file": "social-provisioning.spec.ts",
+    "module_keys": [
+      "social-media-management"
+    ]
+  },
+  {
+    "spec_file": "social-scheduler.spec.ts",
+    "module_keys": [
+      "social-media-management",
+      "post-management"
+    ]
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "module_keys": []
+  },
+  {
+    "spec_file": "viral-detection.spec.ts",
+    "module_keys": [
+      "viral-lead-detection",
+      "crisis-detection"
+    ]
+  },
+  {
+    "spec_file": "voice-of-customer.spec.ts",
+    "module_keys": [
+      "voice-of-customer"
+    ]
+  },
+  {
+    "spec_file": "yoga-education-content.spec.ts",
+    "module_keys": [
+      "content-calendar",
+      "social-media-management"
+    ]
+  }
+]

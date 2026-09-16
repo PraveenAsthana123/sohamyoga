@@ -149,3 +149,49 @@ Video project audit: live frontend lacks ffmpeg, ffprobe and espeak-ng. Editing 
 
 ## Active sample video and portal implementation
 User authorized a rendered sample with link and video UI for customers and internal administrators. Build on the existing video_edit_project model; scope includes briefs, timeline editing, review/revisions, deliveries, job and activity evidence. Create a 15-second SohamYoga sample using HyperFrames. No external publishing. Keep concurrent edits intact.
+
+## OmniRoute setup — 2026-09-08
+- User requested installation. npm install underway; local user service configured on 127.0.0.1:20128. Runtime validation pending. Continuity launcher unavailable; direct JSONL fallback used.
+- Completed: OmniRoute 3.8.50 running as enabled omniroute.service, loopback port 20128. Health and authenticated dashboard passed; API listed 492 models; auto chat completion returned HTTP 200 / OK via big-pickle. Password: ~/.config/omniroute/service.env; API key: ~/.config/omniroute/api-key.json (both private). Existing application/client configuration unchanged.
+
+## LiteLLM setup — 2026-09-08
+- Installing canonical-environment proxy, private user service configured on 4000 forwarding auto to OmniRoute. Validation pending.
+- LiteLLM test completion succeeded, but current proxy requirements conflict with shared-environment MLflow/Presidio. Restored base cryptography44.0.1 by removing new overlay; service stopped/disabled. Await isolated-container approval. Config preserved.
+
+## Existing local coding audit
+- Verified Ollama11435 qwen2.5-coder:3b and llama.cpp8082 generation. Fixed ai-code launchers default endpoint and explicitly set OpenClaw native Ollama11435; config validated/hot reloaded. Existing LiteLLM4400 remains running. Guide: docs/LOCAL_CODING_QUICKSTART.md. Direct OpenClaw inference probe pending; full agent edits not verified. Additional gateway Docker installation remains pending user scope/approval.
+- OpenClaw direct local inference now verified: ok:true, provider ollama, qwen2.5-coder:3b, output OK. Full agent/tool workflow remains unverified.
+
+## VS Code local terminal mode — September9
+- Added ollama-code launcher, local model settings, workspace task/profile and usage guide. Testing real file-edit completion in isolated temp folder; no user project files passed to the model.
+- Completed: actual Aider local edit test passed (subtraction -> addition,3 assertions), launcher and VS Code task/profile ready. Use Ctrl+C to leave cloud CLI then /home/praveen/.local/bin/ollama-code.
+
+## Advanced AI/media/social implementation plan
+- Created initial implementation plan with30 use cases and phased acceptance gates. Expanding with LinkedIn, classifieds, unified monitoring, reel management, third-party editors and educational AR per user steering.
+- Completed expanded planning deliverable:50 user stories,28 social channels plusYouTube/LinkedIn,12 classified/marketplace candidate rows, single-window operations, customer response/CRM, advanced editing, third-party handoffs and educational AR. CSV validated. API entitlements and deployment exceptions remain implementation prerequisites; no actions published.
+
+## Local media and operations implementation — September 10
+- Implemented Media Studio, durable CPU worker and Operations Center; prior backend suite17passed and frontend build passed. Live transcription and portrait rendering succeeded.
+- User selected1: LinkedIn company page first. Existing Postiz15081 running, but LinkedIn client ID/secret absent from runtime. OAuth and real publishing remain blocked; no posts sent.
+- Actual status and remaining scope: docs/plans/IMPLEMENTATION_STATUS.md. Private media ignored from git. Browser validation pending.
+
+## Affiliate repair — September 13, 2026
+- Fixed same-origin redirect validation at creation and landing, non-string destination rejection, atomic eligible click count plus event transaction, invalid IP normalization, disabled/expired/exhausted referral attribution exclusion.
+- 221 referral tests passed; isolated PostgreSQL SQL checks passed and rolled back. Full TypeScript check passed. Changes not yet deployed.
+- Purchase-to-affiliate commission, refund reversal and payout integration remain unverified/incomplete; external channel OAuth prerequisites unchanged.
+
+## Affiliate end-to-end implementation — September 14
+- Added disabled-by-default partner policies, 30-day click-cookie checkout attribution, PostgreSQL numeric commission ledger, paid/refund reconciliation, idempotent manual payout receipts and /admin/affiliates navigation/UI.
+- Serialized order transitions and cart mutations to protect monetary snapshots. Actual payment transfer/provider integration is not enabled; commission rate awaiting user choice.
+- 232 referral tests passed. Real ledger functions passed isolated PostgreSQL temp-table scenarios (policy gate, retries, paid-only earn, partial/full refund, paid-balance recovery); rollback left no business data.
+- Docker build initially blocked by stale shared-backend lock metadata; repaired package-lock only. Replacement build and full TypeScript check in progress; no deployment yet.
+- User asked Playwright status: installed on /mnt/deepa, real headless Chromium launch and interaction passed.
+
+## Demo-readiness audit completed — September 14
+- Affiliate image8a0e206b53e3 deployed; frontend healthy, routes200/401 verified, additive ledger schema applied, no policies enabled or payments transferred.232 focused tests passed with retained JSON/log.
+- User requested deep completed/missing module and daily-life demo/test plan. Audit bundle: docs/audits/demo-readiness-2026-09-14/README.md.
+- Live registry206 modules (191real/13partial/2notbuilt),940 use cases (689real/223incomplete/28NA). All entries exported; claims separated from demo evidence.
+- Latest historical browser672 instances:486passed/74failed/13timedout/99skipped.87 open defects.18 defined orchestration cases but0executions/results.17 of355 attachment references missing.
+- Fresh customer demo login200 but orders/cart/referral404: missing customer record. Registration OTP cosmetic and complete-registration HTTP success ignored. No broad mutating test suite run during audit.
+- Postiz running; LinkedIn credentials absent. Instagram1 connected DB row; not authenticated externally. SMTP host configured on backend; delivery unverified, correcting stale notes.
+- Deliverables:206-module matrix,940-use-case inventory,223missing rows,265UI/489API source inventories,42demo stories,210PLANNED tests, test data plan, evidence manifest, logs/results and P0-P3 roadmap. Plan cases explicitly NOT_RUN. No full-demo-ready blanket claim.

@@ -5,8 +5,8 @@
 This file contains project context and decisions. AI assistants should read this file for context. MCP tools are an optional enhancement for richer interaction when connected.
 
 ## Project Context
-- **Total Decisions:** 337
-- **Known Topics:** api, verification, how, architecture, feat, bug-fix, migration, security, audit, testing, ollama, ai, docker, auth, postgres
+- **Total Decisions:** 500
+- **Known Topics:** api, verification, how, feat, bug-fix, architecture, testing, migration, audit, security, ollama, digital-marketing, ai, docker, video
 
 ## Current State
 **Repository:** sohamyoga
@@ -14,41 +14,36 @@ This file contains project context and decisions. AI assistants should read this
 **Branch:** main
 
 **Recent Commits:**
-- `125f1a2 feat: add Marketing Calendar admin UI (content_calendar_entry CRUD)`
-- `ae7a041 feat: add web push notifications (self-hosted VAPID, no 3rd-party dep)`
-- `3af9952 docs: refresh agent project memory`
-- `a5fad42 docs: record all-module release verification`
-- `43a5558 feat: publish complete SohamYoga platform modules`
+- `b33301a docs: real user_flow/admin_flow for the 40 pending module_registry rows`
+- `18a3a70 fix(paid-ads): add the missing POST /api/ads/adgroups endpoint`
+- `1441aad fix(qr-kiosk-login): replace fake canvas-grid QR with a real scannable code`
+- `0d98cf9 fix(social-account): root-cause the "2 pre-existing" PLATFORM_CONFIG test failures`
+- `3db0845 feat(sohamyoga): PR & Earned Media (media mentions + Share-of-Voice) — backlog item #30/30 (FINAL)`
 
 **Working Tree:**
-- M .continuity/decisions.json
-- M .continuity/decisions.jsonl
-- M .cursorrules
-- M .github/copilot-instructions.md
-- M .gitignore
-- M AGENTS.md
-- M GEMINI.md
-- M SohamYoga/SohamYoga.Web/Controllers/Api/HomeController.cs
-- M SohamYoga/SohamYoga.Web/appsettings.json
-- M ai-orchestrator-platform/backend/app/config.py
-- M ai-orchestrator-platform/backend/app/db.py
-- M ai-orchestrator-platform/backend/app/health.py
-- M ai-orchestrator-platform/backend/app/main.py
-- M ai-orchestrator-platform/backend/app/providers.py
-- M ai-orchestrator-platform/backend/app/router.py
+- M docs/chatgpt-extracts/2026-09-13_affiliate-performance-marketing-and-9-vertical-playbooks.md
+- M sohamyoga-frontend/src/app/api/contact/route.ts
+- M sohamyoga-frontend/src/app/admin/leads/page.tsx
+- M sohamyoga-frontend/src/app/videos/[slug]/page.tsx
+- M sohamyoga-frontend/src/app/customer/videos/page.tsx
+- M sohamyoga-frontend/src/app/admin/videos/page.tsx
+- M sohamyoga-frontend/src/app/customer/social/page.tsx
+- M sohamyoga-frontend/src/app/admin/ads/page.tsx
+- M sohamyoga-frontend/src/app/admin/social/compose/page.tsx
+- M sohamyoga-frontend/src/cron/jobs/FirstWaveDispatchJob.ts
 
 
 ## Decision Freshness
-**0 stale decisions** · 3 need review · 1 superseded ready to archive · Oldest unreviewed: 2026-03-03
+**0 stale decisions** · 3 need review · 17 superseded ready to archive · Oldest unreviewed: 2026-03-03
 
 Stale decisions requiring attention:
-1. **msdz1udw-9800qd** (score 36) — "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate lim" — 26 weeks old, status: outdated, never reviewed
-2. **msdz1uhn-ieufsg** (score 36) — "Why: fix: resolve slug URLs, add admin pages, polish UI, add new services?" — 26 weeks old, status: outdated, never reviewed
-3. **msdz1usr-q3kbhy** (score 36) — "Why: feat: initial project commit — SLP Systems Portal?" — 26 weeks old, status: outdated, never reviewed
+1. **msdz1udw-9800qd** (score 36) — "Why: security: comprehensive hardening — XSS, CSRF, secrets, CI, nginx, rate lim" — 28 weeks old, status: outdated, never reviewed
+2. **msdz1uhn-ieufsg** (score 36) — "Why: fix: resolve slug URLs, add admin pages, polish UI, add new services?" — 28 weeks old, status: outdated, never reviewed
+3. **msdz1usr-q3kbhy** (score 36) — "Why: feat: initial project commit — SLP Systems Portal?" — 28 weeks old, status: outdated, never reviewed
 
 When referencing these decisions, note their staleness. Verify they still reflect current project state before recommending based on them.
 
-1 decisions are eligible for Dream consolidation. Suggest running the Dream tool to archive stale decisions, merge duplicates, and resolve contradictions.
+17 decisions are eligible for Dream consolidation. Suggest running the Dream tool to archive stale decisions, merge duplicates, and resolve contradictions.
 
 ## ON EVERY SESSION START — DO THIS FIRST
 Run this exact command in the terminal before anything else — before reading files, before answering, before proposing changes:
@@ -81,30 +76,30 @@ Describe how this repository prefers to work with AI assistants.
 ---
 
 ## Recent Decisions
-1. **decision-122f3a76** (9/3/2026) [api, digital-marketing]
-   - Q: Closed Module 11 Review/Reputation Management, Omnichannel/All-Channel Digital Control Tower, and Guideline Managemen...
-   - A: Module 11: reconciled Customer Self-Service Portal against the already-real public review flow (/reviews/submit/[bookingId], /reviews). Omnichannel/All-Channel: reconciled Channels to Put Under the Tower (PLATFORM_CONFIG) and Main Navigation (same Social nav section). Also reconciled the single-item 'Guideline Management Module' duplicate-domain-bucket entry against the real Module 8 build. Left several genuinely infra-blocked single-item domains honestly not_built (Video/Reel 40+ portals, Pricing MLM chain-marketing schema, Reviews Yelp/Tripadvisor/Trustpilot API access, Education edtech v...
+1. **decision-5c93c393** (9/15/2026) [global, how]
+   - Q: How are other installed testing tools shared?
+   - A: Added pytest, Locust and canonical Python commands to browser-test; existing Selenium is usable through browser-test python. Local readiness probes bypass proxy settings and allow 15 seconds.
 
-2. **decision-9cb7475f** (9/3/2026) [api, architecture]
-   - Q: Built Dunning Management + Booking->Invoice (Billing domain now 11/19 real)
-   - A: DunningManagementJob.ts: real daily job sending idempotent 3d/1d/final-day grace_period reminders via notification_queue -- caught and fixed a real bug (recipient_user_id NOT NULL violated for customer recipients; fixed to use the customer's own id). Verified live with a real temp subscription (18h grace remaining -> correctly queued daysRemaining=1, confirmed idempotent on re-run). Booking->Invoice: POST /api/admin/bookings/[id]/generate-invoice mirroring the existing Contract->Invoice pattern, verified live with a real temp class_session+booking (5 -> 9.55 with tax), Generate Invoice butt...
+2. **decision-597dec07** (9/15/2026) [chrome, how]
+   - Q: How does the recorder test obtain activeTab access?
+   - A: Recorder integration test now invokes the actual toolbar action via Chromium Extensions.triggerAction before script injection; extension debugging enabled only in disposable synthetic test profile. Main extension retains minimal activeTab permission.
 
-3. **decision-a006d507** (9/3/2026) [api, digital-marketing]
-   - Q: Built Discount Approval, closed CRM & Sales Management (19/19 real)
-   - A: Migration 156 added proposal.list_price/discount_percent/approved_by/approved_at. PATCH /api/admin/crm/proposals/[id] blocks sending a proposal discounted >15% off list_price without a recorded approval -- real 409 gate, not a fabricated workflow. Verified live with a real temp 25%-discount proposal: confirmed the gate blocks, confirmed approval unblocks. Reconciled 8 generic taxonomy-pillar items (Sales/Marketing/Identity/Intelligence/Experience/Commerce/Communication/CRM Data Model) against already-real infrastructure built across this session, plus Quote Management (duplicate of Proposal...
+3. **decision-03fd5c99** (9/15/2026) [cua, global]
+   - Q: How is Cua made available across projects?
+   - A: Enabled user cua-testing.service for the local Unix-socket Cua Driver in standard mode. No browser profile grants or external network listener added. Driver telemetry disabled.
 
-4. **decision-c6b797a6** (9/3/2026) [api, digital-marketing]
-   - Q: Built Lead Routing Engine + Lead SLA Control, closed Customer Acquisition+CRM Control Tower and Module 3 Campaign Man...
-   - A: Migration 155 (campaign_lead.assigned_to, sla_deadline). Built src/domain/marketing/LeadRouting.ts: routeUnassignedLeads (least-recently-assigned round-robin among active admins) + checkSlaBreaches (real overdue detection). Verified live -- routing correctly processed all 9 real unassigned leads (reverted the 7 pre-existing ones back to their original unassigned state after verification since only my 2 temp leads were the intended test subject); SLA breach detection verified with a real temp lead 5h overdue. Reconciled Module 3's 2 remaining items against already-real campaign infra. Confir...
+4. **decision-019de5f0** (9/15/2026) [global, how]
+   - Q: How can browser testing be used globally?
+   - A: Installed browser-test in ~/.local/bin with canonical environment activation, reusable CLI, project initializer, doctor, Skyvern reachability, Cua forwarding and desktop Global Test Browser shortcut. Reuses existing installed Node modules and records this dependency explicitly.
 
-5. **decision-c5180478** (9/3/2026) [api, architecture]
-   - Q: Closed Module 4 Post Management + Social Media Control Tower (both 14/14 real)
-   - A: Built src/domain/social/SocialHealthScore.ts, a third real consumer of the shared HealthModel.ts, rolling up sentiment_log/crisis_signal/viral_signal into one weighted score. Verified live: baseline 94/green, dropped to 57/amber with real temp degraded data. Reconciled Comment/Engagement Management (the honest supported:false state in the MCP read_comments tool -- Postiz has no comments API, verified, sentiment pipeline ready for when one exists) and Social Media Main Architecture (the real account->draft->variant->post->analytics->viral->crisis pipeline). Left 'Lead Detection Flow' (Module...
+5. **decision-f4293ba7** (9/15/2026) [global, stagehand]
+   - Q: What reusable global browser runners were created?
+   - A: Added shared Playwright smoke with screenshot/trace/JSON, recorder privacy/navigation integration check, Stagehand local browser and optional Ollama AI checks, and separate Chromium extension profile launcher. Each run writes a unique private result directory.
 
-*3 unreviewed drafts from auto-capture pending review — `continuity log` the real rationale or update_decision to expand them.*
+*23 unreviewed drafts from auto-capture pending review — `continuity log` the real rationale or update_decision to expand them.*
 
 ---
 
-*Auto-generated by Continuity | Updated: 2026-09-03*
+*Auto-generated by Continuity | Updated: 2026-09-15*
 
 <!-- END CONTINUITY AUTO-GENERATED CONTENT -->

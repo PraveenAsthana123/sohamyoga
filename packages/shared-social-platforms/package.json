@@ -1,0 +1,14 @@
+{
+  "name": "@sohamyoga/shared-social-platforms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Platform configs, adapters, and scenario definitions shared between sohamyoga-frontend and talentshill — all 36 social/content platforms.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

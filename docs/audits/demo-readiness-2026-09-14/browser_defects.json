@@ -1,0 +1,1217 @@
+[
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "Chrome DevTools Protocol | runtime, network and accessibility tree [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.913638+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.071835+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | WCAG automated scan [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.908638+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.066307+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | customer | positive route and UI contract [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.906447+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.064788+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "MEMBERSHIP-001 | customer | positive route and UI contract [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.9035+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.06154+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "PUBLIC-CATALOG-001 | visitor | positive route and UI contract [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.898069+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.055701+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "Chrome DevTools Protocol | runtime, network and accessibility tree [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-14T09:19:40.053736+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.053736+00:00",
+    "occurrence_count": 1,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | negative malformed login remains unauthenticated [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.893695+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.050593+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | WCAG automated scan [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.890338+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.046845+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | customer | positive route and UI contract [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.888182+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.044665+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "Chrome DevTools Protocol | runtime, network and accessibility tree [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.464879+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.034942+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | WCAG automated scan [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.435994+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.030003+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | customer | positive route and UI contract [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.42785+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.028478+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "BOOKING-001 | customer | positive route and UI contract [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.401053+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.023634+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "PUBLIC-CATALOG-001 | visitor | positive route and UI contract [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.389821+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.020254+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "detail pages render real, route-specific data end to end [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.857638+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.017324+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "GET /api/admin/teachers/[id] and /api/admin/students/[id] return the real record, not a fixed mock [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.855807+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.015641+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "detail pages render real, route-specific data end to end [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.854063+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.014082+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "GET /api/admin/teachers/[id] and /api/admin/students/[id] return the real record, not a fixed mock [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.852269+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.012413+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "detail pages render real, route-specific data end to end [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.380466+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.010723+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "GET /api/admin/teachers/[id] and /api/admin/students/[id] return the real record, not a fixed mock [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.375175+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.008925+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "teachers and students pages render a working Add form and real fetched data [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.847029+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.007103+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "teachers and students pages render a working Add form and real fetched data [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.84521+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.0053+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "teachers and students pages render a working Add form and real fetched data [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.368797+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.00358+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "duplicate teacher email is rejected [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-11T09:19:23.363227+00:00",
+    "last_seen_at": "2026-09-14T09:19:40.000234+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "social-platform-expansion.spec.ts",
+    "test_title": "running the job leaves Medium/Twitch configured and Tumblr/Dribbble tracked with real env-var names [color-blind-protanopia]",
+    "module_keys": [
+      "social-media-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.736482+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.893601+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "social-platform-expansion.spec.ts",
+    "test_title": "running the job leaves Medium/Twitch configured and Tumblr/Dribbble tracked with real env-var names [mobile-pwa]",
+    "module_keys": [
+      "social-media-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.734766+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.891999+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "social-platform-expansion.spec.ts",
+    "test_title": "running the job leaves Medium/Twitch configured and Tumblr/Dribbble tracked with real env-var names [chrome-desktop]",
+    "module_keys": [
+      "social-media-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.182366+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.890398+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "public-site-yoga-alignment.spec.ts",
+    "test_title": "GET /api/services returns exactly the 13 seeded real yoga styles, each with real content [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.721806+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.881849+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "public-site-yoga-alignment.spec.ts",
+    "test_title": "GET /api/services returns exactly the 13 seeded real yoga styles, each with real content [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.719743+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.88021+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "public-site-yoga-alignment.spec.ts",
+    "test_title": "GET /api/services returns exactly the 13 seeded real yoga styles, each with real content [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.165172+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.878524+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "mcp-gateway.spec.ts",
+    "test_title": "/admin/mcp-gateway renders the real catalog and can run a live tool [color-blind-protanopia]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.645042+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.808843+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "mcp-gateway.spec.ts",
+    "test_title": "/admin/mcp-gateway renders the real catalog and can run a live tool [mobile-pwa]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.642058+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.805725+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "mcp-gateway.spec.ts",
+    "test_title": "/admin/mcp-gateway renders the real catalog and can run a live tool [chrome-desktop]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:49.060392+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.802394+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "market-research.spec.ts",
+    "test_title": "Job Schedule, Input, Process, Output tabs appear in that order with real content [color-blind-protanopia]",
+    "module_keys": [
+      "market-research-core-cards",
+      "market-research-screen-01",
+      "methodology-designer"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.595017+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.760915+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "market-research.spec.ts",
+    "test_title": "/admin/market-research shows 3 framework cards; clicking one shows the right topic count [color-blind-protanopia]",
+    "module_keys": [
+      "market-research-core-cards",
+      "market-research-screen-01",
+      "methodology-designer"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.590092+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.755168+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "market-research.spec.ts",
+    "test_title": "/admin/market-research shows 3 framework cards; clicking one shows the right topic count [mobile-pwa]",
+    "module_keys": [
+      "market-research-core-cards",
+      "market-research-screen-01",
+      "methodology-designer"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.587989+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.75278+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "market-research.spec.ts",
+    "test_title": "/admin/market-research shows 3 framework cards; clicking one shows the right topic count [chrome-desktop]",
+    "module_keys": [
+      "market-research-core-cards",
+      "market-research-screen-01",
+      "methodology-designer"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.982318+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.750232+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "influencer-engine.spec.ts",
+    "test_title": "/admin/growth/influencers shows real content [color-blind-protanopia]",
+    "module_keys": [
+      "influencer-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.578946+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.744246+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "influencer-engine.spec.ts",
+    "test_title": "/admin/growth/influencers shows real content [chrome-desktop]",
+    "module_keys": [
+      "influencer-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.575892+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.741277+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "influencer-engine.spec.ts",
+    "test_title": "an influencer with no referral code is insufficient_data; one with real attribution gets a real score [color-blind-protanopia]",
+    "module_keys": [
+      "influencer-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.573751+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.739515+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "influencer-engine.spec.ts",
+    "test_title": "an influencer with no referral code is insufficient_data; one with real attribution gets a real score [chrome-desktop]",
+    "module_keys": [
+      "influencer-management"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.569845+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.736207+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "switching flows resets the walkthrough to step 1 [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.56165+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.730124+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "switching flows resets the walkthrough to step 1 [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.557175+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.727522+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "inspect source \u2192 run real job \u2192 inspect real result, end to end in the browser [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.555044+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.725755+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "inspect source \u2192 run real job \u2192 inspect real result, end to end in the browser [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.552868+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.724064+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "inspect source \u2192 run real job \u2192 inspect real result, end to end in the browser [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.94407+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.722416+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "a real, known step returns real rows [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.548425+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.720689+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "an unknown flow/step pair is rejected with 404 [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.546128+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.718983+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "a real, known step returns real rows [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.538757+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.712376+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "guided-simulation.spec.ts",
+    "test_title": "an unknown flow/step pair is rejected with 404 [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.536974+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.710415+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "test_title": "/admin/growth/github-scout shows your shortlist and discovered candidates [color-blind-protanopia]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.533843+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.707245+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "test_title": "/admin/growth/github-scout shows your shortlist and discovered candidates [chrome-desktop]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.531102+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.704445+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "test_title": "every discovered candidate has a real star count and a matched query [color-blind-protanopia]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.529306+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.702629+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "test_title": "every discovered candidate has a real star count and a matched query [chrome-desktop]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.526409+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.699675+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "test_title": "all 18 user-provided repos are present, none fabricated [color-blind-protanopia]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.524531+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.698081+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "github-repo-scout.spec.ts",
+    "test_title": "all 18 user-provided repos are present, none fabricated [chrome-desktop]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.907999+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.695334+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "/admin/growth/funnel shows real stage bars and transition findings [color-blind-protanopia]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.516159+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.690143+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "/admin/growth/funnel shows real stage bars and transition findings [chrome-desktop]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.899027+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.686674+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "a transition below the leak threshold is flagged, and any diagnosis present is real text, not a placeholder [color-blind-protanopia]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.511448+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.684739+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "a transition below the leak threshold is flagged, and any diagnosis present is real text, not a placeholder [chrome-desktop]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.893607+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.680587+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "the latest snapshot has all 7 real stages in order, and transition rates are mathematically consistent [color-blind-protanopia]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.50684+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.678778+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "the latest snapshot has all 7 real stages in order, and transition rates are mathematically consistent [chrome-desktop]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.887262+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.675469+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "demo-showcase-hub.spec.ts",
+    "test_title": "rejects unauthenticated requests, then seeds real underlying rows once and is a safe no-op on re-run [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.497793+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.669636+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "demo-showcase-hub.spec.ts",
+    "test_title": "rejects unauthenticated requests, then seeds real underlying rows once and is a safe no-op on re-run [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.493995+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.665942+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "demo-showcase-hub.spec.ts",
+    "test_title": "Reports tab renders real report cards with correct auth gating [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.490279+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.661715+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "customer-self-service.spec.ts",
+    "test_title": "/api/customer/journey rejects unauthenticated GET [color-blind-protanopia]",
+    "module_keys": [
+      "customer-journey-gamification",
+      "customer-wellness-journal",
+      "booking",
+      "customer-billing-invoices",
+      "customer-support-tickets",
+      "customer-subscription-self-service",
+      "customer-goals"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.377595+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.560134+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "customer-self-service.spec.ts",
+    "test_title": "/api/customer/journey rejects unauthenticated GET [mobile-pwa]",
+    "module_keys": [
+      "customer-journey-gamification",
+      "customer-wellness-journal",
+      "booking",
+      "customer-billing-invoices",
+      "customer-support-tickets",
+      "customer-subscription-self-service",
+      "customer-goals"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.365273+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.551237+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "customer-self-service.spec.ts",
+    "test_title": "/api/customer/journey rejects unauthenticated GET [chrome-desktop]",
+    "module_keys": [
+      "customer-journey-gamification",
+      "customer-wellness-journal",
+      "booking",
+      "customer-billing-invoices",
+      "customer-support-tickets",
+      "customer-subscription-self-service",
+      "customer-goals"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.606805+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.542768+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "customer-interaction-tracking.spec.ts",
+    "test_title": "the Accept All button is clickable and actually grants consent [color-blind-protanopia]",
+    "module_keys": [
+      "heatmap-session-replay",
+      "utm-tracking"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-13T09:19:48.671371+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.49377+00:00",
+    "occurrence_count": 2,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "Catalog, Sequence Flows, Reports, Dashboard and Related Tooling tabs are all clean [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.260168+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.441707+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "Catalog, Sequence Flows, Reports, Dashboard and Related Tooling tabs are all clean [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.258126+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.439636+00:00",
+    "occurrence_count": 3,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "Catalog, Sequence Flows, Reports, Dashboard and Related Tooling tabs are all clean [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.449682+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.437547+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/students/[id] with the real seeded student [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.254206+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.435587+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/teachers/[id] with a real teacher [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.252328+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.433902+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/students/[id] with the real seeded student [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.250069+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.432264+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/teachers/[id] with a real teacher [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.247745+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.430574+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/customer/features has no console errors, page errors, or failed requests [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.242282+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.426269+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/simulation has no console errors, page errors, or failed requests [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.239971+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.424507+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/social/scheduler has no console errors, page errors, or failed requests [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.23797+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.422582+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/customer/features has no console errors, page errors, or failed requests [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.229068+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.407726+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/simulation has no console errors, page errors, or failed requests [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.226765+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.405961+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/social/scheduler has no console errors, page errors, or failed requests [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.224326+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.404262+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/students has no console errors, page errors, or failed requests [mobile-pwa]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-14T09:19:39.398701+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.398701+00:00",
+    "occurrence_count": 1,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/customer/features has no console errors, page errors, or failed requests [chrome-desktop]",
+    "module_keys": [],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.430443+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.393298+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "complaint-alert.spec.ts",
+    "test_title": "POST /api/social/sentiment classifies a real negative review, then complaint-alert queues it [color-blind-protanopia]",
+    "module_keys": [
+      "feedback-lifecycle",
+      "feedback-health-score"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.149968+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.341148+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "complaint-alert.spec.ts",
+    "test_title": "POST /api/social/sentiment classifies a real negative review, then complaint-alert queues it [mobile-pwa]",
+    "module_keys": [
+      "feedback-lifecycle",
+      "feedback-health-score"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-10T09:18:54.145834+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.339154+00:00",
+    "occurrence_count": 4,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "complaint-alert.spec.ts",
+    "test_title": "POST /api/social/sentiment classifies a real negative review, then complaint-alert queues it [chrome-desktop]",
+    "module_keys": [
+      "feedback-lifecycle",
+      "feedback-health-score"
+    ],
+    "status": "open",
+    "first_seen_at": "2026-09-09T06:24:48.293653+00:00",
+    "last_seen_at": "2026-09-14T09:19:39.33632+00:00",
+    "occurrence_count": 5,
+    "resolved_at": null
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "PUBLIC-CATALOG-001 | visitor | positive route and UI contract [mobile-pwa]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-10T09:18:54.880522+00:00",
+    "last_seen_at": "2026-09-13T09:19:49.219592+00:00",
+    "occurrence_count": 3,
+    "resolved_at": "2026-09-14T09:19:40.036571+00:00"
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "duplicate teacher email is rejected [mobile-pwa]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-11T09:19:23.358015+00:00",
+    "last_seen_at": "2026-09-13T09:19:49.173363+00:00",
+    "occurrence_count": 2,
+    "resolved_at": "2026-09-14T09:19:39.995326+00:00"
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "/admin/growth/funnel shows real stage bars and transition findings [mobile-pwa]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-13T09:19:48.862976+00:00",
+    "last_seen_at": "2026-09-13T09:19:48.862976+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-14T09:19:39.688332+00:00"
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "a transition below the leak threshold is flagged, and any diagnosis present is real text, not a placeholder [mobile-pwa]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-13T09:19:48.857288+00:00",
+    "last_seen_at": "2026-09-13T09:19:48.857288+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-14T09:19:39.682436+00:00"
+  },
+  {
+    "spec_file": "funnel-stage-engine.spec.ts",
+    "test_title": "the latest snapshot has all 7 real stages in order, and transition rates are mathematically consistent [mobile-pwa]",
+    "module_keys": [
+      "lead-detection-flow",
+      "customer-segmentation"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-13T09:19:48.851872+00:00",
+    "last_seen_at": "2026-09-13T09:19:48.851872+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-14T09:19:39.677087+00:00"
+  },
+  {
+    "spec_file": "demo-showcase-hub.spec.ts",
+    "test_title": "rejects unauthenticated requests, then seeds real underlying rows once and is a safe no-op on re-run [mobile-pwa]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-13T09:19:48.843006+00:00",
+    "last_seen_at": "2026-09-13T09:19:48.843006+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-14T09:19:39.667772+00:00"
+  },
+  {
+    "spec_file": "demo-showcase-hub.spec.ts",
+    "test_title": "Reports tab renders real report cards with correct auth gating [chrome-desktop]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-10T09:18:54.488055+00:00",
+    "last_seen_at": "2026-09-13T09:19:48.835954+00:00",
+    "occurrence_count": 2,
+    "resolved_at": "2026-09-14T09:19:39.658827+00:00"
+  },
+  {
+    "spec_file": "customer-referral.spec.ts",
+    "test_title": "/customer/referral shows the \"get a link\" prompt with no code, then the real link after generating one [chrome-desktop]",
+    "module_keys": [
+      "referral-loyalty"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:48.574288+00:00",
+    "last_seen_at": "2026-09-13T09:19:48.699599+00:00",
+    "occurrence_count": 2,
+    "resolved_at": "2026-09-14T09:19:39.522969+00:00"
+  },
+  {
+    "spec_file": "viral-detection.spec.ts",
+    "test_title": "/admin/social/facebook shows Overview and Viral Signals tabs [chrome-desktop]",
+    "module_keys": [
+      "viral-lead-detection",
+      "crisis-detection"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-11T09:19:23.448607+00:00",
+    "last_seen_at": "2026-09-11T09:19:23.448607+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-13T09:19:49.255946+00:00"
+  },
+  {
+    "spec_file": "mcp-gateway.spec.ts",
+    "test_title": "github.search_repositories returns real repos, not fabricated data [mobile-pwa]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-11T09:19:23.158632+00:00",
+    "last_seen_at": "2026-09-11T09:19:23.158632+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-13T09:19:48.963471+00:00"
+  },
+  {
+    "spec_file": "mcp-gateway.spec.ts",
+    "test_title": "github.search_repositories returns real repos, not fabricated data [chrome-desktop]",
+    "module_keys": [
+      "mcp-gateway"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-11T09:19:23.154394+00:00",
+    "last_seen_at": "2026-09-11T09:19:23.154394+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-13T09:19:48.960723+00:00"
+  },
+  {
+    "spec_file": "market-research.spec.ts",
+    "test_title": "the pricing topic (automated) shows a real schedule/status; another topic shows \"Not yet automated\" [chrome-desktop]",
+    "module_keys": [
+      "market-research-core-cards",
+      "market-research-screen-01",
+      "methodology-designer"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:48.992259+00:00",
+    "last_seen_at": "2026-09-11T09:19:23.127577+00:00",
+    "occurrence_count": 3,
+    "resolved_at": "2026-09-13T09:19:48.935692+00:00"
+  },
+  {
+    "spec_file": "customer-interaction-tracking.spec.ts",
+    "test_title": "the Accept All button is clickable and actually grants consent [mobile-pwa]",
+    "module_keys": [
+      "heatmap-session-replay",
+      "utm-tracking"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-11T09:19:22.844949+00:00",
+    "last_seen_at": "2026-09-11T09:19:22.844949+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-13T09:19:48.669417+00:00"
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/students/[id] with the real seeded student [chrome-desktop]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-11T09:19:22.788794+00:00",
+    "last_seen_at": "2026-09-11T09:19:22.788794+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-13T09:19:48.606062+00:00"
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "CUSTOMER-AUTH-001 | negative malformed login remains unauthenticated [chrome-desktop]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:49.450161+00:00",
+    "last_seen_at": "2026-09-10T09:18:54.875599+00:00",
+    "occurrence_count": 2,
+    "resolved_at": "2026-09-11T09:19:23.398721+00:00"
+  },
+  {
+    "spec_file": "unified-quality.spec.ts",
+    "test_title": "MEMBERSHIP-001 | customer | positive route and UI contract [chrome-desktop]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:49.411514+00:00",
+    "last_seen_at": "2026-09-10T09:18:54.866792+00:00",
+    "occurrence_count": 2,
+    "resolved_at": "2026-09-11T09:19:23.391227+00:00"
+  },
+  {
+    "spec_file": "console-error-sweep.spec.ts",
+    "test_title": "/admin/students has no console errors, page errors, or failed requests [color-blind-protanopia]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-10T09:18:54.235843+00:00",
+    "last_seen_at": "2026-09-10T09:18:54.235843+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-11T09:19:22.780335+00:00"
+  },
+  {
+    "spec_file": "teacher-student-onboarding.spec.ts",
+    "test_title": "duplicate teacher email is rejected [chrome-desktop]",
+    "module_keys": [],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:49.357475+00:00",
+    "last_seen_at": "2026-09-09T06:24:49.357475+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-09T19:34:36.078083+00:00"
+  },
+  {
+    "spec_file": "customer-interaction-tracking.spec.ts",
+    "test_title": "with zero consent, the click is never sent at all (client-side gate, not a server drop) [chrome-desktop]",
+    "module_keys": [
+      "heatmap-session-replay",
+      "utm-tracking"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:48.537729+00:00",
+    "last_seen_at": "2026-09-09T06:24:48.537729+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-09T19:34:26.132743+00:00"
+  },
+  {
+    "spec_file": "customer-interaction-tracking.spec.ts",
+    "test_title": "once analytics consent is granted through the real banner, a click reaches the database with real properties [chrome-desktop]",
+    "module_keys": [
+      "heatmap-session-replay",
+      "utm-tracking"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:48.531106+00:00",
+    "last_seen_at": "2026-09-09T06:24:48.531106+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-09T19:34:26.132743+00:00"
+  },
+  {
+    "spec_file": "contact-lead-capture.spec.ts",
+    "test_title": "an authenticated admin sees a fresh submission in the raw list [chrome-desktop]",
+    "module_keys": [
+      "lead-detection-flow"
+    ],
+    "status": "fixed",
+    "first_seen_at": "2026-09-09T06:24:48.514519+00:00",
+    "last_seen_at": "2026-09-09T06:24:48.514519+00:00",
+    "occurrence_count": 1,
+    "resolved_at": "2026-09-10T09:18:54.298024+00:00"
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "services": [
+    {
+      "service": "sohamyoga_postiz",
+      "running": true,
+      "health": null,
+      "configured_flags": {
+        "LINKEDIN_CLIENT_ID": false,
+        "LINKEDIN_CLIENT_SECRET": false
+      }
+    },
+    {
+      "service": "sohamyoga-frontend",
+      "running": true,
+      "health": "healthy",
+      "configured_flags": {
+        "POSTIZ_PUBLIC_API_KEY": false,
+        "SMTP_HOST": false,
+        "Smtp__Host": false
+      }
+    },
+    {
+      "service": "sohamyoga-backend",
+      "running": true,
+      "health": "healthy",
+      "configured_flags": {
+        "POSTIZ_PUBLIC_API_KEY": false,
+        "SMTP_HOST": false,
+        "Smtp__Host": true
+      }
+    }
+  ],
+  "social_accounts": [
+    {
+      "platform": "instagram",
+      "status": "connected",
+      "accounts": 1
+    }
+  ],
+  "limitation": "Environment presence is not credential validity or integration success; other secret sources may exist."
+}

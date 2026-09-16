@@ -1,0 +1,32 @@
+
+> sohamyoga-frontend@1.0.0 test
+> jest --passWithNoTests --forceExit --testPathPattern=social|cron|referral|affiliate|command
+
+PASS src/__tests__/domain/social/SocialCampaign.test.ts
+PASS src/__tests__/domain/referral/ReferralMcpRegistry.test.ts
+PASS src/__tests__/domain/social/SocialAccount.test.ts
+PASS src/__tests__/domain/social/ContentDraft.test.ts
+PASS src/__tests__/domain/social/SocialPost.test.ts
+PASS src/__tests__/domain/referral/ReferralCode.test.ts
+PASS src/__tests__/domain/referral/ReferralReward.test.ts
+PASS src/__tests__/domain/referral/ReferralCampaign.test.ts
+PASS src/__tests__/domain/social/McpToolRegistry.test.ts
+PASS src/__tests__/domain/referral/Referral.test.ts
+PASS src/__tests__/domain/identity/SocialLead.test.ts
+PASS src/__tests__/domain/campaign/Referral.test.ts
+PASS src/__tests__/domain/social/Provisioning.test.ts
+PASS src/__tests__/social/first-wave-adapters.test.ts
+PASS src/__tests__/domain/social/PostizProtocol.test.ts
+PASS src/__tests__/cron/PostizSocialAutoPublishJob.test.ts
+PASS src/__tests__/cron/FacebookAutoPublishJob.test.ts
+PASS src/__tests__/domain/referral/AffiliateAdmin.test.ts
+PASS src/__tests__/domain/social/SocialMcpHonesty.test.ts
+PASS src/__tests__/domain/referral/AffiliateTracking.test.ts
+
+Test Suites: 20 passed, 20 total
+Tests:       432 passed, 432 total
+Snapshots:   0 total
+Time:        1.821 s
+Ran all test suites matching /social|cron|referral|affiliate|command/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+EXIT_CODE:0

@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
+import AdTypesLibrary from '@/components/ads/AdTypesLibrary';
 
-type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'health' | 'analytics' | 'ai' | 'pixels' | 'integrations';
+type Tab = 'overview' | 'campaigns' | 'adgroups' | 'creatives' | 'health' | 'analytics' | 'ai' | 'pixels' | 'ad-types' | 'integrations' | 'report' | 'dashboard' | 'manual' | 'pipeline' | 'agentic';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview',      label: 'Overview'      },
@@ -12,7 +13,13 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'analytics',     label: 'Analytics'     },
   { id: 'ai',            label: 'AI Engine'     },
   { id: 'pixels',        label: 'Pixels'        },
+  { id: 'ad-types',      label: 'Ad Types'      },
   { id: 'integrations',  label: 'Integrations'  },
+  { id: 'report',        label: 'Report'        },
+  { id: 'dashboard',     label: 'Dashboard'     },
+  { id: 'manual',        label: 'Manual'        },
+  { id: 'pipeline',      label: 'Pipeline'      },
+  { id: 'agentic',       label: 'Agentic'       },
 ];
 
 interface PixelRow { platform: 'meta_pixel' | 'ga4'; pixel_id: string | null; enabled: boolean; updated_at: string }
@@ -1063,6 +1070,24 @@ export default function AdsAdminPage() {
         {/* ── Pixels ── */}
         {activeTab === 'pixels' && <PixelsTab />}
 
+        {/* ── Ad Types Library ── */}
+        {activeTab === 'ad-types' && <AdTypesLibrary />}
+
+        {/* ── Report ── */}
+        {activeTab === 'report' && <PaidAdsReportTab campaigns={campaigns} dashboard={dashboard} loading={loading} />}
+
+        {/* ── Dashboard (KPI) ── */}
+        {activeTab === 'dashboard' && <PaidAdsDashboardTab dashboard={dashboard} campaigns={campaigns} loading={loading} />}
+
+        {/* ── Manual ── */}
+        {activeTab === 'manual' && <PaidAdsManualTab />}
+
+        {/* ── Pipeline ── */}
+        {activeTab === 'pipeline' && <PaidAdsPipelineTab />}
+
+        {/* ── Agentic ── */}
+        {activeTab === 'agentic' && <PaidAdsAgenticTab adGroups={adGroups} />}
+
         {/* ── Integrations ── */}
         {activeTab === 'integrations' && (
           <div className="space-y-5">
@@ -1155,6 +1180,390 @@ export default function AdsAdminPage() {
           </div>
         )}
 
+      </div>
+    </div>
+  );
+}
+
+// ── Paid Ads: Report Tab ──────────────────────────────────────────────────────
+function PaidAdsReportTab({ campaigns, dashboard, loading }: { campaigns: CampaignRow[]; dashboard: DashboardData | null; loading: boolean }) {
+  const [period, setPeriod] = useState(30);
+  const kpis = dashboard?.kpis;
+
+  const csvExport = () => {
+    const rows = [
+      ['Campaign', 'Platform', 'Status', 'Budget/day', 'Impressions', 'Clicks', 'CTR%', 'CPC'],
+      ...campaigns.map(c => [c.name, c.platform, c.status, c.budget, c.impressions, c.clicks, c.ctr, c.cpc]),
+    ].map(r => r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([rows], { type: 'text/csv' }));
+    a.download = `paid-ads-report-${period}d.csv`;
+    a.click();
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex gap-3 items-center flex-wrap">
+        <span className="text-sm text-gray-600">Period:</span>
+        {[7, 30, 90].map(d => (
+          <button key={d} onClick={() => setPeriod(d)}
+            className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${period === d ? 'bg-amber-500 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+            Last {d}d
+          </button>
+        ))}
+        <button onClick={csvExport} className="ml-auto px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
+          Export CSV
+        </button>
+      </div>
+
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {[
+          { label: 'Total Spend',    value: `₹${(kpis?.totalSpend ?? 0).toLocaleString()}`,    color: 'text-red-600' },
+          { label: 'Impressions',    value: (kpis?.totalImpressions ?? 0).toLocaleString(),     color: 'text-blue-600' },
+          { label: 'Clicks',         value: (kpis?.totalClicks ?? 0).toLocaleString(),          color: 'text-green-600' },
+          { label: 'CTR',            value: `${kpis?.avgCtrPct ?? 0}%`,                         color: 'text-purple-600' },
+          { label: 'CPC',            value: `₹${kpis?.avgCpc ?? 0}`,                            color: 'text-amber-600' },
+          { label: 'Conversions',    value: String(kpis?.conversions ?? 0),                     color: 'text-teal-600' },
+        ].map(k => (
+          <div key={k.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-500">{k.label}</p>
+            <p className={`text-xl font-bold mt-1 ${k.color}`}>{k.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* By Platform */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-900 mb-4">Spend by Platform</h3>
+        {!dashboard?.spendByType.length ? <EmptyState message={loading ? 'Loading…' : 'No spend data recorded yet.'} /> : (
+          <div className="space-y-3">
+            {dashboard.spendByType.map(s => (
+              <div key={s.type} className="flex items-center gap-3 text-sm">
+                <span className="w-20 text-gray-600 capitalize">{s.type}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-3">
+                  <div className="bg-amber-400 h-3 rounded-full" style={{ width: `${s.pct}%` }} />
+                </div>
+                <span className="text-gray-700 w-24 text-right">₹{s.spend.toLocaleString()}</span>
+                <span className="text-gray-400 text-xs w-10 text-right">{s.pct}%</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* By Campaign */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900 text-sm">Performance by Campaign</h3>
+        </div>
+        {campaigns.length === 0 ? <div className="p-5"><EmptyState message={loading ? 'Loading…' : 'No campaigns.'} /></div> : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>{['Campaign', 'Platform', 'Status', 'Budget/day', 'Impressions', 'Clicks', 'CTR', 'CPC'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+              ))}</tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {campaigns.map(c => (
+                <tr key={c.id} className="hover:bg-amber-50/20 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{PLATFORM_LABELS[c.platform] ?? c.platform}</td>
+                  <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status] ?? 'bg-gray-100 text-gray-600'}`}>{c.status}</span></td>
+                  <td className="px-4 py-3">₹{c.budget}</td>
+                  <td className="px-4 py-3">{c.impressions ? c.impressions.toLocaleString() : '—'}</td>
+                  <td className="px-4 py-3">{c.clicks ? c.clicks.toLocaleString() : '—'}</td>
+                  <td className="px-4 py-3">{c.ctr ? `${c.ctr}%` : '—'}</td>
+                  <td className="px-4 py-3">{c.cpc ? `₹${c.cpc}` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Paid Ads: Dashboard Tab ───────────────────────────────────────────────────
+function PaidAdsDashboardTab({ dashboard, campaigns, loading }: { dashboard: DashboardData | null; campaigns: CampaignRow[]; loading: boolean }) {
+  const kpis = dashboard?.kpis;
+
+  return (
+    <div className="space-y-5">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {[
+          { label: 'Active Campaigns', value: String(campaigns.filter(c => c.status === 'active').length), color: 'text-amber-600' },
+          { label: 'Total Spend',      value: `₹${(kpis?.totalSpend ?? 0).toLocaleString()}`,              color: 'text-red-600' },
+          { label: 'Impressions',      value: (kpis?.totalImpressions ?? 0).toLocaleString(),              color: 'text-blue-600' },
+          { label: 'Clicks',           value: (kpis?.totalClicks ?? 0).toLocaleString(),                   color: 'text-green-600' },
+          { label: 'CTR',              value: `${kpis?.avgCtrPct ?? 0}%`,                                  color: 'text-purple-600' },
+          { label: 'Conversions',      value: String(kpis?.conversions ?? 0),                              color: 'text-teal-600' },
+        ].map(k => (
+          <div key={k.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-500">{k.label}</p>
+            <p className={`text-2xl font-bold mt-1 ${k.color}`}>{loading ? '…' : k.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Spend by type */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-900 mb-4">Spend Breakdown by Campaign Type</h3>
+        {!dashboard?.spendByType.length ? <EmptyState message={loading ? 'Loading…' : 'No spend data.'} /> : (
+          <div className="space-y-3">
+            {dashboard.spendByType.map(s => (
+              <div key={s.type} className="flex items-center gap-3 text-sm">
+                <span className="w-20 text-gray-600 capitalize">{s.type}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-3">
+                  <div className="bg-amber-400 h-3 rounded-full" style={{ width: `${s.pct}%` }} />
+                </div>
+                <span className="text-gray-700 w-20 text-right font-medium">₹{s.spend.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ROAS */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-900 mb-3">ROAS Indicator</h3>
+        {kpis && kpis.totalSpend > 0 ? (() => {
+          const roas = ((kpis.conversions * 45) / kpis.totalSpend).toFixed(2);
+          const roasNum = Number(roas);
+          return (
+            <div className="flex items-center gap-4">
+              <p className={`text-4xl font-bold ${roasNum >= 2 ? 'text-green-600' : roasNum >= 1 ? 'text-amber-600' : 'text-red-600'}`}>
+                {roas}x
+              </p>
+              <div>
+                <p className="text-sm text-gray-600">Return on Ad Spend</p>
+                <p className="text-xs text-gray-400">Based on {kpis.conversions} conversions × ₹45 avg value ÷ ₹{kpis.totalSpend} spend</p>
+              </div>
+            </div>
+          );
+        })() : <EmptyState message="No spend or conversion data yet." />}
+      </div>
+    </div>
+  );
+}
+
+// ── Paid Ads: Manual Tab ──────────────────────────────────────────────────────
+function PaidAdsManualTab() {
+  const steps = [
+    { step: 1, title: 'Choose Platform & Campaign Type', desc: 'Click "+ New Campaign". Select the ad platform (Google Ads, Meta Ads, TikTok, LinkedIn) and campaign type (search, display, video). Match the type to your objective.' },
+    { step: 2, title: 'Name & Schedule', desc: 'Give the campaign a descriptive name. Set a start date and optionally an end date. Campaigns without an end date run until manually paused.' },
+    { step: 3, title: 'Set Daily Budget', desc: 'Enter the daily budget in USD. A safe starting point is $20–$50/day for a new campaign. You can always adjust via the Budget modal on the Campaigns tab.' },
+    { step: 4, title: 'Create an Ad Group', desc: 'Every campaign needs at least one ad group. Go to Ad Groups tab, create a group with a name and a default CPC bid. Ad groups organize your keywords and ads by theme.' },
+    { step: 5, title: 'Add Keywords', desc: 'Open the Ad Group → Keywords modal. Add 5–15 relevant keywords. Mix match types: exact for precision, phrase for variety, broad for discovery. Add negatives to avoid wasted spend.' },
+    { step: 6, title: 'Build Ad Creatives', desc: 'Use the Dynamic Ad Builder on the Creatives tab to compose headlines and descriptions. Or use the Agentic tab to generate them with Ollama AI. Review all AI-generated copy before activating.' },
+    { step: 7, title: 'Set Audience Targeting', desc: 'Click "Targeting" on a campaign row. Add geo, device, language, or interest rules. Use the Retargeting section to target past site visitors.' },
+    { step: 8, title: 'Configure Bidding & Placement', desc: 'Click "Bidding" on a campaign row. Start with Manual CPC. Choose device placements. Switch to Target CPA or ROAS once you have 30+ conversions/month.' },
+    { step: 9, title: 'Activate & Monitor', desc: 'Set campaign status to Active. Monitor the Health tab for audit findings. Check Analytics tab for CTR, CPC, and funnel metrics. Review the Campaign Health Audit findings hourly.' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-900 mb-1">Step-by-Step: Create a Paid Ads Campaign</h3>
+        <p className="text-sm text-gray-500 mb-5">All steps use real routes wired in this portal — no external dashboard needed for local campaigns.</p>
+        <div className="space-y-4">
+          {steps.map(s => (
+            <div key={s.step} className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold flex items-center justify-center">
+                {s.step}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{s.title}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Paid Ads: Pipeline Tab ────────────────────────────────────────────────────
+function PaidAdsPipelineTab() {
+  const jobs = [
+    {
+      name: 'CampaignHealthAuditJob', schedule: '0 * * * *',
+      desc: 'Hourly structural audit: no ad groups, expired-but-active, bid > budget, missing targeting',
+      status: 'active', note: 'Real — runs hourly, findings visible in Health tab',
+    },
+    {
+      name: 'PaidAdsSyncJob', schedule: '30 */6 * * *',
+      desc: 'Sync campaign KPIs from connected ad platforms every 6 hours',
+      status: 'active', note: 'Real heartbeat — live platform API sync requires credentials',
+    },
+    {
+      name: 'AdBudgetPacingJob', schedule: '0 * * * *',
+      desc: 'Check spend pace vs. daily budget; pause campaigns that exceed 110% of daily cap',
+      status: 'planned', note: 'Planned — no code yet; requires ad platform conversion data',
+    },
+    {
+      name: 'CampaignOptimizationJob', schedule: '0 6 * * *',
+      desc: 'Daily: pause low-CTR keywords (< 0.5% for 7 days), suggest bid adjustments via Ollama',
+      status: 'planned', note: 'Planned — requires connected ad platform for keyword-level data',
+    },
+    {
+      name: 'AdPerformanceAlertJob', schedule: '*/30 * * * *',
+      desc: 'Alert on CTR drop > 50% or CPC increase > 200% vs. 7-day rolling average',
+      status: 'planned', note: 'Planned — requires ad analytics data ingestion first',
+    },
+  ];
+
+  const statusColor: Record<string, string> = {
+    active:  'bg-green-100 text-green-700',
+    planned: 'bg-blue-100 text-blue-700',
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h3 className="font-semibold text-gray-900 mb-4">Automation Jobs</h3>
+        <div className="space-y-3">
+          {jobs.map(j => (
+            <div key={j.name} className="border border-gray-100 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-mono text-xs font-semibold text-gray-800">{j.name}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[j.status]}`}>{j.status}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{j.desc}</p>
+                  <p className="text-xs text-gray-400 mt-1">Schedule: <code className="bg-gray-50 px-1 rounded">{j.schedule}</code></p>
+                  <p className="text-xs text-gray-400">{j.note}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        CampaignHealthAuditJob and PaidAdsSyncJob are live. Budget pacing and optimization jobs are documented but not yet implemented — they require connected ad platform API credentials to be useful.
+      </div>
+    </div>
+  );
+}
+
+// ── Paid Ads: Agentic Tab ─────────────────────────────────────────────────────
+function PaidAdsAgenticTab({ adGroups }: { adGroups: AdGroupRow[] }) {
+  const [adGroupId, setAdGroupId] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [businessType, setBusinessType] = useState('yoga studio');
+  const [ageGroup, setAgeGroup] = useState('25-40');
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState<{ headline: string; description: string }[] | null>(null);
+  const [genError, setGenError] = useState('');
+
+  const [kwInput, setKwInput] = useState('');
+  const [kwResult, setKwResult] = useState('');
+  const [kwLoading, setKwLoading] = useState(false);
+
+  async function generateCopy() {
+    setGenerating(true);
+    setGenError('');
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/ads/generate-creative', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adGroupId, prompt, businessType, ageGroup, count: 3 }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setGenError(data.error ?? 'Generation failed.'); return; }
+      setResult(data.variants);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function suggestKeywords() {
+    setKwLoading(true);
+    setKwResult('');
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama3.2',
+          prompt: `Suggest 10 high-intent paid search keywords for a "${kwInput}" business. Include match type recommendation (exact/phrase/broad) and a brief rationale. Format as a numbered list.`,
+        }),
+      });
+      const data = await res.json();
+      setKwResult(data.text ?? data.content ?? 'No suggestions generated.');
+    } catch (e) {
+      setKwResult(e instanceof Error ? e.message : 'Failed to reach Ollama');
+    } finally {
+      setKwLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        All AI features use local Ollama (llama3.2). Generated content is saved as <code className="bg-amber-100 px-1 rounded">ai_generated=true</code> and requires human review before activation.
+      </div>
+
+      {/* Copy Generation */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <p className="font-semibold text-gray-900 mb-1">AI Ad Copy Generation (Ollama)</p>
+        <p className="text-sm text-gray-500 mb-4">Targeting-aware prompt generates headline/description variants saved to the database.</p>
+        {adGroups.length === 0 ? (
+          <p className="text-sm text-amber-700 bg-amber-50 rounded-lg p-3">No ad groups exist yet — create one under the Ad Groups tab first.</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <select value={adGroupId} onChange={e => setAdGroupId(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+                <option value="">Select ad group…</option>
+                {adGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+              <input value={businessType} onChange={e => setBusinessType(e.target.value)} placeholder="Business type" className="border rounded-lg px-3 py-2 text-sm" />
+              <select value={ageGroup} onChange={e => setAgeGroup(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+                {['18-24', '25-40', '40-60', '60+'].map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={2}
+              placeholder="Campaign brief, e.g. 'Promote our new evening Vinyasa class'"
+              className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <button onClick={generateCopy} disabled={generating || !adGroupId || !prompt.trim()}
+              className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+              {generating ? 'Generating…' : 'Generate 3 Variants (Ollama)'}
+            </button>
+            {genError && <p className="text-sm text-red-600">{genError}</p>}
+            {result && (
+              <div className="space-y-2">
+                {result.map((v, i) => (
+                  <div key={i} className="border rounded-xl p-3 text-sm">
+                    <p className="font-semibold text-gray-800">{v.headline}</p>
+                    <p className="text-gray-500">{v.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Keyword Suggestions */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <p className="font-semibold text-gray-900 mb-1">AI Keyword Suggestions</p>
+        <p className="text-sm text-gray-500 mb-4">Describe your business or campaign to get keyword ideas from Ollama.</p>
+        <div className="flex gap-3">
+          <input value={kwInput} onChange={e => setKwInput(e.target.value)} placeholder="e.g. yoga studio, wellness classes"
+            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          <button onClick={suggestKeywords} disabled={kwLoading || !kwInput.trim()}
+            className="px-4 py-2 text-sm bg-amber-500 text-white rounded-lg font-medium disabled:opacity-50">
+            {kwLoading ? 'Loading…' : 'Suggest Keywords'}
+          </button>
+        </div>
+        {kwResult && (
+          <div className="mt-4 bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap">
+            {kwResult}
+          </div>
+        )}
       </div>
     </div>
   );

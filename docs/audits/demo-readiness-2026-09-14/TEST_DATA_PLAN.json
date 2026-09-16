@@ -1,0 +1,103 @@
+{
+  "status": "PLANNED_NOT_SEEDED",
+  "isolation": "Dedicated test tenant/database and unique per-run user IDs; do not reuse shared customer_demo for destructive cleanup",
+  "baseline": [
+    "tenant_A",
+    "tenant_B",
+    "admin_A",
+    "editor_A",
+    "customer_A",
+    "customer_B",
+    "teacher_A",
+    "linked identity/customer/student records"
+  ],
+  "fixtures": [
+    {
+      "key": "identity",
+      "variants": [
+        "new email",
+        "duplicate email",
+        "verified identity missing customer",
+        "expired OTP",
+        "replayed OTP",
+        "expired session"
+      ],
+      "cleanup": "Delete only run-owned identities and profile rows; verify baseline identity links"
+    },
+    {
+      "key": "booking",
+      "variants": [
+        "one seat",
+        "full class",
+        "waitlist",
+        "DST transition",
+        "cancel cutoff",
+        "two concurrent customers"
+      ],
+      "cleanup": "Remove run bookings before classes; restore capacity"
+    },
+    {
+      "key": "commerce",
+      "variants": [
+        "draft cart",
+        "paid order",
+        "unpaid order",
+        "partial/full refund",
+        "last stock item",
+        "coupon exhausted"
+      ],
+      "cleanup": "Test ledger only; no real financial provider calls"
+    },
+    {
+      "key": "affiliate",
+      "variants": [
+        "disabled policy",
+        "10% synthetic test policy",
+        "valid/expired click",
+        "self referral",
+        "duplicate receipt",
+        "post-payout refund"
+      ],
+      "cleanup": "Rollback isolated ledger fixtures; never enable real partner policies for tests"
+    },
+    {
+      "key": "marketing",
+      "variants": [
+        "consented recipient",
+        "suppressed recipient",
+        "approved revision",
+        "rejected revision",
+        "expired OAuth",
+        "duplicate webhook"
+      ],
+      "cleanup": "Dedicated sandbox recipient/account; retain authorized external receipt"
+    },
+    {
+      "key": "media",
+      "variants": [
+        "synthetic WAV",
+        "portrait/landscape script",
+        "invalid upload",
+        "cancelled job",
+        "worker restart",
+        "caption correction"
+      ],
+      "cleanup": "Delete only run-owned jobs/assets after artifact retention"
+    },
+    {
+      "key": "agent",
+      "variants": [
+        "read-only tool",
+        "denied write",
+        "approved exact version",
+        "untrusted injection document",
+        "local model outage",
+        "budget exhausted"
+      ],
+      "cleanup": "Isolated repository/tool sandbox; retain redacted tool traces"
+    }
+  ],
+  "secret_handling": "Inject credentials through secret store/environment; never put passwords/tokens in fixture files or logs",
+  "reset_gate": "Fixture IDs recorded before execution; cleanup validates ownership; baseline health and cross-tenant checks after reset",
+  "production_policy": "Do not run destructive reset, mass sending, real calls or money transfers as part of an unattended demo audit"
+}

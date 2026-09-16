@@ -1,0 +1,42 @@
+[
+  {
+    "suite_key": "customer-daily-e2e",
+    "module_key": "customer",
+    "name": "Customer daily-life journeys",
+    "test_level": "e2e",
+    "objective": "Prove registration, login, booking, membership, payment, preferences and support journeys.",
+    "runner_key": "playwright_customer",
+    "automatic_enabled": true,
+    "enabled": true
+  },
+  {
+    "suite_key": "marketing-positive-negative",
+    "module_key": "marketing",
+    "name": "Marketing positive and negative scenarios",
+    "test_level": "e2e",
+    "objective": "Prove campaign, email, content, social, ads and reporting success and rejection paths.",
+    "runner_key": "playwright_marketing",
+    "automatic_enabled": true,
+    "enabled": true
+  },
+  {
+    "suite_key": "platform-load-1000",
+    "module_key": "observability",
+    "name": "One-thousand-customer capacity gate",
+    "test_level": "load",
+    "objective": "Prove portal, campaign and voice control planes meet defined concurrency SLOs.",
+    "runner_key": "k6_1000",
+    "automatic_enabled": true,
+    "enabled": true
+  },
+  {
+    "suite_key": "voice-positive-negative",
+    "module_key": "core",
+    "name": "Voice inbound/outbound scenarios",
+    "test_level": "integration",
+    "objective": "Prove webhook, consent, do-not-call, script, call outcome and provider-failure behavior.",
+    "runner_key": "voice_integration",
+    "automatic_enabled": true,
+    "enabled": true
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "module_demo_tiers": {
+    "NO_MAPPED_BROWSER_EVIDENCE": 165,
+    "PARTIAL_OR_GATED": 13,
+    "MAPPED_TEST_FAILURES": 17,
+    "HISTORICAL_TEST_PASS_DEMO_UNVERIFIED": 9,
+    "NOT_BUILT": 2
+  },
+  "ui_pages": 265,
+  "api_routes": 489,
+  "missing_partial_usecases": 223
+}

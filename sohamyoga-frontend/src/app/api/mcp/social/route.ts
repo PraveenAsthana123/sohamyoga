@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { MCP_TOOLS, getMcpTool, type McpToolName } from "@/domain/social/McpToolRegistry";
 import { PLATFORM_CONFIG } from "@/domain/social/SocialAccount";
 import {getAdminPrincipal} from '@/lib/admin-auth';
-import {query} from '@/lib/postgres';
+import {query,transaction} from '@/lib/postgres';
+import {PROVIDERS} from '@/domain/social/PostizProtocol';
 import {classifySentiment} from '@/lib/sentiment';
 
 // Postiz runs frontend and backend API on SEPARATE ports (see
@@ -69,13 +70,12 @@ export async function POST(req: NextRequest) {
     );
   }
   if (["publish_post","schedule_post","retry_failed_post"].includes(tool)) {
-    const valid=await validateApproval(String(input.confirmApprovalId||''),String(input.draftId||''),tool);
+    const valid=await validateApproval(String(input.confirmApprovalId||''),String(input.draftId||''),tool,auth.principal!.id);
     if(!valid)return NextResponse.json({error:'Approval is missing, expired, consumed, rejected, or not bound to this draft.',requiresApproval:true},{status:403});
   }
 
   try {
     const result = await dispatchTool(tool, input,auth.principal!.id);
-    if(tool==='publish_post')await consumeApproval(String(input.confirmApprovalId),auth.principal!.id);
     return NextResponse.json({ tool, result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -112,9 +112,9 @@ async function dispatchTool(tool: McpToolName, input: Record<string, unknown>,pr
         const inserted = await query(
           `INSERT INTO social_platform_variant (draft_id, platform, account_id, adapted_text)
            SELECT $1, $2, a.id, $3 FROM social_account a
-           WHERE a.tenant_id = $4::uuid AND a.platform = $2 AND a.status = 'connected' LIMIT 1
+           WHERE a.tenant_id = $4::uuid AND a.workspace_id=$5::uuid AND a.platform = $2 AND a.status = 'connected' LIMIT 1
            ON CONFLICT (draft_id, platform) DO NOTHING RETURNING id`,
-          [draftId, platform, input.masterText, input.tenantId],
+          [draftId, platform, input.masterText, input.tenantId,input.workspaceId],
         );
         if (!inserted.rowCount) unmatchedPlatforms.push(platform);
       }
@@ -134,7 +134,7 @@ async function dispatchTool(tool: McpToolName, input: Record<string, unknown>,pr
       return postizProxy("POST", `/upload`, input);
 
     case "preview_post":
-      return { draftId: input.draftId, platform: input.platform, previewUrl: null, message: "Preview rendered via Postiz preview API." };
+      return { draftId: input.draftId, platform: input.platform, previewUrl: null, supported:false, message: "No preview renderer is connected; preview was not generated." };
 
     case "request_approval": {
       const r=await query(`WITH d AS (UPDATE social_content_draft SET status='review_requested',review_requested_at=now(),updated_at=now() WHERE id=$1::uuid RETURNING id,tenant_id)
@@ -152,7 +152,8 @@ async function dispatchTool(tool: McpToolName, input: Record<string, unknown>,pr
     case "get_post_status": {
       // Postiz's Public API has no single-post GET — only a list. Filter
       // client-side rather than guessing at a per-id route that doesn't exist.
-      const list = await postizProxy("GET", `/posts`) as { posts?: Array<{ id: string }> };
+      const range=new URLSearchParams({startDate:new Date(Date.now()-30*86400000).toISOString(),endDate:new Date(Date.now()+86400000).toISOString()});
+      const list = await postizProxy("GET", `/posts?${range}`) as { posts?: Array<{ id: string }> };
       const posts = list.posts ?? [];
       const match = posts.filter(p => p.id === input.draftId);
       return { draftId: input.draftId, posts: match, note: match.length ? undefined : 'Not found in Postiz — has it been scheduled/published yet?' };
@@ -175,10 +176,10 @@ async function dispatchTool(tool: McpToolName, input: Record<string, unknown>,pr
       return { draftId: input.draftId, comments: [], supported: false, message: "Postiz's Public API does not expose a comments endpoint. Not implementable without either a platform-native API integration or a Postiz version that adds this." };
 
     case "draft_reply":
-      return { commentId: input.commentId, platform: input.platform, replyDraft: null, message: "Reply draft generated. Awaiting human review — will NOT be posted automatically." };
+      return { commentId: input.commentId, platform: input.platform, replyDraft: null, supported:false, message: "Reply generation is not connected; no reply was generated or sent." };
 
     case "pause_campaign":
-      return { campaignId: input.campaignId, status: "paused", pauseReason: input.reason, message: "All scheduled posts in campaign paused." };
+      return { campaignId: input.campaignId, supported:false, pauseReason: input.reason, message: "Campaign-wide remote pause is not implemented; no posts were paused." };
 
     case "disconnect_account":
       return postizProxy("DELETE", `/integrations/${input.accountId}`);
@@ -194,37 +195,32 @@ async function dispatchTool(tool: McpToolName, input: Record<string, unknown>,pr
 // real account is connected through Postiz's OAuth flow). Fails honestly,
 // not with a raw Postiz 400, when nothing is connected yet.
 async function createPostizPost(draftId: string, type: 'schedule' | 'now', scheduledAt?: string): Promise<unknown> {
-  const draft = await query<{ master_text: string; timezone: string }>(
-    `SELECT master_text, timezone FROM social_content_draft WHERE id = $1`, [draftId],
-  );
-  if (!draft.rowCount) throw new Error(`Draft ${draftId} not found.`);
-
-  const variants = await query<{ platform: string; adapted_text: string; postiz_account_id: string | null }>(
-    `SELECT v.platform, v.adapted_text, a.postiz_account_id
-     FROM social_platform_variant v JOIN social_account a ON a.id = v.account_id
-     WHERE v.draft_id = $1`, [draftId],
-  );
-  const connected = variants.rows.filter(v => v.postiz_account_id);
-  if (!connected.length) {
-    throw new Error(
-      `No connected social account for draft ${draftId}'s target platform(s). Connect an account via Postiz OAuth first — this is the same real-account blocker noted elsewhere in this platform, not a bug in this endpoint.`,
-    );
-  }
-
-  return postizProxy("POST", `/posts`, {
-    type,
-    date: scheduledAt ?? new Date().toISOString(),
-    shortLink: false,
-    tags: [],
-    posts: connected.map(v => ({
-      integration: { id: v.postiz_account_id },
-      value: [{ content: v.adapted_text || draft.rows[0].master_text }],
-    })),
-  });
+ const date=type==='now'?new Date():new Date(scheduledAt||'');
+ if(!Number.isFinite(date.getTime())||(type==='schedule'&&date.getTime()<=Date.now()))throw Error('A valid future schedule is required');
+ return transaction(async client=>{
+  const draft=await client.query(`SELECT id FROM social_content_draft WHERE id=$1 AND status='approved' AND reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL FOR UPDATE`,[draftId]);
+  if(!draft.rowCount)throw Error('Draft must have a recorded approval before scheduling');
+  const variants=await client.query<{platform:string;postiz_account_id:string|null;status:string;account_status:string}>(`SELECT v.platform,v.status,a.postiz_account_id,a.status AS account_status
+   FROM social_platform_variant v JOIN social_content_draft d ON d.id=v.draft_id
+   JOIN social_account a ON a.id=v.account_id AND a.platform=v.platform AND a.tenant_id=d.tenant_id AND a.workspace_id=d.workspace_id
+   WHERE v.draft_id=$1 FOR UPDATE OF v`,[draftId]);
+  if(!variants.rowCount||variants.rows.some(v=>!PROVIDERS[v.platform]||!v.postiz_account_id||v.account_status!=='connected'||v.status!=='pending'))throw Error('Every variant must be pending and bound to a supported connected Postiz account');
+  const prior=await client.query('SELECT id FROM social_post WHERE draft_id=$1 LIMIT 1',[draftId]);
+  if(prior.rowCount)throw Error('This draft already has a submission; reconcile it before creating another');
+  await client.query('UPDATE social_platform_variant SET scheduled_at=$2 WHERE draft_id=$1',[draftId,date.toISOString()]);
+  await client.query('UPDATE social_content_draft SET default_schedule_at=$2,updated_at=now() WHERE id=$1',[draftId,date.toISOString()]);
+  return {draftId,status:'queued_locally',scheduledAt:date.toISOString(),message:'Queued for the approval-aware worker. External publication is not yet confirmed.'};
+ });
 }
 
-async function validateApproval(token:string,draftId:string,tool:string){if(!token||!draftId)return false;const names=tool==='schedule_post'?['schedule_post','publish_post']:[tool];const r=await query(`SELECT id FROM social_mcp_approval_log WHERE approval_token=$1 AND draft_id=$2::uuid AND tool_name=ANY($3::text[]) AND status='approved' AND expires_at>now() AND consumed_at IS NULL`,[token,draftId,names]);return Boolean(r.rowCount)}
-async function consumeApproval(token:string,principalId:string){await query(`UPDATE social_mcp_approval_log SET consumed_at=now(),consumed_by=$2::uuid WHERE approval_token=$1 AND consumed_at IS NULL`,[token,principalId])}
+async function validateApproval(token:string,draftId:string,tool:string,principalId:string){
+ if(!token||!draftId)return false;
+ const names=tool==='schedule_post'?['schedule_post','publish_post']:[tool];
+ const r=await query(`UPDATE social_mcp_approval_log SET consumed_at=now(),consumed_by=$4::uuid
+ WHERE approval_token=$1 AND draft_id=$2::uuid AND tool_name=ANY($3::text[])
+ AND status='approved' AND expires_at>now() AND consumed_at IS NULL RETURNING id`,[token,draftId,names,principalId]);
+ return Boolean(r.rowCount);
+}
 
 // Postiz's comment payload shape may vary by platform; try common text
 // fields and skip sentiment for anything that doesn't look like a comment
@@ -264,12 +260,13 @@ async function postizProxy(method: string, path: string, body?: unknown): Promis
   const url = `${POSTIZ_PUBLIC_API_BASE}${path}`;
   const res = await fetch(url, {
     method,
+    signal: AbortSignal.timeout(15000),
     headers: { "Content-Type": "application/json", "Authorization": POSTIZ_API_KEY },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Postiz ${method} ${path} → ${res.status}: ${text}`);
+    throw new Error(`Postiz request failed with HTTP ${res.status}`);
   }
   return res.json();
 }

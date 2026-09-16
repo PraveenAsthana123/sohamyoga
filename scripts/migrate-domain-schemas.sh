@@ -148,6 +148,7 @@ schemas=(
   "163-inventory-backorder|sohamyoga-frontend/src/domain/ecommerce/db-schema-backorder.sql"
   "164-order-exchange|sohamyoga-frontend/src/domain/ecommerce/db-schema-exchange.sql"
   "165-reward-catalog|sohamyoga-frontend/src/domain/customer/db-schema-reward-catalog.sql"
+  "20260913-affiliate-ledger|sohamyoga-frontend/src/domain/referral/db-schema-affiliate-ledger.sql"
 )
 
 psql_cmd=(docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME")
