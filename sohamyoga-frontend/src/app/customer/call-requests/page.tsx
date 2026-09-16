@@ -58,49 +58,49 @@ export default function CustomerCallRequestsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-2xl space-y-6 p-6 text-white">
       <div>
         <h1 className="text-xl font-bold text-gray-800">Call In / Call Out</h1>
-        <p className="text-sm text-gray-500">Let us know you'll be calling in, or ask us to call you back. Our team follows up personally — this isn't an automated dialer.</p>
+        <p className="text-sm text-white/60">Let us know you'll be calling in, or ask us to call you back. Our team follows up personally — this isn't an automated dialer.</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <form onSubmit={submit} className="space-y-3 rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-5 shadow-sm text-white">
         <div className="flex gap-2">
           <button type="button" onClick={() => setForm({ ...form, direction: 'call_out' })}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${form.direction === 'call_out' ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-gray-200 text-gray-500'}`}>
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${form.direction === 'call_out' ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-white/20 text-white/60'}`}>
             Please call me
           </button>
           <button type="button" onClick={() => setForm({ ...form, direction: 'call_in' })}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${form.direction === 'call_in' ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-gray-200 text-gray-500'}`}>
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${form.direction === 'call_in' ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-white/20 text-white/60'}`}>
             I'll call in
           </button>
         </div>
-        <input required placeholder="Phone number" className="w-full rounded border border-gray-300 p-2 text-sm" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
-        <input type="datetime-local" className="w-full rounded border border-gray-300 p-2 text-sm text-gray-600" value={form.preferredTime} onChange={e => setForm({ ...form, preferredTime: e.target.value })} />
-        <textarea placeholder="What's this about? (optional)" className="w-full rounded border border-gray-300 p-2 text-sm" value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
+        <input required placeholder="Phone number" className="w-full rounded border border-white/30 p-2 text-sm" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+        <input type="datetime-local" className="w-full rounded border border-white/30 p-2 text-sm text-white/70" value={form.preferredTime} onChange={e => setForm({ ...form, preferredTime: e.target.value })} />
+        <textarea placeholder="What's this about? (optional)" className="w-full rounded border border-white/30 p-2 text-sm" value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
         <button disabled={submitting} className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
           {submitting ? 'Submitting…' : form.direction === 'call_out' ? 'Request a callback' : 'Let us know you\'ll call'}
         </button>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold text-gray-600">Your requests</h2>
+      <div className="space-y-2 text-white">
+        <h2 className="text-sm font-semibold text-white/70">Your requests</h2>
         {requests.map(r => (
-          <div key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3">
+          <div key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3">
             <div>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{r.direction === 'call_in' ? 'I\'ll call in' : 'Please call me'}</span>
-              <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">{STATUS_LABEL[r.status]}</span>
-              <p className="mt-1 text-sm text-gray-700">{r.phone}{r.preferred_time ? ` · ${new Date(r.preferred_time).toLocaleString()}` : ''}</p>
-              {r.reason && <p className="text-xs text-gray-500">{r.reason}</p>}
-              {r.outcome_notes && <p className="mt-1 text-xs text-gray-400">Staff note: {r.outcome_notes}</p>}
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">{r.direction === 'call_in' ? 'I\'ll call in' : 'Please call me'}</span>
+              <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/60">{STATUS_LABEL[r.status]}</span>
+              <p className="mt-1 text-sm text-white/80">{r.phone}{r.preferred_time ? ` · ${new Date(r.preferred_time).toLocaleString()}` : ''}</p>
+              {r.reason && <p className="text-xs text-white/60">{r.reason}</p>}
+              {r.outcome_notes && <p className="mt-1 text-xs text-white/50">Staff note: {r.outcome_notes}</p>}
             </div>
             {(r.status === 'requested' || r.status === 'scheduled') && (
-              <button onClick={() => cancel(r.id)} className="shrink-0 rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100">Cancel</button>
+              <button onClick={() => cancel(r.id)} className="shrink-0 rounded px-2 py-1 text-xs text-white/60 hover:bg-white/10">Cancel</button>
             )}
           </div>
         ))}
-        {!requests.length && <p className="text-sm text-gray-400">No requests yet.</p>}
+        {!requests.length && <p className="text-sm text-white/50">No requests yet.</p>}
       </div>
     </div>
   );

@@ -28,33 +28,33 @@ export default function ShopPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-6 text-white">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Shop</h1>
-          <p className="mt-1 text-sm text-gray-500">Real products, real cart. Checkout hands the order to staff — no payment gateway is connected yet.</p>
+          <h1 className="text-2xl font-bold text-white">Shop</h1>
+          <p className="mt-1 text-sm text-white/60">Real products, real cart. Checkout hands the order to staff — no payment gateway is connected yet.</p>
         </div>
-        <Link href="/customer/cart" className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <Link href="/customer/cart" className="rounded border border-white/30 px-3 py-1.5 text-sm font-medium text-white/80 hover:bg-white/5">
           🛒 View Cart
         </Link>
       </div>
 
-      {message && <p className="text-xs text-gray-500 bg-gray-50 rounded p-2">{message}</p>}
+      {message && <p className="text-xs text-white/60 bg-white/5 rounded p-2">{message}</p>}
 
       {!products ? (
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-white/50">Loading…</p>
       ) : !products.length ? (
-        <p className="text-sm text-gray-400">No products available yet.</p>
+        <p className="text-sm text-white/50">No products available yet.</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {products.map(p => (
-            <div key={p.id} className="rounded-lg border border-gray-200 bg-white p-4 text-sm">
+            <div key={p.id} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-4 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium">{p.name}</span>
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs capitalize">{p.type.replaceAll('_', ' ')}</span>
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs capitalize">{p.type.replaceAll('_', ' ')}</span>
               </div>
-              {p.description && <p className="mt-1 text-xs text-gray-500">{p.description}</p>}
-              <p className="mt-1 text-xs text-gray-400">SKU {p.sku}</p>
+              {p.description && <p className="mt-1 text-xs text-white/60">{p.description}</p>}
+              <p className="mt-1 text-xs text-white/50">SKU {p.sku}</p>
               <div className="mt-3 flex items-center justify-between">
                 <span className="font-semibold">${p.price.toFixed(2)}</span>
                 <button

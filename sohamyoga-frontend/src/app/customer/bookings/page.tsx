@@ -22,7 +22,7 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 text-white">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">My Bookings</h1>
@@ -30,11 +30,11 @@ export default function BookingsPage() {
         </div>
         <div className="flex gap-2">
           {data.upcoming.length > 0 && (
-            <a href="/api/customer/bookings/ical" className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <a href="/api/customer/bookings/ical" className="rounded border border-white/30 px-3 py-1.5 text-sm font-medium text-white/80 hover:bg-white/5">
               📅 Add to Calendar
             </a>
           )}
-          <a href="/api/customer/bookings/export" className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <a href="/api/customer/bookings/export" className="rounded border border-white/30 px-3 py-1.5 text-sm font-medium text-white/80 hover:bg-white/5">
             ⬇ Export CSV
           </a>
           <Link href="/booking" className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white">Book a class</Link>
@@ -43,7 +43,7 @@ export default function BookingsPage() {
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-white/70">Upcoming ({data.upcoming.length})</h2>
-        <div className="space-y-2">
+        <div className="space-y-2 text-white">
           {data.upcoming.map(b => <BookingCard key={b.id} b={b} />)}
           {!data.upcoming.length && <p className="text-sm text-white/40">No upcoming bookings.</p>}
         </div>
@@ -51,7 +51,7 @@ export default function BookingsPage() {
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-white/70">Past ({data.past.length})</h2>
-        <div className="space-y-2">
+        <div className="space-y-2 text-white">
           {data.past.map(b => <BookingCard key={b.id} b={b} onRated={loadData} />)}
           {!data.past.length && <p className="text-sm text-white/40">No past bookings yet.</p>}
         </div>
@@ -62,10 +62,10 @@ export default function BookingsPage() {
 
 function BookingCard({ b, onRated }: { b: Booking; onRated?: () => void }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 text-sm">
+    <div className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
       <div className="flex justify-between">
         <span className="font-medium">{b.class_name}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs capitalize">{b.status.replaceAll('_', ' ')}</span>
+        <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs capitalize">{b.status.replaceAll('_', ' ')}</span>
       </div>
       <p className="text-xs text-white/60">{new Date(b.session_date).toLocaleDateString()} · {b.start_time} · {b.duration_minutes}m with {b.teacher_name}{b.location ? ` · ${b.location}` : ''}</p>
       {b.status === 'checked_in' && <RatingWidget bookingId={b.id} teacherName={b.teacher_name} myRating={b.my_rating} onRated={onRated} />}

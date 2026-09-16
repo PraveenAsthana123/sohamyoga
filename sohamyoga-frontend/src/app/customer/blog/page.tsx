@@ -13,7 +13,7 @@ function BlogCard({ post }: { post: BlogPost }) {
   return (
     <Link
       href={`/customer/blog/${post.slug}`}
-      className="group block bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
+      className="group block backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
     >
       {post.featuredImageUrl ? (
         <img
@@ -32,10 +32,10 @@ function BlogCard({ post }: { post: BlogPost }) {
             {post.category.name}
           </span>
         )}
-        <h3 className="mt-2 font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors">
+        <h3 className="mt-2 font-semibold text-white line-clamp-2 group-hover:text-blue-300 transition-colors">
           {post.title}
         </h3>
-        <p className="mt-1 text-sm text-gray-500 line-clamp-2">{post.summary}</p>
+        <p className="mt-1 text-sm text-white/60 line-clamp-2">{post.summary}</p>
         <div className="mt-3 flex items-center justify-between text-xs text-white/40">
           <span>{post.authorName}</span>
           <span>{formatDate(post.publishedAt || post.createdAt)}</span>
@@ -88,7 +88,7 @@ function CustomerBlogInner() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Blog & Resources</h1>
-        <p className="text-gray-500 mt-1 text-sm">Insights on yoga practice and wellness.</p>
+        <p className="text-white/60 mt-1 text-sm">Insights on yoga practice and wellness.</p>
       </div>
 
       {/* Filters */}
@@ -98,12 +98,12 @@ function CustomerBlogInner() {
           placeholder="Search articles…"
           defaultValue={search}
           onKeyDown={(e) => { if (e.key === 'Enter') setParam('search', (e.target as HTMLInputElement).value || undefined); }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-56"
+          className="px-3 py-2 border border-white/30 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-56"
         />
         <select
           value={categoryId ?? ''}
           onChange={(e) => setParam('categoryId', e.target.value || undefined)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="px-3 py-2 border border-white/30 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -113,7 +113,7 @@ function CustomerBlogInner() {
         {(search || categoryId) && (
           <button
             onClick={() => router.push('/customer/blog')}
-            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="px-3 py-2 text-sm text-white/60 hover:text-white/80 border border-white/20 rounded-lg hover:bg-white/5"
           >
             Clear filters
           </button>
@@ -143,7 +143,7 @@ function CustomerBlogInner() {
                 <button
                   key={p}
                   onClick={() => { const params = new URLSearchParams(searchParams.toString()); params.set('page', String(p)); router.push(`/customer/blog?${params}`); }}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${p === page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${p === page ? 'bg-blue-600 text-white' : 'bg-white border border-white/20 text-white/70 hover:bg-white/5'}`}
                 >
                   {p}
                 </button>
@@ -151,7 +151,7 @@ function CustomerBlogInner() {
             </div>
           )}
 
-          <p className="text-center text-xs text-gray-400 mt-3">{total} article{total !== 1 ? 's' : ''} total</p>
+          <p className="text-center text-xs text-white/50 mt-3">{total} article{total !== 1 ? 's' : ''} total</p>
         </>
       )}
     </div>

@@ -31,14 +31,14 @@ export default function JourneyPage() {
   if (!data) return <p className="text-sm text-white/40">Loading…</p>;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-6 text-white">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">My Journey</h1>
           <p className="mt-1 text-sm text-white/60">Your real streak, points, and badges — earned from actual class attendance.</p>
         </div>
         {data.recentLedger.length > 0 && (
-          <a href="/api/customer/journey/export" className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <a href="/api/customer/journey/export" className="rounded border border-white/30 px-3 py-1.5 text-sm font-medium text-white/80 hover:bg-white/5">
             ⬇ Export CSV
           </a>
         )}
@@ -58,7 +58,7 @@ export default function JourneyPage() {
         challenged={data.activeChallenges.length > 0}
       />
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Badge progress</h2>
         <div className="mt-3 flex items-center gap-4">
           <BadgePie earned={data.earnedBadges.length} total={data.earnedBadges.length + data.lockedBadges.length} />
@@ -66,7 +66,7 @@ export default function JourneyPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Badges ({data.earnedBadges.length} earned)</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {data.earnedBadges.map(b => (
@@ -76,7 +76,7 @@ export default function JourneyPage() {
             </div>
           ))}
           {data.lockedBadges.map(b => (
-            <div key={b.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm opacity-60">
+            <div key={b.id} className="rounded-lg border border-white/20 bg-white/5 p-3 text-sm opacity-60">
               <div className="font-medium">🔒 {b.name}</div>
               <div className="text-xs text-white/60">{b.description}</div>
             </div>
@@ -84,12 +84,12 @@ export default function JourneyPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Active challenges</h2>
         {data.activeChallenges.length ? (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-2 text-white">
             {data.activeChallenges.map(c => (
-              <div key={c.id} className="rounded-lg border border-gray-200 p-3 text-sm">
+              <div key={c.id} className="rounded-lg border border-white/20 p-3 text-sm">
                 <div className="font-medium">{c.name}</div>
                 <div className="text-xs text-white/60">{c.current_progress} / {c.target_value} {c.metric.replaceAll('_', ' ')} · ends {new Date(c.end_date).toLocaleDateString()}</div>
               </div>
@@ -98,10 +98,10 @@ export default function JourneyPage() {
         ) : <p className="mt-2 text-sm text-white/40">You're not in any active challenges right now.</p>}
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Recent points activity</h2>
         {data.recentLedger.length ? (
-          <div className="mt-3 space-y-1 text-sm">
+          <div className="mt-3 space-y-1 text-sm text-white">
             {data.recentLedger.map((l, i) => (
               <div key={i} className="flex justify-between border-b border-gray-100 py-1">
                 <span className="text-white/70">{l.reason.replaceAll('_', ' ')}</span>
@@ -117,7 +117,7 @@ export default function JourneyPage() {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-3 text-center">
+    <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-3 text-center">
       <div className="text-xl font-bold text-white">{value}</div>
       <div className="text-xs text-white/60">{label}</div>
     </div>
@@ -138,7 +138,7 @@ function JourneyFlowchart({ attended, streaking, badged, challenged }: { attende
   ];
   const boxW = 150, boxH = 56, gap = 30, w = stages.length * boxW + (stages.length - 1) * gap, h = 90;
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-5">
+    <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
       <h2 className="font-semibold text-white">Your journey so far</h2>
       <div className="mt-3 overflow-x-auto">
         <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} role="img" aria-label="Customer journey stage flowchart">

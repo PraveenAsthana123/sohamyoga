@@ -57,19 +57,19 @@ export default function CustomerReferralPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (error) return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+  if (error) return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-300">{error}</div>;
   if (!data) return <div className="text-sm text-white/60">Loading…</div>;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-6 text-white">
       <header>
         <h1 className="text-2xl font-bold text-white">Refer a Friend</h1>
-        <p className="text-sm text-gray-500 mt-1">Share your real referral link — every click and signup here is tracked for real.</p>
+        <p className="text-sm text-white/60 mt-1">Share your real referral link — every click and signup here is tracked for real.</p>
       </header>
 
       {!data.hasCode ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center">
-          <p className="text-sm text-gray-600 mb-4">You don't have a referral code yet.</p>
+        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-6 text-center">
+          <p className="text-sm text-white/70 mb-4">You don't have a referral code yet.</p>
           <button
             onClick={handleGenerate}
             disabled={generating}
@@ -79,12 +79,12 @@ export default function CustomerReferralPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-6 space-y-4 text-white">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Your referral link</p>
+            <p className="text-xs text-white/60 mb-1">Your referral link</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 truncate rounded-lg bg-gray-50 px-3 py-2 text-sm text-white/90">{data.code!.referralUrl}</code>
-              <button onClick={handleCopy} className="shrink-0 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 hover:bg-gray-200">
+              <code className="flex-1 truncate rounded-lg bg-white/5 px-3 py-2 text-sm text-white/90">{data.code!.referralUrl}</code>
+              <button onClick={handleCopy} className="shrink-0 px-3 py-2 bg-white/10 rounded-lg text-sm text-white/80 hover:bg-gray-200">
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
@@ -97,11 +97,11 @@ export default function CustomerReferralPage() {
 
           <div className="flex flex-wrap gap-2">
             <a href={`https://wa.me/?text=${encodeURIComponent(`${data.code!.invitationDraft ?? 'Come practice yoga with me!'} ${data.code!.referralUrl}`)}`}
-               target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200">WhatsApp</a>
+               target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-green-500/20 text-green-300 rounded-lg text-sm hover:bg-green-200">WhatsApp</a>
             <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(data.code!.referralUrl)}`}
-               target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200">Facebook</a>
+               target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-blue-500/20 text-blue-300 rounded-lg text-sm hover:bg-blue-200">Facebook</a>
             <a href={`mailto:?subject=${encodeURIComponent('Join me at SohamYoga')}&body=${encodeURIComponent(`${data.code!.invitationDraft ?? ''} ${data.code!.referralUrl}`)}`}
-               className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">Email</a>
+               className="px-3 py-1.5 bg-white/10 text-white/80 rounded-lg text-sm hover:bg-gray-200">Email</a>
           </div>
 
           {data.code!.invitationDraft && (
@@ -114,25 +114,25 @@ export default function CustomerReferralPage() {
       )}
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-4">
           <p className="text-xs text-white/60">Wallet Balance</p>
           <p className="text-2xl font-bold text-primary-700 mt-1">${data.wallet.balance.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-1">${data.wallet.lifetimeEarned.toLocaleString()} lifetime earned</p>
+          <p className="text-xs text-white/50 mt-1">${data.wallet.lifetimeEarned.toLocaleString()} lifetime earned</p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-4">
           <p className="text-xs text-white/60">Current Reward</p>
           {data.activeCampaign ? (
             <>
               <p className="text-lg font-bold text-gray-800 mt-1">{data.activeCampaign.referrerRewardValue} {data.activeCampaign.rewardType.replace(/_/g, ' ')}</p>
-              <p className="text-xs text-gray-400 mt-1">{data.activeCampaign.name}</p>
+              <p className="text-xs text-white/50 mt-1">{data.activeCampaign.name}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-400 mt-1">No active referral campaign right now — your link still works, sharing is tracked, but no reward is configured yet.</p>
+            <p className="text-sm text-white/50 mt-1">No active referral campaign right now — your link still works, sharing is tracked, but no reward is configured yet.</p>
           )}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-6">
+      <div className="rounded-2xl border border-white/20 backdrop-blur-md bg-white/10 p-6">
         <h2 className="font-semibold text-gray-800 mb-3">Your Referral History</h2>
         {data.history.length === 0 ? (
           <p className="text-sm text-white/40">No referrals yet — share your link above to get started.</p>

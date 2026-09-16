@@ -44,22 +44,22 @@ export default function PreferencesPage() {
     setStatus(res.ok ? 'Saved.' : d.error);
   }
 
-  if (!prefs) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (!prefs) return <p className="text-sm text-white/50">Loading…</p>;
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl space-y-6 text-white">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Preferences</h1>
-        <p className="mt-1 text-sm text-gray-500">Saved to your real account — used by class recommendations and reminders.</p>
+        <h1 className="text-2xl font-bold text-white">Preferences</h1>
+        <p className="mt-1 text-sm text-white/60">Saved to your real account — used by class recommendations and reminders.</p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
+      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 space-y-4 text-white">
         <div>
           <label className="text-sm font-medium">Preferred styles</label>
           <div className="mt-2 flex flex-wrap gap-2">
             {STYLES.map(s => (
               <button key={s} type="button" onClick={() => setPrefs({ ...prefs, preferred_class_styles: toggle(prefs.preferred_class_styles, s) })}
-                className={`rounded-full px-3 py-1 text-xs ${prefs.preferred_class_styles.includes(s) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                className={`rounded-full px-3 py-1 text-xs ${prefs.preferred_class_styles.includes(s) ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/70'}`}>
                 {s}
               </button>
             ))}
@@ -70,7 +70,7 @@ export default function PreferencesPage() {
           <div className="mt-2 flex flex-wrap gap-2">
             {TIMES.map(t => (
               <button key={t} type="button" onClick={() => setPrefs({ ...prefs, preferred_class_times: toggle(prefs.preferred_class_times, t) })}
-                className={`rounded-full px-3 py-1 text-xs ${prefs.preferred_class_times.includes(t) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                className={`rounded-full px-3 py-1 text-xs ${prefs.preferred_class_times.includes(t) ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/70'}`}>
                 {t}
               </button>
             ))}
@@ -96,13 +96,13 @@ export default function PreferencesPage() {
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.sms_opt_in} onChange={e => setPrefs({ ...prefs, sms_opt_in: e.target.checked })} /> SMS updates</label>
         </div>
         <button onClick={save} className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white">Save preferences</button>
-        {status && <p className="text-sm text-gray-500">{status}</p>}
+        {status && <p className="text-sm text-white/60">{status}</p>}
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-2">
+      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 space-y-2 text-white">
         <label className="text-sm font-medium">Browser push notifications</label>
-        <p className="text-xs text-gray-500">Get class reminders and alerts on this device, even when SohamYoga isn&apos;t open in a tab.</p>
-        {push.state === 'unsupported' && <p className="text-sm text-gray-500">Not supported in this browser.</p>}
+        <p className="text-xs text-white/60">Get class reminders and alerts on this device, even when SohamYoga isn&apos;t open in a tab.</p>
+        {push.state === 'unsupported' && <p className="text-sm text-white/60">Not supported in this browser.</p>}
         {push.state === 'denied' && <p className="text-sm text-red-600">Blocked — enable notifications for this site in your browser settings.</p>}
         {(push.state === 'subscribed' || push.state === 'unsubscribed') && (
           <label className="flex items-center gap-2 text-sm">

@@ -13,8 +13,8 @@ interface Sub {
 interface Plan { id: string; name: string; slug: string; planType: string }
 
 const STATUS_COLOR: Record<string, string> = {
-  active: 'bg-green-100 text-green-700', trial: 'bg-blue-100 text-blue-700', paused: 'bg-amber-100 text-amber-700',
-  cancelled: 'bg-gray-100 text-gray-500', expired: 'bg-red-100 text-red-700', grace_period: 'bg-amber-100 text-amber-700', frozen: 'bg-gray-100 text-gray-500',
+  active: 'bg-green-500/20 text-green-300', trial: 'bg-blue-500/20 text-blue-300', paused: 'bg-amber-500/20 text-amber-300',
+  cancelled: 'bg-white/10 text-white/60', expired: 'bg-red-500/20 text-red-300', grace_period: 'bg-amber-500/20 text-amber-300', frozen: 'bg-white/10 text-white/60',
 };
 
 export default function SubscriptionPage() {
@@ -35,27 +35,27 @@ export default function SubscriptionPage() {
     if (res.ok) load();
   }
 
-  if (sub === undefined) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (sub === undefined) return <p className="text-sm text-white/50">Loading…</p>;
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl space-y-6 text-white">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Subscription</h1>
-        <p className="mt-1 text-sm text-gray-500">Manage your membership.</p>
+        <h1 className="text-2xl font-bold text-white">Subscription</h1>
+        <p className="mt-1 text-sm text-white/60">Manage your membership.</p>
       </div>
 
       {!sub ? (
-        <p className="text-sm text-gray-400">No active subscription. <a href="/payments" className="text-blue-600 underline">Browse plans</a>.</p>
+        <p className="text-sm text-white/50">No active subscription. <a href="/payments" className="text-blue-600 underline">Browse plans</a>.</p>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-semibold text-gray-900">{sub.planName}</div>
-              <div className="text-sm text-gray-500">${sub.billingAmount} {sub.currency} / {sub.billingCycle}</div>
+              <div className="font-semibold text-white">{sub.planName}</div>
+              <div className="text-sm text-white/60">${sub.billingAmount} {sub.currency} / {sub.billingCycle}</div>
             </div>
-            <span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLOR[sub.status] ?? 'bg-gray-100'}`}>{sub.status.replaceAll('_', ' ')}</span>
+            <span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLOR[sub.status] ?? 'bg-white/10'}`}>{sub.status.replaceAll('_', ' ')}</span>
           </div>
-          <p className="mt-2 text-xs text-gray-400">
+          <p className="mt-2 text-xs text-white/50">
             {sub.status === 'cancelled' ? `Cancelled ${sub.cancelledAt ? new Date(sub.cancelledAt).toLocaleDateString() : ''}${sub.cancelReason ? ` — ${sub.cancelReason}` : ''}`
               : `${sub.autoRenew ? 'Renews' : 'Expires'} ${new Date(sub.renewsAt ?? sub.expiresAt).toLocaleDateString()}`}
           </p>
@@ -66,11 +66,11 @@ export default function SubscriptionPage() {
             </p>
           )}
           {['active', 'trial'].includes(sub.status) && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2 text-white">
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={sub.autoRenew} onChange={e => act('setAutoRenew', { enabled: e.target.checked })} /> Auto-renew
               </label>
-              <button onClick={() => act('pause', { reason: 'Customer requested pause' })} className="rounded border border-amber-300 px-3 py-1.5 text-sm text-amber-700">Pause</button>
+              <button onClick={() => act('pause', { reason: 'Customer requested pause' })} className="rounded border border-amber-300 px-3 py-1.5 text-sm text-amber-300">Pause</button>
               {plans.length > 0 && (
                 <div className="flex gap-2">
                   <select value={downgradeTo} onChange={e => setDowngradeTo(e.target.value)} className="flex-1 rounded border p-2 text-sm">
@@ -89,7 +89,7 @@ export default function SubscriptionPage() {
           {sub.status === 'paused' && (
             <button onClick={() => act('resume')} className="mt-4 rounded bg-blue-600 px-3 py-1.5 text-sm text-white">Resume</button>
           )}
-          {message && <p className="mt-2 text-sm text-gray-500">{message}</p>}
+          {message && <p className="mt-2 text-sm text-white/60">{message}</p>}
         </div>
       )}
     </div>

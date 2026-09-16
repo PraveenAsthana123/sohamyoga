@@ -38,7 +38,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 text-white">
       <div>
         <h1 className="text-2xl font-bold text-white">My Cart</h1>
         <p className="mt-1 text-sm text-white/60">Real cart backed by your own draft order — checkout hands it to staff since no payment gateway is connected yet.</p>
@@ -47,9 +47,9 @@ export default function CartPage() {
       {!cart ? <p className="text-sm text-white/40">Loading…</p> : cart.items.length === 0 ? (
         <p className="text-sm text-white/40">Your cart is empty.</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 text-white">
           {cart.items.map(it => (
-            <div key={it.id} className="rounded-lg border border-gray-200 bg-white p-3 text-sm flex items-center justify-between">
+            <div key={it.id} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm flex items-center justify-between">
               <div>
                 <p className="font-medium">{it.productName}</p>
                 <p className="text-xs text-white/40">SKU {it.sku}</p>
@@ -69,7 +69,7 @@ export default function CartPage() {
           </button>
         </div>
       )}
-      {message && <p className="text-xs text-gray-500 bg-gray-50 rounded p-2">{message}</p>}
+      {message && <p className="text-xs text-white/60 bg-white/5 rounded p-2">{message}</p>}
     </div>
   );
 }

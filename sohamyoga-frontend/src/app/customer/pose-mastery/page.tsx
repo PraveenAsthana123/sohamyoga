@@ -21,18 +21,18 @@ export default function PoseMasteryPage() {
     });
   }, []);
 
-  if (!hasStudentRecord) return <p className="text-sm text-gray-500">Pose assessments appear here once your teacher assesses you.</p>;
+  if (!hasStudentRecord) return <p className="text-sm text-white/60">Pose assessments appear here once your teacher assesses you.</p>;
   const max = Math.max(1, ...Object.values(report));
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 text-white">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Pose Mastery</h1>
-        <p className="mt-1 text-sm text-gray-500">Real teacher assessments of your pose progression.</p>
+        <h1 className="text-2xl font-bold text-white">Pose Mastery</h1>
+        <p className="mt-1 text-sm text-white/60">Real teacher assessments of your pose progression.</p>
       </div>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="mb-3 text-sm font-semibold text-gray-600">Mastery distribution</h2>
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+        <h2 className="mb-3 text-sm font-semibold text-white/70">Mastery distribution</h2>
         <svg viewBox="0 0 300 120" className="w-full" role="img" aria-label="Bar chart of pose mastery levels">
           {LEVELS.map((level, i) => {
             const value = report[level] ?? 0;
@@ -49,17 +49,17 @@ export default function PoseMasteryPage() {
         </svg>
       </section>
 
-      <div className="space-y-2">
+      <div className="space-y-2 text-white">
         {assessments.map((a, i) => (
-          <div key={i} className="rounded-lg border border-gray-200 bg-white p-3 text-sm">
+          <div key={i} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
             <div className="flex justify-between">
-              <span className="font-medium">{a.english_name} <span className="text-gray-400">({a.sanskrit_name})</span></span>
+              <span className="font-medium">{a.english_name} <span className="text-white/50">({a.sanskrit_name})</span></span>
               <span className="rounded-full px-2 py-0.5 text-xs text-white" style={{ background: LEVEL_COLOR[a.mastery_level] }}>{a.mastery_level}</span>
             </div>
-            {a.teacher_notes && <p className="mt-1 text-xs text-gray-500">{a.teacher_notes}</p>}
+            {a.teacher_notes && <p className="mt-1 text-xs text-white/60">{a.teacher_notes}</p>}
           </div>
         ))}
-        {!assessments.length && <p className="text-sm text-gray-400">No pose assessments yet.</p>}
+        {!assessments.length && <p className="text-sm text-white/50">No pose assessments yet.</p>}
       </div>
     </div>
   );

@@ -32,16 +32,16 @@ export default function EmergencyContactsPage() {
     load();
   }
 
-  if (!hasStudentRecord) return <p className="text-sm text-gray-500">Emergency contacts are available once you're enrolled in a class.</p>;
+  if (!hasStudentRecord) return <p className="text-sm text-white/60">Emergency contacts are available once you're enrolled in a class.</p>;
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl space-y-6 text-white">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Emergency Contacts</h1>
-        <p className="mt-1 text-sm text-gray-500">Who should we contact if there's an emergency during class?</p>
+        <h1 className="text-2xl font-bold text-white">Emergency Contacts</h1>
+        <p className="mt-1 text-sm text-white/60">Who should we contact if there's an emergency during class?</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-2 rounded-xl border border-gray-200 bg-white p-5">
+      <form onSubmit={submit} className="space-y-2 rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 text-white">
         <input required placeholder="Full name" className="w-full rounded border p-2 text-sm" value={form.guardianName} onChange={e => setForm({ ...form, guardianName: e.target.value })} />
         <select className="w-full rounded border p-2 text-sm" value={form.relationship} onChange={e => setForm({ ...form, relationship: e.target.value })}>
           {RELATIONSHIPS.map(r => <option key={r} value={r}>{r.replaceAll('_', ' ')}</option>)}
@@ -55,18 +55,18 @@ export default function EmergencyContactsPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
-      <div className="space-y-2">
+      <div className="space-y-2 text-white">
         {contacts.map(c => (
-          <div key={c.id} className="flex items-start justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm">
+          <div key={c.id} className="flex items-start justify-between rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
             <div>
               <span className="font-medium">{c.guardian_name}</span>
-              {c.is_emergency && <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">Primary</span>}
-              <p className="text-xs text-gray-500 capitalize">{c.relationship.replaceAll('_', ' ')}{c.phone ? ` · ${c.phone}` : ''}{c.email ? ` · ${c.email}` : ''}</p>
+              {c.is_emergency && <span className="ml-2 rounded-full bg-red-500/20 px-2 py-0.5 text-xs text-red-300">Primary</span>}
+              <p className="text-xs text-white/60 capitalize">{c.relationship.replaceAll('_', ' ')}{c.phone ? ` · ${c.phone}` : ''}{c.email ? ` · ${c.email}` : ''}</p>
             </div>
             <button onClick={() => remove(c.id)} className="text-xs text-red-500 hover:underline">Remove</button>
           </div>
         ))}
-        {!contacts.length && <p className="text-sm text-gray-400">No emergency contacts on file.</p>}
+        {!contacts.length && <p className="text-sm text-white/50">No emergency contacts on file.</p>}
       </div>
     </div>
   );

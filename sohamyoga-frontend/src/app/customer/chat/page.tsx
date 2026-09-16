@@ -90,20 +90,20 @@ function CustomerChatInner() {
   return (
     <div className="max-w-3xl flex flex-col h-[calc(100vh-8rem)]">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Live Chat Support</h1>
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${connected ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+        <h1 className="text-2xl font-bold text-white">Live Chat Support</h1>
+        <span className={`text-xs px-2 py-1 rounded-full font-medium ${connected ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
           {connected ? 'Connected' : 'Connecting...'}
         </span>
       </div>
 
       {/* Message list */}
-      <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-y-auto p-4 space-y-3 min-h-0">
+      <div className="flex-1 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-xl overflow-y-auto p-4 space-y-3 min-h-0 text-white">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+          <div className="flex flex-col items-center justify-center h-full text-white/50">
             <span className="text-4xl mb-3">💬</span>
             <p className="text-sm">Start the conversation. Our team will reply shortly.</p>
           </div>
@@ -116,7 +116,7 @@ function CustomerChatInner() {
               <div
                 className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm ${
                   msg.isFromAdmin
-                    ? 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                    ? 'bg-white/10 text-gray-800 rounded-tl-sm'
                     : 'bg-blue-600 text-white rounded-tr-sm'
                 }`}
               >
@@ -124,7 +124,7 @@ function CustomerChatInner() {
                   <p className="text-xs font-semibold text-blue-600 mb-1">{msg.senderName}</p>
                 )}
                 <p className="whitespace-pre-wrap">{msg.content}</p>
-                <p className={`text-xs mt-1 ${msg.isFromAdmin ? 'text-gray-400' : 'text-blue-100'}`}>
+                <p className={`text-xs mt-1 ${msg.isFromAdmin ? 'text-white/50' : 'text-blue-100'}`}>
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
@@ -142,12 +142,12 @@ function CustomerChatInner() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKey}
           placeholder="Type a message… (Enter to send)"
-          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm resize-none"
+          className="flex-1 px-4 py-2.5 border border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm resize-none"
         />
         <button
           onClick={sendMessage}
           disabled={!input.trim() || !connected}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-5 py-2 rounded-xl font-medium text-sm transition-colors self-end"
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-white/20 text-white px-5 py-2 rounded-xl font-medium text-sm transition-colors self-end"
         >
           Send
         </button>

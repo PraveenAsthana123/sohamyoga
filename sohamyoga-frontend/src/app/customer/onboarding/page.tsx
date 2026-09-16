@@ -55,21 +55,21 @@ export default function CustomerOnboardingPage() {
     setStep(STEPS[idx + 1]);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-400 text-sm">Loading…</p></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-white/50 text-sm">Loading…</p></div>;
 
   const stepIndex = STEPS.indexOf(step);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-lg w-full bg-white rounded-2xl border p-8">
+    <div className="min-h-screen bg-white/5 flex items-center justify-center p-6">
+      <div className="max-w-lg w-full backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl-2xl p-8">
         <div className="flex gap-1 mb-6">
           {STEPS.map((s, i) => <div key={s} className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? 'bg-teal-600' : 'bg-gray-200'}`} />)}
         </div>
 
         {step === 'goals' && (
           <>
-            <h1 className="text-xl font-bold text-gray-900 mb-1">What brings you to your mat?</h1>
-            <p className="text-sm text-gray-500 mb-4">Tell us your practice goal — we'll personalize your plan around it.</p>
+            <h1 className="text-xl font-bold text-white mb-1">What brings you to your mat?</h1>
+            <p className="text-sm text-white/60 mb-4">Tell us your practice goal — we'll personalize your plan around it.</p>
             <textarea value={goalStatement} onChange={e => setGoalStatement(e.target.value)} rows={3}
               placeholder="e.g. Reduce stress, build flexibility, prepare for a marathon…"
               className="w-full border rounded-lg p-3 text-sm mb-4" />
@@ -79,20 +79,20 @@ export default function CustomerOnboardingPage() {
 
         {step === 'schedule' && (
           <>
-            <h1 className="text-xl font-bold text-gray-900 mb-1">Your preferred practice</h1>
-            <p className="text-sm text-gray-500 mb-4">Pick the styles and times that fit your life — you can change these anytime.</p>
-            <p className="text-xs font-medium text-gray-600 mb-2">Class styles</p>
+            <h1 className="text-xl font-bold text-white mb-1">Your preferred practice</h1>
+            <p className="text-sm text-white/60 mb-4">Pick the styles and times that fit your life — you can change these anytime.</p>
+            <p className="text-xs font-medium text-white/70 mb-2">Class styles</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {CLASS_STYLES.map(s => (
                 <button key={s} onClick={() => toggle(classStyles, setClassStyles, s)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border ${classStyles.includes(s) ? 'bg-teal-600 text-white border-teal-600' : 'border-gray-300 text-gray-600'}`}>{s}</button>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border ${classStyles.includes(s) ? 'bg-teal-600 text-white border-teal-600' : 'border-white/30 text-white/70'}`}>{s}</button>
               ))}
             </div>
-            <p className="text-xs font-medium text-gray-600 mb-2">Preferred times</p>
+            <p className="text-xs font-medium text-white/70 mb-2">Preferred times</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {CLASS_TIMES.map(t => (
                 <button key={t} onClick={() => toggle(classTimes, setClassTimes, t)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border ${classTimes.includes(t) ? 'bg-teal-600 text-white border-teal-600' : 'border-gray-300 text-gray-600'}`}>{t}</button>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border ${classTimes.includes(t) ? 'bg-teal-600 text-white border-teal-600' : 'border-white/30 text-white/70'}`}>{t}</button>
               ))}
             </div>
             <button onClick={() => next({ preferredClassStyles: classStyles, preferredClassTimes: classTimes })} disabled={saving} className="w-full bg-teal-600 text-white font-medium py-2.5 rounded-lg disabled:opacity-50">Continue</button>
@@ -101,17 +101,17 @@ export default function CustomerOnboardingPage() {
 
         {step === 'health' && (
           <>
-            <h1 className="text-xl font-bold text-gray-900 mb-1">A little about your body</h1>
-            <p className="text-sm text-gray-500 mb-4">Helps instructors keep you safe. Never shared publicly.</p>
-            <p className="text-xs font-medium text-gray-600 mb-2">Current fitness level</p>
+            <h1 className="text-xl font-bold text-white mb-1">A little about your body</h1>
+            <p className="text-sm text-white/60 mb-4">Helps instructors keep you safe. Never shared publicly.</p>
+            <p className="text-xs font-medium text-white/70 mb-2">Current fitness level</p>
             <select value={fitnessLevel} onChange={e => setFitnessLevel(e.target.value)} className="w-full border rounded-lg p-2.5 text-sm mb-4">
               {FITNESS_LEVELS.map(f => <option key={f} value={f}>{f.replace('_', ' ')}</option>)}
             </select>
-            <p className="text-xs font-medium text-gray-600 mb-2">Any conditions we should know about? (optional)</p>
+            <p className="text-xs font-medium text-white/70 mb-2">Any conditions we should know about? (optional)</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {CONDITIONS.map(c => (
                 <button key={c} onClick={() => toggle(conditions, setConditions, c)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border ${conditions.includes(c) ? 'bg-amber-500 text-white border-amber-500' : 'border-gray-300 text-gray-600'}`}>{c.replace('_', ' ')}</button>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border ${conditions.includes(c) ? 'bg-amber-500 text-white border-amber-500' : 'border-white/30 text-white/70'}`}>{c.replace('_', ' ')}</button>
               ))}
             </div>
             <button onClick={() => next({ fitnessLevel, conditions })} disabled={saving} className="w-full bg-teal-600 text-white font-medium py-2.5 rounded-lg disabled:opacity-50">Continue</button>
@@ -120,12 +120,12 @@ export default function CustomerOnboardingPage() {
 
         {step === 'notifications' && (
           <>
-            <h1 className="text-xl font-bold text-gray-900 mb-1">Stay in the loop</h1>
-            <p className="text-sm text-gray-500 mb-4">When should we remind you about upcoming classes?</p>
+            <h1 className="text-xl font-bold text-white mb-1">Stay in the loop</h1>
+            <p className="text-sm text-white/60 mb-4">When should we remind you about upcoming classes?</p>
             <select value={reminderMinutes} onChange={e => setReminderMinutes(Number(e.target.value))} className="w-full border rounded-lg p-2.5 text-sm mb-4">
               {[15, 30, 60, 120].map(m => <option key={m} value={m}>{m} minutes before</option>)}
             </select>
-            <label className="flex items-center gap-2 text-sm text-gray-700 mb-4">
+            <label className="flex items-center gap-2 text-sm text-white/80 mb-4">
               <input type="checkbox" checked={emailOptIn} onChange={e => setEmailOptIn(e.target.checked)} />
               Email me class reminders and studio news
             </label>

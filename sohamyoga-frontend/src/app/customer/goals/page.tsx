@@ -33,7 +33,7 @@ export default function GoalsPage() {
   const available = catalog.filter(c => !goals.some(g => g.goal_code === c.code));
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl space-y-6 text-white">
       <div>
         <h1 className="text-2xl font-bold text-white">My Goals</h1>
         <p className="mt-1 text-sm text-white/60">{goals.length} goal(s) set. Ranked by priority.</p>
@@ -47,9 +47,9 @@ export default function GoalsPage() {
         <button disabled={!selected} onClick={add} className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">Add</button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 text-white">
         {goals.map(g => (
-          <div key={g.goal_code} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm">
+          <div key={g.goal_code} className="flex items-center justify-between rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
             <span><span className="mr-2 text-white/40">#{g.priority}</span>{g.label}</span>
             <button onClick={() => remove(g.goal_code)} className="text-xs text-red-500 hover:underline">Remove</button>
           </div>

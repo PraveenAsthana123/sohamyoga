@@ -30,13 +30,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl space-y-6 text-white">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Profile & Addresses</h1>
-        <p className="mt-1 text-sm text-gray-500">Manage your saved addresses.</p>
+        <h1 className="text-2xl font-bold text-white">Profile & Addresses</h1>
+        <p className="mt-1 text-sm text-white/60">Manage your saved addresses.</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-2 rounded-xl border border-gray-200 bg-white p-5">
+      <form onSubmit={submit} className="space-y-2 rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 text-white">
         <input placeholder="Label (e.g. Home)" className="w-full rounded border p-2 text-sm" value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} />
         <input required placeholder="Address line 1" className="w-full rounded border p-2 text-sm" value={form.line1} onChange={e => setForm({ ...form, line1: e.target.value })} />
         <input placeholder="Address line 2 (optional)" className="w-full rounded border p-2 text-sm" value={form.line2} onChange={e => setForm({ ...form, line2: e.target.value })} />
@@ -52,17 +52,17 @@ export default function ProfilePage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
-      <div className="space-y-2">
+      <div className="space-y-2 text-white">
         {addresses.map(a => (
-          <div key={a.id} className="flex items-start justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm">
+          <div key={a.id} className="flex items-start justify-between rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
             <div>
               <span className="font-medium">{a.label}</span>
-              <p className="text-gray-600">{a.line1}{a.line2 ? `, ${a.line2}` : ''}, {a.city}{a.state ? `, ${a.state}` : ''} {a.postal_code ?? ''} {a.country}</p>
+              <p className="text-white/70">{a.line1}{a.line2 ? `, ${a.line2}` : ''}, {a.city}{a.state ? `, ${a.state}` : ''} {a.postal_code ?? ''} {a.country}</p>
             </div>
             <button onClick={() => remove(a.id)} className="text-xs text-red-500 hover:underline">Remove</button>
           </div>
         ))}
-        {!addresses.length && <p className="text-sm text-gray-400">No addresses saved yet.</p>}
+        {!addresses.length && <p className="text-sm text-white/50">No addresses saved yet.</p>}
       </div>
     </div>
   );

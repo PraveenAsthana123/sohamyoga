@@ -90,27 +90,27 @@ export default function CustomerFeaturesPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Everything available to you</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-white">Everything available to you</h1>
+        <p className="mt-1 text-sm text-white/60">
           {user ? `Signed in as ${user.name}. ` : ''}
           Every feature below reads and writes real data. Anything not yet built is labeled "not yet available" rather than hidden or faked.
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 text-white">
         {FEATURE_GROUPS.map(group => (
-          <section key={group.title} className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-lg font-semibold text-gray-900">{group.title}</h2>
-            <p className="mt-0.5 text-sm text-gray-500">{group.description}</p>
+          <section key={group.title} className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
+            <h2 className="text-lg font-semibold text-white">{group.title}</h2>
+            <p className="mt-0.5 text-sm text-white/60">{group.description}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {group.items.map(item => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-lg border p-3 text-sm ${item.notYetAvailable ? 'border-amber-200 bg-amber-50' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/40'}`}
+                  className={`rounded-lg border p-3 text-sm ${item.notYetAvailable ? 'border-amber-200 bg-amber-50' : 'border-white/20 hover:border-blue-300 hover:bg-blue-50/40'}`}
                 >
-                  <div className="font-medium text-gray-900">{item.label}{item.notYetAvailable ? ' (not yet available)' : ''}</div>
-                  <div className="mt-0.5 text-xs text-gray-500">{item.description}</div>
+                  <div className="font-medium text-white">{item.label}{item.notYetAvailable ? ' (not yet available)' : ''}</div>
+                  <div className="mt-0.5 text-xs text-white/60">{item.description}</div>
                 </Link>
               ))}
             </div>

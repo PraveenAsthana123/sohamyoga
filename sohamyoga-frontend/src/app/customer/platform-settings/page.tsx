@@ -105,16 +105,16 @@ export default function CustomerPlatformSettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-400">Loading your platform settings…</div>
+      <div className="min-h-screen bg-white/5 flex items-center justify-center">
+        <div className="text-white/50">Loading your platform settings…</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-2xl mx-auto bg-red-50 border border-red-200 rounded-xl p-6 text-red-700">
+      <div className="min-h-screen bg-white/5 p-6">
+        <div className="max-w-2xl mx-auto bg-red-50 border border-red-200 rounded-xl p-6 text-red-300">
           <p className="font-semibold">Error</p>
           <p className="text-sm mt-1">{error}</p>
         </div>
@@ -125,33 +125,33 @@ export default function CustomerPlatformSettingsPage() {
   const enabledCount = platforms.filter(p => p.customer_enabled).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white/5">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">⚙️ Platform Settings</h1>
-          <p className="text-gray-500 mt-1">Manage which platforms you want to use. Your admin has enabled these platforms globally.</p>
+          <h1 className="text-2xl font-bold text-white">⚙️ Platform Settings</h1>
+          <p className="text-white/60 mt-1">Manage which platforms you want to use. Your admin has enabled these platforms globally.</p>
         </div>
 
         {/* Summary */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="bg-white border border-white/20 rounded-xl p-4 text-center">
             <p className="text-2xl font-bold text-indigo-600">{platforms.length}</p>
-            <p className="text-sm text-gray-500 mt-1">Available Platforms</p>
+            <p className="text-sm text-white/60 mt-1">Available Platforms</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="bg-white border border-white/20 rounded-xl p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{enabledCount}</p>
-            <p className="text-sm text-gray-500 mt-1">Enabled by You</p>
+            <p className="text-sm text-white/60 mt-1">Enabled by You</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-gray-400">{platforms.length - enabledCount}</p>
-            <p className="text-sm text-gray-500 mt-1">Paused</p>
+          <div className="bg-white border border-white/20 rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-white/50">{platforms.length - enabledCount}</p>
+            <p className="text-sm text-white/60 mt-1">Paused</p>
           </div>
         </div>
 
         {/* Platform Grid */}
         {platforms.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-white/50">
             <p className="text-xl mb-2">No platforms available yet</p>
             <p className="text-sm">Your admin hasn&apos;t enabled any platforms globally. Check back later.</p>
           </div>
@@ -165,19 +165,19 @@ export default function CustomerPlatformSettingsPage() {
                 <div
                   key={p.platform}
                   className={`bg-white border rounded-xl p-5 transition-all ${
-                    p.customer_enabled ? 'border-green-200 shadow-sm' : 'border-gray-200'
+                    p.customer_enabled ? 'border-green-200 shadow-sm' : 'border-white/20'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                        p.customer_enabled ? 'bg-indigo-50' : 'bg-gray-50'
+                        p.customer_enabled ? 'bg-indigo-50' : 'bg-white/5'
                       }`}>
                         {PLATFORM_EMOJIS[p.platform] ?? '🔌'}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 capitalize">{p.display_name ?? p.platform}</h3>
-                        <p className="text-xs text-gray-400 capitalize">{p.category}</p>
+                        <h3 className="font-semibold text-white capitalize">{p.display_name ?? p.platform}</h3>
+                        <p className="text-xs text-white/50 capitalize">{p.category}</p>
                       </div>
                     </div>
                     <Toggle
@@ -187,12 +187,12 @@ export default function CustomerPlatformSettingsPage() {
                     />
                   </div>
 
-                  <p className="text-sm text-gray-500 mb-4">{desc}</p>
+                  <p className="text-sm text-white/60 mb-4">{desc}</p>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-2 h-2 rounded-full ${p.customer_enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-white/60">
                         {p.customer_enabled ? 'Active' : 'Paused'}
                       </span>
                     </div>
@@ -210,7 +210,7 @@ export default function CustomerPlatformSettingsPage() {
         )}
 
         {/* Info note */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-300">
           <strong>Note:</strong> Disabling a platform here only prevents it from being used for your account.
           It does not disconnect any existing connections or delete your data. You can re-enable at any time.
         </div>

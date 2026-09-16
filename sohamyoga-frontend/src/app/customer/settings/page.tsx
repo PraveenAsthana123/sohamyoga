@@ -31,20 +31,20 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl space-y-6 text-white">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-1 text-sm text-gray-500">Turn off features you don't want to see. This actually hides them from your sidebar.</p>
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
+        <p className="mt-1 text-sm text-white/60">Turn off features you don't want to see. This actually hides them from your sidebar.</p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5 space-y-3 text-white">
         {features.map(f => (
           <label key={f.key} className="flex items-center justify-between text-sm">
             <span>{f.label}</span>
             <input type="checkbox" checked={!disabled.includes(f.key)} onChange={() => toggle(f.key)} className="h-4 w-4" />
           </label>
         ))}
-        {message && <p className="text-sm text-gray-500">{message}</p>}
+        {message && <p className="text-sm text-white/60">{message}</p>}
       </div>
     </div>
   );

@@ -41,13 +41,13 @@ export default function LoyaltyPage() {
   const currentTier = data.allTiers.find(t => t.code === data.tier);
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 text-white">
       <div>
         <h1 className="text-2xl font-bold text-white">Loyalty</h1>
         <p className="mt-1 text-sm text-white/60">Your tier and point balance.</p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-lg font-bold capitalize text-white">{currentTier?.label ?? data.tier}</div>
@@ -61,9 +61,9 @@ export default function LoyaltyPage() {
         <p className="mt-2 text-xs text-white/40">Lifetime spend: ${data.lifetimeSpendCad.toFixed(2)} CAD</p>
       </div>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Tiers</h2>
-        <div className="mt-3 space-y-1 text-sm">
+        <div className="mt-3 space-y-1 text-sm text-white">
           {data.allTiers.map(t => (
             <div key={t.code} className={`flex justify-between rounded px-2 py-1 ${t.code === data.tier ? 'bg-blue-50 font-medium' : ''}`}>
               <span className="capitalize">{t.label}</span>
@@ -73,10 +73,10 @@ export default function LoyaltyPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Redeem Points</h2>
-        {message && <p className="mt-2 text-xs text-gray-600 bg-gray-50 rounded p-2">{message}</p>}
-        <div className="mt-3 space-y-2">
+        {message && <p className="mt-2 text-xs text-white/70 bg-white/5 rounded p-2">{message}</p>}
+        <div className="mt-3 space-y-2 text-white">
           {rewards.map(r => (
             <div key={r.id} className="flex items-center justify-between rounded border border-gray-100 p-2 text-sm">
               <div>
@@ -96,10 +96,10 @@ export default function LoyaltyPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <section className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <h2 className="font-semibold text-white">Recent activity</h2>
         {data.history.length ? (
-          <div className="mt-3 space-y-1 text-sm">
+          <div className="mt-3 space-y-1 text-sm text-white">
             {data.history.map((h, i) => (
               <div key={i} className="flex justify-between border-b border-gray-100 py-1">
                 <span className="text-white/70">{h.reason.replaceAll('_', ' ')}</span>

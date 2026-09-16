@@ -134,14 +134,14 @@ export default function CustomerSupportPage() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-80px)]">
       {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-t-2xl p-4">
+      <div className="bg-white border border-white/20 rounded-t-2xl p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white text-lg">🤖</div>
           <div>
-            <p className="font-semibold text-gray-900">SohamBot</p>
+            <p className="font-semibold text-white">SohamBot</p>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs text-gray-500">Online — AI-powered support</span>
+              <span className="text-xs text-white/60">Online — AI-powered support</span>
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function CustomerSupportPage() {
         <div className="flex gap-2">
           {CONTEXTS.map(c => (
             <button key={c.value} onClick={() => setContext(c.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${context === c.value ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${context === c.value ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}>
               {c.label}
             </button>
           ))}
@@ -157,12 +157,12 @@ export default function CustomerSupportPage() {
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 border-x border-gray-200 p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto bg-white/5 border-x border-white/20 p-4 space-y-3 text-white">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs lg:max-w-sm px-4 py-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm'}`}>
+            <div className={`max-w-xs lg:max-w-sm px-4 py-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white border border-white/20 text-gray-800 rounded-bl-sm shadow-sm'}`}>
               {msg.content}
-              <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-indigo-200' : 'text-gray-400'}`}>
+              <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-indigo-200' : 'text-white/50'}`}>
                 {msg.timestamp.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -172,7 +172,7 @@ export default function CustomerSupportPage() {
         {/* Typing indicator */}
         {typing && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+            <div className="bg-white border border-white/20 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
               <div className="flex gap-1 items-center">
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -185,8 +185,8 @@ export default function CustomerSupportPage() {
         {/* Satisfaction rating */}
         {escalated && !ratingSubmitted && (
           <div className="flex justify-center">
-            <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
-              <p className="text-sm font-medium text-gray-700 mb-2">Rate this conversation</p>
+            <div className="bg-white border border-white/20 rounded-xl p-3 text-center">
+              <p className="text-sm font-medium text-white/80 mb-2">Rate this conversation</p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map(star => (
                   <button key={star} onClick={() => submitRating(star)}
@@ -201,7 +201,7 @@ export default function CustomerSupportPage() {
 
         {ratingSubmitted && (
           <div className="flex justify-center">
-            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-sm text-green-700">
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-sm text-green-300">
               Thank you for your feedback! ⭐ {rating}/5
             </div>
           </div>
@@ -211,11 +211,11 @@ export default function CustomerSupportPage() {
       </div>
 
       {/* Quick replies */}
-      <div className="bg-gray-50 border-x border-gray-200 px-4 py-2">
+      <div className="bg-white/5 border-x border-white/20 px-4 py-2">
         <div className="flex gap-2 overflow-x-auto">
           {QUICK_REPLIES.map(qr => (
             <button key={qr} onClick={() => sendMessage(qr)} disabled={loading}
-              className="whitespace-nowrap px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700 hover:bg-gray-50 hover:border-indigo-400 transition-colors disabled:opacity-50">
+              className="whitespace-nowrap px-3 py-1.5 bg-white border border-white/30 rounded-full text-xs text-white/80 hover:bg-white/5 hover:border-indigo-400 transition-colors disabled:opacity-50">
               {qr}
             </button>
           ))}
@@ -223,7 +223,7 @@ export default function CustomerSupportPage() {
       </div>
 
       {/* Input area */}
-      <div className="bg-white border border-gray-200 rounded-b-2xl p-4">
+      <div className="bg-white border border-white/20 rounded-b-2xl p-4">
         <div className="flex gap-3">
           <input
             value={input}
@@ -231,7 +231,7 @@ export default function CustomerSupportPage() {
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
             placeholder="Type your message…"
             disabled={loading}
-            className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="flex-1 border border-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           />
           <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
             className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors">
@@ -239,9 +239,9 @@ export default function CustomerSupportPage() {
           </button>
         </div>
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-gray-400">Powered by SohamBot (Ollama llama3.2)</p>
+          <p className="text-xs text-white/50">Powered by SohamBot (Ollama llama3.2)</p>
           <button onClick={handleEscalate} disabled={escalated}
-            className="text-xs text-orange-600 hover:text-orange-700 disabled:opacity-50">
+            className="text-xs text-orange-600 hover:text-orange-300 disabled:opacity-50">
             👤 Talk to a human
           </button>
         </div>
