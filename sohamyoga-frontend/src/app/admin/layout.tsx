@@ -1365,6 +1365,13 @@ const navItems = [
   { href: '/admin/it-services', label: 'IT Services / MSP 💻', icon: <span aria-hidden="true">💻</span>, requiredRoles: ['Admin'] },
   // Community & Events
   { href: '/admin/meetup-groups', label: 'Meetup Groups 🤝', icon: <span aria-hidden="true">🤝</span>, requiredRoles: ['Admin'] },
+  // Canadian SMB Verticals
+  { href: '/admin/trucking-logistics', label: 'Trucking & Logistics 🚛', icon: <span aria-hidden="true">🚛</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/trades-contractor', label: 'Trades & Contractor Hub 🔧', icon: <span aria-hidden="true">🔧</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/restaurant-hospitality', label: 'Restaurant & Hospitality 🍽️', icon: <span aria-hidden="true">🍽️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/auto-dealership', label: 'Auto Dealership Portal 🚗', icon: <span aria-hidden="true">🚗</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/dental-medical', label: 'Dental & Medical Clinic 🦷', icon: <span aria-hidden="true">🦷</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/childcare-education', label: 'Childcare & Education 🎒', icon: <span aria-hidden="true">🎒</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
