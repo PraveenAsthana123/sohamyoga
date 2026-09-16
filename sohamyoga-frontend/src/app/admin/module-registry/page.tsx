@@ -31,11 +31,14 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   return <div className="mb-2"><p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</p><p className="text-sm text-gray-800">{value}</p></div>;
 }
 
+type MainTab = 'modules' | 'ipo' | 'txlog';
+
 export default function ModuleRegistryPage() {
   const [data, setData] = useState<{ modules: ModuleRow[]; tally: Record<string, number>; dimensionTally: Record<string, number>; catalogedCount: number; estimatedSohamyogaFrontendAdminSurfaces: number; note: string } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [appFilter, setAppFilter] = useState<'all' | 'sohamyoga-frontend' | 'market-research-portal' | 'voice-agent-platform'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'real' | 'partial' | 'not_built' | 'not_yet_cataloged'>('all');
+  const [mainTab, setMainTab] = useState<MainTab>('modules');
 
   useEffect(() => {
     fetch('/api/admin/module-registry', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(setData);
@@ -77,7 +80,85 @@ export default function ModuleRegistryPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      {/* Tab switcher */}
+      <div className="flex gap-1 border-b">
+        {([['modules', 'Modules'], ['ipo', 'IPO View'], ['txlog', 'Transaction Log']] as [MainTab, string][]).map(([k, label]) => (
+          <button key={k} onClick={() => setMainTab(k)}
+            className={`rounded-t px-4 py-2 text-sm font-medium transition ${mainTab === k ? 'border-b-2 border-indigo-600 text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mainTab === 'ipo' && (
+        <div className="overflow-x-auto rounded-xl border">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+              <tr>
+                {['Module', 'App', 'Status', 'Input', 'Process', 'Output', 'Final Outcome'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered.map(m => (
+                <tr key={m.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{m.name}</div>
+                    <div className="text-xs text-gray-400">{m.module_key}</div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{m.app}</td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_COLORS[m.built_status]}`}>{STATUS_LABELS[m.built_status]}</span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600 max-w-[160px]">{m.input_desc ?? <span className="text-gray-300">—</span>}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 max-w-[160px]">{m.process_desc ?? <span className="text-gray-300">—</span>}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 max-w-[160px]">{m.output_desc ?? <span className="text-gray-300">—</span>}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 max-w-[160px]">{m.final_outcome ?? <span className="text-gray-300">—</span>}</td>
+                </tr>
+              ))}
+              {!filtered.length && <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-gray-400">No modules match this filter.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {mainTab === 'txlog' && (
+        <div className="overflow-x-auto rounded-xl border">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+              <tr>
+                {['Module', 'App', 'Status', 'Last Verified', 'Verified By', 'Updated At'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered
+                .slice()
+                .sort((a, b) => (b.last_verified_at ?? '').localeCompare(a.last_verified_at ?? ''))
+                .map(m => (
+                  <tr key={m.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{m.name}</div>
+                      <div className="text-xs text-gray-400">{m.module_key}</div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{m.app}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_COLORS[m.built_status]}`}>{STATUS_LABELS[m.built_status]}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-600">{m.last_verified_at ? new Date(m.last_verified_at).toLocaleString() : <span className="text-gray-300">Never</span>}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600">{(m as unknown as { verified_by?: string }).verified_by ?? <span className="text-gray-300">—</span>}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600">{(m as unknown as { updated_at?: string }).updated_at ? new Date((m as unknown as { updated_at: string }).updated_at).toLocaleString() : <span className="text-gray-300">—</span>}</td>
+                  </tr>
+                ))}
+              {!filtered.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">No modules match this filter.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {mainTab === 'modules' && <><div className="flex flex-wrap gap-3">
         <select value={appFilter} onChange={e => setAppFilter(e.target.value as any)} className="rounded border px-2 py-1 text-sm">
           <option value="all">All apps</option>
           <option value="sohamyoga-frontend">sohamyoga-frontend</option>
@@ -173,6 +254,7 @@ export default function ModuleRegistryPage() {
           ) : <p className="text-sm text-gray-400">Select a module.</p>}
         </div>
       </div>
+    </div></>}
     </div>
   );
 }
