@@ -16,17 +16,17 @@ export default function BookingsPage() {
   const loadData = () => fetch('/api/customer/bookings', { cache: 'no-store' }).then(r => r.json()).then(setData);
   useEffect(() => { loadData(); }, []);
 
-  if (!data) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (!data) return <p className="text-sm text-white/40">Loading…</p>;
   if (!data.hasStudentRecord) {
-    return <p className="text-sm text-gray-500">Booking history is available once you're enrolled in a class. <Link href="/booking" className="text-blue-600 underline">Browse classes</Link>.</p>;
+    return <p className="text-sm text-white/60">Booking history is available once you're enrolled in a class. <Link href="/booking" className="text-blue-600 underline">Browse classes</Link>.</p>;
   }
 
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
-          <p className="mt-1 text-sm text-gray-500">Your real upcoming and past classes.</p>
+          <h1 className="text-2xl font-bold text-white">My Bookings</h1>
+          <p className="mt-1 text-sm text-white/60">Your real upcoming and past classes.</p>
         </div>
         <div className="flex gap-2">
           {data.upcoming.length > 0 && (
@@ -42,18 +42,18 @@ export default function BookingsPage() {
       </div>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-gray-600">Upcoming ({data.upcoming.length})</h2>
+        <h2 className="mb-2 text-sm font-semibold text-white/70">Upcoming ({data.upcoming.length})</h2>
         <div className="space-y-2">
           {data.upcoming.map(b => <BookingCard key={b.id} b={b} />)}
-          {!data.upcoming.length && <p className="text-sm text-gray-400">No upcoming bookings.</p>}
+          {!data.upcoming.length && <p className="text-sm text-white/40">No upcoming bookings.</p>}
         </div>
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-gray-600">Past ({data.past.length})</h2>
+        <h2 className="mb-2 text-sm font-semibold text-white/70">Past ({data.past.length})</h2>
         <div className="space-y-2">
           {data.past.map(b => <BookingCard key={b.id} b={b} onRated={loadData} />)}
-          {!data.past.length && <p className="text-sm text-gray-400">No past bookings yet.</p>}
+          {!data.past.length && <p className="text-sm text-white/40">No past bookings yet.</p>}
         </div>
       </section>
     </div>
@@ -67,7 +67,7 @@ function BookingCard({ b, onRated }: { b: Booking; onRated?: () => void }) {
         <span className="font-medium">{b.class_name}</span>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs capitalize">{b.status.replaceAll('_', ' ')}</span>
       </div>
-      <p className="text-xs text-gray-500">{new Date(b.session_date).toLocaleDateString()} · {b.start_time} · {b.duration_minutes}m with {b.teacher_name}{b.location ? ` · ${b.location}` : ''}</p>
+      <p className="text-xs text-white/60">{new Date(b.session_date).toLocaleDateString()} · {b.start_time} · {b.duration_minutes}m with {b.teacher_name}{b.location ? ` · ${b.location}` : ''}</p>
       {b.status === 'checked_in' && <RatingWidget bookingId={b.id} teacherName={b.teacher_name} myRating={b.my_rating} onRated={onRated} />}
     </div>
   );
@@ -103,7 +103,7 @@ function RatingWidget({ bookingId, teacherName, myRating, onRated }: { bookingId
 
   return (
     <div className="mt-2 flex items-center gap-2">
-      <span className="text-xs text-gray-500">Rate {teacherName}:</span>
+      <span className="text-xs text-white/60">Rate {teacherName}:</span>
       <div className="flex" onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map(n => (
           <button key={n} type="button" disabled={submitting} onMouseEnter={() => setHover(n)} onClick={() => submit(n)}

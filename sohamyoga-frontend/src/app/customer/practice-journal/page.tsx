@@ -45,15 +45,15 @@ export default function PracticeJournalPage() {
   }
 
   if (!hasStudentRecord) {
-    return <p className="text-sm text-gray-500">Practice journaling is available once you're enrolled in a class.</p>;
+    return <p className="text-sm text-white/60">Practice journaling is available once you're enrolled in a class.</p>;
   }
 
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Practice Journal</h1>
-          <p className="mt-1 text-sm text-gray-500">Log how each session felt. Your entries, your data.</p>
+          <h1 className="text-2xl font-bold text-white">Practice Journal</h1>
+          <p className="mt-1 text-sm text-white/60">Log how each session felt. Your entries, your data.</p>
         </div>
         {entries.length > 0 && (
           <a href="/api/customer/practice-journal/export" className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
@@ -85,17 +85,17 @@ export default function PracticeJournalPage() {
           <div key={e.id} className="rounded-lg border border-gray-200 bg-white p-3 text-sm">
             <div className="flex justify-between">
               <span className="font-medium">{new Date(e.entry_date).toLocaleDateString()} · {e.session_type}</span>
-              {e.duration_minutes && <span className="text-gray-400">{e.duration_minutes}m</span>}
+              {e.duration_minutes && <span className="text-white/40">{e.duration_minutes}m</span>}
             </div>
             {(e.mood_before || e.mood_after || e.energy_level) && (
-              <div className="mt-1 text-xs text-gray-500">
+              <div className="mt-1 text-xs text-white/60">
                 {e.mood_before && `Mood before: ${e.mood_before}/5`} {e.mood_after && `→ after: ${e.mood_after}/5`} {e.energy_level && `· Energy: ${e.energy_level}/5`}
               </div>
             )}
-            {e.notes && <p className="mt-1 text-gray-600">{e.notes}</p>}
+            {e.notes && <p className="mt-1 text-white/70">{e.notes}</p>}
           </div>
         ))}
-        {!entries.length && <p className="text-sm text-gray-400">No entries yet — log your first practice above.</p>}
+        {!entries.length && <p className="text-sm text-white/40">No entries yet — log your first practice above.</p>}
       </div>
     </div>
   );

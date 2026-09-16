@@ -36,7 +36,7 @@ function BlogCard({ post }: { post: BlogPost }) {
           {post.title}
         </h3>
         <p className="mt-1 text-sm text-gray-500 line-clamp-2">{post.summary}</p>
-        <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
+        <div className="mt-3 flex items-center justify-between text-xs text-white/40">
           <span>{post.authorName}</span>
           <span>{formatDate(post.publishedAt || post.createdAt)}</span>
         </div>
@@ -87,7 +87,7 @@ function CustomerBlogInner() {
     <div className="max-w-5xl">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Blog & Resources</h1>
+        <h1 className="text-2xl font-bold text-white">Blog & Resources</h1>
         <p className="text-gray-500 mt-1 text-sm">Insights on yoga practice and wellness.</p>
       </div>
 
@@ -126,7 +126,7 @@ function CustomerBlogInner() {
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-white/40">
           <p className="text-4xl mb-3">📭</p>
           <p className="text-sm">{search ? `No results for "${search}"` : 'No posts available yet.'}</p>
         </div>

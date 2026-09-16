@@ -55,7 +55,7 @@ export default function CustomerBookingPage() {
     }).catch(e => setError(e.message)).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-6 text-sm text-gray-500">Loading your bookings…</div>;
+  if (loading) return <div className="p-6 text-sm text-white/60">Loading your bookings…</div>;
 
   const upcoming = bookings.filter(b =>
     b.status !== 'cancelled' && new Date(b.startTime) >= new Date()
@@ -68,8 +68,8 @@ export default function CustomerBookingPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
       <header>
-        <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
-        <p className="text-sm text-gray-500">Appointments, class bookings, and consultations</p>
+        <h1 className="text-2xl font-bold text-white">My Bookings</h1>
+        <p className="text-sm text-white/60">Appointments, class bookings, and consultations</p>
       </header>
 
       {error && (
@@ -78,7 +78,7 @@ export default function CustomerBookingPage() {
 
       {/* Book new appointment */}
       <div className="rounded-xl border bg-white p-5">
-        <h2 className="mb-3 font-semibold text-gray-800">Book an Appointment</h2>
+        <h2 className="mb-3 font-semibold text-white/90">Book an Appointment</h2>
         {calConfigured ? (
           <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
             <p className="text-sm text-blue-800 font-medium">Cal.com Booking Widget</p>
@@ -96,8 +96,8 @@ export default function CustomerBookingPage() {
           </div>
         ) : (
           <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
-            <p className="text-sm text-gray-600">Online booking is not yet configured.</p>
-            <p className="mt-1 text-xs text-gray-400">Please contact us directly to book an appointment.</p>
+            <p className="text-sm text-white/70">Online booking is not yet configured.</p>
+            <p className="mt-1 text-xs text-white/40">Please contact us directly to book an appointment.</p>
             <a href="/contact" className="mt-3 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
               Contact Us
             </a>
@@ -107,16 +107,16 @@ export default function CustomerBookingPage() {
 
       {/* Upcoming bookings */}
       <div className="rounded-xl border bg-white p-5">
-        <h2 className="mb-3 font-semibold text-gray-800">Upcoming ({upcoming.length})</h2>
+        <h2 className="mb-3 font-semibold text-white/90">Upcoming ({upcoming.length})</h2>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-gray-400">No upcoming appointments.</p>
+          <p className="text-sm text-white/40">No upcoming appointments.</p>
         ) : (
           <div className="space-y-3">
             {upcoming.map(b => (
               <div key={b.id} className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
                 <div>
-                  <p className="font-medium text-gray-800">{b.service}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="font-medium text-white/90">{b.service}</p>
+                  <p className="text-xs text-white/60">
                     {new Date(b.startTime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                     {' · '}
                     {new Date(b.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -141,10 +141,10 @@ export default function CustomerBookingPage() {
       {/* Past bookings */}
       {past.length > 0 && (
         <div className="rounded-xl border bg-white p-5">
-          <h2 className="mb-3 font-semibold text-gray-800">Past Appointments</h2>
+          <h2 className="mb-3 font-semibold text-white/90">Past Appointments</h2>
           <div className="space-y-2">
             {past.map(b => (
-              <div key={b.id} className="flex items-center justify-between text-sm text-gray-600">
+              <div key={b.id} className="flex items-center justify-between text-sm text-white/70">
                 <span>{b.service} · {new Date(b.startTime).toLocaleDateString()}</span>
                 <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[b.status] ?? 'bg-gray-100'}`}>{b.status}</span>
               </div>

@@ -115,7 +115,7 @@ function FeedTab() {
         <div>
           <h3 className="text-base font-semibold text-gray-800 mb-3">Connected Accounts</h3>
           {connected.length === 0 && notYet.length === 0 ? (
-            <p className="text-sm text-gray-400">No channels configured yet.</p>
+            <p className="text-sm text-white/40">No channels configured yet.</p>
           ) : connected.length === 0 ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800 mb-4">
               No social accounts connected yet. Connecting channels is handled by our team via the admin provisioning workflow.
@@ -128,7 +128,7 @@ function FeedTab() {
                   <span className="text-lg">{PLATFORM_ICONS[p.platform] ?? '📣'}</span>
                   <div>
                     <div className="font-medium text-sm">{LABELS[p.platform] ?? p.platform}</div>
-                    <div className="text-xs text-gray-400">{p.accountName ?? 'Connected'}</div>
+                    <div className="text-xs text-white/40">{p.accountName ?? 'Connected'}</div>
                   </div>
                   <span className="w-2 h-2 bg-green-500 rounded-full" />
                 </a>
@@ -138,7 +138,7 @@ function FeedTab() {
 
           {notYet.length > 0 && (
             <details className="text-sm text-gray-400 mb-4">
-              <summary className="cursor-pointer font-medium text-gray-500">Not connected yet ({notYet.length})</summary>
+              <summary className="cursor-pointer font-medium text-white/60">Not connected yet ({notYet.length})</summary>
               <div className="mt-2 flex flex-wrap gap-2">
                 {notYet.map(p => (
                   <span key={p.platform} className="bg-gray-100 rounded-full px-3 py-1 text-xs">{LABELS[p.platform] ?? p.platform}</span>
@@ -165,16 +165,16 @@ function FeedTab() {
         ) : (
           <div className="space-y-3">
             {posts.map(post => (
-              <div key={post.id} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div key={post.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <PlatformBadge platform={post.platform} />
-                    <span className="text-xs text-gray-400">{new Date(post.scheduled_at).toLocaleDateString()}</span>
+                    <span className="text-xs text-white/40">{new Date(post.scheduled_at).toLocaleDateString()}</span>
                   </div>
                   <span className="text-xs bg-green-100 text-green-700 rounded-full px-2 py-0.5 font-medium">{post.status}</span>
                 </div>
                 <p className="mt-2 text-sm text-gray-700 line-clamp-2">{post.caption_preview}</p>
-                <div className="mt-3 flex gap-4 text-xs text-gray-500">
+                <div className="mt-3 flex gap-4 text-xs text-white/60">
                   <span>👁️ {Number(post.impressions).toLocaleString()}</span>
                   <span>❤️ {Number(post.likes).toLocaleString()}</span>
                   <span>💬 {Number(post.comments).toLocaleString()}</span>
@@ -345,7 +345,7 @@ function CustomerAnalyticsTab() {
       {loading ? (
         <div className="text-center text-gray-400 py-8">Loading analytics...</div>
       ) : analytics.length === 0 ? (
-        <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-400 text-sm">
+        <div className="bg-white/5 rounded-xl p-8 text-center text-gray-400 text-sm">
           No analytics data yet. Analytics populate as posts are published and synced by the scheduled jobs.
         </div>
       ) : (
@@ -425,7 +425,7 @@ function ContentIdeasTab() {
               onClick={() => setSelectedIdea(idea === selectedIdea ? null : idea)}>
               <div className="flex items-center gap-2 mb-2">
                 <PlatformBadge platform={idea.platform} />
-                <span className="text-xs text-gray-400">{idea.content_type}</span>
+                <span className="text-xs text-white/40">{idea.content_type}</span>
               </div>
               <div className="font-semibold text-gray-800 text-sm mb-1">💡 {idea.hook}</div>
               <div className="text-xs text-gray-600 mb-2">{idea.caption_idea}</div>
@@ -434,7 +434,7 @@ function ContentIdeasTab() {
                   <span key={h} className="text-xs bg-blue-50 text-blue-600 rounded px-1.5 py-0.5">#{h}</span>
                 ))}
               </div>
-              {idea.best_time && <div className="text-xs text-gray-400">⏰ {idea.best_time}</div>}
+              {idea.best_time && <div className="text-xs text-white/40">⏰ {idea.best_time}</div>}
               {selectedIdea === idea && (
                 <button
                   onClick={e => {
@@ -496,7 +496,7 @@ function CustomerHashtagsTab() {
             {copied ? '✓ Copied!' : `Copy ${selected.size} Hashtags`}
           </button>
         )}
-        <span className="text-xs text-gray-400">Click to select up to 30</span>
+        <span className="text-xs text-white/40">Click to select up to 30</span>
       </div>
 
       {selected.size > 0 && (
@@ -548,7 +548,7 @@ export default function CustomerSocialPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">Social Media</h1>
+        <h1 className="text-2xl font-bold text-white">Social Media</h1>
         <p className="text-sm text-gray-500 mt-0.5">Manage your social presence — posts, schedule, analytics, content ideas</p>
       </div>
 

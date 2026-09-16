@@ -62,10 +62,10 @@ function fmtMoney(val: string | number | null | undefined) {
 
 function KpiCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-white rounded-xl border p-4 space-y-1">
+    <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-4 space-y-1">
       <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="text-xs text-gray-400">{sub}</p>}
+      <p className="text-2xl font-bold text-white">{value}</p>
+      {sub && <p className="text-xs text-white/40">{sub}</p>}
     </div>
   );
 }
@@ -181,14 +181,14 @@ export default function CustomerAffiliatePage() {
   function renderDashboard() {
     if (!isAffiliate) {
       return (
-        <div className="bg-white rounded-xl border p-8 text-center max-w-lg mx-auto">
+        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-8 text-center max-w-lg mx-auto">
           <div className="text-4xl mb-4">🤝</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Join the Affiliate Program</h2>
           <p className="text-gray-600 mb-6">Earn commissions by sharing SohamYoga with your audience. Apply today and start earning when your followers sign up.</p>
           <div className="grid grid-cols-3 gap-4 mb-6 text-center">
-            <div><p className="text-2xl font-bold text-blue-700">10-20%</p><p className="text-xs text-gray-500">Commission Rate</p></div>
-            <div><p className="text-2xl font-bold text-blue-700">30 days</p><p className="text-xs text-gray-500">Cookie Window</p></div>
-            <div><p className="text-2xl font-bold text-blue-700">Monthly</p><p className="text-xs text-gray-500">Payouts</p></div>
+            <div><p className="text-2xl font-bold text-blue-700">10-20%</p><p className="text-xs text-white/60">Commission Rate</p></div>
+            <div><p className="text-2xl font-bold text-blue-700">30 days</p><p className="text-xs text-white/60">Cookie Window</p></div>
+            <div><p className="text-2xl font-bold text-blue-700">Monthly</p><p className="text-xs text-white/60">Payouts</p></div>
           </div>
           <button onClick={() => setTab('apply')} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors">Apply Now</button>
         </div>
@@ -225,7 +225,7 @@ export default function CustomerAffiliatePage() {
 
         {/* Quick share links */}
         {recentLinks.length > 0 && (
-          <div className="bg-white rounded-xl border p-4">
+          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-4">
             <h2 className="font-semibold text-gray-800 mb-3">Your Top Links</h2>
             <div className="space-y-2">
               {recentLinks.slice(0, 3).map(link => {
@@ -248,14 +248,14 @@ export default function CustomerAffiliatePage() {
 
         {/* Recent payouts */}
         {recentPayouts.length > 0 && (
-          <div className="bg-white rounded-xl border p-4">
+          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-4">
             <h2 className="font-semibold text-gray-800 mb-3">Recent Payouts</h2>
             <div className="space-y-2">
               {recentPayouts.map(p => (
                 <div key={p.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
                     <p className="text-sm font-medium">{p.period}</p>
-                    <p className="text-xs text-gray-400">{p.payment_method ?? 'Pending payment method'}</p>
+                    <p className="text-xs text-white/40">{p.payment_method ?? 'Pending payment method'}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">{fmtMoney(p.amount)}</p>
@@ -283,8 +283,8 @@ export default function CustomerAffiliatePage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">My Tracking Links</h2>
-          <p className="text-sm text-gray-500">{recentLinks.length} link(s)</p>
+          <h2 className="text-lg font-semibold text-white/90">My Tracking Links</h2>
+          <p className="text-sm text-white/60">{recentLinks.length} link(s)</p>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
@@ -292,7 +292,7 @@ export default function CustomerAffiliatePage() {
         </div>
 
         {recentLinks.length === 0 && (
-          <div className="bg-white rounded-xl border p-8 text-center text-gray-500">
+          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-8 text-center text-white/60">
             <p>No tracking links yet. Your admin will set up tracking links for you, or contact support to generate one.</p>
           </div>
         )}
@@ -302,10 +302,10 @@ export default function CustomerAffiliatePage() {
             const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/r/${link.code}`;
             const utmUrl = `${url}?utm_source=affiliate&utm_medium=link&utm_campaign=${link.code}`;
             return (
-              <div key={link.id} className="bg-white rounded-xl border p-4 space-y-3">
+              <div key={link.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-gray-900">Referral Code: <code className="text-blue-600">{link.code}</code></p>
-                  <p className="text-xs text-gray-400">{new Date(link.created_at).toLocaleDateString()}</p>
+                  <p className="font-medium text-white">Referral Code: <code className="text-blue-600">{link.code}</code></p>
+                  <p className="text-xs text-white/40">{new Date(link.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -345,16 +345,16 @@ export default function CustomerAffiliatePage() {
 
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Marketing Materials</h2>
-        <p className="text-sm text-gray-500">Download or copy these materials to promote SohamYoga with your audience.</p>
+        <h2 className="text-lg font-semibold text-white/90">Marketing Materials</h2>
+        <p className="text-sm text-white/60">Download or copy these materials to promote SohamYoga with your audience.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {materials.map(m => (
-            <div key={m.id} className="bg-white rounded-xl border p-4 space-y-3">
+            <div key={m.id} className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-4 space-y-3">
               <div>
                 <p className="font-medium text-gray-900 text-sm">{m.title}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   <Badge label={m.type.replace('_', ' ')} colorClass="bg-blue-50 text-blue-700" />
-                  {m.format && <Badge label={m.format} colorClass="bg-gray-100 text-gray-600" />}
+                  {m.format && <Badge label={m.format} colorClass="bg-gray-100 text-white/70" />}
                   {m.platform && <Badge label={m.platform} colorClass="bg-purple-50 text-purple-700" />}
                 </div>
               </div>
@@ -391,7 +391,7 @@ export default function CustomerAffiliatePage() {
   }
 
   function renderEarnings() {
-    if (!isAffiliate) return <div className="bg-gray-50 rounded-xl p-6 text-center text-gray-500">Not an affiliate partner yet. <button onClick={() => setTab('apply')} className="text-blue-600 hover:underline">Apply now</button></div>;
+    if (!isAffiliate) return <div className="bg-white/5 rounded-xl p-6 text-center text-white/60">Not an affiliate partner yet. <button onClick={() => setTab('apply')} className="text-blue-600 hover:underline">Apply now</button></div>;
 
     return (
       <div className="space-y-6">
@@ -400,9 +400,9 @@ export default function CustomerAffiliatePage() {
           <KpiCard label="Total Paid" value={fmtMoney(earningsSummary.total_paid)} />
           <KpiCard label="Outstanding Balance" value={fmtMoney(earningsSummary.outstanding)} sub="available for payout" />
         </div>
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b"><tr>{['Date', 'Order', 'Earned', 'Reversed', 'Paid', 'Balance'].map(h => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>)}</tr></thead>
+            <thead className="bg-white/5 border-b"><tr>{['Date', 'Order', 'Earned', 'Reversed', 'Paid', 'Balance'].map(h => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-white/60">{h}</th>)}</tr></thead>
             <tbody className="divide-y">
               {earnings.map(e => (
                 <tr key={e.id} className="hover:bg-gray-50">
@@ -414,7 +414,7 @@ export default function CustomerAffiliatePage() {
                   <td className="px-3 py-2 font-medium">{fmtMoney(Number(e.earned) - Number(e.reversed) - Number(e.paid))}</td>
                 </tr>
               ))}
-              {!earnings.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No earnings yet. Share your tracking links to start earning!</td></tr>}
+              {!earnings.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-white/40">No earnings yet. Share your tracking links to start earning!</td></tr>}
             </tbody>
           </table>
         </div>
@@ -423,17 +423,17 @@ export default function CustomerAffiliatePage() {
   }
 
   function renderPayouts() {
-    if (!isAffiliate) return <div className="bg-gray-50 rounded-xl p-6 text-center text-gray-500">Not an affiliate partner yet.</div>;
+    if (!isAffiliate) return <div className="bg-white/5 rounded-xl p-6 text-center text-white/60">Not an affiliate partner yet.</div>;
 
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Payout History</h2>
+        <h2 className="text-lg font-semibold text-white/90">Payout History</h2>
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
           Payouts are processed monthly for balances over $10. You will receive payment via the method on file with the admin team.
         </div>
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b"><tr>{['Period', 'Amount', 'Status', 'Method', 'Reference', 'Paid At'].map(h => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>)}</tr></thead>
+            <thead className="bg-white/5 border-b"><tr>{['Period', 'Amount', 'Status', 'Method', 'Reference', 'Paid At'].map(h => <th key={h} className="px-3 py-2 text-left text-xs font-medium text-white/60">{h}</th>)}</tr></thead>
             <tbody className="divide-y">
               {allPayouts.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50">
@@ -456,7 +456,7 @@ export default function CustomerAffiliatePage() {
                 </tr>
               ))}
               {!allPayouts.length && !recentPayouts.length && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No payouts yet.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-white/40">No payouts yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -468,7 +468,7 @@ export default function CustomerAffiliatePage() {
   function renderApply() {
     if (isAffiliate && partner) {
       return (
-        <div className="bg-white rounded-xl border p-8 max-w-lg mx-auto text-center">
+        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-8 max-w-lg mx-auto text-center">
           <div className="text-4xl mb-4">
             {partner.status === 'approved' ? '✅' : partner.status === 'pending' ? '⏳' : partner.status === 'rejected' ? '❌' : '⚠️'}
           </div>
@@ -481,7 +481,7 @@ export default function CustomerAffiliatePage() {
             {partner.status === 'rejected' && 'Your application was not approved at this time. You may contact support for more information.'}
             {partner.status === 'suspended' && 'Your account has been suspended. Please contact support.'}
           </p>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-white/60">
             <p>Tier: <span className="capitalize font-medium">{partner.tier}</span></p>
             <p>Commission: <strong>{(partner.commission_rate_bps / 100).toFixed(1)}%</strong></p>
           </div>
@@ -491,14 +491,14 @@ export default function CustomerAffiliatePage() {
 
     return (
       <div className="max-w-xl mx-auto">
-        <div className="bg-white rounded-xl border p-6">
+        <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl border p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Apply to the Affiliate Program</h2>
           <p className="text-gray-600 text-sm mb-6">Join our affiliate program and earn commissions for every customer you refer. We review applications within 2 business days.</p>
 
           <div className="grid grid-cols-3 gap-4 mb-6 text-center bg-blue-50 rounded-xl p-4">
-            <div><p className="text-xl font-bold text-blue-700">10-20%</p><p className="text-xs text-gray-600">Commission</p></div>
-            <div><p className="text-xl font-bold text-blue-700">30 days</p><p className="text-xs text-gray-600">Cookie Window</p></div>
-            <div><p className="text-xl font-bold text-blue-700">Monthly</p><p className="text-xs text-gray-600">Payouts</p></div>
+            <div><p className="text-xl font-bold text-blue-700">10-20%</p><p className="text-xs text-white/70">Commission</p></div>
+            <div><p className="text-xl font-bold text-blue-700">30 days</p><p className="text-xs text-white/70">Cookie Window</p></div>
+            <div><p className="text-xl font-bold text-blue-700">Monthly</p><p className="text-xs text-white/70">Payouts</p></div>
           </div>
 
           <form onSubmit={submitApplication} className="space-y-4">
@@ -557,7 +557,7 @@ export default function CustomerAffiliatePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Affiliate Program</h1>
+        <h1 className="text-2xl font-bold text-white">Affiliate Program</h1>
         <p className="text-gray-500 text-sm mt-1">Earn commissions by sharing SohamYoga with your audience.</p>
       </div>
 

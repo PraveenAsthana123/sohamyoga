@@ -29,14 +29,14 @@ export default function GoalsPage() {
     load();
   }
 
-  if (!hasStudentRecord) return <p className="text-sm text-gray-500">Goals are available once you're enrolled in a class.</p>;
+  if (!hasStudentRecord) return <p className="text-sm text-white/60">Goals are available once you're enrolled in a class.</p>;
   const available = catalog.filter(c => !goals.some(g => g.goal_code === c.code));
 
   return (
     <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Goals</h1>
-        <p className="mt-1 text-sm text-gray-500">{goals.length} goal(s) set. Ranked by priority.</p>
+        <h1 className="text-2xl font-bold text-white">My Goals</h1>
+        <p className="mt-1 text-sm text-white/60">{goals.length} goal(s) set. Ranked by priority.</p>
       </div>
 
       <div className="flex gap-2">
@@ -50,11 +50,11 @@ export default function GoalsPage() {
       <div className="space-y-2">
         {goals.map(g => (
           <div key={g.goal_code} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm">
-            <span><span className="mr-2 text-gray-400">#{g.priority}</span>{g.label}</span>
+            <span><span className="mr-2 text-white/40">#{g.priority}</span>{g.label}</span>
             <button onClick={() => remove(g.goal_code)} className="text-xs text-red-500 hover:underline">Remove</button>
           </div>
         ))}
-        {!goals.length && <p className="text-sm text-gray-400">No goals set yet.</p>}
+        {!goals.length && <p className="text-sm text-white/40">No goals set yet.</p>}
       </div>
     </div>
   );

@@ -58,12 +58,12 @@ export default function CustomerReferralPage() {
   };
 
   if (error) return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
-  if (!data) return <div className="text-sm text-gray-500">Loading…</div>;
+  if (!data) return <div className="text-sm text-white/60">Loading…</div>;
 
   return (
     <div className="max-w-3xl space-y-6">
       <header>
-        <h1 className="text-2xl font-bold text-gray-900">Refer a Friend</h1>
+        <h1 className="text-2xl font-bold text-white">Refer a Friend</h1>
         <p className="text-sm text-gray-500 mt-1">Share your real referral link — every click and signup here is tracked for real.</p>
       </header>
 
@@ -83,14 +83,14 @@ export default function CustomerReferralPage() {
           <div>
             <p className="text-xs text-gray-500 mb-1">Your referral link</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 truncate rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-800">{data.code!.referralUrl}</code>
+              <code className="flex-1 truncate rounded-lg bg-gray-50 px-3 py-2 text-sm text-white/90">{data.code!.referralUrl}</code>
               <button onClick={handleCopy} className="shrink-0 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 hover:bg-gray-200">
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
           </div>
 
-          <div className="flex gap-4 text-sm text-gray-600">
+          <div className="flex gap-4 text-sm text-white/70">
             <span>{data.code!.clickCount} click{data.code!.clickCount === 1 ? '' : 's'}</span>
             <span>{data.code!.usedCount} signup{data.code!.usedCount === 1 ? '' : 's'}</span>
           </div>
@@ -107,7 +107,7 @@ export default function CustomerReferralPage() {
           {data.code!.invitationDraft && (
             <div className="rounded-lg bg-primary-50 border border-primary-100 p-3">
               <p className="text-xs text-primary-700 font-medium mb-1">Suggested message</p>
-              <p className="text-sm text-gray-700">{data.code!.invitationDraft}</p>
+              <p className="text-sm text-white/80">{data.code!.invitationDraft}</p>
             </div>
           )}
         </div>
@@ -115,12 +115,12 @@ export default function CustomerReferralPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-2xl border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">Wallet Balance</p>
+          <p className="text-xs text-white/60">Wallet Balance</p>
           <p className="text-2xl font-bold text-primary-700 mt-1">${data.wallet.balance.toLocaleString()}</p>
           <p className="text-xs text-gray-400 mt-1">${data.wallet.lifetimeEarned.toLocaleString()} lifetime earned</p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">Current Reward</p>
+          <p className="text-xs text-white/60">Current Reward</p>
           {data.activeCampaign ? (
             <>
               <p className="text-lg font-bold text-gray-800 mt-1">{data.activeCampaign.referrerRewardValue} {data.activeCampaign.rewardType.replace(/_/g, ' ')}</p>
@@ -135,13 +135,13 @@ export default function CustomerReferralPage() {
       <div className="rounded-2xl border border-gray-200 bg-white p-6">
         <h2 className="font-semibold text-gray-800 mb-3">Your Referral History</h2>
         {data.history.length === 0 ? (
-          <p className="text-sm text-gray-400">No referrals yet — share your link above to get started.</p>
+          <p className="text-sm text-white/40">No referrals yet — share your link above to get started.</p>
         ) : (
           <div className="divide-y divide-gray-100">
             {data.history.map((h, i) => (
               <div key={i} className="flex items-center justify-between py-2 text-sm">
-                <span className="text-gray-700">{h.referreeEmail}</span>
-                <span className="text-gray-500">{STATUS_LABEL[h.status] ?? h.status}</span>
+                <span className="text-white/80">{h.referreeEmail}</span>
+                <span className="text-white/60">{STATUS_LABEL[h.status] ?? h.status}</span>
               </div>
             ))}
           </div>
