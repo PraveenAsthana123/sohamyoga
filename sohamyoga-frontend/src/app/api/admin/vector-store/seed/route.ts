@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 import crypto from 'crypto';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const CREATE_TABLE = `
 CREATE TABLE IF NOT EXISTS vector_store (
   id BIGSERIAL PRIMARY KEY,
@@ -84,7 +85,10 @@ const SEED_DOCS = [
   { ns: 'instructor_bios', type: 'bio', text: 'David Kim — Wellness Coach. Certified in Mindfulness-Based Stress Reduction (MBSR). Leads meditation, breathwork, and men\'s yoga programs. Background in corporate wellness.' },
 ];
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await pool.query(CREATE_TABLE);
 
@@ -101,8 +105,8 @@ export async function POST() {
     }
 
     const count = await pool.query('SELECT COUNT(*) AS cnt FROM vector_store');
-    return NextResponse.json({ ok: true, seeded: inserted, total: Number(count.rows[0].cnt) });
+    return Response.json({ ok: true, seeded: inserted, total: Number(count.rows[0].cnt) });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

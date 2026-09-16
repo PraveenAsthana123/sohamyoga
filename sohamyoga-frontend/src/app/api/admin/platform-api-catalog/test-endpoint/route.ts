@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface TestRequest {
   offering_id: string;
   test_type?: string;
@@ -19,12 +20,15 @@ interface OfferingRow {
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const body = await req.json() as TestRequest;
   const { offering_id, test_type = 'smoke' } = body;
 
   if (!offering_id) {
-    return NextResponse.json({ error: 'offering_id is required' }, { status: 400 });
+    return Response.json({ error: 'offering_id is required' }, { status: 400 });
   }
 
   const offeringResult = await query<OfferingRow>(
@@ -32,7 +36,7 @@ export async function POST(req: NextRequest) {
     [offering_id],
   );
   if (offeringResult.rowCount === 0) {
-    return NextResponse.json({ error: 'Offering not found' }, { status: 404 });
+    return Response.json({ error: 'Offering not found' }, { status: 404 });
   }
 
   const offering = offeringResult.rows[0];
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
         `Credentials not configured: ${missingVars.join(', ')}`,
       ],
     );
-    return NextResponse.json({
+    return Response.json({
       status: 'skip',
       message: `Credentials not configured: ${missingVars.join(', ')}`,
       offering_id,
@@ -116,7 +120,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({
+  return Response.json({
     status: testStatus,
     http_status: httpStatus,
     response_time_ms: responseTimeMs,

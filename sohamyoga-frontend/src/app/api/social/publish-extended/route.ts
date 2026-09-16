@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import {
   publishExtendedPlatform,
@@ -14,12 +14,12 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as typeof body;
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
   const { platform, input, secret } = body;
   if (!platform || !input || !secret) {
-    return NextResponse.json({ error: 'platform, input, and secret are required' }, { status: 400 });
+    return Response.json({ error: 'platform, input, and secret are required' }, { status: 400 });
   }
 
   let result;
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     result = await publishExtendedPlatform(platform, input, secret);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown publish error';
-    return NextResponse.json({ error: message }, { status: 502 });
+    return Response.json({ error: message }, { status: 502 });
   }
 
   // Persist to unified_content_item and log to social_provisioning_event on success/queued
@@ -66,5 +66,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, result });
+  return Response.json({ ok: true, result });
 }

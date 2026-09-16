@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json() as GenerateRequest;
 
     if (!body.topic) {
-      return NextResponse.json({ error: 'topic is required' }, { status: 400 });
+      return Response.json({ error: 'topic is required' }, { status: 400 });
     }
 
     const tone = body.tone ?? 'professional';
@@ -102,7 +102,7 @@ Respond in this EXACT JSON format (no other text):
       clearTimeout(timeoutId);
 
       if (!ollamaRes.ok) {
-        return NextResponse.json(buildFallback(body.topic, tone, postType));
+        return Response.json(buildFallback(body.topic, tone, postType));
       }
 
       const ollamaData = await ollamaRes.json() as { response?: string };
@@ -111,11 +111,11 @@ Respond in this EXACT JSON format (no other text):
       // Extract JSON from response
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        return NextResponse.json({ ...buildFallback(body.topic, tone, postType), content: rawText.trim() || buildFallback(body.topic, tone, postType).content });
+        return Response.json({ ...buildFallback(body.topic, tone, postType), content: rawText.trim() || buildFallback(body.topic, tone, postType).content });
       }
 
       const parsed = JSON.parse(jsonMatch[0]) as { content?: string; hashtags?: string; cta?: string };
-      return NextResponse.json({
+      return Response.json({
         content: parsed.content ?? buildFallback(body.topic, tone, postType).content,
         hashtags: parsed.hashtags ?? `#${body.topic.replace(/\s+/g, '')} #wellness`,
         cta: parsed.cta ?? 'Share your thoughts in the comments!',
@@ -125,11 +125,11 @@ Respond in this EXACT JSON format (no other text):
     } catch (fetchErr) {
       clearTimeout(timeoutId);
       if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
-        return NextResponse.json(buildFallback(body.topic, tone, postType));
+        return Response.json(buildFallback(body.topic, tone, postType));
       }
-      return NextResponse.json(buildFallback(body.topic, tone, postType));
+      return Response.json(buildFallback(body.topic, tone, postType));
     }
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

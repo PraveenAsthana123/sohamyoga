@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
 
@@ -12,13 +16,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await pool.query(query, params);
-    return NextResponse.json({ tickets: result.rows });
+    return Response.json({ tickets: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function PATCH(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { id, status, priority, assigned_agent, resolution_notes } = body;
@@ -33,8 +40,8 @@ export async function PATCH(req: NextRequest) {
        WHERE id=$1 RETURNING *`,
       [id, status, priority, assigned_agent, resolution_notes, resolved_at]
     );
-    return NextResponse.json({ ticket: result.rows[0] });
+    return Response.json({ ticket: result.rows[0] });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getCustomerPrincipal } from '@/lib/customer-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   try {
@@ -38,10 +38,10 @@ export async function GET(req: NextRequest) {
       ORDER BY rsp.display_name
     `, [customerId]);
 
-    return NextResponse.json({ platforms: result.rows });
+    return Response.json({ platforms: result.rows });
   } catch (err) {
     console.error('customer platform-settings GET error:', err);
-    return NextResponse.json({ error: 'Failed to load platform settings' }, { status: 500 });
+    return Response.json({ error: 'Failed to load platform settings' }, { status: 500 });
   }
 }
 
@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   try {
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json() as { platform: string; enabled: boolean };
 
     if (!body.platform || typeof body.enabled !== 'boolean') {
-      return NextResponse.json({ error: 'platform and enabled (boolean) are required' }, { status: 400 });
+      return Response.json({ error: 'platform and enabled (boolean) are required' }, { status: 400 });
     }
 
     // Verify platform is globally enabled
@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
     );
 
     if (globalCheck.rows.length === 0 || !globalCheck.rows[0].is_enabled) {
-      return NextResponse.json({ error: 'Platform is not globally available' }, { status: 403 });
+      return Response.json({ error: 'Platform is not globally available' }, { status: 403 });
     }
 
     const result = await query(
@@ -79,9 +79,9 @@ export async function PATCH(req: NextRequest) {
       [customerId, body.platform, body.enabled]
     );
 
-    return NextResponse.json({ toggle: result.rows[0] });
+    return Response.json({ toggle: result.rows[0] });
   } catch (err) {
     console.error('customer platform-settings PATCH error:', err);
-    return NextResponse.json({ error: 'Failed to update platform setting' }, { status: 500 });
+    return Response.json({ error: 'Failed to update platform setting' }, { status: 500 });
   }
 }

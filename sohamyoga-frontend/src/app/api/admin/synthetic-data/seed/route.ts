@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const SEED_DATASETS = [
   {
     module_name: 'Market Research',
@@ -58,7 +59,10 @@ const SEED_DATASETS = [
   },
 ];
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     let seeded = 0;
     for (const ds of SEED_DATASETS) {
@@ -71,8 +75,8 @@ export async function POST() {
       seeded++;
     }
     const count = await pool.query('SELECT COUNT(*) AS cnt FROM synthetic_data_set');
-    return NextResponse.json({ ok: true, seeded, total: Number(count.rows[0].cnt) });
+    return Response.json({ ok: true, seeded, total: Number(count.rows[0].cnt) });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

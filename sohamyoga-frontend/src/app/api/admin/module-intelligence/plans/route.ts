@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
@@ -21,10 +25,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   sql += ' ORDER BY tp.created_at DESC LIMIT 500';
 
   const result = await query(sql, params);
-  return NextResponse.json(result.rows);
+  return Response.json(result.rows);
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const body = await req.json() as {
     module_key: string; plan_name: string; version?: string; objective?: string;
@@ -41,5 +48,5 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       body.scope_in ?? null, body.scope_out ?? null, body.environment ?? 'local',
       body.test_data_source ?? 'synthetic', body.kaggle_dataset ?? null, body.status ?? 'draft'],
   );
-  return NextResponse.json(result.rows[0], { status: 201 });
+  return Response.json(result.rows[0], { status: 201 });
 }

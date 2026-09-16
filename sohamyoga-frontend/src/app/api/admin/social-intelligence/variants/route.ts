@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const platform = req.nextUrl.searchParams.get('platform');
   const status = req.nextUrl.searchParams.get('status');
@@ -16,10 +20,13 @@ export async function GET(req: NextRequest) {
     `SELECT * FROM social_content_variant ${where} ORDER BY created_at DESC LIMIT 100`,
     params,
   );
-  return NextResponse.json({ variants: result.rows });
+  return Response.json({ variants: result.rows });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const body = await req.json();
   const {
@@ -29,8 +36,8 @@ export async function POST(req: NextRequest) {
     char_count, word_count, ai_generated, ai_model, ai_prompt,
     status, scheduled_at,
   } = body;
-  if (!platform) return NextResponse.json({ error: 'platform is required' }, { status: 400 });
-  if (!content_type) return NextResponse.json({ error: 'content_type is required' }, { status: 400 });
+  if (!platform) return Response.json({ error: 'platform is required' }, { status: 400 });
+  if (!content_type) return Response.json({ error: 'content_type is required' }, { status: 400 });
 
   const captionText = caption ?? '';
   const computedCharCount = char_count ?? captionText.length;
@@ -52,5 +59,5 @@ export async function POST(req: NextRequest) {
       status ?? 'draft', scheduled_at ?? null,
     ],
   );
-  return NextResponse.json({ variant: result.rows[0] }, { status: 201 });
+  return Response.json({ variant: result.rows[0] }, { status: 201 });
 }

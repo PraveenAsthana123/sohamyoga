@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
-export async function POST() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
 
   const period = new Date().toISOString().slice(0, 7); // '2026-09'
@@ -44,5 +48,5 @@ export async function POST() {
     upserted++;
   }
 
-  return NextResponse.json({ ok: true, period, upserted });
+  return Response.json({ ok: true, period, upserted });
 }

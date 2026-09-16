@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getAdminPrincipal } from '@/lib/admin-auth';
 import { getAiGovernanceDb } from '@/domain/ai-governance/db';
 import { aiGovernanceFramework, aiGovernanceAssessment } from '@/domain/ai-governance/schema';
@@ -42,5 +42,5 @@ export async function GET(req: NextRequest) {
     };
   });
 
-  return NextResponse.json({ frameworks: result });
+  return Response.json({ frameworks: result });
 }

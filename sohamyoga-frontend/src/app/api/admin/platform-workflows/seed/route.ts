@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const CREATE_TABLES = `
 CREATE TABLE IF NOT EXISTS platform_workflow (
   id SERIAL PRIMARY KEY,
@@ -327,7 +328,10 @@ const SEED_WORKFLOWS: SeedWorkflow[] = [
   },
 ];
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Create tables
     await query(CREATE_TABLES);
@@ -382,13 +386,13 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({
+    return Response.json({
       message: 'Tables created and seed data inserted',
       workflows_created: workflowsCreated,
       steps_created: stepsCreated,
     });
   } catch (err) {
     console.error('Seed error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

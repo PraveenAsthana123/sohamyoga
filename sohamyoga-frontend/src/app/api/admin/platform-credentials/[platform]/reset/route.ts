@@ -1,5 +1,5 @@
 // POST /api/admin/platform-credentials/[platform]/reset
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -11,7 +11,7 @@ type Params = { params: Promise<{ platform: string }> };
 export async function POST(req: NextRequest, { params }: Params) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  if (!databaseConfigured()) return Response.json({ error: 'Database not configured' }, { status: 503 });
 
   const { platform } = await params;
 
@@ -44,9 +44,9 @@ export async function POST(req: NextRequest, { params }: Params) {
       [platform]
     );
 
-    return NextResponse.json({ success: true, message: `${platform} setup reset successfully` });
+    return Response.json({ success: true, message: `${platform} setup reset successfully` });
   } catch (err) {
     console.error('[platform-credentials/[platform]/reset] error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

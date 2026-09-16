@@ -1,16 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
-    const result = await pool.query('SELECT * FROM calendar_integration ORDER BY created_at DESC');
-    return NextResponse.json({ integrations: result.rows });
+    const result = await pool.query('SELECT * FROM calendar_integration ORDER BY created_at DESC LIMIT 500');
+    return Response.json({ integrations: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { provider, account_email, calendar_name, sync_direction, access_token_env_var } = body;
@@ -19,8 +26,8 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [provider, account_email, calendar_name, sync_direction ?? 'both', access_token_env_var]
     );
-    return NextResponse.json({ integration: result.rows[0] }, { status: 201 });
+    return Response.json({ integration: result.rows[0] }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

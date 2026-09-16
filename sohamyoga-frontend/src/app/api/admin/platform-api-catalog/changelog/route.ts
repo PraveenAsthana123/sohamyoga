@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const sp = req.nextUrl.searchParams;
   const platform = sp.get('platform');
@@ -22,10 +26,13 @@ export async function GET(req: NextRequest) {
     `SELECT * FROM platform_api_changelog ${where} ORDER BY created_at DESC LIMIT 200`,
     params,
   );
-  return NextResponse.json({ entries: result.rows, total: result.rowCount });
+  return Response.json({ entries: result.rows, total: result.rowCount });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const body = await req.json() as Record<string, unknown>;
   const {
@@ -34,7 +41,7 @@ export async function POST(req: NextRequest) {
   } = body;
 
   if (!platform || !change_type || !description) {
-    return NextResponse.json({ error: 'platform, change_type, description are required' }, { status: 400 });
+    return Response.json({ error: 'platform, change_type, description are required' }, { status: 400 });
   }
 
   const result = await query(
@@ -48,5 +55,5 @@ export async function POST(req: NextRequest) {
       our_action_required ?? false, our_action_taken ?? null, source_url ?? null,
     ],
   );
-  return NextResponse.json({ entry: result.rows[0] }, { status: 201 });
+  return Response.json({ entry: result.rows[0] }, { status: 201 });
 }

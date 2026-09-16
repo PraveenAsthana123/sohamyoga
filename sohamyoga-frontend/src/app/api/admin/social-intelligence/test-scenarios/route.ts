@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const platform = req.nextUrl.searchParams.get('platform');
   const polarity = req.nextUrl.searchParams.get('polarity');
@@ -27,7 +31,7 @@ export async function GET(req: NextRequest) {
   const passed = result.rows.filter(r => r.status === 'pass').length;
   const failed = result.rows.filter(r => r.status === 'fail').length;
 
-  return NextResponse.json({
+  return Response.json({
     scenarios: result.rows,
     summary: { total, passed, failed, pending: total - passed - failed },
   });

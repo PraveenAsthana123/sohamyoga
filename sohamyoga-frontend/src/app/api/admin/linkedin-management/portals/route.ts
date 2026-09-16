@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const { rows } = await pool.query(
     'SELECT * FROM b2b_portal_integration ORDER BY portal_name ASC'
   );
-  return NextResponse.json({ portals: rows });
+  return Response.json({ portals: rows });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest) {
     };
 
     if (!body.id) {
-      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+      return Response.json({ error: 'id is required' }, { status: 400 });
     }
 
     const setClauses: string[] = [];
@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (!setClauses.length) {
-      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+      return Response.json({ error: 'No fields to update' }, { status: 400 });
     }
 
     setClauses.push(`updated_at=NOW()`);
@@ -62,9 +62,9 @@ export async function PATCH(req: NextRequest) {
       values
     );
 
-    if (!rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ portal: rows[0] });
+    if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json({ portal: rows[0] });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

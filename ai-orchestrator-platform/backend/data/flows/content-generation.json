@@ -1,0 +1,119 @@
+{
+  "id": "content-generation-flow-v1",
+  "name": "Social Content Generation Pipeline",
+  "description": "Sohamyoga content agent: takes a topic + platform, calls Ollama llama3.2, adapts the output for the target platform, then returns the finished post.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "input-1",
+      "type": "TextInput",
+      "label": "Topic Input",
+      "description": "Enter the topic or theme for the social post",
+      "outputs": ["topic_text"],
+      "config": {
+        "placeholder": "e.g. Morning yoga routine for beginners",
+        "multiline": false
+      }
+    },
+    {
+      "id": "input-2",
+      "type": "DropdownInput",
+      "label": "Platform Selector",
+      "description": "Choose the target social media platform",
+      "outputs": ["platform_name"],
+      "config": {
+        "options": ["instagram", "twitter", "linkedin", "facebook", "youtube", "tiktok", "pinterest"],
+        "default": "instagram"
+      }
+    },
+    {
+      "id": "input-3",
+      "type": "DropdownInput",
+      "label": "Tone Selector",
+      "description": "Choose the writing tone",
+      "outputs": ["tone_value"],
+      "config": {
+        "options": ["professional", "casual", "motivational", "educational", "playful"],
+        "default": "professional"
+      }
+    },
+    {
+      "id": "prompt-builder",
+      "type": "PromptTemplate",
+      "label": "Content Prompt Builder",
+      "description": "Combines topic, platform, and tone into a structured prompt for Ollama",
+      "inputs": ["topic_text", "platform_name", "tone_value"],
+      "outputs": ["built_prompt"],
+      "config": {
+        "template": "You are a social media content expert for a yoga and wellness brand.\n\nWrite a {tone_value} {platform_name} post about: {topic_text}\n\nPlatform requirements:\n- instagram: 5-10 hashtags, visual storytelling, under 2200 chars\n- twitter/x: 1-2 hashtags, under 280 chars\n- linkedin: professional tone, 1-3 hashtags, under 3000 chars\n- facebook: conversational, under 1000 chars\n- youtube: description format with keywords, under 5000 chars\n- tiktok: punchy, trend-aware, under 150 chars\n- pinterest: descriptive, keyword-rich, under 500 chars\n\nReturn ONLY the post text — no explanation, no labels."
+      }
+    },
+    {
+      "id": "ollama-llm",
+      "type": "OllamaLLM",
+      "label": "Ollama Content Generator (llama3.2)",
+      "description": "Calls local Ollama llama3.2 to generate the initial post content",
+      "inputs": ["built_prompt"],
+      "outputs": ["raw_content"],
+      "config": {
+        "base_url": "http://localhost:11434",
+        "model": "llama3.2",
+        "temperature": 0.7,
+        "stream": false
+      }
+    },
+    {
+      "id": "platform-adapter",
+      "type": "PromptTemplate",
+      "label": "Platform Adaptation Prompt",
+      "description": "Asks Ollama to review and trim the content to match platform limits exactly",
+      "inputs": ["raw_content", "platform_name"],
+      "outputs": ["adaptation_prompt"],
+      "config": {
+        "template": "Review this {platform_name} post and ensure it strictly meets platform requirements (character limits, hashtag count, tone). Make minimal changes — only what is needed to comply.\n\nPost:\n{raw_content}\n\nReturn ONLY the final post text."
+      }
+    },
+    {
+      "id": "ollama-adapter",
+      "type": "OllamaLLM",
+      "label": "Ollama Platform Adapter (llama3.2)",
+      "description": "Second Ollama pass to enforce platform-specific constraints",
+      "inputs": ["adaptation_prompt"],
+      "outputs": ["adapted_content"],
+      "config": {
+        "base_url": "http://localhost:11434",
+        "model": "llama3.2",
+        "temperature": 0.3,
+        "stream": false
+      }
+    },
+    {
+      "id": "output-1",
+      "type": "TextOutput",
+      "label": "Final Post Output",
+      "description": "The finished, platform-ready social media post",
+      "inputs": ["adapted_content"],
+      "config": {
+        "display_label": "Generated Post"
+      }
+    }
+  ],
+  "edges": [
+    {"from": "input-1", "from_port": "topic_text", "to": "prompt-builder", "to_port": "topic_text"},
+    {"from": "input-2", "from_port": "platform_name", "to": "prompt-builder", "to_port": "platform_name"},
+    {"from": "input-2", "from_port": "platform_name", "to": "platform-adapter", "to_port": "platform_name"},
+    {"from": "input-3", "from_port": "tone_value", "to": "prompt-builder", "to_port": "tone_value"},
+    {"from": "prompt-builder", "from_port": "built_prompt", "to": "ollama-llm", "to_port": "built_prompt"},
+    {"from": "ollama-llm", "from_port": "raw_content", "to": "platform-adapter", "to_port": "raw_content"},
+    {"from": "platform-adapter", "from_port": "adaptation_prompt", "to": "ollama-adapter", "to_port": "adaptation_prompt"},
+    {"from": "ollama-adapter", "from_port": "adapted_content", "to": "output-1", "to_port": "adapted_content"}
+  ],
+  "metadata": {
+    "author": "sohamyoga-ai-platform",
+    "created_at": "2026-09-16",
+    "langflow_version": ">=1.0.0",
+    "ollama_model": "llama3.2",
+    "supported_platforms": ["instagram", "twitter", "linkedin", "facebook", "youtube", "tiktok", "pinterest"],
+    "import_instructions": "In LangFlow UI: click Import Flow, select this file. Ollama must be running at http://localhost:11434 with llama3.2 pulled."
+  }
+}

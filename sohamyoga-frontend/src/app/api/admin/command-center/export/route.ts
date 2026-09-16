@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const sp = req.nextUrl.searchParams;
     const platforms = sp.get('platforms')?.split(',').filter(Boolean) ?? [];
@@ -51,6 +55,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -14,11 +14,11 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   if (auth) return auth;
 
   const id = parseInt(params.id, 10);
-  if (isNaN(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+  if (isNaN(id)) return Response.json({ error: 'Invalid id' }, { status: 400 });
 
   const { rows } = await pool.query('SELECT * FROM linkedin_post WHERE id=$1', [id]);
-  if (!rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json({ post: rows[0] });
+  if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+  return Response.json({ post: rows[0] });
 }
 
 export async function PATCH(req: NextRequest, { params }: RouteContext) {
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
   if (auth) return auth;
 
   const id = parseInt(params.id, 10);
-  if (isNaN(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+  if (isNaN(id)) return Response.json({ error: 'Invalid id' }, { status: 400 });
 
   try {
     const body = await req.json() as Record<string, string | number | boolean | null>;
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     }
 
     if (!setClauses.length) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return Response.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
     setClauses.push(`updated_at=NOW()`);
@@ -59,10 +59,10 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       values
     );
 
-    if (!rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ post: rows[0] });
+    if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json({ post: rows[0] });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -71,9 +71,9 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
   if (auth) return auth;
 
   const id = parseInt(params.id, 10);
-  if (isNaN(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+  if (isNaN(id)) return Response.json({ error: 'Invalid id' }, { status: 400 });
 
   const { rowCount } = await pool.query('DELETE FROM linkedin_post WHERE id=$1', [id]);
-  if (!rowCount) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json({ success: true });
+  if (!rowCount) return Response.json({ error: 'Not found' }, { status: 404 });
+  return Response.json({ success: true });
 }

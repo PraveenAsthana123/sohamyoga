@@ -1,10 +1,14 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   const result = await query(`
     SELECT p.*, c.name as campaign_name
@@ -17,6 +21,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   const body = await req.json();
   const allowed = [
@@ -37,7 +44,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return Response.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   await query(`DELETE FROM ad_post_plan WHERE id = $1`, [id]);
   return Response.json({ ok: true });

@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  const result = await query(`SELECT * FROM email_template ORDER BY created_at DESC`);
+  const result = await query(`SELECT * FROM email_template ORDER BY created_at DESC LIMIT 500`);
   return Response.json({ templates: result.rows });
 }
 

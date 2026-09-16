@@ -1,10 +1,14 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const plan_id = searchParams.get('plan_id');
   const sentiment = searchParams.get('sentiment');
@@ -52,6 +56,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const body = await req.json();
   const { plan_id, customer_id, customer_name, customer_email, rating, comment, sentiment, source } = body;
 

@@ -3,9 +3,10 @@
 // social_platform_analytics, or reputation_review depending on tab type.
 // Also creates the required tables if they don't exist yet (ensureSchema pattern).
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 // Create tables if missing (idempotent)
 async function ensurePlatformDataSchema(): Promise<void> {
   // unified_content_item — cross-platform content store
@@ -128,13 +129,16 @@ function tabToContentTypes(tab: string): string[] {
 
 let schemaEnsured = false;
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = req.nextUrl;
   const platform = searchParams.get('platform') ?? '';
   const tab = searchParams.get('tab') ?? '';
 
   if (!platform || !tab) {
-    return NextResponse.json({ error: 'platform and tab query params are required' }, { status: 400 });
+    return Response.json({ error: 'platform and tab query params are required' }, { status: 400 });
   }
 
   try {
@@ -166,7 +170,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       };
       const merged = { ...defaults, ...kpis };
 
-      return NextResponse.json({
+      return Response.json({
         rows: [],
         kpis: merged,
         lastSynced,
@@ -197,7 +201,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         [platform]
       );
 
-      return NextResponse.json({
+      return Response.json({
         rows: reviewRes.rows.map((r) => ({
           id: r.id,
           reviewer_name: r.reviewer_name,
@@ -234,7 +238,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       [platform, ...contentTypes]
     );
 
-    return NextResponse.json({
+    return Response.json({
       rows: contentRes.rows.map((r) => ({
         id: r.id,
         content_type: r.content_type,
@@ -253,6 +257,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     });
   } catch (err) {
     console.error('[platform-data]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface ApiLogRow {
   id: number;
   platform: string;
@@ -19,11 +20,11 @@ interface ApiLogRow {
   created_at: string;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { platform: string } },
-) {
-  const { platform } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ platform: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { platform } = await params;
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)));
@@ -47,7 +48,7 @@ export async function GET(
       [platform, limit, offset],
     );
 
-    return NextResponse.json({
+    return Response.json({
       platform,
       rows: result.rows,
       total,
@@ -57,6 +58,6 @@ export async function GET(
     });
   } catch (err) {
     console.error('[api-logs/platform]', err);
-    return NextResponse.json({ error: 'Failed to fetch platform logs' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch platform logs' }, { status: 500 });
   }
 }

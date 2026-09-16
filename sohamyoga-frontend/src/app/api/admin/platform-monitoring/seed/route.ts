@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Create all 5 tables
     await query(`
@@ -158,7 +162,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       message: 'All 5 tables created and seeded',
       platforms: platforms.length,
@@ -168,7 +172,7 @@ export async function GET() {
     });
   } catch (err) {
     console.error('[platform-monitoring/seed]', err);
-    return NextResponse.json(
+    return Response.json(
       { error: err instanceof Error ? err.message : 'Seed failed' },
       { status: 500 },
     );

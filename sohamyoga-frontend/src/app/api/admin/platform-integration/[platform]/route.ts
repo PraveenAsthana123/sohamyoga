@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -85,10 +85,10 @@ export async function GET(req: NextRequest, { params }: Params) {
     ]);
 
     if (configResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Platform not found' }, { status: 404 });
+      return Response.json({ error: 'Platform not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
+    return Response.json({
       config: configResult.rows[0],
       system_accounts: accountsResult.rows,
       webhooks: webhooksResult.rows,
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     });
   } catch (err) {
     console.error(`platform-integration GET [${platform}] error:`, err);
-    return NextResponse.json({ error: 'Failed to load platform details' }, { status: 500 });
+    return Response.json({ error: 'Failed to load platform details' }, { status: 500 });
   }
 }
 
@@ -105,7 +105,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -133,7 +133,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     if (sets.length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return Response.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
     sets.push(`updated_at = NOW()`);
@@ -153,12 +153,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
          RETURNING *`,
         [platform, ...Object.values(body).filter((_, i) => allowed.includes(Object.keys(body)[i]))]
       );
-      return NextResponse.json({ config: upsertResult.rows[0] });
+      return Response.json({ config: upsertResult.rows[0] });
     }
 
-    return NextResponse.json({ config: result.rows[0] });
+    return Response.json({ config: result.rows[0] });
   } catch (err) {
     console.error(`platform-integration PATCH [${platform}] error:`, err);
-    return NextResponse.json({ error: 'Failed to update platform config' }, { status: 500 });
+    return Response.json({ error: 'Failed to update platform config' }, { status: 500 });
   }
 }

@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await pool.query(`
       SELECT
@@ -16,7 +20,7 @@ export async function GET() {
     const totalDocs = result.rows.reduce((acc: number, r: { total_docs: string }) => acc + Number(r.total_docs), 0);
     const withEmbeddings = result.rows.reduce((acc: number, r: { with_embeddings: string }) => acc + Number(r.with_embeddings), 0);
 
-    return NextResponse.json({
+    return Response.json({
       namespaces: result.rows.map((r: { namespace: string; total_docs: string; with_embeddings: string }) => ({
         namespace: r.namespace,
         total_docs: Number(r.total_docs),
@@ -32,6 +36,6 @@ export async function GET() {
       },
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

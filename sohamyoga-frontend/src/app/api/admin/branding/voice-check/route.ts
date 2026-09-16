@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { text, action, topic, audience, tone } = await req.json() as {
     text?: string; action?: string; topic?: string; audience?: string; tone?: string;
   };
@@ -52,7 +56,7 @@ Only return valid JSON.`;
 Respond with JSON: { "recommendations": [{"area": "...", "action": "...", "priority": "high|medium|low"}] }
 Only return valid JSON.`;
   } else {
-    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+    return Response.json({ error: 'Unknown action' }, { status: 400 });
   }
 
   try {
@@ -68,11 +72,11 @@ Only return valid JSON.`;
 
     // Extract JSON from response
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return NextResponse.json({ result: raw });
+    if (!jsonMatch) return Response.json({ result: raw });
 
     const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
-    return NextResponse.json({ result: parsed });
+    return Response.json({ result: parsed });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

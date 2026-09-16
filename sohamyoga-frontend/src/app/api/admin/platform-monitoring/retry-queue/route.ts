@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface RetryRow {
   id: number;
   platform: string;
@@ -17,7 +18,10 @@ interface RetryRow {
   updated_at: string;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await query<RetryRow>(
       `SELECT id, platform, operation_type, payload, original_error, attempt_count, max_attempts,
@@ -28,14 +32,17 @@ export async function GET() {
          CASE status WHEN 'retrying' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END,
          next_retry_at ASC`,
     );
-    return NextResponse.json({ rows: result.rows, total: result.rows.length });
+    return Response.json({ rows: result.rows, total: result.rows.length });
   } catch (err) {
     console.error('[retry-queue GET]', err);
-    return NextResponse.json({ error: 'Failed to fetch retry queue' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch retry queue' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       platform: string;
@@ -60,9 +67,9 @@ export async function POST(req: NextRequest) {
         body.content_item_id ?? null,
       ],
     );
-    return NextResponse.json({ success: true, id: result.rows[0].id }, { status: 201 });
+    return Response.json({ success: true, id: result.rows[0].id }, { status: 201 });
   } catch (err) {
     console.error('[retry-queue POST]', err);
-    return NextResponse.json({ error: 'Failed to add retry item' }, { status: 500 });
+    return Response.json({ error: 'Failed to add retry item' }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
         .reduce((s, p) => s + Number(p.amount ?? 0), 0),
     };
 
-    return NextResponse.json({
+    return Response.json({
       summary: paymentSummary,
       payments: paymentsRes.rows,
       invoiceSummary: invoiceRes.rows,

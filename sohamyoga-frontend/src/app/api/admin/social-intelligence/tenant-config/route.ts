@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const tenant_type = req.nextUrl.searchParams.get('tenant_type');
   const platform = req.nextUrl.searchParams.get('platform');
@@ -16,5 +20,5 @@ export async function GET(req: NextRequest) {
     `SELECT * FROM social_tenant_config ${where} ORDER BY tenant_type, platform`,
     params,
   );
-  return NextResponse.json({ configs: result.rows });
+  return Response.json({ configs: result.rows });
 }

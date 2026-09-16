@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
 import { ConsentRecord, type ConsentLevel } from '@/domain/analytics/ConsentRecord';
@@ -64,20 +64,20 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as EventBody;
   } catch {
-    return NextResponse.json({ ok: false, error: 'invalid JSON' }, { status: 400 });
+    return Response.json({ ok: false, error: 'invalid JSON' }, { status: 400 });
   }
 
   if (!body.name || !body.url) {
-    return NextResponse.json({ ok: false, error: 'name and url are required' }, { status: 400 });
+    return Response.json({ ok: false, error: 'name and url are required' }, { status: 400 });
   }
   if (!body.anonymousId) {
-    return NextResponse.json({ ok: false, error: 'anonymousId is required' }, { status: 400 });
+    return Response.json({ ok: false, error: 'anonymousId is required' }, { status: 400 });
   }
   const eventType = EVENT_TYPES.has(body.eventType ?? '') ? body.eventType! : 'custom';
 
   if (!databaseConfigured()) {
     // No DB configured (e.g. local static export) — accept and drop, don't error the client.
-    return NextResponse.json({ ok: true, persisted: false });
+    return Response.json({ ok: true, persisted: false });
   }
 
   try {
@@ -132,11 +132,11 @@ export async function POST(req: NextRequest) {
         body.referrer || null, JSON.stringify(properties), status, consent.level],
     );
 
-    return NextResponse.json({ ok: true, persisted: true, status });
+    return Response.json({ ok: true, persisted: true, status });
   } catch (error) {
     console.error('[analytics/events] write failed:', error instanceof Error ? error.message : error);
     // Never break the visitor's page over an analytics write failure.
-    return NextResponse.json({ ok: true, persisted: false });
+    return Response.json({ ok: true, persisted: false });
   }
 }
 

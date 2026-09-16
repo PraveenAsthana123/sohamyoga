@@ -1,13 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  const id = parseInt(params.id, 10);
+import { requireAdmin } from '@/lib/admin-auth';
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id: rawId } = await params;
+  const id = parseInt(rawId, 10);
   if (isNaN(id)) {
-    return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+    return Response.json({ error: 'Invalid id' }, { status: 400 });
   }
 
   try {
@@ -20,7 +22,7 @@ export async function POST(
          WHERE id = $1`,
         [id],
       );
-      return NextResponse.json({ success: true, action: 'process', id });
+      return Response.json({ success: true, action: 'process', id });
     }
 
     if (body.action === 'replay') {
@@ -36,7 +38,7 @@ export async function POST(
       );
 
       if (existing.rows.length === 0) {
-        return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+        return Response.json({ error: 'Event not found' }, { status: 404 });
       }
 
       const ev = existing.rows[0];
@@ -53,29 +55,30 @@ export async function POST(
           ev.raw_body,
         ],
       );
-      return NextResponse.json({ success: true, action: 'replay', new_id: newId.rows[0].id });
+      return Response.json({ success: true, action: 'replay', new_id: newId.rows[0].id });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    return Response.json({ error: 'Invalid action' }, { status: 400 });
   } catch (err) {
     console.error('[webhooks/id POST]', err);
-    return NextResponse.json({ error: 'Action failed' }, { status: 500 });
+    return Response.json({ error: 'Action failed' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  const id = parseInt(params.id, 10);
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id: rawId } = await params;
+  const id = parseInt(rawId, 10);
   if (isNaN(id)) {
-    return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+    return Response.json({ error: 'Invalid id' }, { status: 400 });
   }
   try {
     await query(`DELETE FROM platform_webhook_event WHERE id = $1`, [id]);
-    return NextResponse.json({ success: true, id });
+    return Response.json({ success: true, id });
   } catch (err) {
     console.error('[webhooks/id DELETE]', err);
-    return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
+    return Response.json({ error: 'Delete failed' }, { status: 500 });
   }
 }

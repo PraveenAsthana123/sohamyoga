@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
@@ -75,5 +75,5 @@ Only return the JSON array, no other text.`;
     ];
   }
 
-  return NextResponse.json({ ideas, niche, platform });
+  return Response.json({ ideas, niche, platform });
 }

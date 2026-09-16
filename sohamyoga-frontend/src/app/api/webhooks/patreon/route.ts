@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { verifyPatreonSignature } from '@/domain/mcp/webhookVerify';
 
@@ -10,12 +10,12 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   const secret = process.env.PATREON_WEBHOOK_SECRET?.trim();
   if (!secret) {
-    return NextResponse.json({ error: 'PATREON_WEBHOOK_SECRET is not configured.' }, { status: 503 });
+    return Response.json({ error: 'PATREON_WEBHOOK_SECRET is not configured.' }, { status: 503 });
   }
   const rawBody = await req.text();
   const signatureValid = verifyPatreonSignature(rawBody, req.headers.get('x-patreon-signature'), secret);
   if (!signatureValid) {
-    return NextResponse.json({ error: 'Invalid signature.' }, { status: 401 });
+    return Response.json({ error: 'Invalid signature.' }, { status: 401 });
   }
 
   const eventType = req.headers.get('x-patreon-event') ?? 'unknown';
@@ -27,5 +27,5 @@ export async function POST(req: NextRequest) {
     ['patreon', eventType, true, JSON.stringify(payload)]
   );
 
-  return NextResponse.json({ received: true, eventType });
+  return Response.json({ received: true, eventType });
 }

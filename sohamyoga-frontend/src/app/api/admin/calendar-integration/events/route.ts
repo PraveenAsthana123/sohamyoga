@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const from = searchParams.get('from');
   const to = searchParams.get('to');
@@ -16,13 +20,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await pool.query(query, params);
-    return NextResponse.json({ events: result.rows });
+    return Response.json({ events: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { title, description, start_at, end_at, all_day, location, event_type, provider } = body;
@@ -31,8 +38,8 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true) RETURNING *`,
       [title, description, start_at, end_at, all_day ?? false, location, event_type ?? 'meeting', provider ?? 'local']
     );
-    return NextResponse.json({ event: result.rows[0] }, { status: 201 });
+    return Response.json({ event: result.rows[0] }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

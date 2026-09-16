@@ -50,41 +50,41 @@ async function markConfigured(provider: string): Promise<void> {
   }
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
   const denied = await requireAdmin(req);
   if (denied) return denied as NextResponse;
 
   let body: unknown;
   try { body = await req.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return Response.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
   const { provider, appId, appSecret } = body as Record<string, string>;
 
   if (!provider || !ALLOWED_PROVIDERS.has(provider)) {
-    return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
+    return Response.json({ error: 'Invalid provider' }, { status: 400 });
   }
   if (!appId) {
-    return NextResponse.json({ error: 'appId required' }, { status: 400 });
+    return Response.json({ error: 'appId required' }, { status: 400 });
   }
 
   try {
     await writeToOpenBao(provider, appId, appSecret ?? '');
     await markConfigured(provider);
-    return NextResponse.json({ ok: true, provider });
+    return Response.json({ ok: true, provider });
     // Note: appId and appSecret deliberately not echoed back
   } catch (err) {
     console.error('[social/setup] write failed for provider:', provider, (err as Error).message);
-    return NextResponse.json({ error: 'Failed to save credentials' }, { status: 500 });
+    return Response.json({ error: 'Failed to save credentials' }, { status: 500 });
   }
 }
 
 // GET /api/social/setup — return which providers are configured (no secret values)
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
   const denied = await requireAdmin(req);
   if (denied) return denied as NextResponse;
   if (!DATABASE_URL) {
-    return NextResponse.json({ providers: [] });
+    return Response.json({ providers: [] });
   }
   const { Pool } = await import('pg');
   const db = new Pool({ connectionString: DATABASE_URL });
@@ -96,9 +96,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       `SELECT provider_name, is_configured, review_required, missing_vars, checked_at
        FROM postiz_provider_status ORDER BY provider_name`,
     );
-    return NextResponse.json({ providers: res.rows });
+    return Response.json({ providers: res.rows });
   } catch {
-    return NextResponse.json({ providers: [] });
+    return Response.json({ providers: [] });
   } finally {
     await db.end();
   }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
   const totalResult = await pool.query(`SELECT COUNT(*)::int AS total FROM faq`);
 
-  return NextResponse.json({
+  return Response.json({
     faqs: result.rows,
     counts: counts.rows,
     total: totalResult.rows[0]?.total ?? 0,
@@ -52,12 +52,12 @@ export async function POST(req: NextRequest) {
   const { question, answer, category = 'general', sort_order = 0, published = false } = body;
 
   if (!question?.trim() || !answer?.trim()) {
-    return NextResponse.json({ error: 'question and answer are required' }, { status: 400 });
+    return Response.json({ error: 'question and answer are required' }, { status: 400 });
   }
 
   const validCategories = ['general', 'class', 'membership', 'payment', 'ai_feature'];
   if (!validCategories.includes(category)) {
-    return NextResponse.json({ error: `category must be one of: ${validCategories.join(', ')}` }, { status: 400 });
+    return Response.json({ error: `category must be one of: ${validCategories.join(', ')}` }, { status: 400 });
   }
 
   const result = await pool.query(
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     [question.trim(), answer.trim(), category, sort_order, published],
   );
 
-  return NextResponse.json({ faq: result.rows[0] }, { status: 201 });
+  return Response.json({ faq: result.rows[0] }, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -86,7 +86,7 @@ export async function PATCH(req: NextRequest) {
   const { id, ...fields } = body;
 
   if (!id) {
-    return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    return Response.json({ error: 'id is required' }, { status: 400 });
   }
 
   const allowedFields = ['question', 'answer', 'category', 'sort_order', 'published'];
@@ -101,7 +101,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   if (updates.length === 0) {
-    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+    return Response.json({ error: 'No valid fields to update' }, { status: 400 });
   }
 
   updates.push(`updated_at = NOW()`);
@@ -113,10 +113,10 @@ export async function PATCH(req: NextRequest) {
   );
 
   if (result.rowCount === 0) {
-    return NextResponse.json({ error: 'FAQ not found' }, { status: 404 });
+    return Response.json({ error: 'FAQ not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ faq: result.rows[0] });
+  return Response.json({ faq: result.rows[0] });
 }
 
 export async function DELETE(req: NextRequest) {
@@ -127,14 +127,14 @@ export async function DELETE(req: NextRequest) {
   const id = searchParams.get('id');
 
   if (!id) {
-    return NextResponse.json({ error: 'id query param is required' }, { status: 400 });
+    return Response.json({ error: 'id query param is required' }, { status: 400 });
   }
 
   const result = await pool.query(`DELETE FROM faq WHERE id = $1 RETURNING id`, [parseInt(id)]);
 
   if (result.rowCount === 0) {
-    return NextResponse.json({ error: 'FAQ not found' }, { status: 404 });
+    return Response.json({ error: 'FAQ not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ deleted: true, id: parseInt(id) });
+  return Response.json({ deleted: true, id: parseInt(id) });
 }

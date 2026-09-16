@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +73,9 @@ async function ensureTables() {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const { searchParams } = new URL(req.url);
   const section = searchParams.get('section');
@@ -82,32 +86,32 @@ export async function GET(req: NextRequest) {
       ? `SELECT * FROM brand_asset WHERE asset_type=$1 ORDER BY is_primary DESC, created_at DESC`
       : `SELECT * FROM brand_asset ORDER BY is_primary DESC, created_at DESC`;
     const result = type ? await pool.query(q, [type]) : await pool.query(q);
-    return NextResponse.json({ assets: result.rows });
+    return Response.json({ assets: result.rows });
   }
 
   if (section === 'guidelines') {
     const result = await pool.query(`SELECT * FROM brand_guideline ORDER BY section, id`);
-    return NextResponse.json({ guidelines: result.rows });
+    return Response.json({ guidelines: result.rows });
   }
 
   if (section === 'mentions') {
     const result = await pool.query(`SELECT * FROM brand_mention ORDER BY mentioned_at DESC LIMIT 100`);
-    return NextResponse.json({ mentions: result.rows });
+    return Response.json({ mentions: result.rows });
   }
 
   if (section === 'scores') {
     const result = await pool.query(`SELECT * FROM brand_score_history ORDER BY recorded_at DESC LIMIT 6`);
-    return NextResponse.json({ scores: result.rows });
+    return Response.json({ scores: result.rows });
   }
 
   if (section === 'competitors') {
     const result = await pool.query(`SELECT * FROM brand_competitor ORDER BY created_at DESC`);
-    return NextResponse.json({ competitors: result.rows });
+    return Response.json({ competitors: result.rows });
   }
 
   if (section === 'voice-samples') {
     const result = await pool.query(`SELECT * FROM brand_voice_sample ORDER BY category, id`);
-    return NextResponse.json({ samples: result.rows });
+    return Response.json({ samples: result.rows });
   }
 
   // Default: return all summary
@@ -119,7 +123,7 @@ export async function GET(req: NextRequest) {
     pool.query(`SELECT * FROM brand_competitor ORDER BY created_at DESC`),
   ]);
 
-  return NextResponse.json({
+  return Response.json({
     assets: assets.rows,
     guidelines: guidelines.rows,
     mentions: mentions.rows,
@@ -129,6 +133,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const body = await req.json() as Record<string, unknown>;
   const { type } = body as { type?: string };
@@ -144,7 +151,7 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [asset_type, name, file_url, hex_color, font_family, usage_notes, is_primary ?? false],
     );
-    return NextResponse.json({ asset: result.rows[0] });
+    return Response.json({ asset: result.rows[0] });
   }
 
   if (type === 'guideline') {
@@ -156,7 +163,7 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [section, title, content, do_examples, dont_examples],
     );
-    return NextResponse.json({ guideline: result.rows[0] });
+    return Response.json({ guideline: result.rows[0] });
   }
 
   if (type === 'mention') {
@@ -169,7 +176,7 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [platform, mention_url, mention_text, sentiment, reach_estimate, author, mentioned_at || new Date().toISOString()],
     );
-    return NextResponse.json({ mention: result.rows[0] });
+    return Response.json({ mention: result.rows[0] });
   }
 
   if (type === 'score') {
@@ -182,7 +189,7 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [consistency ?? 5, clarity ?? 5, differentiation ?? 5, emotional_appeal ?? 5, market_fit ?? 5, digital_presence ?? 5, notes],
     );
-    return NextResponse.json({ score: result.rows[0] });
+    return Response.json({ score: result.rows[0] });
   }
 
   if (type === 'competitor') {
@@ -195,7 +202,7 @@ export async function POST(req: NextRequest) {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [name, brand_colors, tone, positioning, target_audience, differentiator, threat_level],
     );
-    return NextResponse.json({ competitor: result.rows[0] });
+    return Response.json({ competitor: result.rows[0] });
   }
 
   if (type === 'guideline-update') {
@@ -207,8 +214,8 @@ export async function POST(req: NextRequest) {
        WHERE id=$5 RETURNING *`,
       [content, do_examples, dont_examples, title, id],
     );
-    return NextResponse.json({ guideline: result.rows[0] });
+    return Response.json({ guideline: result.rows[0] });
   }
 
-  return NextResponse.json({ error: 'Unknown type' }, { status: 400 });
+  return Response.json({ error: 'Unknown type' }, { status: 400 });
 }

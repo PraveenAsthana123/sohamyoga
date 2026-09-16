@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const platform = req.nextUrl.searchParams.get('platform');
   const conditions = platform ? ['(platform = $1 OR platform IS NULL)'] : [];
@@ -12,18 +16,21 @@ export async function GET(req: NextRequest) {
     query(`SELECT * FROM social_alert_rule ${where} ORDER BY severity, created_at DESC`, params),
     query(`SELECT * FROM social_alert_event ORDER BY triggered_at DESC LIMIT 20`),
   ]);
-  return NextResponse.json({ rules: rulesResult.rows, recent_events: eventsResult.rows });
+  return Response.json({ rules: rulesResult.rows, recent_events: eventsResult.rows });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const body = await req.json();
   const { platform, alert_type, metric, threshold_value, comparison, window_minutes, severity, notification_channels } = body;
-  if (!alert_type) return NextResponse.json({ error: 'alert_type required' }, { status: 400 });
+  if (!alert_type) return Response.json({ error: 'alert_type required' }, { status: 400 });
   const result = await query(
     `INSERT INTO social_alert_rule (platform, alert_type, metric, threshold_value, comparison, window_minutes, severity, notification_channels)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
     [platform ?? null, alert_type, metric ?? null, threshold_value ?? null, comparison ?? null, window_minutes ?? 60, severity ?? 'medium', notification_channels ?? ['email']],
   );
-  return NextResponse.json({ rule: result.rows[0] }, { status: 201 });
+  return Response.json({ rule: result.rows[0] }, { status: 201 });
 }

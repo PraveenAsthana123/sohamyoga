@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       return acc;
     }, {});
 
-    return NextResponse.json({
+    return Response.json({
       bookings: bookings.rows,
       summary: {
         ...summaryMap,
@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
   if (authErr) return authErr;
 
   const body = await req.json() as { id: string; status: string };
-  if (!body.id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!body.id) return Response.json({ error: 'id required' }, { status: 400 });
 
   const client = await pool.connect();
   try {
@@ -82,8 +82,8 @@ export async function PATCH(req: NextRequest) {
       `UPDATE booking SET status = $1${extra} WHERE id = $2 RETURNING *`,
       [body.status, body.id]
     );
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ booking: res.rows[0] });
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ booking: res.rows[0] });
   } finally {
     client.release();
   }

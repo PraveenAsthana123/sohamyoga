@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as { query: string; namespace?: string; limit?: number };
     const { query, namespace, limit = 10 } = body;
 
     if (!query?.trim()) {
-      return NextResponse.json({ error: 'query is required' }, { status: 400 });
+      return Response.json({ error: 'query is required' }, { status: 400 });
     }
 
     const conditions: string[] = ["to_tsvector('english', content_text) @@ plainto_tsquery('english', $1)"];
@@ -34,8 +38,8 @@ export async function POST(req: NextRequest) {
       params
     );
 
-    return NextResponse.json({ results: result.rows, query, namespace });
+    return Response.json({ results: result.rows, query, namespace });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

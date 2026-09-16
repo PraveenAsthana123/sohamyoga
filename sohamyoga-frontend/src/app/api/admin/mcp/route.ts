@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
       flaggedCalls: (toolCalls.rows as Array<{ flagged_for_review: boolean }>).filter(c => c.flagged_for_review).length,
     };
 
-    return NextResponse.json({
+    return Response.json({
       servers: servers.rows,
       toolCalls: toolCalls.rows,
       approvals: approvals.rows,
@@ -87,24 +87,24 @@ export async function PATCH(req: NextRequest) {
         `UPDATE mcp_server SET is_enabled = $1 WHERE id = $2 RETURNING *`,
         [body.is_enabled, body.server_id]
       );
-      if (!res.rowCount) return NextResponse.json({ error: 'server not found' }, { status: 404 });
-      return NextResponse.json({ server: res.rows[0] });
+      if (!res.rowCount) return Response.json({ error: 'server not found' }, { status: 404 });
+      return Response.json({ server: res.rows[0] });
     }
 
     if (body.approval_id && body.action) {
       const allowed = ['approved', 'rejected'];
       if (!allowed.includes(body.action)) {
-        return NextResponse.json({ error: 'action must be approved or rejected' }, { status: 400 });
+        return Response.json({ error: 'action must be approved or rejected' }, { status: 400 });
       }
       const res = await client.query(
         `UPDATE mcp_approval_request SET status = $1, resolved_at = NOW() WHERE id = $2 RETURNING *`,
         [body.action, body.approval_id]
       );
-      if (!res.rowCount) return NextResponse.json({ error: 'approval not found' }, { status: 404 });
-      return NextResponse.json({ approval: res.rows[0] });
+      if (!res.rowCount) return Response.json({ error: 'approval not found' }, { status: 404 });
+      return Response.json({ approval: res.rows[0] });
     }
 
-    return NextResponse.json({ error: 'invalid request body' }, { status: 400 });
+    return Response.json({ error: 'invalid request body' }, { status: 400 });
   } finally {
     client.release();
   }

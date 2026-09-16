@@ -1,18 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await pool.query(
-      'SELECT * FROM synthetic_data_set ORDER BY created_at DESC'
+      'SELECT * FROM synthetic_data_set ORDER BY created_at DESC LIMIT 500'
     );
-    return NextResponse.json({ datasets: result.rows });
+    return Response.json({ datasets: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       module_name: string;
@@ -59,11 +66,11 @@ export async function POST(req: NextRequest) {
       [generatedData.length || (body.record_count ?? 10), row.id]
     );
 
-    return NextResponse.json({
+    return Response.json({
       dataset: { ...row, status: 'complete', record_count: generatedData.length || (body.record_count ?? 10) },
       data: generatedData,
     }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

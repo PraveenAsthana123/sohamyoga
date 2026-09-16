@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface HealthRow {
   id: number;
   platform: string;
@@ -12,7 +13,10 @@ interface HealthRow {
   api_endpoint_checked: string | null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await query<HealthRow>(
       `SELECT id, platform, checked_at, status, latency_ms, error_message, http_status, api_endpoint_checked
@@ -20,10 +24,10 @@ export async function GET() {
        ORDER BY checked_at DESC
        LIMIT 500`,
     );
-    return NextResponse.json({ rows: result.rows, total: result.rows.length });
+    return Response.json({ rows: result.rows, total: result.rows.length });
   } catch (err) {
     console.error('[health GET]', err);
-    return NextResponse.json({ error: 'Failed to fetch health checks' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch health checks' }, { status: 500 });
   }
 }
 
@@ -43,7 +47,10 @@ const HEALTH_ENDPOINTS: Record<string, string> = {
   medium: 'https://api.medium.com/v1/',
 };
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const platformsResult = await query<{ platform: string }>(
       `SELECT platform FROM ref_social_platform ORDER BY platform`,
@@ -100,9 +107,9 @@ export async function POST(_req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, checked: inserted });
+    return Response.json({ success: true, checked: inserted });
   } catch (err) {
     console.error('[health POST]', err);
-    return NextResponse.json({ error: 'Health check failed' }, { status: 500 });
+    return Response.json({ error: 'Health check failed' }, { status: 500 });
   }
 }

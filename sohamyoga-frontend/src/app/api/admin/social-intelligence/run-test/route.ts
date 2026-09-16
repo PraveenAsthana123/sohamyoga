@@ -1,17 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const { scenario_id } = await req.json();
-  if (!scenario_id) return NextResponse.json({ error: 'scenario_id required' }, { status: 400 });
+  if (!scenario_id) return Response.json({ error: 'scenario_id required' }, { status: 400 });
 
   const scenarioResult = await query(
     `SELECT * FROM social_test_scenario WHERE id = $1`,
     [scenario_id],
   );
-  if (!scenarioResult.rowCount) return NextResponse.json({ error: 'scenario not found' }, { status: 404 });
+  if (!scenarioResult.rowCount) return Response.json({ error: 'scenario not found' }, { status: 404 });
   const scenario = scenarioResult.rows[0];
 
   let status: 'pass' | 'fail' = 'fail';
@@ -57,5 +61,5 @@ export async function POST(req: NextRequest) {
     [status, scenario_id],
   );
 
-  return NextResponse.json({ scenario_id, status, detail });
+  return Response.json({ scenario_id, status, detail });
 }

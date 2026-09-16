@@ -1,5 +1,5 @@
 // GET /api/admin/platform-credentials/[platform]/steps
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -11,7 +11,7 @@ type Params = { params: Promise<{ platform: string }> };
 export async function GET(req: NextRequest, { params }: Params) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  if (!databaseConfigured()) return Response.json({ error: 'Database not configured' }, { status: 503 });
 
   const { platform } = await params;
 
@@ -20,8 +20,8 @@ export async function GET(req: NextRequest, { params }: Params) {
       `SELECT * FROM platform_setup_step WHERE platform = $1 ORDER BY step_number`,
       [platform]
     );
-    return NextResponse.json({ steps: result.rows });
+    return Response.json({ steps: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

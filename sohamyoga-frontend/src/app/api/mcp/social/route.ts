@@ -3,7 +3,7 @@
 // Handles all 15 MCP tool calls. Routes publish/schedule to Postiz.
 // All destructive tools require confirmApprovalId or explicit confirmation.
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { MCP_TOOLS, getMcpTool, type McpToolName } from "@/domain/social/McpToolRegistry";
 import { PLATFORM_CONFIG } from "@/domain/social/SocialAccount";
 import {getAdminPrincipal} from '@/lib/admin-auth';
@@ -33,7 +33,7 @@ const POSTIZ_API_KEY = process.env.POSTIZ_PUBLIC_API_KEY || "";
 // ---- MCP protocol: list tools ----
 export async function GET(req:NextRequest) {
   const auth=await getAdminPrincipal(req);if(auth.denied)return auth.denied;
-  return NextResponse.json({
+  return Response.json({
     tools: MCP_TOOLS.map(t => ({
       name: t.name,
       description: t.description,
@@ -59,33 +59,33 @@ export async function POST(req: NextRequest) {
 
   const toolDef = getMcpTool(tool);
   if (!toolDef) {
-    return NextResponse.json({ error: `Unknown tool: ${tool}` }, { status: 400 });
+    return Response.json({ error: `Unknown tool: ${tool}` }, { status: 400 });
   }
 
   // Safety gate — destructive tools require confirmation token
   if (toolDef.isDestructive && !input.confirmApprovalId && input.confirmText !== "DISCONNECT") {
-    return NextResponse.json(
+    return Response.json(
       { error: `Tool '${tool}' is destructive and requires confirmApprovalId or confirmText='DISCONNECT'`, requiresApproval: true },
       { status: 403 }
     );
   }
   if (["publish_post","schedule_post","retry_failed_post"].includes(tool)) {
     const valid=await validateApproval(String(input.confirmApprovalId||''),String(input.draftId||''),tool,auth.principal!.id);
-    if(!valid)return NextResponse.json({error:'Approval is missing, expired, consumed, rejected, or not bound to this draft.',requiresApproval:true},{status:403});
+    if(!valid)return Response.json({error:'Approval is missing, expired, consumed, rejected, or not bound to this draft.',requiresApproval:true},{status:403});
   }
 
   try {
     const result = await dispatchTool(tool, input,auth.principal!.id);
-    return NextResponse.json({ tool, result });
+    return Response.json({ tool, result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (tool === 'list_social_accounts') {
-      return NextResponse.json({
+      return Response.json({
         tool,
         result: { connected: false, accounts: [], blocker: msg },
       });
     }
-    return NextResponse.json({ tool, error: msg }, { status: 500 });
+    return Response.json({ tool, error: msg }, { status: 500 });
   }
 }
 

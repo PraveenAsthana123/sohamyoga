@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface ApiLogRow {
   id: number;
   platform: string;
@@ -20,6 +21,9 @@ interface ApiLogRow {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const platform = searchParams.get('platform');
   const isError = searchParams.get('is_error');
@@ -59,14 +63,17 @@ export async function GET(req: NextRequest) {
        LIMIT 200`,
       values,
     );
-    return NextResponse.json({ rows: result.rows, total: result.rows.length });
+    return Response.json({ rows: result.rows, total: result.rows.length });
   } catch (err) {
     console.error('[api-logs GET]', err);
-    return NextResponse.json({ error: 'Failed to fetch API logs' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch API logs' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       platform: string;
@@ -97,19 +104,22 @@ export async function POST(req: NextRequest) {
         body.triggered_by ?? 'manual_test',
       ],
     );
-    return NextResponse.json({ success: true, id: result.rows[0].id }, { status: 201 });
+    return Response.json({ success: true, id: result.rows[0].id }, { status: 201 });
   } catch (err) {
     console.error('[api-logs POST]', err);
-    return NextResponse.json({ error: 'Failed to insert log' }, { status: 500 });
+    return Response.json({ error: 'Failed to insert log' }, { status: 500 });
   }
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await query(`TRUNCATE TABLE platform_api_log`);
-    return NextResponse.json({ success: true, message: 'All API logs cleared' });
+    return Response.json({ success: true, message: 'All API logs cleared' });
   } catch (err) {
     console.error('[api-logs DELETE]', err);
-    return NextResponse.json({ error: 'Failed to clear logs' }, { status: 500 });
+    return Response.json({ error: 'Failed to clear logs' }, { status: 500 });
   }
 }

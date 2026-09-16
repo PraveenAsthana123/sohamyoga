@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
@@ -21,5 +21,5 @@ export async function GET(req: NextRequest) {
     params,
   ).catch(() => ({ rows: [] }));
 
-  return NextResponse.json({ analytics: result.rows, period });
+  return Response.json({ analytics: result.rows, period });
 }

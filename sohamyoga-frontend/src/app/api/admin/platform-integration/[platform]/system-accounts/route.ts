@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -22,10 +22,10 @@ export async function GET(req: NextRequest, { params }: Params) {
       'SELECT * FROM platform_system_account WHERE platform = $1 ORDER BY is_primary DESC, created_at DESC',
       [platform]
     );
-    return NextResponse.json({ accounts: result.rows });
+    return Response.json({ accounts: result.rows });
   } catch (err) {
     console.error('system-accounts GET error:', err);
-    return NextResponse.json({ error: 'Failed to load system accounts' }, { status: 500 });
+    return Response.json({ error: 'Failed to load system accounts' }, { status: 500 });
   }
 }
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     };
 
     if (!body.account_type) {
-      return NextResponse.json({ error: 'account_type is required' }, { status: 400 });
+      return Response.json({ error: 'account_type is required' }, { status: 400 });
     }
 
     const result = await query(
@@ -75,9 +75,9 @@ export async function POST(req: NextRequest, { params }: Params) {
       ]
     );
 
-    return NextResponse.json({ account: result.rows[0] }, { status: 201 });
+    return Response.json({ account: result.rows[0] }, { status: 201 });
   } catch (err) {
     console.error('system-accounts POST error:', err);
-    return NextResponse.json({ error: 'Failed to create system account' }, { status: 500 });
+    return Response.json({ error: 'Failed to create system account' }, { status: 500 });
   }
 }

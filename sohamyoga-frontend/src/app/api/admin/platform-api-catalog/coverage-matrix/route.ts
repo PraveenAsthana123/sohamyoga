@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface MatrixRow {
   platform: string;
   category: string;
@@ -9,7 +10,10 @@ interface MatrixRow {
   count: string;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
 
   const result = await query<MatrixRow>(
@@ -57,7 +61,7 @@ export async function GET() {
     counts[row.implementation_status] = parseInt(row.count, 10);
   }
 
-  return NextResponse.json({
+  return Response.json({
     matrix: cellStatus,
     platforms: Array.from(platforms).sort(),
     categories: Array.from(categories).sort(),

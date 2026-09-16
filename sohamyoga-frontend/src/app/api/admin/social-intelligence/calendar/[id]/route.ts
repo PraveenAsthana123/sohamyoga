@@ -1,8 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   await ensureSocialIntelligenceSchema();
   const body = await req.json();
   const { scheduled_at, status, title, caption_preview } = body;
@@ -13,8 +18,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
        title = COALESCE($3, title),
        caption_preview = COALESCE($4, caption_preview)
      WHERE id = $5 RETURNING *`,
-    [scheduled_at ?? null, status ?? null, title ?? null, caption_preview ?? null, params.id],
+    [scheduled_at ?? null, status ?? null, title ?? null, caption_preview ?? null, id],
   );
-  if (!result.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-  return NextResponse.json({ entry: result.rows[0] });
+  if (!result.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+  return Response.json({ entry: result.rows[0] });
 }

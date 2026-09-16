@@ -1,24 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 type Params = { params: Promise<{ id: string }> };
 
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   try {
     const res = await query(`SELECT * FROM unified_content_item WHERE id = $1`, [id]);
-    if (!res.rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!res.rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
     const logs = await query(
       `SELECT * FROM unified_content_action_log WHERE item_id = $1 ORDER BY created_at DESC LIMIT 10`,
       [id]
     );
-    return NextResponse.json({ item: res.rows[0], action_log: logs.rows });
+    return Response.json({ item: res.rows[0], action_log: logs.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: Params) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   try {
     const body = await req.json() as Record<string, unknown>;
@@ -26,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     // Get before state
     const before = await query(`SELECT * FROM unified_content_item WHERE id = $1`, [id]);
-    if (!before.rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!before.rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
 
     const allowedFields = [
       'caption', 'headline', 'media_urls', 'hashtags', 'cta_text', 'cta_url',
@@ -46,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         vals.push(v);
       }
     }
-    if (sets.length === 0) return NextResponse.json({ error: 'No valid fields' }, { status: 400 });
+    if (sets.length === 0) return Response.json({ error: 'No valid fields' }, { status: 400 });
 
     sets.push(`updated_at = NOW()`);
     vals.push(id);
@@ -72,17 +79,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
-    return NextResponse.json({ item: res.rows[0] });
+    return Response.json({ item: res.rows[0] });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   try {
     const before = await query(`SELECT * FROM unified_content_item WHERE id = $1`, [id]);
-    if (!before.rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!before.rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
 
     await query(
       `UPDATE unified_content_item SET status = 'deleted', updated_at = NOW() WHERE id = $1`,
@@ -95,8 +105,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       [id, JSON.stringify(before.rows[0])]
     );
 
-    return NextResponse.json({ success: true });
+    return Response.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
     competitors: [...new Set(rows.map(r => r.competitor_name))].length,
   };
 
-  return NextResponse.json({ mentions: rows, kpis });
+  return Response.json({ mentions: rows, kpis });
 }
 
 // POST /api/admin/market-research/mentions
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (unreviewed.rowCount === 0) {
-      return NextResponse.json({ ok: true, message: 'No unreviewed mentions to scan.', scored: 0 });
+      return Response.json({ ok: true, message: 'No unreviewed mentions to scan.', scored: 0 });
     }
 
     let scored = 0;
@@ -122,7 +122,7 @@ Respond with only the single word sentiment label, nothing else.`;
       }
     }
 
-    return NextResponse.json({ ok: true, message: `Ollama scored sentiment for ${scored} mentions.`, scored });
+    return Response.json({ ok: true, message: `Ollama scored sentiment for ${scored} mentions.`, scored });
   }
 
   // Default: mark as reviewed
@@ -130,7 +130,7 @@ Respond with only the single word sentiment label, nothing else.`;
   const { id } = body;
 
   if (typeof id !== 'number') {
-    return NextResponse.json({ error: 'id (number) required' }, { status: 400 });
+    return Response.json({ error: 'id (number) required' }, { status: 400 });
   }
 
   await pool.query(
@@ -138,7 +138,7 @@ Respond with only the single word sentiment label, nothing else.`;
     [id],
   );
 
-  return NextResponse.json({ ok: true });
+  return Response.json({ ok: true });
 }
 
 // PATCH /api/admin/market-research/mentions
@@ -151,7 +151,7 @@ export async function PATCH(req: NextRequest) {
   const { id, reviewed } = body;
 
   if (typeof id !== 'number') {
-    return NextResponse.json({ error: 'id (number) required' }, { status: 400 });
+    return Response.json({ error: 'id (number) required' }, { status: 400 });
   }
 
   const reviewedValue = reviewed !== false; // default to true if not specified
@@ -161,5 +161,5 @@ export async function PATCH(req: NextRequest) {
     [reviewedValue, id],
   );
 
-  return NextResponse.json({ ok: true });
+  return Response.json({ ok: true });
 }

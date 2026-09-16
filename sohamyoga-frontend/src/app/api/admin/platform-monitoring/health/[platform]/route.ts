@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface HealthRow {
   id: number;
   platform: string;
@@ -13,11 +14,11 @@ interface HealthRow {
   hour_bucket: string;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { platform: string } },
-) {
-  const { platform } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ platform: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { platform } = await params;
   try {
     const result = await query<HealthRow>(
       `SELECT id, platform, checked_at, status, latency_ms, error_message, http_status, api_endpoint_checked,
@@ -49,13 +50,13 @@ export async function GET(
       [platform],
     );
 
-    return NextResponse.json({
+    return Response.json({
       platform,
       rows: result.rows,
       hourly: hourlyResult.rows,
     });
   } catch (err) {
     console.error('[health/platform]', err);
-    return NextResponse.json({ error: 'Failed to fetch platform health' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch platform health' }, { status: 500 });
   }
 }

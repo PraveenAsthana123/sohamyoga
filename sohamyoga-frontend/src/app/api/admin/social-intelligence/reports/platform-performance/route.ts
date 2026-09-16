@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface PlatformRow {
   platform: string;
   total_posts: string | number;
@@ -15,7 +16,10 @@ interface PlatformRow {
   follower_count: string | number;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
 
   const result = await query<PlatformRow>(`
@@ -46,7 +50,7 @@ export async function GET() {
     recommended_actions: getRecommendedActions(r.platform, Number(r.avg_engagement_rate)),
   }));
 
-  return NextResponse.json({ platforms: enriched });
+  return Response.json({ platforms: enriched });
 }
 
 function getRecommendedActions(platform: string, engagementRate: number): string[] {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -10,18 +10,18 @@ export async function POST(req: NextRequest) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   try {
     const body = await req.json() as { platforms: string[]; enabled: boolean };
 
     if (!Array.isArray(body.platforms) || body.platforms.length === 0) {
-      return NextResponse.json({ error: 'platforms array is required' }, { status: 400 });
+      return Response.json({ error: 'platforms array is required' }, { status: 400 });
     }
 
     if (typeof body.enabled !== 'boolean') {
-      return NextResponse.json({ error: 'enabled (boolean) is required' }, { status: 400 });
+      return Response.json({ error: 'enabled (boolean) is required' }, { status: 400 });
     }
 
     const sanitized = body.platforms.filter(p => typeof p === 'string' && p.length > 0);
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       updated += result.rowCount ?? 0;
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       updated,
       platforms: sanitized,
@@ -46,6 +46,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('bulk-toggle error:', err);
-    return NextResponse.json({ error: 'Failed to bulk toggle platforms' }, { status: 500 });
+    return Response.json({ error: 'Failed to bulk toggle platforms' }, { status: 500 });
   }
 }

@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id: rawId } = await params;
   try {
-    const id = parseInt(params.id, 10);
+    const id = parseInt(rawId, 10);
     const result = await query<{
       id: number;
       name: string;
@@ -22,21 +24,22 @@ export async function GET(
     }>('SELECT * FROM platform_workflow WHERE id = $1', [id]);
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+      return Response.json({ error: 'Workflow not found' }, { status: 404 });
     }
-    return NextResponse.json({ workflow: result.rows[0] });
+    return Response.json({ workflow: result.rows[0] });
   } catch (err) {
     console.error('GET workflow error:', err);
-    return NextResponse.json({ error: 'Failed to fetch workflow' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch workflow' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id: rawId } = await params;
   try {
-    const id = parseInt(params.id, 10);
+    const id = parseInt(rawId, 10);
     const body = await req.json() as Partial<{
       name: string;
       description: string;
@@ -57,7 +60,7 @@ export async function PATCH(
     fields.push(`updated_at = NOW()`);
 
     if (fields.length === 1) {
-      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+      return Response.json({ error: 'No fields to update' }, { status: 400 });
     }
 
     values.push(id);
@@ -67,25 +70,26 @@ export async function PATCH(
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+      return Response.json({ error: 'Workflow not found' }, { status: 404 });
     }
-    return NextResponse.json({ updated: true });
+    return Response.json({ updated: true });
   } catch (err) {
     console.error('PATCH workflow error:', err);
-    return NextResponse.json({ error: 'Failed to update workflow' }, { status: 500 });
+    return Response.json({ error: 'Failed to update workflow' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id: rawId } = await params;
   try {
-    const id = parseInt(params.id, 10);
+    const id = parseInt(rawId, 10);
     await query('DELETE FROM platform_workflow WHERE id = $1', [id]);
-    return NextResponse.json({ deleted: true });
+    return Response.json({ deleted: true });
   } catch (err) {
     console.error('DELETE workflow error:', err);
-    return NextResponse.json({ error: 'Failed to delete workflow' }, { status: 500 });
+    return Response.json({ error: 'Failed to delete workflow' }, { status: 500 });
   }
 }

@@ -1,15 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { lead_id, action } = await req.json() as { lead_id?: number; action?: string };
-  if (!lead_id) return NextResponse.json({ error: 'lead_id required' }, { status: 400 });
+  if (!lead_id) return Response.json({ error: 'lead_id required' }, { status: 400 });
 
   const leadResult = await pool.query(`SELECT * FROM lead WHERE id=$1`, [lead_id]);
-  if (leadResult.rowCount === 0) return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+  if (leadResult.rowCount === 0) return Response.json({ error: 'Lead not found' }, { status: 404 });
 
   const lead = leadResult.rows[0] as {
     first_name: string; last_name: string; email: string; company: string;
@@ -62,11 +66,11 @@ Only return valid JSON.`;
     const raw = (data.response ?? '').trim();
 
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return NextResponse.json({ result: { qualification_summary: raw } });
+    if (!jsonMatch) return Response.json({ result: { qualification_summary: raw } });
 
     const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
-    return NextResponse.json({ result: parsed, lead });
+    return Response.json({ result: parsed, lead });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

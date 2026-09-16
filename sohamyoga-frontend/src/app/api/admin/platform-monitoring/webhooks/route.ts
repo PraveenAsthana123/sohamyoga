@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface WebhookRow {
   id: number;
   platform: string;
@@ -16,6 +17,9 @@ interface WebhookRow {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const platform = searchParams.get('platform');
   const eventType = searchParams.get('event_type');
@@ -50,14 +54,17 @@ export async function GET(req: NextRequest) {
        LIMIT 100`,
       values,
     );
-    return NextResponse.json({ rows: result.rows, total: result.rows.length });
+    return Response.json({ rows: result.rows, total: result.rows.length });
   } catch (err) {
     console.error('[webhooks GET]', err);
-    return NextResponse.json({ error: 'Failed to fetch webhook events' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch webhook events' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       platform: string;
@@ -87,9 +94,9 @@ export async function POST(req: NextRequest) {
       ],
     );
 
-    return NextResponse.json({ success: true, id: result.rows[0].id }, { status: 201 });
+    return Response.json({ success: true, id: result.rows[0].id }, { status: 201 });
   } catch (err) {
     console.error('[webhooks POST]', err);
-    return NextResponse.json({ error: 'Failed to create webhook event' }, { status: 500 });
+    return Response.json({ error: 'Failed to create webhook event' }, { status: 500 });
   }
 }

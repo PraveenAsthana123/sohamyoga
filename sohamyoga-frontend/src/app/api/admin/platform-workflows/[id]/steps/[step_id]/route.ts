@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string; step_id: string } }
-) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ step_id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { step_id } = await params;
   try {
-    const stepId = parseInt(params.step_id, 10);
+    const stepId = parseInt(step_id, 10);
     const body = await req.json() as Partial<{
       step_order: number;
       action_type: string;
@@ -30,7 +32,7 @@ export async function PATCH(
     if (body.on_failure !== undefined) { fields.push(`on_failure = $${paramIdx++}`); values.push(body.on_failure); }
 
     if (fields.length === 0) {
-      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+      return Response.json({ error: 'No fields to update' }, { status: 400 });
     }
 
     values.push(stepId);
@@ -40,25 +42,26 @@ export async function PATCH(
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Step not found' }, { status: 404 });
+      return Response.json({ error: 'Step not found' }, { status: 404 });
     }
-    return NextResponse.json({ updated: true });
+    return Response.json({ updated: true });
   } catch (err) {
     console.error('PATCH step error:', err);
-    return NextResponse.json({ error: 'Failed to update step' }, { status: 500 });
+    return Response.json({ error: 'Failed to update step' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string; step_id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ step_id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { step_id } = await params;
   try {
-    const stepId = parseInt(params.step_id, 10);
+    const stepId = parseInt(step_id, 10);
     await query('DELETE FROM platform_workflow_step WHERE id = $1', [stepId]);
-    return NextResponse.json({ deleted: true });
+    return Response.json({ deleted: true });
   } catch (err) {
     console.error('DELETE step error:', err);
-    return NextResponse.json({ error: 'Failed to delete step' }, { status: 500 });
+    return Response.json({ error: 'Failed to delete step' }, { status: 500 });
   }
 }

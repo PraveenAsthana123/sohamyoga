@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const module = searchParams.get('module');
   const type = searchParams.get('type');
@@ -26,8 +30,8 @@ export async function GET(req: NextRequest) {
       `SELECT * FROM feature_registry ${where} ORDER BY module_name, feature_name`,
       params
     );
-    return NextResponse.json({ features: result.rows, total: result.rowCount });
+    return Response.json({ features: result.rows, total: result.rowCount });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

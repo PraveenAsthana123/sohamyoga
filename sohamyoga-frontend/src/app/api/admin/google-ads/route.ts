@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const impr  = Number(ag.impressions ?? 0);
     const clicks = Number(ag.clicks ?? 0);
 
-    return NextResponse.json({
+    return Response.json({
       configured,
       summary: {
         campaignCount: campaigns.rows.length,
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   const action = searchParams.get('action');
 
   if (action !== 'insight') {
-    return NextResponse.json({ error: 'Only action=insight is supported' }, { status: 400 });
+    return Response.json({ error: 'Only action=insight is supported' }, { status: 400 });
   }
 
   // Gather current campaign snapshot for context
@@ -124,14 +124,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!ollamaRes.ok) {
-      return NextResponse.json({ error: `Ollama returned ${ollamaRes.status}` }, { status: 502 });
+      return Response.json({ error: `Ollama returned ${ollamaRes.status}` }, { status: 502 });
     }
 
     const data = await ollamaRes.json() as OllamaResponse;
     const insight = data.response ?? data.message?.content ?? 'No insight generated.';
-    return NextResponse.json({ insight, context });
+    return Response.json({ insight, context });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Ollama unreachable';
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return Response.json({ error: msg }, { status: 502 });
   }
 }

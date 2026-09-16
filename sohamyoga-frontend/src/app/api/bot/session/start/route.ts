@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { randomBytes } from 'crypto';
 
@@ -79,9 +79,9 @@ export async function POST(req: NextRequest) {
       [token, body.user_type ?? 'anonymous', body.user_id ?? null, body.user_email ?? null, body.context_type ?? 'general'],
     );
 
-    return NextResponse.json({ session_token: token, session_id: rows[0].id });
+    return Response.json({ session_token: token, session_id: rows[0].id });
   } catch (e) {
     console.error('[bot/session/start]', e);
-    return NextResponse.json({ error: 'Failed to create session' }, { status: 500 });
+    return Response.json({ error: 'Failed to create session' }, { status: 500 });
   }
 }

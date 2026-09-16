@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const { id } = await params;
   const body = await req.json() as Record<string, unknown>;
@@ -27,7 +28,7 @@ export async function PATCH(
   }
 
   if (sets.length === 0) {
-    return NextResponse.json({ error: 'No updatable fields provided' }, { status: 400 });
+    return Response.json({ error: 'No updatable fields provided' }, { status: 400 });
   }
 
   sets.push(`updated_at = NOW()`);
@@ -38,7 +39,7 @@ export async function PATCH(
     vals,
   );
   if (result.rowCount === 0) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return Response.json({ error: 'Not found' }, { status: 404 });
   }
-  return NextResponse.json({ offering: result.rows[0] });
+  return Response.json({ offering: result.rows[0] });
 }

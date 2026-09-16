@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     LIMIT 50
   `);
 
-  return NextResponse.json({
+  return Response.json({
     roles: rolesResult.rows,
     permissions: permissionsResult.rows,
     users: usersResult.rows,
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
   const { code, label, risk_level = 1, sort_order = 99 } = body;
 
   if (!code?.trim() || !label?.trim()) {
-    return NextResponse.json({ error: 'code and label are required' }, { status: 400 });
+    return Response.json({ error: 'code and label are required' }, { status: 400 });
   }
 
   const result = await pool.query(
@@ -108,10 +108,10 @@ export async function POST(req: NextRequest) {
   );
 
   if (result.rowCount === 0) {
-    return NextResponse.json({ error: 'Role code already exists' }, { status: 409 });
+    return Response.json({ error: 'Role code already exists' }, { status: 409 });
   }
 
-  return NextResponse.json({ role: result.rows[0] }, { status: 201 });
+  return Response.json({ role: result.rows[0] }, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -129,14 +129,14 @@ export async function PATCH(req: NextRequest) {
   const { role, resource, actions, tenant_id, granted_by = 'admin' } = body;
 
   if (!role || !resource) {
-    return NextResponse.json({ error: 'role and resource are required' }, { status: 400 });
+    return Response.json({ error: 'role and resource are required' }, { status: 400 });
   }
 
   if (!tenant_id) {
     // Get any existing tenant or use a default value
     const tenantResult = await pool.query(`SELECT id FROM tenant LIMIT 1`);
     if (tenantResult.rowCount === 0) {
-      return NextResponse.json({ error: 'No tenant found in database' }, { status: 400 });
+      return Response.json({ error: 'No tenant found in database' }, { status: 400 });
     }
     const resolvedTenantId = tenantResult.rows[0].id as string;
     return upsertPermission(role, resource, actions ?? [], resolvedTenantId, granted_by);
@@ -151,7 +151,7 @@ async function upsertPermission(
   actions: string[],
   tenant_id: string,
   granted_by: string,
-): Promise<NextResponse> {
+): Promise<Response> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -179,7 +179,7 @@ async function upsertPermission(
     }
 
     await client.query('COMMIT');
-    return NextResponse.json({ updated: true, permission_id: permId });
+    return Response.json({ updated: true, permission_id: permId });
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

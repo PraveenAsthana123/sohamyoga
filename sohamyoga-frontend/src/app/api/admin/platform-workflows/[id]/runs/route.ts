@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
-    const workflowId = parseInt(params.id, 10);
+    const workflowId = parseInt(id, 10);
     const runsResult = await query<{
       id: number;
       workflow_id: number;
@@ -50,9 +52,9 @@ export async function GET(
       })
     );
 
-    return NextResponse.json({ runs });
+    return Response.json({ runs });
   } catch (err) {
     console.error('GET runs error:', err);
-    return NextResponse.json({ error: 'Failed to fetch runs' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch runs' }, { status: 500 });
   }
 }

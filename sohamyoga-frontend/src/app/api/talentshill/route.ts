@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server';
-
 interface TalentsHillPortalInfo {
   name: string;
   tagline: string;
@@ -14,7 +12,7 @@ interface TalentsHillPortalInfo {
   };
 }
 
-export async function GET(): Promise<NextResponse<TalentsHillPortalInfo>> {
+export async function GET(): Promise<Response> {
   const info: TalentsHillPortalInfo = {
     name: 'TalentsHill',
     tagline: 'Full-service digital marketing that delivers measurable ROI',
@@ -45,5 +43,5 @@ export async function GET(): Promise<NextResponse<TalentsHillPortalInfo>> {
     },
   };
 
-  return NextResponse.json(info);
+  return Response.json(info);
 }

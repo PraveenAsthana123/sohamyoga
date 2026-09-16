@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface ContentTypeConfigDef {
   platform: string;
   content_type: string;
@@ -1175,7 +1176,10 @@ function makeAlertRules(): AlertRuleDef[] {
   return rules;
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
 
   let configsInserted = 0;
@@ -1232,7 +1236,7 @@ export async function POST() {
     if ((r.rowCount ?? 0) > 0) alertsInserted++;
   }
 
-  return NextResponse.json({
+  return Response.json({
     ok: true,
     configsInserted,
     tenantsInserted,

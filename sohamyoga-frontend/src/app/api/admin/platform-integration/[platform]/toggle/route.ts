@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     const body = await req.json() as { enabled: boolean };
 
     if (typeof body.enabled !== 'boolean') {
-      return NextResponse.json({ error: 'enabled (boolean) is required' }, { status: 400 });
+      return Response.json({ error: 'enabled (boolean) is required' }, { status: 400 });
     }
 
     // Upsert the config row
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       // operation_ledger may not exist — ignore
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       platform,
       is_enabled: body.enabled,
@@ -52,6 +52,6 @@ export async function POST(req: NextRequest, { params }: Params) {
     });
   } catch (err) {
     console.error(`platform toggle [${platform}] error:`, err);
-    return NextResponse.json({ error: 'Failed to toggle platform' }, { status: 500 });
+    return Response.json({ error: 'Failed to toggle platform' }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 // GET/PATCH /api/admin/platform-credentials/[platform]
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -11,7 +11,7 @@ type Params = { params: Promise<{ platform: string }> };
 export async function GET(req: NextRequest, { params }: Params) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  if (!databaseConfigured()) return Response.json({ error: 'Database not configured' }, { status: 503 });
 
   const { platform } = await params;
 
@@ -23,24 +23,24 @@ export async function GET(req: NextRequest, { params }: Params) {
     ]);
 
     if (configResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Platform not found' }, { status: 404 });
+      return Response.json({ error: 'Platform not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
+    return Response.json({
       config: configResult.rows[0],
       steps: stepsResult.rows,
       logs: logsResult.rows,
     });
   } catch (err) {
     console.error('[platform-credentials/[platform]] GET error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  if (!databaseConfigured()) return Response.json({ error: 'Database not configured' }, { status: 503 });
 
   const { platform } = await params;
 
@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     if (updates.length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return Response.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
     updates.push(`updated_at = NOW()`);
@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Platform not found' }, { status: 404 });
+      return Response.json({ error: 'Platform not found' }, { status: 404 });
     }
 
     // Log the update
@@ -88,9 +88,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       [platform, JSON.stringify({ fields: Object.keys(body).filter(k => allowedFields.includes(k)) })]
     );
 
-    return NextResponse.json({ config: result.rows[0] });
+    return Response.json({ config: result.rows[0] });
   } catch (err) {
     console.error('[platform-credentials/[platform]] PATCH error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

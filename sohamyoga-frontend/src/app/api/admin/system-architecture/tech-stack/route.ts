@@ -1,18 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await pool.query(
-      'SELECT * FROM tech_stack_entry ORDER BY category, name'
+      'SELECT * FROM tech_stack_entry ORDER BY category, name LIMIT 500'
     );
-    return NextResponse.json({ entries: result.rows });
+    return Response.json({ entries: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       category: string;
@@ -38,8 +45,8 @@ export async function POST(req: NextRequest) {
         body.notes ?? null,
       ]
     );
-    return NextResponse.json({ entry: result.rows[0] }, { status: 201 });
+    return Response.json({ entry: result.rows[0] }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

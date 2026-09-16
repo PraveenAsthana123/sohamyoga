@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const sp = req.nextUrl.searchParams;
   const platform = sp.get('platform');
@@ -24,10 +28,13 @@ export async function GET(req: NextRequest) {
     `SELECT * FROM platform_api_offering ${where} ORDER BY platform, category, http_method, endpoint_path`,
     params,
   );
-  return NextResponse.json({ offerings: result.rows, total: result.rowCount });
+  return Response.json({ offerings: result.rows, total: result.rowCount });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const body = await req.json() as Record<string, unknown>;
   const {
@@ -39,7 +46,7 @@ export async function POST(req: NextRequest) {
   } = body;
 
   if (!platform || !api_name || !endpoint_path || !http_method || !capability || !category || !auth_type) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return Response.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
   const result = await query(
@@ -60,5 +67,5 @@ export async function POST(req: NextRequest) {
       data_returned ?? [], example_request ?? {}, example_response ?? {}, notes ?? null,
     ],
   );
-  return NextResponse.json({ offering: result.rows[0] }, { status: 201 });
+  return Response.json({ offering: result.rows[0] }, { status: 201 });
 }

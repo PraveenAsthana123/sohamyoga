@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface RateLimitRow {
   id: number;
   platform: string;
@@ -12,11 +13,11 @@ interface RateLimitRow {
   snapshot_at: string;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { platform: string } },
-) {
-  const { platform } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ platform: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { platform } = await params;
   try {
     const result = await query<RateLimitRow>(
       `SELECT id, platform, endpoint_group, limit_total, limit_remaining,
@@ -26,9 +27,9 @@ export async function GET(
        ORDER BY snapshot_at DESC`,
       [platform],
     );
-    return NextResponse.json({ platform, rows: result.rows, total: result.rows.length });
+    return Response.json({ platform, rows: result.rows, total: result.rows.length });
   } catch (err) {
     console.error('[rate-limits/platform]', err);
-    return NextResponse.json({ error: 'Failed to fetch rate limit history' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch rate limit history' }, { status: 500 });
   }
 }

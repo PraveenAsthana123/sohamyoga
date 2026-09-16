@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '../schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 let schemaReady = false;
 async function initSchema() {
   if (!schemaReady) {
@@ -11,6 +12,9 @@ async function initSchema() {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await initSchema();
     const sp = req.nextUrl.searchParams;
@@ -91,18 +95,21 @@ export async function GET(req: NextRequest) {
       totalSpend += parseFloat(r.total_spend ?? '0');
     }
 
-    return NextResponse.json({
+    return Response.json({
       items: itemsRes.rows,
       total,
       stats: { by_platform: byPlatform, by_status: byStatus, total_impressions: totalImpressions, total_spend: totalSpend },
     });
   } catch (err) {
     console.error('[command-center/items GET]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await initSchema();
     const body = await req.json() as {
@@ -121,7 +128,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!item_type || !platform || !content_type) {
-      return NextResponse.json({ error: 'item_type, platform, content_type are required' }, { status: 400 });
+      return Response.json({ error: 'item_type, platform, content_type are required' }, { status: 400 });
     }
 
     // Insert into source table first to get source_id
@@ -181,9 +188,9 @@ export async function POST(req: NextRequest) {
       [item.id, created_by, JSON.stringify(item)]
     );
 
-    return NextResponse.json({ item }, { status: 201 });
+    return Response.json({ item }, { status: 201 });
   } catch (err) {
     console.error('[command-center/items POST]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

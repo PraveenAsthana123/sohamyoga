@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const SECURITY_CHECKS = [
   { name: 'HTTPS enforced', category: 'transport', severity: 'critical' },
   { name: 'Rate limiting configured', category: 'api', severity: 'high' },
@@ -24,7 +25,10 @@ const SECURITY_CHECKS = [
   { name: 'Backup encryption enabled', category: 'data', severity: 'medium' },
 ];
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS security_config_check (
@@ -77,19 +81,22 @@ export async function POST(_req: NextRequest) {
       fail: results.filter(r => r.status === 'fail').length,
     };
 
-    return NextResponse.json({ ok: true, summary, results });
+    return Response.json({ ok: true, summary, results });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await pool.query(
       'SELECT * FROM security_config_check ORDER BY checked_at DESC LIMIT 200'
     );
-    return NextResponse.json({ checks: result.rows });
+    return Response.json({ checks: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

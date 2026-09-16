@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -15,10 +15,10 @@ export async function POST(
       `UPDATE bot_session SET satisfaction_score = $1, resolved = true WHERE session_token = $2`,
       [score, params.token],
     );
-    if (!rowCount) return NextResponse.json({ error: 'Session not found' }, { status: 404 });
-    return NextResponse.json({ ok: true, score });
+    if (!rowCount) return Response.json({ error: 'Session not found' }, { status: 404 });
+    return Response.json({ ok: true, score });
   } catch (e) {
     console.error('[bot/session/rate]', e);
-    return NextResponse.json({ error: 'Failed to rate session' }, { status: 500 });
+    return Response.json({ error: 'Failed to rate session' }, { status: 500 });
   }
 }

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 // Priority weights: higher = more important to build
 const CATEGORY_PRIORITY: Record<string, number> = {
   publish: 10, analytics: 9, messaging: 8, read: 7,
@@ -35,7 +36,10 @@ interface GapRow {
   implementation_status: string;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
 
   const result = await query<GapRow>(
@@ -72,5 +76,5 @@ export async function GET() {
 
   const top10 = gaps.slice(0, 10);
 
-  return NextResponse.json({ gaps, top10, total: gaps.length });
+  return Response.json({ gaps, top10, total: gaps.length });
 }

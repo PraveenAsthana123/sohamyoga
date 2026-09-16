@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function POST() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Fire-and-forget: update metrics for all live/published items in last 30 days
     void (async () => {
@@ -68,8 +72,8 @@ export async function POST() {
       }
     })();
 
-    return NextResponse.json({ started: true });
+    return Response.json({ started: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

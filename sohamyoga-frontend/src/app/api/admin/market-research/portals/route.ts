@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   const connected = result.rows.filter(r => r.connected).length;
   const freeAvailable = result.rows.filter(r => r.pricing_model === 'free' && !r.connected).length;
 
-  return NextResponse.json({
+  return Response.json({
     portals: result.rows,
     summary: {
       total: result.rows.length,
@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest) {
   const { id, connected } = body;
 
   if (typeof id !== 'number' || typeof connected !== 'boolean') {
-    return NextResponse.json({ error: 'id (number) and connected (boolean) required' }, { status: 400 });
+    return Response.json({ error: 'id (number) and connected (boolean) required' }, { status: 400 });
   }
 
   await pool.query(
@@ -77,5 +77,5 @@ export async function PATCH(req: NextRequest) {
     [connected, id],
   );
 
-  return NextResponse.json({ ok: true });
+  return Response.json({ ok: true });
 }

@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const { searchParams } = new URL(req.url);
   const moduleKey = searchParams.get('module_key');
@@ -21,5 +25,5 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   params.push(limit); sql += ` LIMIT $${params.length}`;
 
   const result = await query(sql, params);
-  return NextResponse.json(result.rows);
+  return Response.json(result.rows);
 }

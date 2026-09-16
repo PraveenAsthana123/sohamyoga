@@ -1,12 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const { hashtag, platform, niche } = await req.json();
   if (!hashtag || !platform) {
-    return NextResponse.json({ error: 'hashtag and platform required' }, { status: 400 });
+    return Response.json({ error: 'hashtag and platform required' }, { status: 400 });
   }
 
   // Call Ollama to estimate hashtag metrics
@@ -70,7 +74,7 @@ Only return the JSON object, no other text.`;
     ).catch(() => {});
   }
 
-  return NextResponse.json({
+  return Response.json({
     hashtag,
     platform,
     ...ollamaData,

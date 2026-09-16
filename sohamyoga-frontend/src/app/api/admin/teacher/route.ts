@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
       scheduleSlots: schedules.rows.length,
     };
 
-    return NextResponse.json({
+    return Response.json({
       teachers: enrichedTeachers,
       certifications: certs.rows,
       schedules: schedules.rows,
@@ -77,11 +77,11 @@ export async function PATCH(req: NextRequest) {
   if (authErr) return authErr;
 
   const body = await req.json() as { id: string; status?: string; contract_type?: string };
-  if (!body.id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!body.id) return Response.json({ error: 'id required' }, { status: 400 });
 
   const allowed = ['active', 'inactive', 'suspended', 'on_leave'];
   if (body.status && !allowed.includes(body.status)) {
-    return NextResponse.json({ error: `status must be one of ${allowed.join(', ')}` }, { status: 400 });
+    return Response.json({ error: `status must be one of ${allowed.join(', ')}` }, { status: 400 });
   }
 
   const client = await pool.connect();
@@ -92,15 +92,15 @@ export async function PATCH(req: NextRequest) {
     if (body.status) { fields.push(`status = $${idx++}`); params.push(body.status); }
     if (body.contract_type) { fields.push(`contract_type = $${idx++}`); params.push(body.contract_type); }
 
-    if (!fields.length) return NextResponse.json({ error: 'no fields to update' }, { status: 400 });
+    if (!fields.length) return Response.json({ error: 'no fields to update' }, { status: 400 });
     params.push(body.id);
 
     const res = await client.query(
       `UPDATE teacher_profile SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
       params
     );
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ teacher: res.rows[0] });
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ teacher: res.rows[0] });
   } finally {
     client.release();
   }

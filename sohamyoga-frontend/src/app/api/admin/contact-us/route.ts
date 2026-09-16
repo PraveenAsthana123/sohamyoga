@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,9 @@ async function ensureTable() {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTable();
   const { searchParams } = new URL(req.url);
   const resource = searchParams.get('resource') || 'submissions';
@@ -45,7 +49,7 @@ export async function GET(req: NextRequest) {
         FROM contact_submission WHERE replied_at IS NOT NULL
       `),
     ]);
-    return NextResponse.json({
+    return Response.json({
       daily: daily.rows,
       bySource: bySource.rows,
       avgResponseHours: avgResponse.rows[0]?.avg_hours ?? null,
@@ -58,10 +62,13 @@ export async function GET(req: NextRequest) {
     `SELECT * FROM contact_submission ${whereClause} ORDER BY created_at DESC LIMIT 200`,
     params,
   );
-  return NextResponse.json({ submissions: result.rows });
+  return Response.json({ submissions: result.rows });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTable();
   const body = await req.json().catch(() => null) as {
     name?: string; email?: string; phone?: string; subject?: string;
@@ -69,7 +76,7 @@ export async function POST(req: NextRequest) {
   } | null;
 
   if (!body?.email?.trim()) {
-    return NextResponse.json({ error: 'email is required' }, { status: 400 });
+    return Response.json({ error: 'email is required' }, { status: 400 });
   }
 
   const result = await pool.query(
@@ -77,5 +84,5 @@ export async function POST(req: NextRequest) {
      VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
     [body.name, body.email, body.phone, body.subject, body.message, body.source ?? 'website'],
   );
-  return NextResponse.json({ submission: result.rows[0] }, { status: 201 });
+  return Response.json({ submission: result.rows[0] }, { status: 201 });
 }

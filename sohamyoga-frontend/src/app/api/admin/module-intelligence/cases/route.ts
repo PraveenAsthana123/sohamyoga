@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const { searchParams } = new URL(req.url);
   const moduleKey = searchParams.get('module_key');
@@ -37,10 +41,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (status && status !== 'all') { countParams.push(status); countSql += ` AND status = $${countParams.length}`; }
   const countResult = await query(countSql, countParams);
 
-  return NextResponse.json({ rows: result.rows, total: parseInt(countResult.rows[0].count) });
+  return Response.json({ rows: result.rows, total: parseInt(countResult.rows[0].count) });
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const body = await req.json() as {
     plan_id?: string; module_key: string; suite_key?: string; case_key: string;
@@ -65,5 +72,5 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       JSON.stringify(body.request_payload ?? {}), body.expected_status ?? null,
       `{${(body.tags ?? []).join(',')}}`, body.priority ?? 'medium'],
   );
-  return NextResponse.json(result.rows[0], { status: 201 });
+  return Response.json(result.rows[0], { status: 201 });
 }

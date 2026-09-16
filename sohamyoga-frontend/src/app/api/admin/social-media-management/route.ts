@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -120,7 +120,7 @@ export async function GET(req: NextRequest) {
       activeCampaigns: campaigns.filter((c) => c.status === 'active').length,
     };
 
-    return NextResponse.json({
+    return Response.json({
       accounts,
       drafts: draftsRes.rows,
       posts: postsRes.rows,

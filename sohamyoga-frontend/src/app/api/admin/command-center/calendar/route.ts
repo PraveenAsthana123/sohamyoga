@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const sp = req.nextUrl.searchParams;
     const weekStart = sp.get('week_start') ?? new Date().toISOString().split('T')[0];
@@ -27,8 +31,8 @@ export async function GET(req: NextRequest) {
       grouped[date].push(row);
     }
 
-    return NextResponse.json({ week_start: weekStart, week_end: weekEnd, by_date: grouped });
+    return Response.json({ week_start: weekStart, week_end: weekEnd, by_date: grouped });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

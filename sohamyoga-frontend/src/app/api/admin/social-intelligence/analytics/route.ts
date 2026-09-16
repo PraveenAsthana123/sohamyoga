@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const platform = req.nextUrl.searchParams.get('platform');
   const period = req.nextUrl.searchParams.get('period');
@@ -18,5 +22,5 @@ export async function GET(req: NextRequest) {
     `SELECT * FROM social_platform_analytics ${where} ORDER BY platform, period DESC`,
     params,
   );
-  return NextResponse.json({ analytics: result.rows });
+  return Response.json({ analytics: result.rows });
 }

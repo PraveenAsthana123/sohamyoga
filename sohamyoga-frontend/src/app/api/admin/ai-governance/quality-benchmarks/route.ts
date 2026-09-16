@@ -1,18 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await pool.query(
-      'SELECT * FROM quality_benchmark ORDER BY module_name, dimension'
+      'SELECT * FROM quality_benchmark ORDER BY module_name, dimension LIMIT 500'
     );
-    return NextResponse.json({ benchmarks: result.rows });
+    return Response.json({ benchmarks: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { module_name, dimension, score, evidence, benchmark_method } = body;
@@ -23,8 +30,8 @@ export async function POST(req: NextRequest) {
        RETURNING *`,
       [module_name, dimension, score, evidence ?? '', benchmark_method ?? 'manual']
     );
-    return NextResponse.json({ benchmark: result.rows[0] }, { status: 201 });
+    return Response.json({ benchmark: result.rows[0] }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

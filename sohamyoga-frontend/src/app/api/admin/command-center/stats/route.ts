@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const res = await query<{
       platform: string; status: string; item_type: string; cnt: string;
@@ -40,7 +44,7 @@ export async function GET() {
       totalRevenue += parseFloat(r.total_revenue ?? '0');
     }
 
-    return NextResponse.json({
+    return Response.json({
       by_platform: byPlatform,
       by_status: byStatus,
       total_impressions: totalImpressions,
@@ -50,6 +54,6 @@ export async function GET() {
       total_roas: totalSpend > 0 ? (totalRevenue / totalSpend).toFixed(2) : '0',
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

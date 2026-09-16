@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -14,16 +14,16 @@ export async function GET(
       [params.token],
     );
     if (!sessions.length) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      return Response.json({ error: 'Session not found' }, { status: 404 });
     }
     const session = sessions[0] as { id: number };
     const { rows: messages } = await pool.query(
       `SELECT * FROM bot_message WHERE session_id = $1 ORDER BY created_at ASC`,
       [session.id],
     );
-    return NextResponse.json({ session, messages });
+    return Response.json({ session, messages });
   } catch (e) {
     console.error('[bot/session/token GET]', e);
-    return NextResponse.json({ error: 'Failed to load session' }, { status: 500 });
+    return Response.json({ error: 'Failed to load session' }, { status: 500 });
   }
 }

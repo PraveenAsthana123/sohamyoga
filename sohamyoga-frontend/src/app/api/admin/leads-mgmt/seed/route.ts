@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS lead (
       id SERIAL PRIMARY KEY, first_name VARCHAR(100), last_name VARCHAR(100), email VARCHAR(200),
@@ -75,5 +79,5 @@ export async function POST() {
     ON CONFLICT DO NOTHING;
   `);
 
-  return NextResponse.json({ seeded: true });
+  return Response.json({ seeded: true });
 }

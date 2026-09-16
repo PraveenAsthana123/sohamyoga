@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const { platform, content_type, caption, scheduled_at, hashtags, media_urls } = body;
 
   if (!platform || !content_type || !scheduled_at) {
-    return NextResponse.json({ error: 'platform, content_type, scheduled_at required' }, { status: 400 });
+    return Response.json({ error: 'platform, content_type, scheduled_at required' }, { status: 400 });
   }
 
   // Create variant
@@ -26,5 +26,5 @@ export async function POST(req: NextRequest) {
     [variantId, platform, content_type, (caption ?? '').slice(0, 120), scheduled_at],
   );
 
-  return NextResponse.json({ variant_id: variantId, calendar_id: calResult.rows[0].id }, { status: 201 });
+  return Response.json({ variant_id: variantId, calendar_id: calResult.rows[0].id }, { status: 201 });
 }

@@ -121,6 +121,12 @@ const navItems = [
     requiredRoles: ['Admin', 'Editor'],
   },
   {
+    href: '/admin/strategic-intelligence',
+    label: 'Strategic Intelligence 🧭',
+    icon: <span aria-hidden="true">🧭</span>,
+    requiredRoles: ['Admin'],
+  },
+  {
     href: '/admin/brand-strategy',
     label: 'Brand Strategy',
     icon: (
@@ -416,11 +422,14 @@ const navItems = [
     requiredRoles: ['Admin'],
   },
   { href: '/admin/ecommerce', label: 'E-commerce', icon: <span aria-hidden="true">🛒</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/receipt-digitization', label: 'Receipt Digitization 🧾', icon: <span aria-hidden="true">🧾</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/promotions', label: 'Promotions 🎁', icon: <span aria-hidden="true">🎁</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/coupons', label: 'Coupons 🎟️', icon: <span aria-hidden="true">🎟️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/barcodes', label: 'Barcodes & QR 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
   { href: '/admin/email', label: 'Email Management', icon: <span aria-hidden="true">📧</span>, requiredRoles: ['Admin'] },
   { href: '/admin/drip-campaigns', label: 'Drip Campaigns', icon: <span aria-hidden="true">💧</span>, requiredRoles: ['Admin'] },
   { href: 'divider', label: 'Growth', icon: null, requiredRoles: [] as string[] },
   { href: '/admin/engagement', label: 'Engagement Analytics', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
-  { href: '/admin/coupons', label: 'Coupons & Discounts', icon: <span aria-hidden="true">🎟️</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/landing-pages',
     label: 'Landing Pages',
@@ -569,6 +578,9 @@ const navItems = [
   },
   { href: '/admin/business-development', label: 'Business Development 💼', icon: <span aria-hidden="true">💼</span>, requiredRoles: ['Admin'] },
   { href: '/admin/growth-marketing', label: 'Growth Marketing 🚀', icon: <span aria-hidden="true">🚀</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/performance-metrics', label: 'KPI / KRI / ROI 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/value-proposition', label: 'Value Proposition 💡', icon: <span aria-hidden="true">💡</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/north-star', label: 'North Star & OKRs ⭐', icon: <span aria-hidden="true">⭐</span>, requiredRoles: ['Admin'] },
   { href: '/admin/revenue-intelligence', label: 'Revenue Intelligence 💹', icon: <span aria-hidden="true">💹</span>, requiredRoles: ['Admin'] },
   { href: '/admin/customer-tracking', label: 'Customer Tracking 📍', icon: <span aria-hidden="true">📍</span>, requiredRoles: ['Admin'] },
   {

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,9 @@ async function ensureTables() {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const { searchParams } = new URL(req.url);
   const resource = searchParams.get('resource') || 'leads';
@@ -65,7 +69,7 @@ export async function GET(req: NextRequest) {
 
   if (resource === 'forms') {
     const result = await pool.query(`SELECT * FROM lead_form ORDER BY created_at DESC`);
-    return NextResponse.json({ forms: result.rows });
+    return Response.json({ forms: result.rows });
   }
 
   if (resource === 'analytics') {
@@ -75,7 +79,7 @@ export async function GET(req: NextRequest) {
       pool.query(`SELECT DATE_TRUNC('month', created_at)::date AS month, COUNT(*)::int AS leads FROM lead WHERE created_at >= NOW() - INTERVAL '6 months' GROUP BY month ORDER BY month`),
       pool.query(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE lead_stage='won')::int AS won, COALESCE(SUM(deal_value) FILTER (WHERE lead_stage='won'),0)::numeric(12,2) AS won_value, AVG(lead_score)::numeric(5,1) AS avg_score FROM lead`),
     ]);
-    return NextResponse.json({ bySource: bySource.rows, byStage: byStage.rows, monthly: monthly.rows, kpi: kpi.rows[0] });
+    return Response.json({ bySource: bySource.rows, byStage: byStage.rows, monthly: monthly.rows, kpi: kpi.rows[0] });
   }
 
   // Leads list with filters
@@ -105,10 +109,13 @@ export async function GET(req: NextRequest) {
     FROM lead
   `);
 
-  return NextResponse.json({ leads: result.rows, kpi: kpi.rows[0] });
+  return Response.json({ leads: result.rows, kpi: kpi.rows[0] });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const body = await req.json() as Record<string, unknown>;
   const { action } = body as { action?: string };
@@ -120,7 +127,7 @@ export async function POST(req: NextRequest) {
       `INSERT INTO lead_form (form_name, fields, embed_code, source_page) VALUES ($1,$2,$3,$4) RETURNING *`,
       [form_name, JSON.stringify(fields ?? []), embedCode, source_page],
     );
-    return NextResponse.json({ form: result.rows[0] });
+    return Response.json({ form: result.rows[0] });
   }
 
   if (action === 'recalculate-scores') {
@@ -143,7 +150,7 @@ export async function POST(req: NextRequest) {
       const total = Math.min(100, sourceScore + stageScore + dealScore + recencyScore + engagementScore);
       await pool.query(`UPDATE lead SET lead_score=$1, updated_at=NOW() WHERE id=$2`, [total, lead.id]);
     }
-    return NextResponse.json({ recalculated: leads.rowCount });
+    return Response.json({ recalculated: leads.rowCount });
   }
 
   // Create lead
@@ -167,18 +174,21 @@ export async function POST(req: NextRequest) {
      lead_stage ?? 'new', assigned_to, notes, tags, deal_value, expected_close_date || null,
      utm_source, utm_medium, utm_campaign],
   );
-  return NextResponse.json({ lead: result.rows[0] });
+  return Response.json({ lead: result.rows[0] });
 }
 
 export async function PATCH(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 });
 
   const body = await req.json() as Record<string, unknown>;
   const fields = Object.keys(body);
-  if (fields.length === 0) return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+  if (fields.length === 0) return Response.json({ error: 'No fields to update' }, { status: 400 });
 
   const setClauses = fields.map((f, i) => `${f} = $${i + 2}`).join(', ');
   const values = fields.map(f => body[f]);
@@ -187,14 +197,17 @@ export async function PATCH(req: NextRequest) {
     `UPDATE lead SET ${setClauses}, updated_at=NOW() WHERE id=$1 RETURNING *`,
     [parseInt(id), ...values],
   );
-  return NextResponse.json({ lead: result.rows[0] });
+  return Response.json({ lead: result.rows[0] });
 }
 
 export async function DELETE(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 });
   await pool.query(`DELETE FROM lead WHERE id=$1`, [parseInt(id)]);
-  return NextResponse.json({ deleted: true });
+  return Response.json({ deleted: true });
 }

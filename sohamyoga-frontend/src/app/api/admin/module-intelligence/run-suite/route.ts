@@ -1,14 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const body = await req.json() as { module_key: string; test_level?: string; plan_id?: string };
-  if (!body.module_key) return NextResponse.json({ error: 'module_key required' }, { status: 400 });
+  if (!body.module_key) return Response.json({ error: 'module_key required' }, { status: 400 });
 
   // Create session
   const sessRes = await query(
@@ -98,5 +102,5 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
   });
 
-  return NextResponse.json({ session_id: sessionId, status: 'running', module_key: body.module_key });
+  return Response.json({ session_id: sessionId, status: 'running', module_key: body.module_key });
 }

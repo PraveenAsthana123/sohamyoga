@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface WorkflowStep {
   id: number;
   step_order: number;
@@ -92,11 +93,12 @@ async function executeStep(
   return { status, output, error };
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const workflowId = parseInt(params.id, 10);
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
+  const workflowId = parseInt(id, 10);
   let runId: number | null = null;
 
   try {
@@ -109,7 +111,7 @@ export async function POST(
       [workflowId]
     );
     if (wfResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+      return Response.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
     // Fetch steps
@@ -160,7 +162,7 @@ export async function POST(
       [finalStatus, workflowId]
     );
 
-    return NextResponse.json({
+    return Response.json({
       run_id: runId,
       status: finalStatus,
       steps_total: steps.length,
@@ -175,6 +177,6 @@ export async function POST(
         [String(err), runId]
       ).catch(() => null);
     }
-    return NextResponse.json({ error: 'Failed to run workflow' }, { status: 500 });
+    return Response.json({ error: 'Failed to run workflow' }, { status: 500 });
   }
 }

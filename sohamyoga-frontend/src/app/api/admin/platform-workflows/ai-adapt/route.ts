@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const PLATFORM_ADAPT_CONFIG: Record<string, { charLimit: number; bestPractices: string; tone: string }> = {
   twitter:   { charLimit: 280,    bestPractices: 'Use 1-2 hashtags, be concise, add a hook',                          tone: 'casual, punchy' },
   linkedin:  { charLimit: 3000,   bestPractices: 'Professional tone, add insights, use line breaks',                  tone: 'professional, thoughtful' },
@@ -71,6 +72,9 @@ Return ONLY the adapted content text, nothing else.`;
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       source_content: string;
@@ -82,7 +86,7 @@ export async function POST(req: NextRequest) {
     const { source_content, source_platform, target_platforms, job_type = 'adapt' } = body;
 
     if (!source_content || !target_platforms || target_platforms.length === 0) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'source_content and target_platforms are required' },
         { status: 400 }
       );
@@ -119,7 +123,7 @@ export async function POST(req: NextRequest) {
       [JSON.stringify(aiResult), jobId]
     );
 
-    return NextResponse.json({
+    return Response.json({
       job_id: jobId,
       adapted: aiResult,
       errors,
@@ -127,6 +131,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('AI adapt error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

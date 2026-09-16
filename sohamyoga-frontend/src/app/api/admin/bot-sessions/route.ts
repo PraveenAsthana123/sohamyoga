@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       resolved: (sessions.rows as Array<{ status: string }>).filter(s => s.status === 'resolved').length,
     };
 
-    return NextResponse.json({ sessions: sessions.rows, summary });
+    return Response.json({ sessions: sessions.rows, summary });
   } finally {
     client.release();
   }

@@ -2,11 +2,15 @@
 // Returns per-platform content counts and setup status.
 // Used by the All Platforms Hub page (/admin/platforms).
 
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ALL_PLATFORM_KEYS } from '@/lib/platform-tab-config';
 
-export async function GET(): Promise<NextResponse> {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Ensure tables exist (best-effort, unified_content_item created by platform-data route)
     await query(`
@@ -57,9 +61,9 @@ export async function GET(): Promise<NextResponse> {
         : 'Missing Credentials',
     }));
 
-    return NextResponse.json({ stats, generatedAt: new Date().toISOString() });
+    return Response.json({ stats, generatedAt: new Date().toISOString() });
   } catch (err) {
     console.error('[platforms/stats]', err);
-    return NextResponse.json({ stats: [], error: String(err) }, { status: 500 });
+    return Response.json({ stats: [], error: String(err) }, { status: 500 });
   }
 }

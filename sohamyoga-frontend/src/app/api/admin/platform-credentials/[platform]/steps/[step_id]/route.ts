@@ -1,5 +1,5 @@
 // PATCH /api/admin/platform-credentials/[platform]/steps/[step_id]
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -11,7 +11,7 @@ type Params = { params: Promise<{ platform: string; step_id: string }> };
 export async function PATCH(req: NextRequest, { params }: Params) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  if (!databaseConfigured()) return Response.json({ error: 'Database not configured' }, { status: 503 });
 
   const { platform, step_id } = await params;
 
@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
 
     if (stepResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Step not found' }, { status: 404 });
+      return Response.json({ error: 'Step not found' }, { status: 404 });
     }
 
     const step = stepResult.rows[0] as { step_type: string; env_var_to_set?: string };
@@ -127,9 +127,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       [platform, JSON.stringify({ step_id, is_completed: is_completed ?? true })]
     );
 
-    return NextResponse.json({ step: stepResult.rows[0], success: true });
+    return Response.json({ step: stepResult.rows[0], success: true });
   } catch (err) {
     console.error('[platform-credentials/steps/[step_id]] PATCH error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

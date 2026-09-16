@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
-    const workflowId = parseInt(params.id, 10);
+    const workflowId = parseInt(id, 10);
     const result = await query<{
       id: number;
       workflow_id: number;
@@ -22,19 +24,20 @@ export async function GET(
       'SELECT * FROM platform_workflow_step WHERE workflow_id = $1 ORDER BY step_order ASC',
       [workflowId]
     );
-    return NextResponse.json({ steps: result.rows });
+    return Response.json({ steps: result.rows });
   } catch (err) {
     console.error('GET steps error:', err);
-    return NextResponse.json({ error: 'Failed to fetch steps' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch steps' }, { status: 500 });
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
-    const workflowId = parseInt(params.id, 10);
+    const workflowId = parseInt(id, 10);
     const body = await req.json() as {
       step_order: number;
       action_type: string;
@@ -56,7 +59,7 @@ export async function POST(
     } = body;
 
     if (!action_type) {
-      return NextResponse.json({ error: 'action_type is required' }, { status: 400 });
+      return Response.json({ error: 'action_type is required' }, { status: 400 });
     }
 
     const result = await query<{ id: number }>(
@@ -66,9 +69,9 @@ export async function POST(
       [workflowId, step_order, action_type, JSON.stringify(action_config), condition_field, condition_operator, condition_value, on_failure]
     );
 
-    return NextResponse.json({ step: result.rows[0] }, { status: 201 });
+    return Response.json({ step: result.rows[0] }, { status: 201 });
   } catch (err) {
     console.error('POST step error:', err);
-    return NextResponse.json({ error: 'Failed to create step' }, { status: 500 });
+    return Response.json({ error: 'Failed to create step' }, { status: 500 });
   }
 }

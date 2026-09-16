@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       corporatePrograms: corporate.rows.length,
     };
 
-    return NextResponse.json({
+    return Response.json({
       summary,
       tenants: tenants.rows,
       franchises: franchises.rows,

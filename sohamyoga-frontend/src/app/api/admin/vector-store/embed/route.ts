@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import crypto from 'crypto';
 
+import { requireAdmin } from '@/lib/admin-auth';
 async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const res = await fetch('http://localhost:11434/api/embeddings', {
@@ -18,6 +19,9 @@ async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as { namespace?: string; content_text?: string; source_type?: string; metadata?: Record<string, unknown> };
     const { namespace, content_text, source_type, metadata } = body;
@@ -36,7 +40,7 @@ export async function POST(req: NextRequest) {
          embedding.length ? JSON.stringify(embedding) : null,
          JSON.stringify(metadata ?? {})]
       );
-      return NextResponse.json({ ok: true, id: result.rows[0].id, embedding_dims: embedding.length });
+      return Response.json({ ok: true, id: result.rows[0].id, embedding_dims: embedding.length });
     }
 
     // Batch: embed all rows in namespace that have no embedding yet
@@ -58,8 +62,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, namespace: ns, processed, total_pending: rows.rowCount });
+    return Response.json({ ok: true, namespace: ns, processed, total_pending: rows.rowCount });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

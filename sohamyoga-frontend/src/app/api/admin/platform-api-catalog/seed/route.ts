@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 import { API_OFFERINGS_SEED } from '@/lib/platform-api-catalog-seed';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
 
   let inserted = 0;
@@ -63,7 +67,7 @@ export async function GET() {
     ) ON CONFLICT (app, module_key) DO NOTHING
   `).catch(() => { /* ignore if module_registry not present */ });
 
-  return NextResponse.json({
+  return Response.json({
     started: true,
     inserted,
     skipped,

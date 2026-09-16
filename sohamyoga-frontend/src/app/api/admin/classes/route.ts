@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
       waitlisted: waitlist.rows.length,
     };
 
-    return NextResponse.json({
+    return Response.json({
       sessions: sessions.rows,
       waitlist: waitlist.rows,
       summary,
@@ -77,11 +77,11 @@ export async function PATCH(req: NextRequest) {
   if (authErr) return authErr;
 
   const body = await req.json() as { id: string; status: string };
-  if (!body.id || !body.status) return NextResponse.json({ error: 'id and status required' }, { status: 400 });
+  if (!body.id || !body.status) return Response.json({ error: 'id and status required' }, { status: 400 });
 
   const allowed = ['scheduled', 'completed', 'cancelled'];
   if (!allowed.includes(body.status)) {
-    return NextResponse.json({ error: `status must be one of ${allowed.join(', ')}` }, { status: 400 });
+    return Response.json({ error: `status must be one of ${allowed.join(', ')}` }, { status: 400 });
   }
 
   const client = await pool.connect();
@@ -90,8 +90,8 @@ export async function PATCH(req: NextRequest) {
       `UPDATE class_session SET status = $1 WHERE id = $2 RETURNING *`,
       [body.status, body.id]
     );
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ session: res.rows[0] });
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ session: res.rows[0] });
   } finally {
     client.release();
   }

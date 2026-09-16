@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query, transaction } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -465,7 +466,10 @@ async function seedBatch(modules: ModuleRow[], counters: {
   });
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const statusOnly = searchParams.get('status') === 'true';
 
@@ -482,7 +486,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       query('SELECT COUNT(*) FROM module_tenant_scenario'),
       query('SELECT COUNT(*) FROM test_dataset'),
     ]);
-    return NextResponse.json({
+    return Response.json({
       test_plans: parseInt(plans.rows[0].count),
       test_cases: parseInt(cases.rows[0].count),
       scenarios: parseInt(scenarios.rows[0].count),
@@ -519,5 +523,5 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
   });
 
-  return NextResponse.json({ status: 'started', message: 'Seed running in background. Poll GET /api/admin/module-intelligence/seed?status=true to check counts.' });
+  return Response.json({ status: 'started', message: 'Seed running in background. Poll GET /api/admin/module-intelligence/seed?status=true to check counts.' });
 }

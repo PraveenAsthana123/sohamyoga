@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
        GROUP BY competitor_name
        ORDER BY competitor_name`,
     );
-    return NextResponse.json({ competitors: result.rows });
+    return Response.json({ competitors: result.rows });
   }
 
   const result = await pool.query<SnapshotRow>(
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     [competitor],
   );
 
-  return NextResponse.json({ snapshots: result.rows });
+  return Response.json({ snapshots: result.rows });
 }
 
 // POST /api/admin/market-research/portal-snapshot
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const { competitor_name, portal_name, snapshot_type, competitor_id } = body;
 
   if (!competitor_name || !portal_name) {
-    return NextResponse.json({ error: 'competitor_name and portal_name required' }, { status: 400 });
+    return Response.json({ error: 'competitor_name and portal_name required' }, { status: 400 });
   }
 
   // Simulate fetching data from the portal
@@ -84,5 +84,5 @@ export async function POST(req: NextRequest) {
     [competitor_id ?? null, competitor_name, portal_name, snapshot_type ?? 'general', JSON.stringify(simulatedData)],
   );
 
-  return NextResponse.json({ ok: true, snapshotId: result.rows[0].id, data: simulatedData });
+  return Response.json({ ok: true, snapshotId: result.rows[0].id, data: simulatedData });
 }

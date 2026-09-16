@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
         FROM asana a
         ORDER BY a.difficulty_level, a.sanskrit_name
       `);
-      return NextResponse.json({ asanas: res.rows });
+      return Response.json({ asanas: res.rows });
     }
 
     if (type === 'styles') {
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
         GROUP BY rys.id
         ORDER BY rys.name
       `);
-      return NextResponse.json({ styles: res.rows });
+      return Response.json({ styles: res.rows });
     }
 
     // Overview: summary stats
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       return acc;
     }, {});
 
-    return NextResponse.json({
+    return Response.json({
       summary: {
         totalAsanas: asanaCount.rows.reduce((s, r) => s + Number(r.count), 0),
         totalStyles: Number(styleCount.rows[0]?.count ?? 0),
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
   const { sanskrit_name, english_name, description, difficulty_level, duration_seconds, tenant_id } = body;
 
   if (!sanskrit_name || !english_name || !difficulty_level) {
-    return NextResponse.json({ error: 'sanskrit_name, english_name, difficulty_level required' }, { status: 400 });
+    return Response.json({ error: 'sanskrit_name, english_name, difficulty_level required' }, { status: 400 });
   }
 
   // Use first tenant or provided
@@ -86,14 +86,14 @@ export async function POST(req: NextRequest) {
   try {
     const tenantRes = await client.query('SELECT id FROM tenant LIMIT 1');
     const tid = tenant_id ?? tenantRes.rows[0]?.id;
-    if (!tid) return NextResponse.json({ error: 'No tenant found' }, { status: 400 });
+    if (!tid) return Response.json({ error: 'No tenant found' }, { status: 400 });
 
     const res = await client.query(
       `INSERT INTO asana (tenant_id, sanskrit_name, english_name, description, difficulty_level, duration_seconds)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [tid, sanskrit_name, english_name, description ?? '', difficulty_level, duration_seconds ?? null]
     );
-    return NextResponse.json({ asana: res.rows[0] }, { status: 201 });
+    return Response.json({ asana: res.rows[0] }, { status: 201 });
   } finally {
     client.release();
   }
@@ -105,7 +105,7 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json() as Record<string, unknown>;
   const { id, ...fields } = body;
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 });
 
   const allowed = ['sanskrit_name', 'english_name', 'description', 'difficulty_level', 'duration_seconds', 'image_url', 'video_url', 'is_active'];
   const updates: string[] = [];
@@ -114,7 +114,7 @@ export async function PATCH(req: NextRequest) {
   for (const [k, v] of Object.entries(fields)) {
     if (allowed.includes(k)) { updates.push(`${k} = $${i++}`); values.push(v); }
   }
-  if (!updates.length) return NextResponse.json({ error: 'no valid fields' }, { status: 400 });
+  if (!updates.length) return Response.json({ error: 'no valid fields' }, { status: 400 });
   values.push(id);
 
   const client = await pool.connect();
@@ -123,8 +123,8 @@ export async function PATCH(req: NextRequest) {
       `UPDATE asana SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${i} RETURNING *`,
       values
     );
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ asana: res.rows[0] });
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ asana: res.rows[0] });
   } finally {
     client.release();
   }

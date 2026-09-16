@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json() as EnrichRequest;
 
     if (!body.portal) {
-      return NextResponse.json({ error: 'portal is required' }, { status: 400 });
+      return Response.json({ error: 'portal is required' }, { status: 400 });
     }
     if (!body.email && !body.name) {
-      return NextResponse.json({ error: 'email or name is required' }, { status: 400 });
+      return Response.json({ error: 'email or name is required' }, { status: 400 });
     }
 
     // Check if the portal's env var is set
@@ -107,14 +107,14 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    return NextResponse.json({
+    return Response.json({
       enriched,
       source: hasApiKey ? 'api' : 'demo',
       portal: body.portal,
       api_key_configured: hasApiKey,
     });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -125,5 +125,5 @@ export async function GET(req: NextRequest) {
   const { rows } = await pool.query(
     'SELECT * FROM b2b_lead_enrichment ORDER BY created_at DESC LIMIT 50'
   );
-  return NextResponse.json({ enrichments: rows });
+  return Response.json({ enrichments: rows });
 }

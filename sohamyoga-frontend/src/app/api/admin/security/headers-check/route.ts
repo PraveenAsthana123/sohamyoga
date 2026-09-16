@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 
 interface HeaderSpec {
@@ -86,5 +86,5 @@ export async function GET(req: NextRequest) {
     (headers.filter(h => h.present).length / headers.length) * 100,
   );
 
-  return NextResponse.json({ headers, score, probed: Object.keys(served).length > 0 });
+  return Response.json({ headers, score, probed: Object.keys(served).length > 0 });
 }

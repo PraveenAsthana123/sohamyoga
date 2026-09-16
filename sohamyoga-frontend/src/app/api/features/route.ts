@@ -1,5 +1,5 @@
 "use server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { DEFAULT_FEATURE_FLAGS } from "@/domain/features/FeatureFlag";
 
 // In production: read from DB. Here: in-memory with env overrides.
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     rolloutPercent: f.rolloutPercent,
   }));
 
-  return NextResponse.json({ flags: safe });
+  return Response.json({ flags: safe });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
   const { key, enabled, rolloutPercent, updatedBy = "admin" } = body;
 
   if (!key || !flagStore.has(key)) {
-    return NextResponse.json({ error: "Feature key not found" }, { status: 404 });
+    return Response.json({ error: "Feature key not found" }, { status: 404 });
   }
 
   const existing = flagStore.get(key)!;
@@ -58,5 +58,5 @@ export async function PATCH(req: NextRequest) {
   };
   flagStore.set(key, updated);
 
-  return NextResponse.json({ flag: updated });
+  return Response.json({ flag: updated });
 }

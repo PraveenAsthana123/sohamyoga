@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const body = await req.json() as { case_id?: string; case_key?: string; session_id?: string };
 
@@ -16,11 +20,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } else if (body.case_key) {
     caseResult = await query('SELECT * FROM test_case_extended WHERE case_key = $1', [body.case_key]);
   } else {
-    return NextResponse.json({ error: 'case_id or case_key required' }, { status: 400 });
+    return Response.json({ error: 'case_id or case_key required' }, { status: 400 });
   }
 
   if (!caseResult.rows.length) {
-    return NextResponse.json({ error: 'Test case not found' }, { status: 404 });
+    return Response.json({ error: 'Test case not found' }, { status: 404 });
   }
 
   const tc = caseResult.rows[0] as {
@@ -121,7 +125,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     [sessionId],
   );
 
-  return NextResponse.json({
+  return Response.json({
     case_key: tc.case_key, session_id: sessionId, status, http_status: httpStatus,
     duration_ms: durationMs, failure_reason: failureReason, response_body: responseBody,
   });

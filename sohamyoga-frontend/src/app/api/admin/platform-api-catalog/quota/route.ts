@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
   const platform = req.nextUrl.searchParams.get('platform');
 
@@ -39,5 +43,5 @@ export async function GET(req: NextRequest) {
     [],
   );
 
-  return NextResponse.json({ quotas: result.rows, summary: summaryResult.rows });
+  return Response.json({ quotas: result.rows, summary: summaryResult.rows });
 }

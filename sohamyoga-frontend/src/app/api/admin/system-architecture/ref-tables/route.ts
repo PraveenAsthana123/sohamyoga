@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Query information_schema for all user tables + their row counts
     const tablesRes = await pool.query(`
@@ -17,7 +21,7 @@ export async function GET() {
 
     // Also pull catalog entries for richer metadata
     const catalogRes = await pool.query(
-      'SELECT * FROM reference_table_catalog ORDER BY table_name'
+      'SELECT * FROM reference_table_catalog ORDER BY table_name LIMIT 500'
     ).catch(() => ({ rows: [] }));
 
     const catalogMap: Record<string, { purpose: string; key_columns: string; is_editable: boolean }> = {};
@@ -33,8 +37,8 @@ export async function GET() {
       is_editable: catalogMap[row.table_name]?.is_editable ?? false,
     }));
 
-    return NextResponse.json({ tables, total: tables.length });
+    return Response.json({ tables, total: tables.length });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

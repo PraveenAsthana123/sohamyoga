@@ -1,5 +1,5 @@
 // POST /api/admin/platform-credentials/[platform]/test
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -226,13 +226,13 @@ const PLATFORM_TESTS: Record<string, () => Promise<TestResult>> = {
 export async function POST(req: NextRequest, { params }: Params) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  if (!databaseConfigured()) return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  if (!databaseConfigured()) return Response.json({ error: 'Database not configured' }, { status: 503 });
 
   const { platform } = await params;
 
   const testFn = PLATFORM_TESTS[platform];
   if (!testFn) {
-    return NextResponse.json({ error: 'Unknown platform' }, { status: 404 });
+    return Response.json({ error: 'Unknown platform' }, { status: 404 });
   }
 
   try {
@@ -256,9 +256,9 @@ export async function POST(req: NextRequest, { params }: Params) {
       [platform, result.success ? 'test_passed' : 'test_failed', JSON.stringify({ message: result.message })]
     );
 
-    return NextResponse.json(result);
+    return Response.json(result);
   } catch (err) {
     console.error(`[platform-credentials/${platform}/test] error:`, err);
-    return NextResponse.json({ success: false, message: String(err) }, { status: 500 });
+    return Response.json({ success: false, message: String(err) }, { status: 500 });
   }
 }

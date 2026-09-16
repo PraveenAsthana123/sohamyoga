@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   try {
@@ -71,9 +71,9 @@ export async function GET(req: NextRequest) {
         rsp.display_name
     `);
 
-    return NextResponse.json({ platforms: result.rows });
+    return Response.json({ platforms: result.rows });
   } catch (err) {
     console.error('platform-integration GET error:', err);
-    return NextResponse.json({ error: 'Failed to load platform integrations' }, { status: 500 });
+    return Response.json({ error: 'Failed to load platform integrations' }, { status: 500 });
   }
 }

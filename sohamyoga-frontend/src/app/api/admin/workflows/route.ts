@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       marketingEvents30d: mktEvents.rows.reduce((s, r) => s + Number(r.count), 0),
     };
 
-    return NextResponse.json({
+    return Response.json({
       summary,
       workflows: workflows.rows,
       runs: runs.rows,
@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest) {
   if (authErr) return authErr;
 
   const body = await req.json() as { id: number; is_active?: boolean };
-  if (!body.id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!body.id) return Response.json({ error: 'id required' }, { status: 400 });
 
   const client = await pool.connect();
   try {
@@ -72,8 +72,8 @@ export async function PATCH(req: NextRequest) {
       `UPDATE platform_workflow SET is_active = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
       [body.is_active, body.id]
     );
-    if (!res.rowCount) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({ workflow: res.rows[0] });
+    if (!res.rowCount) return Response.json({ error: 'not found' }, { status: 404 });
+    return Response.json({ workflow: res.rows[0] });
   } finally {
     client.release();
   }

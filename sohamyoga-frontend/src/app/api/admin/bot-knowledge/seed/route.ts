@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function POST() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS bot_session (
@@ -141,8 +145,8 @@ export async function POST() {
       );
     }
 
-    return NextResponse.json({ ok: true, message: 'Tables created, 60 KB entries seeded (10 per category)' });
+    return Response.json({ ok: true, message: 'Tables created, 60 KB entries seeded (10 per category)' });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const PLATFORM_LIMITS: Record<string, Record<string, number>> = {
   youtube:   { video_post: 5000, short: 100, live: 500, community_post: 5000 },
   facebook:  { text_post: 63206, image_post: 63206, carousel: 63206, story: 15, reel: 2200 },
@@ -12,10 +13,13 @@ const PLATFORM_LIMITS: Record<string, Record<string, number>> = {
 };
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
   const { platform, content_type, topic, tone, niche, save } = await req.json();
   if (!platform || !content_type || !topic) {
-    return NextResponse.json({ error: 'platform, content_type, topic required' }, { status: 400 });
+    return Response.json({ error: 'platform, content_type, topic required' }, { status: 400 });
   }
 
   const maxChars = PLATFORM_LIMITS[platform]?.[content_type] ?? 2200;
@@ -107,5 +111,5 @@ Only return the JSON object, no other text.`;
     );
   }
 
-  return NextResponse.json(result);
+  return Response.json(result);
 }

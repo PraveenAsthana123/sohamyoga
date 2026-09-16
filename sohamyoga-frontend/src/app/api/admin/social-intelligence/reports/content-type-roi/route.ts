@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
 
   // Get engagement rate by content type from variants + config
@@ -38,5 +42,5 @@ export async function GET() {
     });
   }
 
-  return NextResponse.json({ roi_by_platform: Object.values(byPlatform) });
+  return Response.json({ roi_by_platform: Object.values(byPlatform) });
 }

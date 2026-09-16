@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface RateLimitRow {
   platform: string;
   endpoint_group: string | null;
@@ -11,7 +12,10 @@ interface RateLimitRow {
   snapshot_at: string;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Latest snapshot per platform per endpoint_group
     const result = await query<RateLimitRow>(
@@ -55,9 +59,9 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ platforms: Object.values(byPlatform) });
+    return Response.json({ platforms: Object.values(byPlatform) });
   } catch (err) {
     console.error('[rate-limits GET]', err);
-    return NextResponse.json({ error: 'Failed to fetch rate limits' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch rate limits' }, { status: 500 });
   }
 }

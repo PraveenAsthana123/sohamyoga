@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface PlatformSummaryRow {
   platform: string;
   health_status: string | null;
@@ -13,7 +14,10 @@ interface PlatformSummaryRow {
   limit_remaining: number | null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // Get all 36 platforms
     const platformsResult = await query<{ platform: string }>(
@@ -94,7 +98,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ platforms: summary, total: platforms.length });
+    return Response.json({ platforms: summary, total: platforms.length });
   } catch (err) {
     console.error('[platform-monitoring]', err);
     // Tables may not exist yet
@@ -102,7 +106,7 @@ export async function GET() {
       `SELECT platform FROM ref_social_platform ORDER BY platform`,
     ).catch(() => ({ rows: [] as { platform: string }[] }));
 
-    return NextResponse.json({
+    return Response.json({
       platforms: platformsResult.rows.map((r) => ({
         platform: r.platform,
         health_status: 'unknown',

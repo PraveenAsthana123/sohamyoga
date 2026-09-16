@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const client = await pool.connect();
   try {
     const [accountRes, videosRes, shortsRes, analyticsRes, draftsRes] = await Promise.all([
@@ -59,7 +63,7 @@ export async function GET() {
       ),
     };
 
-    return NextResponse.json({
+    return Response.json({
       account: accountRes.rows[0] ?? null,
       videos: videosRes.rows,
       shorts: shortsRes.rows,

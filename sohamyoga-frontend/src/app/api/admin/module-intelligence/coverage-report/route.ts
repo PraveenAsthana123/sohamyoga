@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
 
   const [coverage, trend, polarity] = await Promise.all([
@@ -58,7 +62,7 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
     `),
   ]);
 
-  return NextResponse.json({
+  return Response.json({
     coverage: coverage.rows,
     trend: trend.rows,
     polarity: polarity.rows,

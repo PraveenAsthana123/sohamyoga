@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
   );
 
   // Return both `results` and `ads` so either page consumption pattern works
-  return NextResponse.json({ results: result.rows, ads: result.rows });
+  return Response.json({ results: result.rows, ads: result.rows });
 }
 
 // POST /api/admin/market-research/ad-spy
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
   const validPlatforms = ['facebook', 'google', 'linkedin'];
   if (!validPlatforms.includes(platform)) {
-    return NextResponse.json({ error: 'platform must be facebook, google, or linkedin' }, { status: 400 });
+    return Response.json({ error: 'platform must be facebook, google, or linkedin' }, { status: 400 });
   }
 
   // Simulate pulling from free ad libraries
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     linkedin: 'https://www.linkedin.com/ad-library',
   };
 
-  return NextResponse.json({
+  return Response.json({
     ads: result.rows,
     results: result.rows,
     note: `Returning stored results for ${platform}. To enable live fetching: ${platform === 'facebook' ? 'create a Facebook App, request Ads Library API access, and set FACEBOOK_APP_ID + FACEBOOK_APP_SECRET env vars' : platform === 'google' ? 'Google Ads Transparency has no public JSON API — requires web scraping or Google Ads API access via GOOGLE_ADS_DEVELOPER_TOKEN' : 'LinkedIn Ad Library requires LinkedIn Marketing Developer Platform access — set LINKEDIN_CLIENT_ID + LINKEDIN_CLIENT_SECRET'}. Public library URL: ${libraryUrls[platform]}`,
@@ -108,7 +108,7 @@ export async function PATCH(req: NextRequest) {
 
   const body = (await req.json()) as { id?: number };
   if (typeof body.id !== 'number') {
-    return NextResponse.json({ error: 'id (number) required' }, { status: 400 });
+    return Response.json({ error: 'id (number) required' }, { status: 400 });
   }
 
   const adRes = await pool.query<AdSpyRow>(
@@ -116,7 +116,7 @@ export async function PATCH(req: NextRequest) {
     [body.id],
   );
   if (adRes.rowCount === 0) {
-    return NextResponse.json({ error: 'Ad not found' }, { status: 404 });
+    return Response.json({ error: 'Ad not found' }, { status: 404 });
   }
 
   const ad = adRes.rows[0];
@@ -147,5 +147,5 @@ Ad: "${text.slice(0, 500)}"`,
     [JSON.stringify({ ai_analysis: analysis }), body.id],
   );
 
-  return NextResponse.json({ ok: true, analysis });
+  return Response.json({ ok: true, analysis });
 }

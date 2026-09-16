@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const { rows } = await pool.query(
     'SELECT * FROM linkedin_search ORDER BY created_at DESC LIMIT 50'
   );
-  return NextResponse.json({ searches: rows });
+  return Response.json({ searches: rows });
 }
 
 export async function POST(req: NextRequest) {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (!body.search_name || !body.search_type) {
-      return NextResponse.json({ error: 'search_name and search_type are required' }, { status: 400 });
+      return Response.json({ error: 'search_name and search_type are required' }, { status: 400 });
     }
 
     // Generate demo results based on search type
@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    return NextResponse.json({ search: rows[0] }, { status: 201 });
+    return Response.json({ search: rows[0] }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

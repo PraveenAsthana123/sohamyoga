@@ -1,32 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
     const result = await pool.query(
       'SELECT * FROM synthetic_data_set WHERE id = $1',
-      [params.id]
+      [id]
     );
     if (result.rowCount === 0) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      return Response.json({ error: 'Not found' }, { status: 404 });
     }
-    return NextResponse.json({ dataset: result.rows[0] });
+    return Response.json({ dataset: result.rows[0] });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
-    await pool.query('DELETE FROM synthetic_data_set WHERE id = $1', [params.id]);
-    return NextResponse.json({ ok: true });
+    await pool.query('DELETE FROM synthetic_data_set WHERE id = $1', [id]);
+    return Response.json({ ok: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

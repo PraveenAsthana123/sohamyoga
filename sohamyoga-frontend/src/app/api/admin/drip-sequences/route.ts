@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  const sequences = await query(`SELECT * FROM drip_sequence ORDER BY created_at DESC`);
-  const steps = await query(`SELECT * FROM drip_step ORDER BY sequence_id, step_order`);
+  const sequences = await query(`SELECT * FROM drip_sequence ORDER BY created_at DESC LIMIT 500`);
+  const steps = await query(`SELECT * FROM drip_step ORDER BY sequence_id, step_order LIMIT 500`);
   const enrollments = await query(
     `SELECT e.*, l.email, l.first_name, l.last_name FROM drip_enrollment e JOIN campaign_lead l ON l.id = e.lead_id ORDER BY e.enrolled_at DESC LIMIT 100`,
   );

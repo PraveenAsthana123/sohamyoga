@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { topic, audience, tone, length, action, text } = await req.json() as {
     topic?: string; audience?: string; tone?: string; length?: string;
     action?: string; text?: string;
@@ -61,11 +65,11 @@ Only return valid JSON.`;
     const raw = (data.response ?? '').trim();
 
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return NextResponse.json({ result: { content: raw } });
+    if (!jsonMatch) return Response.json({ result: { content: raw } });
 
     const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
-    return NextResponse.json({ result: parsed });
+    return Response.json({ result: parsed });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -22,10 +22,10 @@ export async function GET(req: NextRequest, { params }: Params) {
       'SELECT * FROM platform_webhook_config WHERE platform = $1 ORDER BY created_at DESC',
       [platform]
     );
-    return NextResponse.json({ webhooks: result.rows });
+    return Response.json({ webhooks: result.rows });
   } catch (err) {
     console.error('webhooks GET error:', err);
-    return NextResponse.json({ error: 'Failed to load webhooks' }, { status: 500 });
+    return Response.json({ error: 'Failed to load webhooks' }, { status: 500 });
   }
 }
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   const { platform } = await params;
@@ -60,9 +60,9 @@ export async function POST(req: NextRequest, { params }: Params) {
       ]
     );
 
-    return NextResponse.json({ webhook: result.rows[0] }, { status: 201 });
+    return Response.json({ webhook: result.rows[0] }, { status: 201 });
   } catch (err) {
     console.error('webhooks POST error:', err);
-    return NextResponse.json({ error: 'Failed to create webhook' }, { status: 500 });
+    return Response.json({ error: 'Failed to create webhook' }, { status: 500 });
   }
 }

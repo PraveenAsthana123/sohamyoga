@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   try {
     const before = await query(`SELECT * FROM unified_content_item WHERE id = $1`, [id]);
-    if (!before.rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!before.rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
     const res = await query(
       `UPDATE unified_content_item SET status = 'paused', updated_at = NOW() WHERE id = $1 RETURNING *`,
       [id]
@@ -15,8 +19,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
        VALUES ($1, 'paused', 'admin', $2, $3, 'Paused via Command Center')`,
       [id, JSON.stringify(before.rows[0]), JSON.stringify(res.rows[0])]
     );
-    return NextResponse.json({ item: res.rows[0] });
+    return Response.json({ item: res.rows[0] });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

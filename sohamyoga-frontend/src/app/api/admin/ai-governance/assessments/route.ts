@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getAdminPrincipal } from '@/lib/admin-auth';
 import { getAiGovernanceDb } from '@/domain/ai-governance/db';
 import { aiGovernanceAssessment } from '@/domain/ai-governance/schema';
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const db = getAiGovernanceDb();
   const rows = await db.select().from(aiGovernanceAssessment).orderBy(desc(aiGovernanceAssessment.createdAt)).limit(100);
-  return NextResponse.json({ assessments: rows });
+  return Response.json({ assessments: rows });
 }
 
 // POST /api/admin/ai-governance/assessments — record a real assessment
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = createAssessmentSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
   const db = getAiGovernanceDb();
@@ -41,5 +41,5 @@ export async function POST(req: NextRequest) {
     notes: parsed.data.notes ?? null,
   }).returning();
 
-  return NextResponse.json({ assessment: row }, { status: 201 });
+  return Response.json({ assessment: row }, { status: 201 });
 }

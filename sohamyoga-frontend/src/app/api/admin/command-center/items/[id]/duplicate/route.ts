@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { id } = await params;
   try {
     const src = await query(`SELECT * FROM unified_content_item WHERE id = $1`, [id]);
-    if (!src.rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!src.rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
     const s = src.rows[0] as Record<string, unknown>;
     const res = await query(
       `INSERT INTO unified_content_item
@@ -25,8 +29,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
        VALUES ($1, 'duplicated', 'admin', $2)`,
       [newItem.id, `Duplicated from ${id}`]
     );
-    return NextResponse.json({ item: newItem }, { status: 201 });
+    return Response.json({ item: newItem }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

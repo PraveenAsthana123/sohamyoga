@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSocialIntelligenceSchema } from '@/lib/social-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface ScenarioDef {
   platform: string;
   content_type: string;
@@ -318,7 +319,10 @@ function buildApiTests(): ScenarioDef[] {
   ];
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSocialIntelligenceSchema();
 
   let inserted = 0;
@@ -348,5 +352,5 @@ export async function POST() {
     if ((result.rowCount ?? 0) > 0) inserted++; else skipped++;
   }
 
-  return NextResponse.json({ inserted, skipped, total: allScenarios.length });
+  return Response.json({ inserted, skipped, total: allScenarios.length });
 }

@@ -1,14 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface TestResultRow {
   offering_id: string;
   platform: string;
   count: string;
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
 
   // Aggregate today's test results by offering
@@ -47,5 +51,5 @@ export async function POST() {
     synced++;
   }
 
-  return NextResponse.json({ synced, message: `Synced ${synced} quota records for today` });
+  return Response.json({ synced, message: `Synced ${synced} quota records for today` });
 }

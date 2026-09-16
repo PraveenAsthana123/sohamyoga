@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +43,9 @@ async function ensureTables() {
 }
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const { searchParams } = new URL(req.url);
   const resource = searchParams.get('resource') || 'posts';
@@ -57,7 +61,7 @@ export async function GET(req: NextRequest) {
       LEFT JOIN blog_post p ON p.category = c.name
       GROUP BY c.id ORDER BY c.name
     `);
-    return NextResponse.json({ categories: result.rows });
+    return Response.json({ categories: result.rows });
   }
 
   if (resource === 'analytics') {
@@ -71,12 +75,12 @@ export async function GET(req: NextRequest) {
         GROUP BY week ORDER BY week
       `),
     ]);
-    return NextResponse.json({ topPosts: topPosts.rows, byCategory: byCategory.rows, weekly: weekly.rows });
+    return Response.json({ topPosts: topPosts.rows, byCategory: byCategory.rows, weekly: weekly.rows });
   }
 
   if (resource === 'seo') {
     const result = await pool.query(`SELECT id, title, slug, seo_title, seo_description, seo_keywords, status FROM blog_post ORDER BY created_at DESC`);
-    return NextResponse.json({ posts: result.rows });
+    return Response.json({ posts: result.rows });
   }
 
   // Posts list
@@ -105,10 +109,13 @@ export async function GET(req: NextRequest) {
     FROM blog_post
   `);
 
-  return NextResponse.json({ posts: result.rows, kpi: kpi.rows[0] });
+  return Response.json({ posts: result.rows, kpi: kpi.rows[0] });
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const body = await req.json() as Record<string, unknown>;
   const { action } = body as { action?: string };
@@ -119,13 +126,13 @@ export async function POST(req: NextRequest) {
       `INSERT INTO blog_category (name, slug, description) VALUES ($1,$2,$3) ON CONFLICT (name) DO UPDATE SET description=$3 RETURNING *`,
       [name, slug || name?.toLowerCase().replace(/\s+/g, '-'), description],
     );
-    return NextResponse.json({ category: result.rows[0] });
+    return Response.json({ category: result.rows[0] });
   }
 
   if (action === 'delete-category') {
     const { id } = body as { id?: number };
     await pool.query(`DELETE FROM blog_category WHERE id=$1`, [id]);
-    return NextResponse.json({ deleted: true });
+    return Response.json({ deleted: true });
   }
 
   // Create/update post
@@ -156,7 +163,7 @@ export async function POST(req: NextRequest) {
        seo_title, seo_description, seo_keywords, readingTime, wordCount, ai_generated ?? false,
        scheduled_at || null, publishedAt, id],
     );
-    return NextResponse.json({ post: result.rows[0] });
+    return Response.json({ post: result.rows[0] });
   }
 
   const result = await pool.query(
@@ -168,14 +175,17 @@ export async function POST(req: NextRequest) {
      seo_title, seo_description, seo_keywords, readingTime, wordCount, ai_generated ?? false,
      scheduled_at || null, publishedAt],
   );
-  return NextResponse.json({ post: result.rows[0] });
+  return Response.json({ post: result.rows[0] });
 }
 
 export async function DELETE(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureTables();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 });
   await pool.query(`DELETE FROM blog_post WHERE id=$1`, [parseInt(id)]);
-  return NextResponse.json({ deleted: true });
+  return Response.json({ deleted: true });
 }

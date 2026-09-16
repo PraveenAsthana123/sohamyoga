@@ -1,18 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await pool.query(
-      'SELECT * FROM version_registry ORDER BY released_at DESC'
+      'SELECT * FROM version_registry ORDER BY released_at DESC LIMIT 500'
     );
-    return NextResponse.json({ versions: result.rows });
+    return Response.json({ versions: result.rows });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json() as {
       version_string: string;
@@ -36,8 +43,8 @@ export async function POST(req: NextRequest) {
         body.git_commit_hash ?? null,
       ]
     );
-    return NextResponse.json({ version: result.rows[0] }, { status: 201 });
+    return Response.json({ version: result.rows[0] }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

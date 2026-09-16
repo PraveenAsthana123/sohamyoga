@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const dynamic = 'force-dynamic';
 
 // Module registry seed for extended platform adapters (Task 8 of 28-platform coverage).
@@ -176,7 +177,10 @@ const EXTENDED_PLATFORM_MODULES = [
   },
 ];
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   let inserted = 0;
   let skipped = 0;
 
@@ -206,7 +210,7 @@ export async function POST() {
     }
   }
 
-  return NextResponse.json({
+  return Response.json({
     ok: true,
     inserted,
     skipped,

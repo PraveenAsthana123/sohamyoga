@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 
-export async function GET() {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const result = await query<{
       id: number;
@@ -35,9 +39,9 @@ export async function GET() {
       ORDER BY r.started_at DESC
       LIMIT 100
     `);
-    return NextResponse.json({ runs: result.rows });
+    return Response.json({ runs: result.rows });
   } catch (err) {
     console.error('GET all runs error:', err);
-    return NextResponse.json({ error: 'Failed to fetch runs' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch runs' }, { status: 500 });
   }
 }

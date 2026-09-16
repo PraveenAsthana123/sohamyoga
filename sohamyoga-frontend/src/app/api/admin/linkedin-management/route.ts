@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 import { requireAdmin } from '@/lib/admin-auth';
 
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     FROM linkedin_post
   `);
 
-  return NextResponse.json({ posts: rows, stats: stats.rows[0] });
+  return Response.json({ posts: rows, stats: stats.rows[0] });
 }
 
 export async function POST(req: NextRequest) {
@@ -71,8 +71,8 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    return NextResponse.json({ post: rows[0] }, { status: 201 });
+    return Response.json({ post: rows[0] }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

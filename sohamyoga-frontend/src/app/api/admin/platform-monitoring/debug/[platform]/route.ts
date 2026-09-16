@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface EnvVarCheck {
   name: string;
   set: boolean;
@@ -49,11 +50,11 @@ const HEALTH_ENDPOINTS: Record<string, string> = {
   medium: 'https://api.medium.com/v1/',
 };
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: { platform: string } },
-) {
-  const { platform } = params;
+export async function POST(req: NextRequest, { params }: { params: Promise<{ platform: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { platform } = await params;
 
   const result: DebugResult = {
     platform,
@@ -180,5 +181,5 @@ export async function POST(
     result.recommendations.push(`${platform} appears healthy — no immediate action required`);
   }
 
-  return NextResponse.json(result);
+  return Response.json(result);
 }

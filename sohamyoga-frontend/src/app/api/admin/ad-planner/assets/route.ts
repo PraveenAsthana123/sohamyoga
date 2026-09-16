@@ -1,10 +1,14 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const asset_type = searchParams.get('asset_type');
   const ad_message_type = searchParams.get('ad_message_type');
@@ -27,6 +31,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   const body = await req.json();
   const { name, url, asset_type, ad_message_type, platform, width_px, height_px, file_size_kb, tags } = body;
 

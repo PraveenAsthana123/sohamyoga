@@ -1,5 +1,5 @@
 // GET /api/admin/platform-credentials/seed — create tables and seed all 36 platforms
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 import { PLATFORM_SEED_DATA } from '@/lib/platform-credentials-seed';
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   try {
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       message: `Tables created. Inserted ${platformsInserted} new platforms and ${stepsInserted} new steps.`,
       totalPlatforms: PLATFORM_SEED_DATA.length,
@@ -137,6 +137,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error('[platform-credentials/seed] error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { databaseConfigured, query } from '@/lib/postgres';
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
 
   if (!databaseConfigured()) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    return Response.json({ error: 'Database not configured' }, { status: 503 });
   }
 
   try {
@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
       if ((result.rowCount ?? 0) > 0) seeded++;
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       message: `Tables created. Seeded ${seeded} new platform configs (${platforms.rows.length} platforms total).`,
       tables: ['platform_integration_config', 'platform_system_account', 'platform_webhook_config', 'platform_customer_toggle'],
@@ -106,6 +106,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error('platform-integration seed error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

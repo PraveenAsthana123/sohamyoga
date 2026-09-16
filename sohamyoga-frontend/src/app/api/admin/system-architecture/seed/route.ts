@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { pool } from '@/lib/db';
 
+import { requireAdmin } from '@/lib/admin-auth';
 const CREATE_TABLES = `
 CREATE TABLE IF NOT EXISTS tech_stack_entry (
   id SERIAL PRIMARY KEY,
@@ -285,7 +286,10 @@ const REF_TABLE_SEEDS = [
   ['cron_run_log', 'Execution log for all cron jobs — status, duration, errors per run', 'id, job_name, started_at', false],
 ];
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     await pool.query(CREATE_TABLES);
 
@@ -336,7 +340,7 @@ export async function POST() {
       pool.query('SELECT COUNT(*) AS cnt FROM reference_table_catalog'),
     ]);
 
-    return NextResponse.json({
+    return Response.json({
       ok: true,
       tables_created: true,
       tech_stack_rows: Number(stackCnt.rows[0].cnt),
@@ -345,6 +349,6 @@ export async function POST() {
       ref_catalog_rows: Number(refCnt.rows[0].cnt),
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }

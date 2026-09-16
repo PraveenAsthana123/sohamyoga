@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensureSchema } from '@/lib/module-intelligence-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -33,13 +34,16 @@ function extractJsonArray(text: string): unknown[] {
   return [];
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<Response> {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensureSchema();
   const body = await req.json() as {
     module_key: string; count?: number; kaggle_ref?: string; source?: string;
   };
 
-  if (!body.module_key) return NextResponse.json({ error: 'module_key required' }, { status: 400 });
+  if (!body.module_key) return Response.json({ error: 'module_key required' }, { status: 400 });
 
   // Kaggle reference — just save the ref without generating
   if (body.source === 'kaggle' && body.kaggle_ref) {
@@ -49,12 +53,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
        RETURNING *`,
       [body.module_key, `Kaggle: ${body.kaggle_ref}`, body.kaggle_ref],
     );
-    return NextResponse.json(result.rows[0], { status: 201 });
+    return Response.json(result.rows[0], { status: 201 });
   }
 
   // Get module info
   const modRes = await query('SELECT name FROM module_registry WHERE module_key = $1', [body.module_key]);
-  if (!modRes.rows.length) return NextResponse.json({ error: 'Module not found' }, { status: 404 });
+  if (!modRes.rows.length) return Response.json({ error: 'Module not found' }, { status: 404 });
   const moduleName = (modRes.rows[0] as { name: string }).name;
 
   const count = Math.min(body.count ?? 10, 500);
@@ -89,5 +93,5 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       sampleRows.length, JSON.stringify(schemaFields), JSON.stringify(sampleRows.slice(0, 50)), generated_by],
   );
 
-  return NextResponse.json({ ...result.rows[0], total_generated: sampleRows.length }, { status: 201 });
+  return Response.json({ ...result.rows[0], total_generated: sampleRows.length }, { status: 201 });
 }

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest} from 'next/server';
 import { query } from '@/lib/postgres';
 import { ensurePlatformApiCatalogSchema } from '@/lib/platform-api-catalog-schema';
 
+import { requireAdmin } from '@/lib/admin-auth';
 interface BreakingRow {
   id: string;
   platform: string;
@@ -14,7 +15,10 @@ interface BreakingRow {
   last_run_at: string;
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   await ensurePlatformApiCatalogSchema();
 
   // Find offerings that were recently tested and failed, but are marked as built/verified
@@ -44,7 +48,7 @@ export async function POST() {
     recommended_action: 'Investigate endpoint failure and update implementation_status if broken',
   }));
 
-  return NextResponse.json({
+  return Response.json({
     breaking_changes: breakingChanges,
     count: breakingChanges.length,
     checked_at: new Date().toISOString(),

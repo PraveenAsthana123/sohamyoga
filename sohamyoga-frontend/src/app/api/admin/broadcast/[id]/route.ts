@@ -1,17 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { pool } from '@/lib/db';
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+import { requireAdmin } from '@/lib/admin-auth';
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
-    const result = await pool.query('SELECT * FROM broadcast WHERE id = $1', [params.id]);
-    if (!result.rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ broadcast: result.rows[0] });
+    const result = await pool.query('SELECT * FROM broadcast WHERE id = $1', [id]);
+    if (!result.rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json({ broadcast: result.rows[0] });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  const { id } = await params;
   try {
     const body = await req.json();
 
@@ -26,9 +35,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const result = await pool.query(
         `UPDATE broadcast SET status='sent', sent_at=NOW(), recipient_count=$2,
          delivered_count=$3, opened_count=$4, clicked_count=$5 WHERE id=$1 RETURNING *`,
-        [params.id, recipientCount, delivered, opened, clicked]
+        [id, recipientCount, delivered, opened, clicked]
       );
-      return NextResponse.json({ broadcast: result.rows[0] });
+      return Response.json({ broadcast: result.rows[0] });
     }
 
     const { name, subject, body: msgBody, broadcast_type, target_audience, status, scheduled_at } = body;
@@ -38,10 +47,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         broadcast_type=COALESCE($5,broadcast_type), target_audience=COALESCE($6,target_audience),
         status=COALESCE($7,status), scheduled_at=COALESCE($8,scheduled_at)
        WHERE id=$1 RETURNING *`,
-      [params.id, name, subject, msgBody, broadcast_type, target_audience, status, scheduled_at || null]
+      [id, name, subject, msgBody, broadcast_type, target_audience, status, scheduled_at || null]
     );
-    return NextResponse.json({ broadcast: result.rows[0] });
+    return Response.json({ broadcast: result.rows[0] });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Internal server error' }, { status: 500 });
   }
 }
