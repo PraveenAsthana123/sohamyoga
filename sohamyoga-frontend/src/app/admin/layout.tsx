@@ -1306,6 +1306,39 @@ const navItems = [
   { href: '/admin/service-hub', label: 'Service Hub 🏪', icon: <span aria-hidden="true">🏪</span>, requiredRoles: ['Admin'] },
   { href: '/admin/finops-hub', label: 'FinOps Hub ☁️', icon: <span aria-hidden="true">☁️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/sales-intelligence', label: 'Sales Intelligence 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  // RAG & AI Infrastructure
+  { href: '/admin/rag-knowledge-base', label: 'RAG Knowledge Base 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
+  // Control Towers
+  { href: '/admin/ct-market-research', label: 'CT: Market Research 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-social-media', label: 'CT: Social Media 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-video', label: 'CT: Video 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-voice-ai', label: 'CT: Voice AI 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-omnichannel', label: 'CT: Omnichannel 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-crm', label: 'CT: CRM 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-csat', label: 'CT: CSAT 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-hallucination', label: 'CT: Hallucination 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-pii', label: 'CT: PII 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-pipeline', label: 'CT: Pipeline 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-compliance-ai', label: 'CT: Compliance AI 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-agentops', label: 'CT: AgentOps 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ct-mcp', label: 'CT: MCP 🗼', icon: <span aria-hidden="true">🗼</span>, requiredRoles: ['Admin'] },
+  // Media & Content
+  { href: '/admin/media-transcription', label: 'Media Transcription 🎙️', icon: <span aria-hidden="true">🎙️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/content-repurposing', label: 'Content Repurposing ♻️', icon: <span aria-hidden="true">♻️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/asset-library', label: 'Asset Library 🗂️', icon: <span aria-hidden="true">🗂️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/publishing-calendar', label: 'Publishing Calendar 📅', icon: <span aria-hidden="true">📅</span>, requiredRoles: ['Admin'] },
+  // E-Commerce & Marketplace
+  { href: '/admin/shopify-integration', label: 'Shopify Integration 🛍️', icon: <span aria-hidden="true">🛍️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/marketplace-hub', label: 'Marketplace Hub 🏪', icon: <span aria-hidden="true">🏪</span>, requiredRoles: ['Admin'] },
+  // Research & Intelligence
+  { href: '/admin/research-catalog', label: 'Research Catalog 📚', icon: <span aria-hidden="true">📚</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/research-methodology', label: 'Research Methodology 🔬', icon: <span aria-hidden="true">🔬</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/industry-verticals', label: 'Industry Verticals 🏭', icon: <span aria-hidden="true">🏭</span>, requiredRoles: ['Admin'] },
+  // Security & Agency OS
+  { href: '/admin/security-identity', label: 'Security Identity OS 🔐', icon: <span aria-hidden="true">🔐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agency-website', label: 'Agency Website OS 🌐', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/growth-hacking', label: 'Growth Hacking 🚀', icon: <span aria-hidden="true">🚀</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agency-academy', label: 'Agency Academy 🎓', icon: <span aria-hidden="true">🎓</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
