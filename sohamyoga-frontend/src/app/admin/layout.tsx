@@ -1342,6 +1342,13 @@ const navItems = [
   // Classifieds & Local Listings
   { href: '/admin/kijiji-integration', label: 'Kijiji Integration 🟡', icon: <span aria-hidden="true">🟡</span>, requiredRoles: ['Admin'] },
   { href: '/admin/calgary-classifieds', label: 'Calgary Classifieds Hub 📋', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
+  // Real Estate & Rentals
+  { href: '/admin/real-estate-portal', label: 'Real Estate Portals 🏠', icon: <span aria-hidden="true">🏠</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/rental-portal', label: 'Rental Portals 🏢', icon: <span aria-hidden="true">🏢</span>, requiredRoles: ['Admin'] },
+  // Financial Broker Portals
+  { href: '/admin/insurance-broker', label: 'Insurance Broker Hub 🛡️', icon: <span aria-hidden="true">🛡️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/mortgage-broker', label: 'Mortgage Broker Hub 🏦', icon: <span aria-hidden="true">🏦</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/financial-advisor', label: 'Financial Advisor Portal 💼', icon: <span aria-hidden="true">💼</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
