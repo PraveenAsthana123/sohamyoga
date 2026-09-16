@@ -1406,6 +1406,33 @@ const navItems = [
   { href: '/admin/tutoring-center', label: 'Tutoring Center 📚', icon: <span aria-hidden="true">📚</span>, requiredRoles: ['Admin'] },
   // Food & Hospitality
   { href: '/admin/personal-chef', label: 'Personal Chef & Catering 👨‍🍳', icon: <span aria-hidden="true">👨‍🍳</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/food-truck', label: 'Food Truck & Mobile Vendor 🚚', icon: <span aria-hidden="true">🚚</span>, requiredRoles: ['Admin'] },
+  // Financial Services
+  { href: '/admin/wealth-management', label: 'Wealth Management & Planning 💰', icon: <span aria-hidden="true">💰</span>, requiredRoles: ['Admin'] },
+  // Staffing & Recruitment
+  { href: '/admin/staffing-agency', label: 'Staffing & Recruitment Agency 🤝', icon: <span aria-hidden="true">🤝</span>, requiredRoles: ['Admin'] },
+  // Retail
+  { href: '/admin/specialty-retail', label: 'Specialty Retail & Boutique 🛍️', icon: <span aria-hidden="true">🛍️</span>, requiredRoles: ['Admin'] },
+  // Allied Health — Integrative
+  { href: '/admin/acupuncture-tcm', label: 'Acupuncture & TCM 🪡', icon: <span aria-hidden="true">🪡</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/naturopathic-clinic', label: 'Naturopathic Medicine 🌿', icon: <span aria-hidden="true">🌿</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/mental-health-clinic', label: 'Mental Health Counselling 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/chiropractic-clinic', label: 'Chiropractic Clinic 🦴', icon: <span aria-hidden="true">🦴</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/speech-therapy', label: 'Speech Therapy Hub 🗣️', icon: <span aria-hidden="true">🗣️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/occupational-therapy', label: 'Occupational Therapy Hub 🖐️', icon: <span aria-hidden="true">🖐️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/physiotherapy', label: 'Physiotherapy & Rehab 💪', icon: <span aria-hidden="true">💪</span>, requiredRoles: ['Admin'] },
+  // Storage & Moving
+  { href: '/admin/storage-moving', label: 'Storage & Moving Company 📦', icon: <span aria-hidden="true">📦</span>, requiredRoles: ['Admin'] },
+  // Print & Signage
+  { href: '/admin/print-shop', label: 'Print Shop & Signage Studio 🖨️', icon: <span aria-hidden="true">🖨️</span>, requiredRoles: ['Admin'] },
+  // Non-Profit
+  { href: '/admin/nonprofit-management', label: 'Non-Profit & Charity Mgmt 🤲', icon: <span aria-hidden="true">🤲</span>, requiredRoles: ['Admin'] },
+  // Tattoo & Body Art
+  { href: '/admin/tattoo-studio', label: 'Tattoo & Piercing Studio 🎨', icon: <span aria-hidden="true">🎨</span>, requiredRoles: ['Admin'] },
+  // Construction & Design
+  { href: '/admin/construction-pm', label: 'Construction Project Mgmt 🏗️', icon: <span aria-hidden="true">🏗️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/architecture-firm', label: 'Architecture & Design Firm 📐', icon: <span aria-hidden="true">📐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/interior-design', label: 'Interior Design Studio 🛋️', icon: <span aria-hidden="true">🛋️</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
