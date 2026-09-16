@@ -1266,6 +1266,12 @@ const navItems = [
   // ── Platform Integrations ────────────────────────────────────────────────
   { href: '/admin/meta-integration', label: 'Meta / Facebook 📘', icon: <span aria-hidden="true">📘</span>, requiredRoles: ['Admin'] },
   { href: '/admin/youtube-integration', label: 'YouTube Hub ▶️', icon: <span aria-hidden="true">▶️</span>, requiredRoles: ['Admin'] },
+  // ── Events & Community ───────────────────────────────────────────────────
+  { href: '/admin/event-portals', label: 'Event Portals 📅', icon: <span aria-hidden="true">📅</span>, requiredRoles: ['Admin'] },
+  // ── Customer Intelligence ────────────────────────────────────────────────
+  { href: '/admin/customer-intelligence', label: 'Customer Intel 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
+  // ── Digital Cards ────────────────────────────────────────────────────────
+  { href: '/admin/digital-cards', label: 'Digital Cards 💳', icon: <span aria-hidden="true">💳</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
