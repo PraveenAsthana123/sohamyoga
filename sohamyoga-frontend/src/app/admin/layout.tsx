@@ -237,6 +237,7 @@ const navItems = [
   { href: '/admin/case-studies', label: 'Case Studies', icon: <span aria-hidden="true">📂</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/chat', label: 'Chat Management', icon: <span aria-hidden="true">💬</span>, requiredRoles: ['Admin'] },
   { href: '/admin/ads', label: 'Ads Management', icon: <span aria-hidden="true">📣</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/paid-ads', label: 'Paid Ads Management', icon: <span aria-hidden="true">💰</span>, requiredRoles: ['Admin'] },
   { href: '/admin/banners', label: 'Banners', icon: <span aria-hidden="true">🎨</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/carousel', label: 'Carousel', icon: <span aria-hidden="true">🖼️</span>, requiredRoles: ['Admin', 'Editor'] },
   // ── Growth ─────────────────────────────────
@@ -1049,6 +1050,10 @@ const navItems = [
   },
   { href: '/admin/social-intelligence', label: 'Social Intelligence 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
   { href: '/admin/linkedin-management', label: 'LinkedIn Management', icon: <span aria-hidden="true" className="font-bold text-blue-600">in</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
+  { href: '/admin/facebook-management', label: 'Facebook Management', icon: <span aria-hidden="true">📘</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
+  { href: '/admin/youtube-management', label: 'YouTube Management', icon: <span aria-hidden="true">▶️</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
+  { href: '/admin/telegram-management', label: 'Telegram Management', icon: <span aria-hidden="true">✈️</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
+  { href: '/admin/social-media-management', label: 'Social Media Overview', icon: <span aria-hidden="true">📡</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
   { href: '/admin/platform-workflows', label: '⚡ Workflows & Automation', icon: <span aria-hidden="true">⚡</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/workflows', label: 'Approval Workflows', icon: <span aria-hidden="true">✅</span>, requiredRoles: ['Admin'] },
   { href: '/admin/social/platform-setup-guide', label: 'Platform Setup Guide 🗺️', icon: <span aria-hidden="true">🗺️</span>, requiredRoles: ['Admin'] },

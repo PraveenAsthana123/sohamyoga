@@ -4,7 +4,8 @@
  * demo-hub "Run Now" API route (on-demand execution) so there is exactly one
  * place that knows how to load a job by name.
  */
-export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void> }>> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<any> }>> = {
   WorkflowEngineJob:          () => import('./jobs/WorkflowEngineJob'),
   AIContentAdaptJob:          () => import('./jobs/AIContentAdaptJob'),
   MarketingAutomationJob:     () => import('./jobs/MarketingAutomationJob'),

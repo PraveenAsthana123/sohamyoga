@@ -205,7 +205,7 @@ function RunTaskModal({
         {result && (
           <div className={`rounded-lg p-3 mb-4 text-sm ${result.status === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
             <p className="font-medium mb-1">
-              {result.status === 'success' ? 'Success' : 'Failed'} — run_id #{String(result.run_id)} ({result.latency_ms}ms)
+              {result.status === 'success' ? 'Success' : 'Failed'} — run_id #{String(result.run_id)} ({String(result.latency_ms)}ms)
             </p>
             <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-32">{String(result.output ?? result.error ?? '')}</pre>
           </div>

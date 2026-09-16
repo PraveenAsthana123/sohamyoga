@@ -27,8 +27,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return Response.json({ analysis: 'No text responses to analyze yet.', themes: [], sentiment: null });
   }
 
-  const combinedText = textAnswers.rows
-    .map((r: { question_text: string; answer_text: string }) => `Q: ${r.question_text}\nA: ${r.answer_text}`)
+  const combinedText = (textAnswers.rows as Array<{ question_text: string; answer_text: string }>)
+    .map(r => `Q: ${r.question_text}\nA: ${r.answer_text}`)
     .join('\n\n');
 
   const prompt = `You are analyzing survey responses for a business. Here are the responses:\n\n${combinedText}\n\nProvide:\n1. A 2-3 sentence summary of overall feedback\n2. Top 3-5 themes (as a bullet list)\n3. Sentiment: positive/neutral/negative percentages\n4. Two recommended actions\n\nBe concise and specific.`;

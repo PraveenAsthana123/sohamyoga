@@ -599,25 +599,26 @@ function ReviewsTab() {
 
 // ── ANALYTICS TAB ──────────────────────────────────────────────────────────────
 function AnalyticsTab({ stats }: { stats: Stats | null }) {
+  // Deterministic placeholders — real values come from ad_analytics via API when available
   const adTypeMetrics = AD_TYPES.map(t => ({
     label: t.label,
-    ctr: (Math.random() * 4 + 0.5).toFixed(2),
-    roas: (Math.random() * 3 + 1).toFixed(1),
-    cpc: (Math.random() * 2 + 0.5).toFixed(2),
+    ctr: '—',
+    roas: '—',
+    cpc: '—',
     color: t.color
   }));
 
   const platforms = stats?.platformPerf?.length
     ? stats.platformPerf
     : PLATFORMS.slice(0, 6).map(p => ({
-        platform: p.id, impressions: Math.floor(Math.random() * 10000 + 1000),
-        clicks: Math.floor(Math.random() * 500 + 50), avg_ctr: +(Math.random() * 4 + 0.5).toFixed(2),
-        avg_roas: +(Math.random() * 3 + 1).toFixed(1)
+        platform: p.id, impressions: 0,
+        clicks: 0, avg_ctr: 0,
+        avg_roas: 0
       }));
 
   const heatmapHours = Array.from({ length: 24 }, (_, h) => h);
   const heatmapDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const heatmapData = heatmapDays.map(d => heatmapHours.map(h => Math.floor(Math.random() * 100)));
+  const heatmapData = heatmapDays.map(() => heatmapHours.map(() => 0));
 
   return (
     <div className="p-4 space-y-6">
@@ -916,7 +917,7 @@ export default function AdPlannerPage() {
 
   const funnelCounts = FUNNEL_STAGES.map(s => {
     const found = engagement?.funnel?.find(f => f.funnel_stage === s);
-    return { stage: s, count: found ? parseInt(String(found.count)) : Math.floor(Math.random() * 200 + 10) };
+    return { stage: s, count: found ? parseInt(String(found.count)) : 0 };
   });
   const maxFunnel = Math.max(...funnelCounts.map(f => f.count), 1);
 
