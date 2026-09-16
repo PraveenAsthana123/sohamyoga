@@ -222,7 +222,7 @@ export default function EngineeringConsultantPage() {
                   {[["Company", "company"], ["Contact Person", "contact_person"], ["Email", "email"], ["Phone", "phone"]].map(([label, key]) => (
                     <div key={key} className="mb-3">
                       <label className="block text-sm text-gray-600 mb-1">{label}</label>
-                      <input value={(newClient as Record<string, string>)[key] ?? ""} onChange={e => setNewClient(p => ({ ...p, [key]: e.target.value }))}
+                      <input value={(newClient as unknown as Record<string, string>)[key] ?? ""} onChange={e => setNewClient(p => ({ ...p, [key]: e.target.value }))}
                         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
                     </div>
                   ))}
@@ -310,7 +310,7 @@ export default function EngineeringConsultantPage() {
                     {[["Project Number", "project_number"], ["Title", "title"], ["Contract Value ($)", "contract_value"], ["Hours Budget", "hours_budget"], ["Location", "location"], ["Assigned P.Eng.", "assigned_pe"]].map(([label, key]) => (
                       <div key={key}>
                         <label className="block text-xs text-gray-600 mb-1">{label}</label>
-                        <input value={(newProject as Record<string, string>)[key] ?? ""}
+                        <input value={(newProject as unknown as Record<string, string>)[key] ?? ""}
                           onChange={e => setNewProject(p => ({ ...p, [key]: e.target.value }))}
                           className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm" />
                       </div>

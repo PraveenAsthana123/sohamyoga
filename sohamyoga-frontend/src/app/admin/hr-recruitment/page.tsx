@@ -189,7 +189,7 @@ export default function HrRecruitmentPage() {
                     {[["Job Title", "title"], ["Department", "department"], ["Location", "location"], ["NOC Code", "noc_code"]].map(([label, key]) => (
                       <div key={key}>
                         <label className="block text-xs text-gray-600 mb-1">{label}</label>
-                        <input value={(newJob as Record<string, string>)[key] ?? ""} onChange={e => setNewJob(p => ({ ...p, [key]: e.target.value }))}
+                        <input value={(newJob as unknown as Record<string, string>)[key] ?? ""} onChange={e => setNewJob(p => ({ ...p, [key]: e.target.value }))}
                           className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm" />
                       </div>
                     ))}
