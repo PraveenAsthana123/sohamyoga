@@ -1272,6 +1272,10 @@ const navItems = [
   { href: '/admin/customer-intelligence', label: 'Customer Intel 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
   // ── Digital Cards ────────────────────────────────────────────────────────
   { href: '/admin/digital-cards', label: 'Digital Cards 💳', icon: <span aria-hidden="true">💳</span>, requiredRoles: ['Admin'] },
+  // ── Agency Modules (from ChatGPT blueprint) ──────────────────────────────
+  { href: '/admin/ai-automation', label: 'AI Automation Hub 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/video-production', label: 'Video Production 🎥', icon: <span aria-hidden="true">🎥</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/customer-acquisition', label: 'Customer Acquisition 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
