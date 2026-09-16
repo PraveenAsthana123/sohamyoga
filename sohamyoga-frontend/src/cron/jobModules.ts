@@ -131,4 +131,6 @@ export const JOB_MODULES: Record<string, () => Promise<{ run: () => Promise<void
   // AI Governance
   AIGovernanceAuditJob:        () => import('./jobs/AIGovernanceAuditJob'),
   QualityBenchmarkJob:         () => import('./jobs/QualityBenchmarkJob'),
+  // Competitor Intelligence
+  CompetitorMonitorJob:        () => import('./jobs/CompetitorMonitorJob'),
 };

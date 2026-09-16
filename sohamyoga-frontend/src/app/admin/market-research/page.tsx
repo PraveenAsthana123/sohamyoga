@@ -206,6 +206,7 @@ export default function MarketResearchPage() {
     'Projects', 'Research Scenarios', 'Document Delivery',
     'Short Reports', 'Detailed Reports', 'Competitor Analysis',
     'Market Insights', 'Feature Catalog',
+    'Portal Intelligence', 'Ad Spy', 'Mention Monitor',
   ];
 
   return (
@@ -240,6 +241,9 @@ export default function MarketResearchPage() {
         {tab === 5 && <TabCompetitors />}
         {tab === 6 && <TabInsights />}
         {tab === 7 && <TabFeatureCatalog />}
+        {tab === 8 && <TabPortalIntelligence />}
+        {tab === 9 && <TabAdSpy />}
+        {tab === 10 && <TabMentionMonitor />}
       </div>
     </div>
   );
@@ -1035,6 +1039,442 @@ function TabFeatureCatalog() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ── Tab 9: Portal Intelligence ────────────────────────────────────────────────
+
+interface ResearchPortal {
+  id: number; portal_name: string; category: string; website_url: string | null;
+  api_key_env: string | null; connected: boolean; pricing_model: string;
+  monthly_cost_usd: number; features: string[]; use_cases: string[];
+  data_freshness: string | null; coverage: string | null; status: string;
+  last_sync_at: string | null; notes: string | null;
+}
+
+const PORTAL_CATEGORIES: Record<string, string> = {
+  seo_content: 'SEO & Content', social_listening: 'Social Listening',
+  market_business: 'Market & Business', ad_intelligence: 'Ad Intelligence',
+  review_reputation: 'Reviews & Reputation', price_ecommerce: 'Price & E-commerce',
+  news_pr: 'News & PR', web_technology: 'Web Technology', free_open: 'Free & Open',
+};
+
+const PRICING_COLOR: Record<string, string> = {
+  free: 'bg-green-100 text-green-700', freemium: 'bg-teal-100 text-teal-700',
+  paid: 'bg-amber-100 text-amber-700', enterprise: 'bg-purple-100 text-purple-700',
+};
+
+function TabPortalIntelligence() {
+  const [portals, setPortals] = useState<ResearchPortal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [catFilter, setCatFilter] = useState('all');
+  const [pricingFilter, setPricingFilter] = useState('all');
+  const [connectModal, setConnectModal] = useState<ResearchPortal | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    fetch('/api/admin/market-research/portals', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((d: { portals?: ResearchPortal[] }) => { setPortals(d.portals ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggle = async (p: ResearchPortal) => {
+    setSaving(true);
+    await fetch('/api/admin/market-research/portals', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: p.id, connected: !p.connected }),
+    });
+    setSaving(false);
+    setConnectModal(null);
+    load();
+  };
+
+  const filtered = portals.filter(p =>
+    (catFilter === 'all' || p.category === catFilter) &&
+    (pricingFilter === 'all' || p.pricing_model === pricingFilter)
+  );
+
+  const connected = portals.filter(p => p.connected).length;
+  const free = portals.filter(p => p.pricing_model === 'free' || p.pricing_model === 'freemium').length;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Portal Intelligence</h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {portals.length} research portals cataloged · {connected} connected · {free} free/freemium
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+            className="border rounded px-3 py-1.5 text-sm">
+            <option value="all">All categories</option>
+            {Object.entries(PORTAL_CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          <select value={pricingFilter} onChange={e => setPricingFilter(e.target.value)}
+            className="border rounded px-3 py-1.5 text-sm">
+            <option value="all">All pricing</option>
+            {['free', 'freemium', 'paid', 'enterprise'].map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {loading ? <div className="text-center py-12 text-gray-400 text-sm">Loading portals…</div> : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map(p => (
+            <div key={p.id} className={`bg-white border rounded-lg p-4 space-y-3 ${p.connected ? 'border-green-300' : 'border-gray-200'}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-semibold text-gray-900 text-sm">{p.portal_name}</div>
+                  <div className="text-xs text-gray-500">{PORTAL_CATEGORIES[p.category] ?? p.category}</div>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRICING_COLOR[p.pricing_model] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {p.pricing_model}{p.monthly_cost_usd > 0 ? ` ~$${p.monthly_cost_usd}/mo` : ''}
+                  </span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${p.connected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {p.connected ? '● Connected' : '○ Not connected'}
+                  </span>
+                </div>
+              </div>
+              {p.use_cases?.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {(p.use_cases as string[]).slice(0, 3).map((u: string) => (
+                    <span key={u} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">{u}</span>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center justify-between text-xs text-gray-400">
+                <span>{p.data_freshness ? `Data: ${p.data_freshness}` : ''}</span>
+                <span>{p.coverage ?? ''}</span>
+              </div>
+              <div className="flex gap-2">
+                {p.website_url && (
+                  <a href={p.website_url} target="_blank" rel="noreferrer"
+                    className="text-xs text-indigo-600 hover:underline">Visit →</a>
+                )}
+                <button onClick={() => setConnectModal(p)}
+                  className={`ml-auto text-xs px-3 py-1 rounded border font-medium ${p.connected ? 'border-red-300 text-red-600 hover:bg-red-50' : 'border-green-300 text-green-700 hover:bg-green-50'}`}>
+                  {p.connected ? 'Disconnect' : 'Connect'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {connectModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <h3 className="font-semibold text-gray-900">
+              {connectModal.connected ? 'Disconnect' : 'Connect'} {connectModal.portal_name}
+            </h3>
+            {!connectModal.connected && connectModal.api_key_env && (
+              <div className="bg-gray-50 border rounded p-3 text-xs text-gray-700 space-y-1">
+                <div className="font-medium">Required environment variable:</div>
+                <code className="font-mono text-indigo-700">{connectModal.api_key_env}</code>
+                <div className="text-gray-500 mt-1">Set this in your .env file, then click Connect.</div>
+              </div>
+            )}
+            {!connectModal.connected && !connectModal.api_key_env && (
+              <p className="text-sm text-gray-600">This is a free portal — no API key required.</p>
+            )}
+            {connectModal.connected && (
+              <p className="text-sm text-gray-600">This will mark the portal as disconnected in the registry.</p>
+            )}
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConnectModal(null)} className="text-sm px-4 py-2 border rounded text-gray-600 hover:bg-gray-50">Cancel</button>
+              <button onClick={() => toggle(connectModal)} disabled={saving}
+                className={`text-sm px-4 py-2 rounded font-medium text-white ${connectModal.connected ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}>
+                {saving ? 'Saving…' : connectModal.connected ? 'Disconnect' : 'Mark Connected'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 10: Ad Spy ────────────────────────────────────────────────────────────
+
+interface AdSpyResult {
+  id: number; platform: string; competitor_name: string | null; ad_id: string | null;
+  ad_type: string | null; ad_text: string | null; headline: string | null; cta: string | null;
+  media_url: string | null; start_date: string | null; impressions_range: string | null;
+  spend_range: string | null; audience_targeting: Record<string, unknown> | null;
+  ai_analysis: string | null; created_at: string;
+}
+
+const AD_PLATFORMS = ['Meta Ad Library', 'Google Ads Transparency', 'LinkedIn Ad Library', 'TikTok Ads'];
+const PLATFORM_COLOR: Record<string, string> = {
+  'Meta Ad Library': 'bg-blue-100 text-blue-700',
+  'Google Ads Transparency': 'bg-red-100 text-red-700',
+  'LinkedIn Ad Library': 'bg-sky-100 text-sky-700',
+  'TikTok Ads': 'bg-pink-100 text-pink-700',
+};
+
+function TabAdSpy() {
+  const [ads, setAds] = useState<AdSpyResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [platformFilter, setPlatformFilter] = useState('all');
+  const [analyzing, setAnalyzing] = useState<number | null>(null);
+  const [searchForm, setSearchForm] = useState({ competitor: '', platform: AD_PLATFORMS[0] });
+  const [searching, setSearching] = useState(false);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    const qs = platformFilter === 'all' ? '' : `?platform=${encodeURIComponent(platformFilter)}`;
+    fetch(`/api/admin/market-research/ad-spy${qs}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then((d: { results?: AdSpyResult[] }) => { setAds(d.results ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [platformFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const runSearch = async () => {
+    if (!searchForm.competitor.trim()) return;
+    setSearching(true);
+    await fetch('/api/admin/market-research/ad-spy', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(searchForm),
+    });
+    setSearching(false);
+    load();
+  };
+
+  const analyze = async (id: number) => {
+    setAnalyzing(id);
+    await fetch('/api/admin/market-research/ad-spy', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    setAnalyzing(null);
+    load();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">Ad Spy</h2>
+        <p className="text-xs text-gray-500 mt-0.5">
+          Monitor competitor ads via free ad libraries (Meta, Google, LinkedIn). No scraping — uses official transparency portals.
+        </p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+        <h3 className="text-sm font-medium text-gray-700">Search competitor ads</h3>
+        <div className="flex gap-3 flex-wrap">
+          <input value={searchForm.competitor} onChange={e => setSearchForm({ ...searchForm, competitor: e.target.value })}
+            placeholder="Competitor name / brand…" className="border rounded px-3 py-1.5 text-sm flex-1 min-w-48" />
+          <select value={searchForm.platform} onChange={e => setSearchForm({ ...searchForm, platform: e.target.value })}
+            className="border rounded px-3 py-1.5 text-sm">
+            {AD_PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <button onClick={runSearch} disabled={searching}
+            className="bg-indigo-600 text-white text-sm px-4 py-1.5 rounded hover:bg-indigo-700 disabled:opacity-50">
+            {searching ? 'Searching…' : 'Search'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400">
+          Search runs against the platform&apos;s public transparency portal. Results are saved to the registry for later AI analysis.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <select value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}
+          className="border rounded px-3 py-1.5 text-sm">
+          <option value="all">All platforms</option>
+          {AD_PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <span className="text-xs text-gray-500">{ads.length} ads tracked</span>
+      </div>
+
+      {loading ? <div className="text-center py-12 text-gray-400 text-sm">Loading ad intelligence…</div> : (
+        <div className="space-y-3">
+          {ads.map(ad => (
+            <div key={ad.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PLATFORM_COLOR[ad.platform] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {ad.platform}
+                    </span>
+                    {ad.competitor_name && <span className="text-sm font-medium text-gray-900">{ad.competitor_name}</span>}
+                    {ad.ad_type && <span className="text-xs text-gray-400">{ad.ad_type}</span>}
+                  </div>
+                  {ad.headline && <div className="text-sm font-medium text-gray-800">{ad.headline}</div>}
+                  {ad.ad_text && <p className="text-xs text-gray-600 leading-relaxed max-w-2xl">{ad.ad_text}</p>}
+                </div>
+                <div className="text-xs text-gray-400 shrink-0 text-right space-y-1">
+                  {ad.cta && <div className="font-medium text-indigo-700">{ad.cta}</div>}
+                  {ad.impressions_range && <div>Impressions: {ad.impressions_range}</div>}
+                  {ad.spend_range && <div>Spend: {ad.spend_range}</div>}
+                  {ad.start_date && <div>Since: {new Date(ad.start_date).toLocaleDateString()}</div>}
+                </div>
+              </div>
+              {ad.ai_analysis && (
+                <div className="bg-purple-50 border border-purple-200 rounded p-3 text-xs text-purple-800">
+                  <span className="font-medium">AI Analysis: </span>{ad.ai_analysis}
+                </div>
+              )}
+              {!ad.ai_analysis && (
+                <button onClick={() => analyze(ad.id)} disabled={analyzing === ad.id}
+                  className="text-xs text-purple-600 border border-purple-200 px-3 py-1 rounded hover:bg-purple-50 disabled:opacity-50">
+                  {analyzing === ad.id ? 'Analyzing…' : 'AI Analyze'}
+                </button>
+              )}
+            </div>
+          ))}
+          {ads.length === 0 && (
+            <div className="text-center py-12 text-gray-400 text-sm">
+              No ad data yet. Use the search above to pull competitor ads from official transparency portals.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab 11: Mention Monitor ───────────────────────────────────────────────────
+
+interface Mention {
+  id: number; competitor_name: string; source: string | null; title: string | null;
+  url: string | null; snippet: string | null; sentiment: string; mention_date: string | null;
+  reach_estimate: number; reviewed: boolean; created_at: string;
+}
+
+const SENTIMENT_COLOR: Record<string, string> = {
+  positive: 'bg-green-100 text-green-700', neutral: 'bg-gray-100 text-gray-600',
+  negative: 'bg-red-100 text-red-700', mixed: 'bg-amber-100 text-amber-700',
+};
+
+function TabMentionMonitor() {
+  const [mentions, setMentions] = useState<Mention[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sentimentFilter, setSentimentFilter] = useState('all');
+  const [competitorFilter, setCompetitorFilter] = useState('');
+  const [reviewedFilter, setReviewedFilter] = useState<'all' | 'unreviewed'>('unreviewed');
+
+  const load = useCallback(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (sentimentFilter !== 'all') params.set('sentiment', sentimentFilter);
+    if (competitorFilter.trim()) params.set('competitor', competitorFilter.trim());
+    if (reviewedFilter === 'unreviewed') params.set('reviewed', 'false');
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    fetch(`/api/admin/market-research/mentions${qs}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then((d: { mentions?: Mention[] }) => { setMentions(d.mentions ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [sentimentFilter, competitorFilter, reviewedFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const markReviewed = async (id: number) => {
+    await fetch('/api/admin/market-research/mentions', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, reviewed: true }),
+    });
+    load();
+  };
+
+  const sentimentCounts = mentions.reduce<Record<string, number>>((acc, m) => {
+    acc[m.sentiment] = (acc[m.sentiment] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Mention Monitor</h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Competitor and brand mentions from RSS feeds, review sites, and news — scored by Ollama.
+            Auto-updated daily by <code className="bg-gray-100 px-1 rounded">CompetitorMonitorJob</code>.
+          </p>
+        </div>
+        <button onClick={load} className="text-sm text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded hover:bg-indigo-50">
+          Refresh
+        </button>
+      </div>
+
+      {Object.keys(sentimentCounts).length > 0 && (
+        <div className="flex gap-3 flex-wrap">
+          {Object.entries(sentimentCounts).map(([s, n]) => (
+            <div key={s} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${SENTIMENT_COLOR[s] ?? 'bg-gray-100 text-gray-600'}`}>
+              {s}: {n}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-3 flex-wrap">
+        <input value={competitorFilter} onChange={e => setCompetitorFilter(e.target.value)}
+          placeholder="Filter by competitor…" className="border rounded px-3 py-1.5 text-sm w-48" />
+        <select value={sentimentFilter} onChange={e => setSentimentFilter(e.target.value)}
+          className="border rounded px-3 py-1.5 text-sm">
+          <option value="all">All sentiments</option>
+          {['positive', 'neutral', 'negative', 'mixed'].map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={reviewedFilter} onChange={e => setReviewedFilter(e.target.value as 'all' | 'unreviewed')}
+          className="border rounded px-3 py-1.5 text-sm">
+          <option value="unreviewed">Unreviewed only</option>
+          <option value="all">All mentions</option>
+        </select>
+      </div>
+
+      {loading ? <div className="text-center py-12 text-gray-400 text-sm">Loading mentions…</div> : (
+        <div className="space-y-3">
+          {mentions.map(m => (
+            <div key={m.id} className={`bg-white border rounded-lg p-4 space-y-2 ${m.reviewed ? 'opacity-60' : ''}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-gray-900">{m.competitor_name}</span>
+                    {m.source && <span className="text-xs text-gray-500">{m.source}</span>}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${SENTIMENT_COLOR[m.sentiment] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {m.sentiment}
+                    </span>
+                    {m.reviewed && <span className="text-xs text-gray-400">✓ Reviewed</span>}
+                  </div>
+                  {m.title && <div className="text-sm font-medium text-gray-800">{m.title}</div>}
+                  {m.snippet && <p className="text-xs text-gray-600 leading-relaxed">{m.snippet}</p>}
+                </div>
+                <div className="text-xs text-gray-400 shrink-0 text-right space-y-1">
+                  {m.mention_date && <div>{new Date(m.mention_date).toLocaleDateString()}</div>}
+                  {m.reach_estimate > 0 && <div>Reach: ~{m.reach_estimate.toLocaleString()}</div>}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {m.url && (
+                  <a href={m.url} target="_blank" rel="noreferrer"
+                    className="text-xs text-indigo-600 hover:underline">View source →</a>
+                )}
+                {!m.reviewed && (
+                  <button onClick={() => markReviewed(m.id)}
+                    className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded hover:bg-gray-50 ml-auto">
+                    Mark reviewed
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          {mentions.length === 0 && (
+            <div className="text-center py-12 text-gray-400 text-sm">
+              No mentions yet. <code className="bg-gray-100 px-1 rounded">CompetitorMonitorJob</code> runs daily at 8am and ingests RSS/news feeds.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

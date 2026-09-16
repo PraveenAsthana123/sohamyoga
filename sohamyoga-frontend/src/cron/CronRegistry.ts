@@ -993,6 +993,16 @@ export const CRON_JOBS: CronJobDef[] = [
     enabled:     true,
     timeoutMs:   30_000,
   },
+
+  // ── Competitor Intelligence ───────────────────────────────────────────────
+  {
+    name:        'competitor-monitor',
+    schedule:    '0 8 * * *',
+    description: 'Daily 8am: scans competitor RSS/alert feeds, scores mention sentiment via Ollama, inserts into competitor_mention table',
+    module:      'CompetitorMonitorJob',
+    enabled:     true,
+    timeoutMs:   300_000,
+  },
 ];
 
 export const CRON_SCHEDULE_SUMMARY = `
@@ -1069,6 +1079,7 @@ Daily  04:30  vertical-registry-audit (real, no AI)
 Daily  01:00  qr-session-cleanup (real, no AI)
 Daily  05:30  voice-ai-script-refresh (Ollama)
 Every 15 min  mcp-health-check (real, no AI)
+Daily  08:00  competitor-monitor (Ollama)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 71 jobs | 31 use Ollama | 0 cloud AI tokens
+Total: 72 jobs | 32 use Ollama | 0 cloud AI tokens
 `;
