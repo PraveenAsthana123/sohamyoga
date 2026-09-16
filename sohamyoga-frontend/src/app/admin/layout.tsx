@@ -1339,6 +1339,9 @@ const navItems = [
   { href: '/admin/agency-website', label: 'Agency Website OS 🌐', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
   { href: '/admin/growth-hacking', label: 'Growth Hacking 🚀', icon: <span aria-hidden="true">🚀</span>, requiredRoles: ['Admin'] },
   { href: '/admin/agency-academy', label: 'Agency Academy 🎓', icon: <span aria-hidden="true">🎓</span>, requiredRoles: ['Admin'] },
+  // Classifieds & Local Listings
+  { href: '/admin/kijiji-integration', label: 'Kijiji Integration 🟡', icon: <span aria-hidden="true">🟡</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/calgary-classifieds', label: 'Calgary Classifieds Hub 📋', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
