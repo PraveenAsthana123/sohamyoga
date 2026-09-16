@@ -1276,6 +1276,12 @@ const navItems = [
   { href: '/admin/ai-automation', label: 'AI Automation Hub 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
   { href: '/admin/video-production', label: 'Video Production 🎥', icon: <span aria-hidden="true">🎥</span>, requiredRoles: ['Admin'] },
   { href: '/admin/customer-acquisition', label: 'Customer Acquisition 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
+  // ── Gap-fill hubs (blueprint round 2) ─────────────────────────────────────
+  { href: '/admin/graphic-design', label: 'Graphic Design 🎨', icon: <span aria-hidden="true">🎨</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/csat', label: 'CSAT & Feedback ⭐', icon: <span aria-hidden="true">⭐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/affiliate-publishers', label: 'Affiliate Publishers 🤝', icon: <span aria-hidden="true">🤝</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/growth-tools', label: 'Growth Tools 🚀', icon: <span aria-hidden="true">🚀</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-strategy', label: 'AI Strategy 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
