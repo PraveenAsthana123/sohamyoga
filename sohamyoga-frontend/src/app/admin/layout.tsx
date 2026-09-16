@@ -1349,6 +1349,11 @@ const navItems = [
   { href: '/admin/insurance-broker', label: 'Insurance Broker Hub 🛡️', icon: <span aria-hidden="true">🛡️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/mortgage-broker', label: 'Mortgage Broker Hub 🏦', icon: <span aria-hidden="true">🏦</span>, requiredRoles: ['Admin'] },
   { href: '/admin/financial-advisor', label: 'Financial Advisor Portal 💼', icon: <span aria-hidden="true">💼</span>, requiredRoles: ['Admin'] },
+  // Professional Services
+  { href: '/admin/immigration-consultant', label: 'Immigration Consultant 🛂', icon: <span aria-hidden="true">🛂</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/writer-portal', label: 'Writer Portal ✍️', icon: <span aria-hidden="true">✍️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/business-advisor', label: 'Business Advisor Hub 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/tax-services', label: 'Tax Services Portal 🧾', icon: <span aria-hidden="true">🧾</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
