@@ -1354,6 +1354,17 @@ const navItems = [
   { href: '/admin/writer-portal', label: 'Writer Portal ✍️', icon: <span aria-hidden="true">✍️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/business-advisor', label: 'Business Advisor Hub 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
   { href: '/admin/tax-services', label: 'Tax Services Portal 🧾', icon: <span aria-hidden="true">🧾</span>, requiredRoles: ['Admin'] },
+  // Healthcare & Legal
+  { href: '/admin/healthcare-provider', label: 'Healthcare Provider 🏥', icon: <span aria-hidden="true">🏥</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/legal-services', label: 'Legal Services Hub ⚖️', icon: <span aria-hidden="true">⚖️</span>, requiredRoles: ['Admin'] },
+  // HR & Talent
+  { href: '/admin/hr-recruitment', label: 'HR & Recruitment (ATS) 👥', icon: <span aria-hidden="true">👥</span>, requiredRoles: ['Admin'] },
+  // B2B Professional Services
+  { href: '/admin/accounting-firm', label: 'Accounting Firm Portal 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/engineering-consultant', label: 'Engineering Consultant 🏗️', icon: <span aria-hidden="true">🏗️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/it-services', label: 'IT Services / MSP 💻', icon: <span aria-hidden="true">💻</span>, requiredRoles: ['Admin'] },
+  // Community & Events
+  { href: '/admin/meetup-groups', label: 'Meetup Groups 🤝', icon: <span aria-hidden="true">🤝</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
