@@ -1020,6 +1020,7 @@ const navItems = [
     icon: <span aria-hidden="true" className="text-base">🎨</span>,
     requiredRoles: ['Admin', 'Editor'] as string[],
   },
+  { href: '/admin/architecture', label: 'Architecture & Docs 📐', icon: <span aria-hidden="true">📐</span>, requiredRoles: ['Admin'] },
   { href: '/admin/brand-guide/control-mapping', label: 'Brand Control Mapping', icon: <span aria-hidden="true">🗺️</span>, requiredRoles: ['Admin'] },
   {
     href: '/admin/contact-us',
