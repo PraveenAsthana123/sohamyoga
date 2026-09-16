@@ -1,0 +1,46 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/admin-auth';
+import { getPool } from '@/lib/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+  const auth = await requireAdmin(req);
+  if (auth) return auth;
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    const { rows } = await client.query(`SELECT *, (stock_quantity <= reorder_point) AS is_low_stock FROM ps_material WHERE id = $1`, [params.id]);
+    if (!rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json(rows[0]);
+  } finally {
+    client.release();
+  }
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }): Promise<Response> {
+  const auth = await requireAdmin(req);
+  if (auth) return auth;
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    const body = await req.json();
+    const { action } = body;
+    if (action === 'adjust_stock') {
+      const { rows } = await client.query(
+        `UPDATE ps_material SET stock_quantity = stock_quantity + $2 WHERE id = $1 RETURNING *`,
+        [params.id, body.adjustment]
+      );
+      return NextResponse.json(rows[0]);
+    }
+    const fields = Object.keys(body).filter(k => k !== 'id' && k !== 'action');
+    if (!fields.length) return NextResponse.json({ error: 'No fields' }, { status: 400 });
+    const sets = fields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+    const vals = fields.map(f => body[f]);
+    const { rows } = await client.query(`UPDATE ps_material SET ${sets} WHERE id = $1 RETURNING *`, [params.id, ...vals]);
+    return NextResponse.json(rows[0]);
+  } finally {
+    client.release();
+  }
+}
