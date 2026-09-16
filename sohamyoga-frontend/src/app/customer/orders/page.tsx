@@ -21,9 +21,13 @@ const STATUS_COLOR: Record<string, string> = {
 
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/customer/orders', { cache: 'no-store' }).then(r => r.json()).then(d => setOrders(d.orders ?? []));
+    fetch('/api/customer/orders', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => setOrders(d.orders ?? []))
+      .catch(() => setError('Failed to load orders. Please refresh.'));
   }, []);
 
   return (
@@ -32,6 +36,7 @@ export default function CustomerOrdersPage() {
         <h1 className="text-2xl font-bold text-white">My Orders</h1>
         <p className="mt-1 text-sm text-white/60">Real order history — status, fulfillment, and tracking.</p>
       </div>
+      {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
       <div className="space-y-2 text-white">
         {orders?.map(o => (
           <Link key={o.id} href={`/customer/orders/${o.id}`} className="block rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm hover:border-indigo-300">
@@ -47,7 +52,7 @@ export default function CustomerOrdersPage() {
           </Link>
         ))}
         {orders && !orders.length && <p className="text-sm text-white/50">No orders yet.</p>}
-        {!orders && <p className="text-sm text-white/50">Loading…</p>}
+        {!orders && !error && <p className="text-sm text-white/50">Loading…</p>}
       </div>
     </div>
   );

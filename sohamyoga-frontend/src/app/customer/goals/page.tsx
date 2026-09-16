@@ -12,24 +12,40 @@ export default function GoalsPage() {
   const [catalog, setCatalog] = useState<Catalog[]>([]);
   const [hasStudentRecord, setHasStudentRecord] = useState(true);
   const [selected, setSelected] = useState('');
+  const [error, setError] = useState('');
 
-  const load = () => fetch('/api/customer/goals', { cache: 'no-store' }).then(r => r.json()).then(d => {
-    setGoals(d.goals ?? []); setCatalog(d.catalog ?? []); setHasStudentRecord(d.hasStudentRecord);
-  });
+  const load = () => {
+    fetch('/api/customer/goals', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => {
+        setGoals(d.goals ?? []); setCatalog(d.catalog ?? []); setHasStudentRecord(d.hasStudentRecord);
+      })
+      .catch(() => setError('Failed to load goals. Please refresh.'));
+  };
   useEffect(() => { load() }, []);
 
   async function add() {
     if (!selected) return;
-    await fetch('/api/customer/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goalCode: selected, priority: goals.length + 1 }) });
-    setSelected('');
-    load();
+    setError('');
+    try {
+      await fetch('/api/customer/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goalCode: selected, priority: goals.length + 1 }) });
+      setSelected('');
+      load();
+    } catch {
+      setError('Failed to add goal. Please try again.');
+    }
   }
   async function remove(goalCode: string) {
-    await fetch(`/api/customer/goals?goalCode=${goalCode}`, { method: 'DELETE' });
-    load();
+    setError('');
+    try {
+      await fetch(`/api/customer/goals?goalCode=${goalCode}`, { method: 'DELETE' });
+      load();
+    } catch {
+      setError('Failed to remove goal. Please try again.');
+    }
   }
 
-  if (!hasStudentRecord) return <p className="text-sm text-white/60">Goals are available once you're enrolled in a class.</p>;
+  if (!hasStudentRecord) return <p className="text-sm text-white/60">Goals are available once you&apos;re enrolled in a class.</p>;
   const available = catalog.filter(c => !goals.some(g => g.goal_code === c.code));
 
   return (
@@ -38,6 +54,8 @@ export default function GoalsPage() {
         <h1 className="text-2xl font-bold text-white">My Goals</h1>
         <p className="mt-1 text-sm text-white/60">{goals.length} goal(s) set. Ranked by priority.</p>
       </div>
+
+      {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
 
       <div className="flex gap-2">
         <select className="flex-1 rounded border p-2 text-sm" value={selected} onChange={e => setSelected(e.target.value)}>

@@ -11,13 +11,21 @@ export default function WellnessPage() {
   const [scores, setScores] = useState<Score[]>([]);
   const [avg, setAvg] = useState(0);
   const [hasStudentRecord, setHasStudentRecord] = useState(true);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/customer/wellness', { cache: 'no-store' }).then(r => r.json()).then(d => {
-      setScores(d.scores ?? []); setAvg(d.averageComposite ?? 0); setHasStudentRecord(d.hasStudentRecord);
-    });
+    fetch('/api/customer/wellness', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => {
+        setScores(d.scores ?? []); setAvg(d.averageComposite ?? 0); setHasStudentRecord(d.hasStudentRecord);
+      })
+      .catch(() => setError('Failed to load wellness data. Please refresh.'))
+      .finally(() => setLoading(false));
   }, []);
 
+  if (loading) return <p className="text-sm text-white/50">Loading…</p>;
+  if (error) return <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>;
   if (!hasStudentRecord) return <p className="text-sm text-white/60">Wellness scores appear once you log a practice journal entry.</p>;
 
   const chronological = [...scores].reverse();

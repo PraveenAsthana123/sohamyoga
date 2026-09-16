@@ -12,29 +12,49 @@ interface Cart { cartId: string | null; items: CartItem[]; subtotal: number; tot
 export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
 
-  const load = () => { fetch('/api/customer/cart', { cache: 'no-store' }).then(r => r.json()).then(setCart); };
+  const load = () => {
+    fetch('/api/customer/cart', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(setCart)
+      .catch(() => setError('Failed to load cart. Please refresh.'));
+  };
   useEffect(load, []);
 
   async function updateQty(itemId: string, quantity: number) {
     if (quantity < 1) return;
-    await fetch(`/api/customer/cart/items/${itemId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity }) });
-    load();
+    try {
+      await fetch(`/api/customer/cart/items/${itemId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity }) });
+      load();
+    } catch {
+      setError('Failed to update quantity. Please try again.');
+    }
   }
 
   async function removeItem(itemId: string) {
-    await fetch(`/api/customer/cart/items/${itemId}`, { method: 'DELETE' });
-    load();
+    try {
+      await fetch(`/api/customer/cart/items/${itemId}`, { method: 'DELETE' });
+      load();
+    } catch {
+      setError('Failed to remove item. Please try again.');
+    }
   }
 
   async function checkout() {
     setCheckingOut(true);
-    const res = await fetch('/api/customer/cart/checkout', { method: 'POST' });
-    const body = await res.json();
-    setCheckingOut(false);
-    setMessage(res.ok ? body.note : body.error);
-    if (res.ok) load();
+    setError('');
+    try {
+      const res = await fetch('/api/customer/cart/checkout', { method: 'POST' });
+      const body = await res.json();
+      setMessage(res.ok ? body.note : body.error);
+      if (res.ok) load();
+    } catch {
+      setError('Checkout failed. Please try again.');
+    } finally {
+      setCheckingOut(false);
+    }
   }
 
   return (
@@ -43,6 +63,8 @@ export default function CartPage() {
         <h1 className="text-2xl font-bold text-white">My Cart</h1>
         <p className="mt-1 text-sm text-white/60">Real cart backed by your own draft order — checkout hands it to staff since no payment gateway is connected yet.</p>
       </div>
+
+      {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
 
       {!cart ? <p className="text-sm text-white/40">Loading…</p> : cart.items.length === 0 ? (
         <p className="text-sm text-white/40">Your cart is empty.</p>

@@ -23,16 +23,34 @@ export default function SubscriptionPage() {
   const [downgradeTo, setDowngradeTo] = useState('');
   const [reason, setReason] = useState('');
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const load = () => fetch('/api/customer/subscription', { cache: 'no-store' }).then(r => r.json()).then(d => setSub(d.subscription));
-  useEffect(() => { load(); fetch('/api/plans').then(r => r.json()).then(d => setPlans(d.plans ?? [])); }, []);
+  const load = () => {
+    fetch('/api/customer/subscription', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => setSub(d.subscription))
+      .catch(() => { setSub(null); setError('Failed to load subscription. Please refresh.'); });
+  };
+  useEffect(() => {
+    load();
+    fetch('/api/plans')
+      .then(r => r.json())
+      .then(d => setPlans(d.plans ?? []))
+      .catch(() => { /* plans are optional, non-critical */ });
+  }, []);
 
   async function act(action: string, extra: Record<string, unknown> = {}) {
     setMessage('Saving…');
-    const res = await fetch('/api/customer/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...extra }) });
-    const d = await res.json();
-    setMessage(res.ok ? 'Updated.' : d.error);
-    if (res.ok) load();
+    setError('');
+    try {
+      const res = await fetch('/api/customer/subscription', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...extra }) });
+      const d = await res.json();
+      setMessage(res.ok ? 'Updated.' : d.error);
+      if (res.ok) load();
+    } catch {
+      setMessage('');
+      setError('Failed to update subscription. Please try again.');
+    }
   }
 
   if (sub === undefined) return <p className="text-sm text-white/50">Loading…</p>;
@@ -43,6 +61,8 @@ export default function SubscriptionPage() {
         <h1 className="text-2xl font-bold text-white">Subscription</h1>
         <p className="mt-1 text-sm text-white/60">Manage your membership.</p>
       </div>
+
+      {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
 
       {!sub ? (
         <p className="text-sm text-white/50">No active subscription. <a href="/payments" className="text-blue-600 underline">Browse plans</a>.</p>

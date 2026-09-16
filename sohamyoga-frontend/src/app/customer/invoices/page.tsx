@@ -13,9 +13,13 @@ const STATUS_COLOR: Record<string, string> = {
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[] | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/customer/invoices', { cache: 'no-store' }).then(r => r.json()).then(d => setInvoices(d.invoices ?? []));
+    fetch('/api/customer/invoices', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => setInvoices(d.invoices ?? []))
+      .catch(() => setError('Failed to load invoices. Please refresh.'));
   }, []);
 
   return (
@@ -24,6 +28,7 @@ export default function InvoicesPage() {
         <h1 className="text-2xl font-bold text-white">Invoices & Billing</h1>
         <p className="mt-1 text-sm text-white/60">Synced from our billing system.</p>
       </div>
+      {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
       <div className="space-y-2 text-white">
         {invoices?.map(inv => (
           <div key={inv.invoice_number} className="rounded-lg border border-white/20 backdrop-blur-md bg-white/10 p-3 text-sm">
@@ -31,7 +36,7 @@ export default function InvoicesPage() {
               <span className="font-medium">{inv.invoice_number}</span>
               <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[inv.status] ?? 'bg-white/10'}`}>{inv.status}</span>
             </div>
-            <p className="mt-1 text-white/70">{inv.description}</p>
+            {inv.description && <p className="mt-1 text-white/70">{inv.description}</p>}
             <div className="mt-1 flex items-center justify-between text-xs text-white/60">
               <span>{inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString()}` : ''}</span>
               <div className="flex items-center gap-3">
@@ -42,7 +47,7 @@ export default function InvoicesPage() {
           </div>
         ))}
         {invoices && !invoices.length && <p className="text-sm text-white/50">No invoices yet.</p>}
-        {!invoices && <p className="text-sm text-white/50">Loading…</p>}
+        {!invoices && !error && <p className="text-sm text-white/50">Loading…</p>}
       </div>
     </div>
   );

@@ -18,26 +18,41 @@ export default function LoyaltyPage() {
   const [rewards, setRewards] = useState<RewardItem[]>([]);
   const [redeeming, setRedeeming] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const load = () => {
-    fetch('/api/customer/loyalty', { cache: 'no-store' }).then(r => r.json()).then(setData);
-    fetch('/api/customer/loyalty/rewards', { cache: 'no-store' }).then(r => r.json()).then(d => setRewards(d.rewards ?? []));
+    Promise.allSettled([
+      fetch('/api/customer/loyalty', { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/customer/loyalty/rewards', { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([loyaltyRes, rewardsRes]) => {
+      if (loyaltyRes.status === 'fulfilled') setData(loyaltyRes.value);
+      else setError('Failed to load loyalty data. Please refresh.');
+      if (rewardsRes.status === 'fulfilled') setRewards(rewardsRes.value.rewards ?? []);
+    }).finally(() => setLoading(false));
   };
   useEffect(load, []);
 
   async function redeem(rewardId: string) {
     setRedeeming(rewardId);
     setMessage('');
-    const res = await fetch('/api/customer/loyalty/redeem', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rewardId }),
-    });
-    const body = await res.json();
-    setRedeeming(null);
-    setMessage(res.ok ? `Redeemed! New balance: ${body.newBalance} pts.` : body.error);
-    if (res.ok) load();
+    setError('');
+    try {
+      const res = await fetch('/api/customer/loyalty/redeem', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rewardId }),
+      });
+      const body = await res.json();
+      setMessage(res.ok ? `Redeemed! New balance: ${body.newBalance} pts.` : body.error);
+      if (res.ok) load();
+    } catch {
+      setError('Redemption failed. Please try again.');
+    } finally {
+      setRedeeming(null);
+    }
   }
 
-  if (!data) return <p className="text-sm text-white/40">Loading…</p>;
+  if (loading) return <p className="text-sm text-white/40">Loading…</p>;
+  if (!data) return <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error || 'Failed to load loyalty data.'}</p>;
   const currentTier = data.allTiers.find(t => t.code === data.tier);
 
   return (
@@ -46,6 +61,8 @@ export default function LoyaltyPage() {
         <h1 className="text-2xl font-bold text-white">Loyalty</h1>
         <p className="mt-1 text-sm text-white/60">Your tier and point balance.</p>
       </div>
+
+      {error && <p className="text-sm text-red-400 bg-red-900/20 rounded p-2">{error}</p>}
 
       <div className="rounded-xl border border-white/20 backdrop-blur-md bg-white/10 p-5">
         <div className="flex items-center justify-between">

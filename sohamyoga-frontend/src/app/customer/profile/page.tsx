@@ -11,22 +11,36 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({ label: 'Home', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'CA' });
 
-  const load = () => fetch('/api/customer/address', { cache: 'no-store' }).then(r => r.json()).then(d => setAddresses(d.addresses ?? []));
+  const load = () => {
+    fetch('/api/customer/address', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => setAddresses(d.addresses ?? []))
+      .catch(() => setError('Failed to load addresses. Please refresh.'));
+  };
   useEffect(() => { load() }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    const res = await fetch('/api/customer/address', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-    const d = await res.json();
-    if (!res.ok) { setError(d.error); return; }
-    setForm({ label: 'Home', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'CA' });
-    load();
+    try {
+      const res = await fetch('/api/customer/address', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const d = await res.json();
+      if (!res.ok) { setError(d.error); return; }
+      setForm({ label: 'Home', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'CA' });
+      load();
+    } catch {
+      setError('Failed to save address. Please try again.');
+    }
   }
 
   async function remove(id: string) {
-    await fetch(`/api/customer/address?id=${id}`, { method: 'DELETE' });
-    load();
+    setError('');
+    try {
+      await fetch(`/api/customer/address?id=${id}`, { method: 'DELETE' });
+      load();
+    } catch {
+      setError('Failed to remove address. Please try again.');
+    }
   }
 
   return (
