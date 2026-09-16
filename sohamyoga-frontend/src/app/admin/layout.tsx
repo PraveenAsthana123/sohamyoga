@@ -1262,6 +1262,10 @@ const navItems = [
   { href: '/admin/video-editor', label: 'Video Studio 🎬', icon: <span aria-hidden="true">🎬</span>, requiredRoles: ['Admin'] },
   { href: '/admin/reels', label: 'Reels Manager 📱', icon: <span aria-hidden="true">📱</span>, requiredRoles: ['Admin'] },
   { href: '/admin/video-posting', label: 'Video Posting 🚀', icon: <span aria-hidden="true">🚀</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/course-studio', label: 'Course Studio 🎓', icon: <span aria-hidden="true">🎓</span>, requiredRoles: ['Admin'] },
+  // ── Platform Integrations ────────────────────────────────────────────────
+  { href: '/admin/meta-integration', label: 'Meta / Facebook 📘', icon: <span aria-hidden="true">📘</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/youtube-integration', label: 'YouTube Hub ▶️', icon: <span aria-hidden="true">▶️</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
