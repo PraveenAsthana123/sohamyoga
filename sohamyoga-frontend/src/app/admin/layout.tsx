@@ -1433,6 +1433,25 @@ const navItems = [
   { href: '/admin/construction-pm', label: 'Construction Project Mgmt 🏗️', icon: <span aria-hidden="true">🏗️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/architecture-firm', label: 'Architecture & Design Firm 📐', icon: <span aria-hidden="true">📐</span>, requiredRoles: ['Admin'] },
   { href: '/admin/interior-design', label: 'Interior Design Studio 🛋️', icon: <span aria-hidden="true">🛋️</span>, requiredRoles: ['Admin'] },
+  // Digital & Professional Services
+  { href: '/admin/digital-agency-crm', label: 'Digital Marketing Agency CRM 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/consulting-firm', label: 'Management Consulting Firm 🧩', icon: <span aria-hidden="true">🧩</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/market-research-firm', label: 'Market Research Firm 🔭', icon: <span aria-hidden="true">🔭</span>, requiredRoles: ['Admin'] },
+  // Automotive & Trades
+  { href: '/admin/auto-repair', label: 'Auto Repair & Mechanic Shop 🔧', icon: <span aria-hidden="true">🔧</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/cannabis-retail', label: 'Cannabis Retail (AGLC) 🌿', icon: <span aria-hidden="true">🌿</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/craft-brewery', label: 'Brewery & Craft Beverage 🍺', icon: <span aria-hidden="true">🍺</span>, requiredRoles: ['Admin'] },
+  // Home & Property Services
+  { href: '/admin/pool-hot-tub', label: 'Pool & Hot Tub Services 🏊', icon: <span aria-hidden="true">🏊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/hvac-services', label: 'HVAC Services & Installation ❄️', icon: <span aria-hidden="true">❄️</span>, requiredRoles: ['Admin'] },
+  // Senior & Specialized Care
+  { href: '/admin/senior-living', label: 'Senior Living & Assisted Living 🏡', icon: <span aria-hidden="true">🏡</span>, requiredRoles: ['Admin'] },
+  // Industry Verticals
+  { href: '/admin/oil-gas-consulting', label: 'Oil & Gas Consulting (AB) ⛽', icon: <span aria-hidden="true">⛽</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/farm-agricultural', label: 'Farm & Agricultural Services 🌾', icon: <span aria-hidden="true">🌾</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/funeral-home', label: 'Funeral Home & Memorial Services ⚪', icon: <span aria-hidden="true">⚪</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/insurance-adjusting', label: 'Insurance Adjusting Firm 📋', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/pawn-shop', label: 'Pawn Shop & Buy & Sell 💍', icon: <span aria-hidden="true">💍</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
