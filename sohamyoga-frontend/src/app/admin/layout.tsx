@@ -1024,6 +1024,7 @@ const navItems = [
     requiredRoles: ['Admin', 'Editor', 'Sales'],
   },
   { href: '/admin/social-intelligence', label: 'Social Intelligence 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
+  { href: '/admin/linkedin-management', label: 'LinkedIn Management', icon: <span aria-hidden="true" className="font-bold text-blue-600">in</span>, requiredRoles: ['Admin', 'Editor', 'Sales'] },
   { href: '/admin/platform-workflows', label: '⚡ Workflows & Automation', icon: <span aria-hidden="true">⚡</span>, requiredRoles: ['Admin', 'Editor'] },
   { href: '/admin/social/platform-setup-guide', label: 'Platform Setup Guide 🗺️', icon: <span aria-hidden="true">🗺️</span>, requiredRoles: ['Admin'] },
   {
