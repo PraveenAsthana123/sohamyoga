@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  try { await requireAdmin(); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
+  try { await requireAdmin(req); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
   const { allergies, current_meds, new_drug, strength } = await req.json();
 
   const prompt = `Check for drug interactions for patient with allergies: ${(allergies ?? []).join(', ') || 'None known'}. Current medications: ${(current_meds ?? []).join(', ') || 'None'}. New prescription: ${new_drug} ${strength}. Provide: interaction severity (none/minor/moderate/severe), mechanism of action for any interactions, clinical significance, monitoring parameters, and recommendation (safe/monitor/avoid/contraindicated). This is clinical decision support — pharmacist must verify.`;

@@ -1,11 +1,12 @@
+import type { PoolClient } from 'pg';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 import { NextRequest } from 'next/server';
-import { pool } from '@/lib/db';
+import { getPool, databaseConfigured } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
 
-async function ensureTables(client: Awaited<ReturnType<typeof pool.connect>>) {
+async function ensureTables(client: PoolClient) {
   await client.query(`
     CREATE TABLE IF NOT EXISTS healthcare_patient (
       id SERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT, phone TEXT,
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const denied = await requireAdmin(req);
   if (denied) return denied;
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await ensureTables(client);
 
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const denied = await requireAdmin(req);
   if (denied) return denied;
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await ensureTables(client);
     const body = await req.json();

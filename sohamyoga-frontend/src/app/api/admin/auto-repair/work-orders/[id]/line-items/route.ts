@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { getPool } from '@/lib/postgres';
@@ -5,7 +6,7 @@ import { getPool } from '@/lib/postgres';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function recalcWO(client: Awaited<ReturnType<ReturnType<typeof getPool>['connect']>>, wo_id: string): Promise<void> {
+async function recalcWO(client: PoolClient, wo_id: string): Promise<void> {
   const { rows } = await client.query(`SELECT COALESCE(SUM(quantity * unit_price),0) AS sub FROM ar_line_item WHERE work_order_id=$1`, [wo_id]);
   const subtotal = parseFloat(rows[0].sub);
   const tax = Math.round(subtotal * 0.05 * 100) / 100;

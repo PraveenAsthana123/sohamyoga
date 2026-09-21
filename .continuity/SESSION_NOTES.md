@@ -223,3 +223,11 @@ User authorized a rendered sample with link and video UI for customers and inter
 - Fresh customer demo login200 but orders/cart/referral404: missing customer record. Registration OTP cosmetic and complete-registration HTTP success ignored. No broad mutating test suite run during audit.
 - Postiz running; LinkedIn credentials absent. Instagram1 connected DB row; not authenticated externally. SMTP host configured on backend; delivery unverified, correcting stale notes.
 - Deliverables:206-module matrix,940-use-case inventory,223missing rows,265UI/489API source inventories,42demo stories,210PLANNED tests, test data plan, evidence manifest, logs/results and P0-P3 roadmap. Plan cases explicitly NOT_RUN. No full-demo-ready blanket claim.
+
+## 2026-09-20 — Completed local vLLM and MarkItDown MCP
+- User approved isolated local vLLM CPU deployment. Container healthy, direct completion passed.
+- Added local-vllm to existing LiteLLM gateway on127.0.0.1:4400, preserving fast/code/strong routes. Config backup stored alongside original. Restart and model listing passed.
+- Proxied completion returned "2 plus 2 equals 4." in1.75 seconds; evidence /mnt/deepa/chatgpt/local-vllm/verification.json.
+- Microsoft MarkItDown MCP installed in canonical environment and globally registered in Codex; real MCP HTML/DOCX/PDF conversions passed, no new pip conflicts. New Codex session needed to discover registration.
+- Pinned MCP server0.0.1a3/core0.1.7 to retain shared MCP1.30/Pillow11.3. Documentation /mnt/deepa/chatgpt/docs/MARKITDOWN_MCP.md.
+- All changes recorded via direct decision JSONL fallback because Continuity launcher remains unavailable. No remaining task blockers.

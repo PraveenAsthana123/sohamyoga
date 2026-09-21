@@ -52,7 +52,7 @@ async function ensureTables(): Promise<void> {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  try { await requireAdmin(); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
+  try { await requireAdmin(req); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
   await ensureTables();
   const pool = getPool();
   const client = await pool.connect();

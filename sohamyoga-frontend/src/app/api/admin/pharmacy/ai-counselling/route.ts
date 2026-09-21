@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  try { await requireAdmin(); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
+  try { await requireAdmin(req); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
   const { drug_name, strength, directions, patient_name } = await req.json();
 
   const prompt = `Create patient counselling notes for: ${drug_name} ${strength}, ${directions}. Include: what this medication treats, how to take it, common side effects, serious side effects to watch for, drug-food interactions, storage instructions, and when to contact a doctor. Written in plain language for patients.`;

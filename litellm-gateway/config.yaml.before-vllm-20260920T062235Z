@@ -27,33 +27,21 @@
 model_list:
   - model_name: fast
     litellm_params:
-      model: ollama_chat/qwen3:1.7b
-      api_base: http://127.0.0.1:11434
-      max_tokens: 512
-      num_ctx: 4096
-      think: false
+      model: ollama_chat/phi4-mini:latest
+      api_base: http://127.0.0.1:11435
+      max_tokens: 1024
 
   - model_name: code
     litellm_params:
-      model: ollama_chat/qwen2.5-coder:1.5b
-      api_base: http://127.0.0.1:11434
+      model: ollama_chat/qwen2.5-coder:latest
+      api_base: http://127.0.0.1:11435
       max_tokens: 1024
-      num_ctx: 4096
 
   - model_name: strong
     litellm_params:
       model: ollama_chat/qwen2.5:latest
-      api_base: http://127.0.0.1:11434
+      api_base: http://127.0.0.1:11435
       max_tokens: 1024
-      num_ctx: 4096
-
-  - model_name: local-vllm
-    litellm_params:
-      model: hosted_vllm/local-vllm
-      api_base: http://127.0.0.1:8000/v1
-      api_key: local-only
-      max_tokens: 256
-      timeout: 180
 
 general_settings:
   # No master key set yet -- this is bound to 127.0.0.1 only (see the

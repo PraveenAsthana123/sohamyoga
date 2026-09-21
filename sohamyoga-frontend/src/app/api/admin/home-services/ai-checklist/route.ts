@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  try { await requireAdmin(); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
+  try { await requireAdmin(req); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
   const { service_type } = await req.json();
 
   const prompt = `Generate a detailed cleaning checklist for a ${service_type} service. Organize by room/area. Include time estimates per area, special attention points, products to use for each surface, and quality check items. Professional cleaning company format.`;

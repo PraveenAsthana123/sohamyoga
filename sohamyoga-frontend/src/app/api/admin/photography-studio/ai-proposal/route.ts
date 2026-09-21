@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  try { await requireAdmin(); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
+  try { await requireAdmin(req); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
   const { shoot_type, client_name, details } = await req.json();
 
   const prompt = `Write a photography proposal for a ${shoot_type} session for ${client_name}. ${details ? `Additional details: ${details}.` : ''} Include: session overview, what's included, investment options (3 tiers), preparation tips for the client, what to expect on the day, turnaround time, and a professional closing paragraph. Calgary, Alberta context.`;

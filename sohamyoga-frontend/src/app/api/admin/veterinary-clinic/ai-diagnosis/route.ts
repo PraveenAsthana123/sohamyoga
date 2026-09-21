@@ -11,7 +11,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const body = await req.json();
     const { species, breed, age, symptoms, weight_kg, current_medications, patient_name = 'the patient' } = body;
     if (!species || !symptoms) return Response.json({ error: 'species, symptoms required' }, { status: 400 });
-    const prompt = `You are a veterinary assistant. Patient: ${species}${breed ? ` (${breed})` : ''}, ${age ? `${age} year(s) old` : 'age unknown'}, ${sex || ''}. Patient name: ${patient_name}. Presenting symptoms: ${symptoms}. Weight: ${weight_kg ? `${weight_kg}kg` : 'unknown'}. Current medications: ${current_medications || 'none'}. Provide: differential diagnoses (list top 3-5), recommended diagnostics, initial treatment approach, monitoring parameters, and owner education points. Note: this is clinical decision support, not a diagnosis — always defer to the attending veterinarian.`;
+    const prompt = `You are a veterinary assistant. Patient: ${species}${breed ? ` (${breed})` : ''}, ${age ? `${age} year(s) old` : 'age unknown'}, ${body.sex || ''}. Patient name: ${patient_name}. Presenting symptoms: ${symptoms}. Weight: ${weight_kg ? `${weight_kg}kg` : 'unknown'}. Current medications: ${current_medications || 'none'}. Provide: differential diagnoses (list top 3-5), recommended diagnostics, initial treatment approach, monitoring parameters, and owner education points. Note: this is clinical decision support, not a diagnosis — always defer to the attending veterinarian.`;
     let notes = '';
     let aiUsed = false;
     try {

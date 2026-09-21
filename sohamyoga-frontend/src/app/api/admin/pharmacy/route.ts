@@ -59,7 +59,7 @@ async function ensureTables(): Promise<void> {
 
 export async function GET(req: NextRequest): Promise<Response> {
   try {
-    await requireAdmin();
+    await requireAdmin(req);
   } catch {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }

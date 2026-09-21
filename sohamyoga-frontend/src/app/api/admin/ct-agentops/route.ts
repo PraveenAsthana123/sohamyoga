@@ -107,7 +107,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       success_rate: successRate,
       avg_cost_usd: parseFloat(st.avg_cost),
       runs_today: st.runs_today,
-      active_runs: activeRes.rows.length,
+      active_run_count: activeRes.rows.length,
       kpis: [
         { label: 'Success Rate', value: successRate, target: 95, trend: successRate >= 95 ? 'up' : 'down', unit: '%' },
         { label: 'Avg Cost/Run', value: `$${parseFloat(st.avg_cost).toFixed(4)}`, target: 0.02, trend: parseFloat(st.avg_cost) <= 0.02 ? 'up' : 'down', unit: 'USD' },

@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<Response> {
-  try { await requireAdmin(); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
+  try { await requireAdmin(req); } catch { return Response.json({ error: 'Unauthorized' }, { status: 401 }); }
   const { service_type, address, bedrooms, bathrooms, sqft, extras } = await req.json();
 
   const prompt = `Generate a professional home cleaning quote for: ${service_type} at ${address}, ${bedrooms} bed ${bathrooms} bath, ${sqft} sq ft. Extras: ${extras ?? 'none'}. Include: scope of work, estimated time, price breakdown (base + add-ons), what's included/excluded, our guarantee, and cancellation policy. Calgary Alberta market rates.`;
