@@ -1258,6 +1258,8 @@ const navItems = [
   { href: '/admin/brochures', label: 'Brochures 📰', icon: <span aria-hidden="true">📰</span>, requiredRoles: ['Admin'] },
   { href: '/admin/export-center', label: 'Export Center 📤', icon: <span aria-hidden="true">📤</span>, requiredRoles: ['Admin'] },
   // ── Integrations ────────────────────────────────────────────────────────
+  { href: 'divider', label: 'Integrations', icon: null, requiredRoles: [] as string[] },
+  { href: '/admin/integrations-catalog', label: 'All Integrations 🔌', icon: <span aria-hidden="true">🔌</span>, requiredRoles: ['Admin'] },
   { href: '/admin/google-drive', label: 'Google Drive 💾', icon: <span aria-hidden="true">💾</span>, requiredRoles: ['Admin'] },
   { href: '/admin/gmail-integration', label: 'Gmail Integration 📧', icon: <span aria-hidden="true">📧</span>, requiredRoles: ['Admin'] },
   { href: '/admin/communications', label: 'Unified Inbox 🌐', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
@@ -1335,12 +1337,18 @@ const navItems = [
   // RAG & AI Infrastructure
   { href: '/admin/rag-knowledge-base', label: 'RAG Knowledge Base 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
   // Control Towers
+  // ── Vertical Modules ────────────────────────────────────────────────────────
+  { href: 'divider', label: 'Vertical Modules', icon: null, requiredRoles: [] as string[] },
+  { href: '/admin/education-video', label: 'Education Video 🎓', icon: <span aria-hidden="true">🎓</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/financial-broker', label: 'Financial Broker 💼', icon: <span aria-hidden="true">💼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/healthcare-broker', label: 'Healthcare Broker 🏥', icon: <span aria-hidden="true">🏥</span>, requiredRoles: ['Admin'] },
   // ── Agentic Operations ──────────────────────────────────────────────────────
   { href: 'divider', label: 'Agentic Operations', icon: null, requiredRoles: [] as string[] },
   { href: '/admin/supervisor-agent', label: 'Supervisor Agent 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
   { href: '/admin/agentops', label: 'AgentOps 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
   { href: '/admin/agent-engineering', label: 'Agent Engineering 🔧', icon: <span aria-hidden="true">🔧</span>, requiredRoles: ['Admin'] },
   { href: '/admin/self-healing', label: 'Self-Healing System 🛠️', icon: <span aria-hidden="true">🛠️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ollama-tasks', label: 'Ollama Tasks 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
   // ── AI Operations ───────────────────────────────────────────────────────────
   { href: 'divider', label: 'AI Operations', icon: null, requiredRoles: [] as string[] },
   { href: '/admin/error-control-tower', label: 'Error Control Tower 🚨', icon: <span aria-hidden="true">🚨</span>, requiredRoles: ['Admin'] },
