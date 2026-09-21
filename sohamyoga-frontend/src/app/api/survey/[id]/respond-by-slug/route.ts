@@ -21,10 +21,10 @@ function clientIp(req: NextRequest): string {
 interface SurveyRow { id: string; status: string; confirmation_message: string | null; consent_required: boolean; consent_text: string }
 interface QuestionRow { id: string; type: string; text: string; is_required: boolean; rating_min: number | null; rating_max: number | null }
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
-  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message, consent_required, consent_text FROM survey WHERE slug = $1`, [params.slug]);
+  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message, consent_required, consent_text FROM survey WHERE slug = $1`, [params.id]);
   if (!survey.rows.length) return Response.json({ error: 'Survey not found.' }, { status: 404 });
   if (survey.rows[0].status !== 'active') return Response.json({ error: 'This survey is not currently accepting responses.' }, { status: 410 });
 
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
 
 interface RespondBody { token?: string; npsScore?: number; reasonText?: string; consent?: boolean }
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   if (!databaseConfigured()) return Response.json({ error: 'DATABASE_URL is not configured.' }, { status: 503 });
 
   const body = await req.json().catch(() => null) as RespondBody | null;
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
     return Response.json({ error: 'reasonText must be 4000 characters or fewer.' }, { status: 400 });
   }
 
-  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message, consent_required, consent_text FROM survey WHERE slug = $1`, [params.slug]);
+  const survey = await query<SurveyRow>(`SELECT id, status, confirmation_message, consent_required, consent_text FROM survey WHERE slug = $1`, [params.id]);
   if (!survey.rows.length) return Response.json({ error: 'Survey not found.' }, { status: 404 });
   if (survey.rows[0].consent_required && !body.consent) {
     return Response.json({ error: 'Consent is required to submit this survey.' }, { status: 400 });
