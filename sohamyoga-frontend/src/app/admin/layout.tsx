@@ -1452,6 +1452,18 @@ const navItems = [
   { href: '/admin/funeral-home', label: 'Funeral Home & Memorial Services ⚪', icon: <span aria-hidden="true">⚪</span>, requiredRoles: ['Admin'] },
   { href: '/admin/insurance-adjusting', label: 'Insurance Adjusting Firm 📋', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
   { href: '/admin/pawn-shop', label: 'Pawn Shop & Buy & Sell 💍', icon: <span aria-hidden="true">💍</span>, requiredRoles: ['Admin'] },
+  // Health & Nutrition
+  { href: '/admin/dietitian-nutrition', label: 'Dietitian & Nutrition 🥗', icon: <span aria-hidden="true">🥗</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/midwifery', label: 'Midwifery Practice 🤱', icon: <span aria-hidden="true">🤱</span>, requiredRoles: ['Admin'] },
+  // Trades & Home Services
+  { href: '/admin/electrical-contractor', label: 'Electrical Contractor ⚡', icon: <span aria-hidden="true">⚡</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/pest-control', label: 'Pest Control Services 🪲', icon: <span aria-hidden="true">🪲</span>, requiredRoles: ['Admin'] },
+  // Pet Services
+  { href: '/admin/dog-training', label: 'Dog Training 🐕', icon: <span aria-hidden="true">🐕</span>, requiredRoles: ['Admin'] },
+  // Retail & Specialty
+  { href: '/admin/jewellery-store', label: 'Jewellery Store 💎', icon: <span aria-hidden="true">💎</span>, requiredRoles: ['Admin'] },
+  // Entertainment & Media
+  { href: '/admin/recording-studio', label: 'Recording Studio 🎙️', icon: <span aria-hidden="true">🎙️</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
