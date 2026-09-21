@@ -184,3 +184,46 @@ export async function getTaskModelMapping(): Promise<TaskModelInfo[]> {
     })
   );
 }
+
+// Convenience: run a prompt with automatic task-type detection and Ollama-first routing
+// Drop-in replacement for raw fetch('http://localhost:11434/api/generate', ...)
+export async function ollamaFirst(
+  prompt: string,
+  options: {
+    taskType?: OllamaTaskType;
+    preferredModel?: string;  // override model selection
+    temperature?: number;
+    systemPrompt?: string;
+  } = {}
+): Promise<{ text: string; model: string; latency_ms: number; online: boolean }> {
+  const taskType = options.taskType ?? 'text_generation';
+  const model = options.preferredModel ?? await selectModel(taskType);
+
+  if (!model) {
+    return { text: '', model: 'none', latency_ms: 0, online: false };
+  }
+
+  const start = Date.now();
+  try {
+    const body = options.systemPrompt
+      ? { model, messages: [{ role: 'system', content: options.systemPrompt }, { role: 'user', content: prompt }], stream: false, options: { temperature: options.temperature ?? 0.7 } }
+      : { model, prompt, stream: false, options: { temperature: options.temperature ?? 0.7 } };
+    const endpoint = options.systemPrompt ? '/api/chat' : '/api/generate';
+    const res = await fetch(`http://localhost:11434${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(60000),
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const d = await res.json() as { response?: string; message?: { content?: string } };
+    return {
+      text: d.response ?? d.message?.content ?? '',
+      model,
+      latency_ms: Date.now() - start,
+      online: true,
+    };
+  } catch {
+    return { text: '', model, latency_ms: Date.now() - start, online: false };
+  }
+}

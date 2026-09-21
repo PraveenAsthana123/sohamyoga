@@ -1356,6 +1356,7 @@ const navItems = [
   { href: '/admin/agent-engineering', label: 'Agent Engineering 🔧', icon: <span aria-hidden="true">🔧</span>, requiredRoles: ['Admin'] },
   { href: '/admin/self-healing', label: 'Self-Healing System 🛠️', icon: <span aria-hidden="true">🛠️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/ollama-tasks', label: 'Ollama Tasks 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ollama-strategy', label: 'Ollama Strategy 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
   // ── AI Operations ───────────────────────────────────────────────────────────
   { href: 'divider', label: 'AI Operations', icon: null, requiredRoles: [] as string[] },
   { href: '/admin/error-control-tower', label: 'Error Control Tower 🚨', icon: <span aria-hidden="true">🚨</span>, requiredRoles: ['Admin'] },
