@@ -76,7 +76,7 @@ jobs:
       - name: Build & push frontend
         uses: docker/build-push-action@v5
         with:
-          context: ./sohamyoga-frontend
+          context: .
           file: ./sohamyoga-frontend/Dockerfile
           push: true
           tags: ${{ steps.meta-frontend.outputs.tags }}
