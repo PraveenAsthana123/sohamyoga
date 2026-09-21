@@ -1274,6 +1274,11 @@ const navItems = [
   { href: '/admin/text-to-video', label: 'Text to Video 🎞️', icon: <span aria-hidden="true">🎞️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/text-to-image', label: 'Text to Image 🖼️', icon: <span aria-hidden="true">🖼️</span>, requiredRoles: ['Admin'] },
   { href: '/admin/video-to-text', label: 'Video to Text 📝', icon: <span aria-hidden="true">📝</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/seedance', label: 'Seedance AI Video 🎬', icon: <span aria-hidden="true">🎬</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/capcut', label: 'CapCut Editor ✂️', icon: <span aria-hidden="true">✂️</span>, requiredRoles: ['Admin'] },
+  // ── AI Dev Tools ────────────────────────────────────────────────────────
+  { href: '/admin/huggingface', label: 'HuggingFace Models 🤗', icon: <span aria-hidden="true">🤗</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/cline', label: 'Cline AI Coding 🖥️', icon: <span aria-hidden="true">🖥️</span>, requiredRoles: ['Admin'] },
   // ── Video Studio & Reels ────────────────────────────────────────────────
   { href: '/admin/video-editor', label: 'Video Studio 🎬', icon: <span aria-hidden="true">🎬</span>, requiredRoles: ['Admin'] },
   { href: '/admin/reels', label: 'Reels Manager 📱', icon: <span aria-hidden="true">📱</span>, requiredRoles: ['Admin'] },
