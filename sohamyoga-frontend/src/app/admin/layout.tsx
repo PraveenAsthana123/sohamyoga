@@ -1336,7 +1336,14 @@ const navItems = [
   { href: '/admin/sales-intelligence', label: 'Sales Intelligence 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
   // RAG & AI Infrastructure
   { href: '/admin/rag-knowledge-base', label: 'RAG Knowledge Base 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
-  // Control Towers
+  // ── Control Towers ──────────────────────────────────────────────────────────
+  { href: 'divider', label: 'Control Towers', icon: null, requiredRoles: [] as string[] },
+  { href: '/admin/enterprise-tower', label: 'Enterprise Tower 🏗️', icon: <span aria-hidden="true">🏗️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-tower', label: 'AI Tower 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/multiagent-tower', label: 'Multi-Agent Tower 🕸️', icon: <span aria-hidden="true">🕸️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agent-factory', label: 'Agent Factory 🏭', icon: <span aria-hidden="true">🏭</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agent-lifecycle', label: 'Agent Lifecycle ♻️', icon: <span aria-hidden="true">♻️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agent-communication', label: 'Agent Communication 📡', icon: <span aria-hidden="true">📡</span>, requiredRoles: ['Admin'] },
   // ── Vertical Modules ────────────────────────────────────────────────────────
   { href: 'divider', label: 'Vertical Modules', icon: null, requiredRoles: [] as string[] },
   { href: '/admin/education-video', label: 'Education Video 🎓', icon: <span aria-hidden="true">🎓</span>, requiredRoles: ['Admin'] },
