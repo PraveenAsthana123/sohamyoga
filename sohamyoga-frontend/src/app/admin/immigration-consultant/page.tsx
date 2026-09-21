@@ -662,7 +662,7 @@ export default function ImmigrationConsultantPage() {
                     <div key={f}>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{l}</label>
                       <input className="w-full border border-gray-200 rounded px-3 py-2 text-sm"
-                        value={(clientForm as Record<string,string>)[f]}
+                        value={(clientForm as unknown as Record<string,string>)[f]}
                         onChange={e=>setClientForm(prev=>({...prev,[f]:e.target.value}))}/>
                     </div>
                   ))}

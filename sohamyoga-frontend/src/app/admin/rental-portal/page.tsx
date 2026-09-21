@@ -198,6 +198,7 @@ const BLANK_LISTING = {
   virtual_tour_url: '',
   airbnb_enabled: false, airbnb_nightly_rate: '', airbnb_cleaning_fee: '',
   platforms: RENTAL_PLATFORMS.map((p) => p.id),
+  status: 'draft',
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -757,7 +758,7 @@ export default function RentalPortalPage() {
                     type="number"
                     placeholder="Monthly cost ($)"
                     defaultValue={row?.monthly_cost ?? ''}
-                    onChange={(e) => setPlatformEdits((prev) => ({ ...prev, [p.id]: { ...prev[p.id], monthly_cost: Number(e.target.value) } }))}
+                    onChange={(e) => setPlatformEdits((prev) => ({ ...prev, [p.id]: { ...prev[p.id], monthly_cost: e.target.value } }))}
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm mb-2"
                   />
                 )}

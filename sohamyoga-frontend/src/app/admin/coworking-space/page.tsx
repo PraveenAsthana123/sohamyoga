@@ -112,7 +112,7 @@ function DashboardTab() {
                   <tr key={String(v.id)} className="border-b last:border-0 py-2">
                     <td className="py-2">
                       <p className="font-medium">{String(v.visitor_name)}</p>
-                      {v.visitor_company && <p className="text-xs text-gray-400">{String(v.visitor_company)}</p>}
+                      {!!v.visitor_company && <p className="text-xs text-gray-400">{String(v.visitor_company)}</p>}
                     </td>
                     <td className="py-2 text-gray-600">{v.host_first ? `${v.host_first} ${v.host_last}` : '—'}</td>
                     <td className="py-2">
@@ -190,17 +190,17 @@ function MembersTab() {
               <tr key={String(m.id)} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <p className="font-medium">{String(m.first_name)} {String(m.last_name)}</p>
-                  {m.company && <p className="text-xs text-gray-400">{String(m.company)}</p>}
+                  {!!m.company && <p className="text-xs text-gray-400">{String(m.company)}</p>}
                 </td>
                 <td className="px-4 py-3 text-gray-600">{String(m.email)}</td>
                 <td className="px-4 py-3"><Badge label={String(m.membership_plan)} cls={PLAN_COLORS[String(m.membership_plan)] || 'bg-gray-100 text-gray-600'} /></td>
                 <td className="px-4 py-3"><Badge label={String(m.membership_status)} cls={STATUS_COLORS[String(m.membership_status)] || ''} /></td>
                 <td className="px-4 py-3">{m.monthly_rate ? `$${Number(m.monthly_rate).toFixed(0)}/mo` : '—'}</td>
-                <td className="px-4 py-3">{m.desk_number || '—'}</td>
+                <td className="px-4 py-3">{m.desk_number ? String(m.desk_number) : '—'}</td>
                 <td className="px-4 py-3 flex gap-1 flex-wrap">
-                  {m.printer_access && <span className="text-xs bg-gray-100 px-1.5 rounded">Print</span>}
-                  {m.mail_service && <span className="text-xs bg-gray-100 px-1.5 rounded">Mail</span>}
-                  {m['24hr_access'] && <span className="text-xs bg-gray-100 px-1.5 rounded">24hr</span>}
+                  {!!m.printer_access && <span className="text-xs bg-gray-100 px-1.5 rounded">Print</span>}
+                  {!!m.mail_service && <span className="text-xs bg-gray-100 px-1.5 rounded">Mail</span>}
+                  {!!m['24hr_access'] && <span className="text-xs bg-gray-100 px-1.5 rounded">24hr</span>}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{m.start_date ? new Date(String(m.start_date)).toLocaleDateString() : '—'}</td>
               </tr>
@@ -332,7 +332,7 @@ function SpacesTab() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <p className="font-semibold">{String(s.space_name)}</p>
-                <p className="text-xs text-gray-500">{String(s.space_type).replace(/_/g,'  ')} · Floor {s.floor || 'N/A'} · Cap {String(s.capacity)}</p>
+                <p className="text-xs text-gray-500">{String(s.space_type).replace(/_/g,'  ')} · Floor {s.floor ? String(s.floor) : 'N/A'} · Cap {String(s.capacity)}</p>
               </div>
               <button onClick={() => toggleAvailability(s.id, s.is_available)}
                 className={`text-xs px-2 py-1 rounded font-medium ${s.is_available ? 'bg-green-100 text-green-700 hover:bg-red-100 hover:text-red-600' : 'bg-red-100 text-red-600 hover:bg-green-100 hover:text-green-700'}`}>
@@ -340,9 +340,9 @@ function SpacesTab() {
               </button>
             </div>
             <div className="text-xs text-gray-600 space-y-1">
-              {s.hourly_rate && <p>${String(s.hourly_rate)}/hr</p>}
-              {s.daily_rate && <p>${String(s.daily_rate)}/day</p>}
-              {s.monthly_rate && <p>${String(s.monthly_rate)}/mo</p>}
+              {!!s.hourly_rate && <p>${String(s.hourly_rate)}/hr</p>}
+              {!!s.daily_rate && <p>${String(s.daily_rate)}/day</p>}
+              {!!s.monthly_rate && <p>${String(s.monthly_rate)}/mo</p>}
             </div>
             {Array.isArray(s.amenities) && s.amenities.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
@@ -525,7 +525,7 @@ function BookingsTab() {
                 <select value={form.member_id} onChange={e => setForm(p => ({ ...p, member_id: e.target.value }))} className="w-full border rounded px-2 py-1.5 text-sm">
                   <option value="">No member / walk-in</option>
                   {members.map(m => (
-                    <option key={String(m.id)} value={String(m.id)}>{m.first_name} {m.last_name}</option>
+                    <option key={String(m.id)} value={String(m.id)}>{String(m.first_name)} {String(m.last_name)}</option>
                   ))}
                 </select>
               </div>
@@ -636,7 +636,7 @@ function VisitorsTab() {
                     <button onClick={() => { const b = prompt('Badge number (optional):') || ''; handleAction(v.id, 'check_in', b); }}
                       className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">Check In</button>
                   )}
-                  {v.checked_in_at && !v.checked_out_at && (
+                  {!!v.checked_in_at && !v.checked_out_at && (
                     <button onClick={() => handleAction(v.id, 'check_out')}
                       className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700">Check Out</button>
                   )}
@@ -667,7 +667,7 @@ function VisitorsTab() {
                 <label className="block text-xs text-gray-500 mb-1">Host Member</label>
                 <select value={form.host_member_id} onChange={e => setForm(p => ({ ...p, host_member_id: e.target.value }))} className="w-full border rounded px-2 py-1.5 text-sm">
                   <option value="">Select host…</option>
-                  {members.map(m => <option key={String(m.id)} value={String(m.id)}>{m.first_name} {m.last_name}</option>)}
+                  {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.first_name)} {String(m.last_name)}</option>)}
                 </select>
               </div>
               <div>

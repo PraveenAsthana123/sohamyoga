@@ -245,14 +245,14 @@ function AppointmentsTab() {
                   setForm(f => ({ ...f, pet_id: e.target.value, owner_id: pet ? String(pet.owner_id || '') : f.owner_id }));
                 }} className="w-full border rounded px-2 py-1.5 text-sm">
                   <option value="">Select pet…</option>
-                  {pets.map(p => <option key={String(p.id)} value={String(p.id)}>{p.name} ({p.species}) — {p.owner_first} {p.owner_last}</option>)}
+                  {pets.map(p => <option key={String(p.id)} value={String(p.id)}>{String(p.name)} ({String(p.species)}) — {String(p.owner_first)} {String(p.owner_last)}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Owner *</label>
                 <select value={form.owner_id} onChange={e => setForm(f => ({ ...f, owner_id: e.target.value }))} className="w-full border rounded px-2 py-1.5 text-sm">
                   <option value="">Select owner…</option>
-                  {owners.map(o => <option key={String(o.id)} value={String(o.id)}>{o.first_name} {o.last_name}</option>)}
+                  {owners.map(o => <option key={String(o.id)} value={String(o.id)}>{String(o.first_name)} {String(o.last_name)}</option>)}
                 </select>
               </div>
               <div>
@@ -410,10 +410,10 @@ function PetsOwnersTab() {
                         <p className="font-medium">{SPECIES_EMOJI[String(p.species)] || '🐾'} {String(p.name)} <span className="text-gray-400 text-xs">({String(p.breed || 'Mixed')})</span></p>
                         <div className="flex gap-2 mt-1 flex-wrap">
                           <Badge label={String(p.vaccination_status)} cls={VACC_STATUS_COLORS[String(p.vaccination_status)] || ''} />
-                          {p.spayed_neutered && <Badge label="Spayed/Neutered" cls="bg-teal-50 text-teal-700" />}
-                          {p.allergies && <span className="text-xs text-red-600">⚠ {String(p.allergies)}</span>}
+                          {!!p.spayed_neutered && <Badge label="Spayed/Neutered" cls="bg-teal-50 text-teal-700" />}
+                          {!!p.allergies && <span className="text-xs text-red-600">⚠ {String(p.allergies)}</span>}
                         </div>
-                        {p.last_visit && <p className="text-xs text-gray-400 mt-1">Last visit: {new Date(String(p.last_visit)).toLocaleDateString()}</p>}
+                        {!!p.last_visit && <p className="text-xs text-gray-400 mt-1">Last visit: {new Date(String(p.last_visit)).toLocaleDateString()}</p>}
                       </div>
                     ))}
                     {((ownerDetail.pets as Record<string, unknown>[]) || []).length === 0 && <p className="text-gray-400 text-xs">No pets yet</p>}
@@ -619,9 +619,9 @@ function BoardingTab() {
             <div className="text-xs text-gray-600 space-y-1 mb-3">
               <p>Owner: {String(b.owner_first || '')} {String(b.owner_last || '')} · {String(b.owner_phone || '')}</p>
               <p>Check-in: {String(b.check_in_date || '—')} → Check-out: {String(b.check_out_date || '—')}</p>
-              {b.daily_rate && <p>Rate: ${String(b.daily_rate)}/night · Total: ${Number(b.total_amount).toFixed(2)}</p>}
-              {b.feeding_instructions && <p>Feeding: {String(b.feeding_instructions).slice(0, 60)}…</p>}
-              {b.exercise_level && <p>Exercise: {String(b.exercise_level)}</p>}
+              {!!b.daily_rate && <p>Rate: ${String(b.daily_rate)}/night · Total: ${Number(b.total_amount).toFixed(2)}</p>}
+              {!!b.feeding_instructions && <p>Feeding: {String(b.feeding_instructions).slice(0, 60)}…</p>}
+              {!!b.exercise_level && <p>Exercise: {String(b.exercise_level)}</p>}
             </div>
             <div className="flex gap-2 border-t border-gray-100 pt-3">
               {b.status === 'reserved' && (
@@ -651,7 +651,7 @@ function BoardingTab() {
                   setForm(f => ({ ...f, pet_id: e.target.value, owner_id: pet ? String(pet.owner_id || '') : f.owner_id }));
                 }} className="w-full border rounded px-2 py-1.5 text-sm">
                   <option value="">Select pet…</option>
-                  {pets.map(p => <option key={String(p.id)} value={String(p.id)}>{p.name} ({p.species}) — {p.owner_first} {p.owner_last}</option>)}
+                  {pets.map(p => <option key={String(p.id)} value={String(p.id)}>{String(p.name)} ({String(p.species)}) — {String(p.owner_first)} {String(p.owner_last)}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -749,19 +749,19 @@ function VaccinationsTab() {
                   </span>
                 </div>
                 <div className="space-y-1 text-xs">
-                  {p.rabies_due && p.rabies_expiry && (
+                  {!!p.rabies_due && !!p.rabies_expiry && (
                     <div className="flex justify-between">
                       <span className="text-red-600 font-medium">Rabies due</span>
                       <span>{String(p.rabies_expiry).slice(0, 10)} ({daysUntil(String(p.rabies_expiry))}d)</span>
                     </div>
                   )}
-                  {p.bordetella_due && p.bordetella_expiry && (
+                  {!!p.bordetella_due && !!p.bordetella_expiry && (
                     <div className="flex justify-between">
                       <span className="text-amber-600 font-medium">Bordetella due</span>
                       <span>{String(p.bordetella_expiry).slice(0, 10)} ({daysUntil(String(p.bordetella_expiry))}d)</span>
                     </div>
                   )}
-                  {p.distemper_due && p.distemper_expiry && (
+                  {!!p.distemper_due && !!p.distemper_expiry && (
                     <div className="flex justify-between">
                       <span className="text-amber-600 font-medium">Distemper due</span>
                       <span>{String(p.distemper_expiry).slice(0, 10)} ({daysUntil(String(p.distemper_expiry))}d)</span>

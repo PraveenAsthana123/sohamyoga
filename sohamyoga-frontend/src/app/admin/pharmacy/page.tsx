@@ -17,7 +17,7 @@ const PROVINCES = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', '
 
 interface DashData { prescriptions_today: number; ready_for_pickup: number; low_stock_count: number; refills_due_7d: number; }
 interface Patient { id: number; first_name: string; last_name: string; date_of_birth: string; health_card_number: string; phone: string; email: string; allergies: string[]; current_conditions: string[]; insurance_provider: string; insurance_id: string; city: string; notes: string; }
-interface Prescription { id: number; patient_id: number; first_name: string; last_name: string; drug_name: string; brand_name: string; strength: string; form: string; quantity: number; days_supply: number; refills_remaining: number; directions: string; prescriber_name: string; status: string; insurance_claim_status: string; patient_cost: number; written_date: string; dispensed_at: string; allergies: string[]; }
+interface Prescription { id: number; patient_id: number; first_name: string; last_name: string; drug_name: string; brand_name: string; strength: string; form: string; quantity: number; days_supply: number; refills_remaining: number; directions: string; prescriber_name: string; status: string; insurance_claim_status: string; patient_cost: number; written_date: string; dispensed_at: string; allergies: string[]; insurance_paid?: number; }
 interface InventoryItem { id: number; din: string; drug_name: string; brand_name: string; strength: string; form: string; quantity_on_hand: number; reorder_point: number; unit_cost: number; selling_price: number; location: string; expiry_date: string; narcotic: boolean; }
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-CA') : '—'; }
@@ -284,7 +284,7 @@ function PrescriptionsTab({ prescriptions, patients, onRefresh }: { prescription
                 <p className="text-sm text-gray-700 mt-1"><strong>{rx.drug_name}</strong>{rx.brand_name ? ` (${rx.brand_name})` : ''} {rx.strength} — {rx.form}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{rx.directions}</p>
                 <p className="text-xs text-gray-400 mt-0.5">Dr. {rx.prescriber_name} · Written {fmtDate(rx.written_date)} · Qty {rx.quantity} · Refills left: {rx.refills_remaining}</p>
-                <p className="text-xs text-gray-400">Patient cost: {fmtCad(rx.patient_cost)} · Insurance: {fmtCad(rx.insurance_paid)}</p>
+                <p className="text-xs text-gray-400">Patient cost: {fmtCad(rx.patient_cost)} · Insurance: {fmtCad(rx.insurance_paid ?? 0)}</p>
               </div>
               <div className="flex flex-col gap-2 items-end shrink-0">
                 {rx.status === 'new' && <button onClick={() => updateStatus(rx, 'ready')} className="px-3 py-1 text-xs rounded bg-green-600 text-white">Mark Ready</button>}

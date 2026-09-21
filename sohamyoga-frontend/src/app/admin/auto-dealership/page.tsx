@@ -495,7 +495,7 @@ export default function AutoDealershipPage() {
                       <Badge label={v.status} color={v.status === 'available' ? 'green' : v.status === 'sold' ? 'red' : 'amber'} />
                     </div>
                     <div className="text-xs text-gray-500 space-y-0.5">
-                      <p>Color: {v.color_exterior} / {v.color_interior}</p>
+                      <p>Color: {v.color_exterior}</p>
                       <p>Mileage: {fmtKm(v.mileage_km)} | Engine: {v.engine || '—'}</p>
                       <p>Drive: {v.drivetrain?.toUpperCase()} | Trans: {v.transmission}</p>
                     </div>

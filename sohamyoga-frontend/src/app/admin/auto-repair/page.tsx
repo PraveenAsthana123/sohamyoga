@@ -23,7 +23,7 @@ interface DashData { work_orders_in_shop: number; vehicles_ready_for_pickup: num
 interface WorkOrder { id:number; wo_number:string; customer_id:number; vehicle_id:number; first_name:string; last_name:string; phone:string; year:number; make:string; model:string; license_plate:string; color:string; technician:string; service_advisor:string; status:string; customer_concern:string; subtotal:number; tax_amount:number; total_amount:number; payment_status:string; customer_rating:number|null; created_at:string; odometer_in:number; inspection_complete:boolean; }
 interface Customer { id:number; first_name:string; last_name:string; email:string; phone:string; city:string; province:string; total_visits:number; total_spent:number; vehicle_count:number; }
 interface Vehicle { id:number; customer_id:number; year:number; make:string; model:string; license_plate:string; color:string; odometer_km:number; fuel_type:string; first_name:string; last_name:string; }
-interface LineItem { id:number; work_order_id:number; item_type:string; description:string; quantity:number; unit_price:number; labour_hours:number|null; technician:string|null; status:string; }
+interface LineItem { id:number; work_order_id:number; item_type:string; description:string; quantity:number; unit_price:number; labour_hours:number|null; technician:string|null; status:string; part_number?:string; }
 
 function fmtCad(n:number) { return `$${Number(n??0).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2})}`; }
 function fmtDate(d:string) { return d ? new Date(d).toLocaleDateString('en-CA') : '—'; }

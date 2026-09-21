@@ -27,6 +27,7 @@ interface Appointment {
   appointment_date: string; appointment_time: string; duration_minutes: number;
   status: string; chair_number: number; fee: number; insurance_estimate: number;
   patient_portion: number; submitted_to_insurance: boolean; outstanding: number;
+  patient_paid?: number;
 }
 interface TreatmentPlan {
   id: number; patient_id: number; patient_name: string; title: string; provider: string;
@@ -575,7 +576,7 @@ export default function DentalMedicalPage() {
                         <td className="px-4 py-2 text-gray-500">{fmtDate(a.appointment_date)}</td>
                         <td className="px-4 py-2">{a.appointment_type?.replace(/_/g, ' ')}</td>
                         <td className="px-4 py-2">{fmtCad(a.fee)}</td>
-                        <td className="px-4 py-2 text-green-700">{fmtCad(a.patient_paid)}</td>
+                        <td className="px-4 py-2 text-green-700">{fmtCad(a.patient_paid ?? 0)}</td>
                         <td className="px-4 py-2 font-medium text-red-700">{fmtCad(a.outstanding)}</td>
                       </tr>
                     ))}

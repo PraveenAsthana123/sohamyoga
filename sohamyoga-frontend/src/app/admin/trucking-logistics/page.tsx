@@ -113,7 +113,7 @@ function AddDriverModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
 
 function AddLoadModal({ vehicles, drivers, onClose, onSaved }: { vehicles: Vehicle[]; drivers: Driver[]; onClose: () => void; onSaved: () => void }) {
   const now = new Date();
-  const [form, setForm] = useState({ load_number: `L-${now.getFullYear()}-${String(now.getTime()).slice(-4)}`, vehicle_id: '', driver_id: '', shipper_name: '', consignee_name: '', origin_city: 'Calgary', origin_province: 'AB', origin_postal: '', destination_city: '', destination_province: 'AB', destination_postal: '', commodity: '', weight_kg: '', pieces: '', hazmat: false, pickup_date: '', delivery_date: '', distance_km: '', rate: '', fuel_surcharge: '', accessorials: '', total_revenue: '', driver_pay: '', bol_number: '', po_number: '', notes: '' });
+  const [form, setForm] = useState({ load_number: `L-${now.getFullYear()}-${String(now.getTime()).slice(-4)}`, vehicle_id: '', driver_id: '', shipper_name: '', consignee_name: '', origin_city: 'Calgary', origin_province: 'AB', origin_postal: '', destination_city: '', destination_province: 'AB', destination_postal: '', commodity: '', weight_kg: '', pieces: '', hazmat: false, hazmat_class: '', pickup_date: '', delivery_date: '', distance_km: '', rate: '', fuel_surcharge: '', accessorials: '', total_revenue: '', driver_pay: '', bol_number: '', po_number: '', notes: '' });
   const [saving, setSaving] = useState(false);
   const f = (k: string, v: string | boolean) => setForm(p => ({ ...p, [k]: v }));
   async function submit() {

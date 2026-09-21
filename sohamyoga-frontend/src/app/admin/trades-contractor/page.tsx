@@ -13,7 +13,7 @@ const CLIENT_SOURCES = ['referral','kijiji','google','facebook','door_knock','re
 const QUOTE_STATUSES = ['draft','sent','accepted','declined','expired'];
 
 interface TradeClient { id: number; name: string; email: string; phone: string; city: string; client_type: string; source: string; job_count: number; total_spend: number; last_job: string; }
-interface TradeJob { id: number; job_number: string; title: string; trade_type: string; client_id: number; client_name: string; client_phone: string; address: string; city: string; status: string; priority: string; start_date: string; end_date: string; estimate_amount: number; quoted_amount: number; invoiced_amount: number; paid_amount: number; lead_worker: string; warranty_months: number; }
+interface TradeJob { id: number; job_number: string; title: string; trade_type: string; client_id: number; client_name: string; client_phone: string; address: string; city: string; status: string; priority: string; start_date: string; end_date: string; estimate_amount: number; quoted_amount: number; invoiced_amount: number; paid_amount: number; lead_worker: string; warranty_months: number; permit_required?: boolean; }
 interface TradeQuote { id: number; client_id: number; client_name: string; title: string; trade_type: string; line_items: LineItem[]; subtotal: number; gst: number; total: number; valid_until: string; status: string; }
 interface LineItem { description: string; quantity: number; unit: string; unit_price: number; total: number; }
 interface TradeMaterial { id: number; job_id: number; description: string; quantity: number; unit: string; supplier: string; unit_cost: number; total_cost: number; ordered: boolean; received: boolean; }

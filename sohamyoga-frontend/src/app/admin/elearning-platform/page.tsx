@@ -190,7 +190,7 @@ function CoursesTab() {
               <span className="text-sm font-medium text-gray-700">{Number(c.price) === 0 ? 'Free' : `$${Number(c.price).toFixed(2)}`}</span>
               <span className="text-xs text-gray-400 ml-auto">{String(c.enrolled_count)} enrolled</span>
             </div>
-            {c.avg_rating && <div className="mb-3"><StarRating rating={Number(c.avg_rating)} /></div>}
+            {!!c.avg_rating && <div className="mb-3"><StarRating rating={Number(c.avg_rating)} /></div>}
             <div className="mt-auto flex gap-2 pt-3 border-t border-gray-100">
               {c.status !== 'published' && c.status !== 'archived' && (
                 <button onClick={() => handlePublish(c.id)} className="flex-1 text-xs bg-green-600 text-white py-1.5 rounded hover:bg-green-700">Publish</button>
@@ -246,7 +246,7 @@ function CoursesTab() {
                   <label className="block text-xs text-gray-500 mb-1">Instructor</label>
                   <select value={form.instructor_id} onChange={e => setForm(p => ({ ...p, instructor_id: e.target.value }))} className="w-full border rounded px-2 py-1.5 text-sm">
                     <option value="">No instructor</option>
-                    {instructors.map(i => <option key={String(i.id)} value={String(i.id)}>{i.first_name} {i.last_name}</option>)}
+                    {instructors.map(i => <option key={String(i.id)} value={String(i.id)}>{String(i.first_name)} {String(i.last_name)}</option>)}
                   </select>
                 </div>
               </div>
@@ -311,7 +311,7 @@ function InstructorsTab() {
               <tr key={String(i.id)} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <p className="font-medium">{String(i.first_name)} {String(i.last_name)}</p>
-                  {i.bio && <p className="text-xs text-gray-400 truncate max-w-xs">{String(i.bio).slice(0, 60)}{String(i.bio).length > 60 ? '…' : ''}</p>}
+                  {!!i.bio && <p className="text-xs text-gray-400 truncate max-w-xs">{String(i.bio).slice(0, 60)}{String(i.bio).length > 60 ? '…' : ''}</p>}
                 </td>
                 <td className="px-4 py-3 text-gray-600">{String(i.email)}</td>
                 <td className="px-4 py-3">
@@ -442,7 +442,7 @@ function EnrollmentsTab() {
                 <td className="px-4 py-3 text-gray-500 text-xs">{e.enrolled_at ? new Date(String(e.enrolled_at)).toLocaleDateString() : '—'}</td>
                 <td className="px-4 py-3">
                   <p>{Number(e.payment_amount) === 0 ? 'Free' : `$${Number(e.payment_amount).toFixed(2)}`}</p>
-                  {e.payment_method && <p className="text-xs text-gray-400">{String(e.payment_method)}</p>}
+                  {!!e.payment_method && <p className="text-xs text-gray-400">{String(e.payment_method)}</p>}
                 </td>
                 <td className="px-4 py-3">
                   {e.refunded ? <Badge label="Refunded" cls="bg-red-100 text-red-600" />
@@ -454,10 +454,10 @@ function EnrollmentsTab() {
                     {!e.completed_at && !e.refunded && (
                       <button onClick={() => handleAction(e.id, 'complete')} className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">Complete</button>
                     )}
-                    {e.completed_at && !e.certificate_issued && (
+                    {!!e.completed_at && !e.certificate_issued && (
                       <button onClick={() => handleAction(e.id, 'issue_certificate')} className="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700">Issue Cert</button>
                     )}
-                    {e.certificate_issued && <Badge label="Cert Issued" cls="bg-purple-100 text-purple-700" />}
+                    {!!e.certificate_issued && <Badge label="Cert Issued" cls="bg-purple-100 text-purple-700" />}
                     {!e.refunded && (
                       <button onClick={() => { if (confirm('Refund this enrollment?')) handleAction(e.id, 'refund'); }} className="text-xs border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">Refund</button>
                     )}
@@ -526,7 +526,7 @@ function ReviewsTab() {
                 {r.is_featured ? '★ Featured' : 'Feature'}
               </button>
             </div>
-            {r.review_text && <p className="text-sm text-gray-700 mt-2">{String(r.review_text)}</p>}
+            {!!r.review_text && <p className="text-sm text-gray-700 mt-2">{String(r.review_text)}</p>}
             <p className="text-xs text-gray-400 mt-2">{r.created_at ? new Date(String(r.created_at)).toLocaleDateString() : ''}</p>
           </div>
         ))}

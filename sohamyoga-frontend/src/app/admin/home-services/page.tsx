@@ -12,7 +12,7 @@ const ROLES = ['cleaner','lead_cleaner','supervisor','driver'];
 
 interface DashData { jobs_today: number; jobs_this_week: number; revenue_mtd: number; avg_rating: number | null; overdue_payments_count: number; }
 interface Customer { id: number; first_name: string; last_name: string; email: string; phone: string; address: string; city: string; gate_code: string; pet_info: string; total_jobs: number; total_spent: number; status: string; preferred_team: string; referral_source: string; service_notes: string; }
-interface Job { id: number; customer_id: number; first_name: string; last_name: string; address: string; phone: string; gate_code: string; pet_info: string; service_type: string; scheduled_at: string; duration_hours: number; assigned_team: string[]; status: string; recurrence: string; price: number; tip_amount: number; payment_status: string; customer_rating: number; notes: string; checklist_completed: boolean; }
+interface Job { id: number; customer_id: number; first_name: string; last_name: string; address: string; phone: string; gate_code: string; pet_info: string; service_type: string; scheduled_at: string; duration_hours: number; assigned_team: string[]; status: string; recurrence: string; price: number; tip_amount: number; payment_status: string; customer_rating: number; notes: string; checklist_completed: boolean; customer_feedback?: string; }
 interface TeamMember { id: number; first_name: string; last_name: string; phone: string; role: string; status: string; hourly_rate: number; vehicle: string; certifications: string[]; }
 interface Supply { id: number; name: string; category: string; quantity_on_hand: number; unit: string; reorder_point: number; cost_per_unit: number; supplier: string; }
 

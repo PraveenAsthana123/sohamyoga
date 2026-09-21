@@ -93,7 +93,7 @@ function AddClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
         <div className="p-6 grid grid-cols-2 gap-4">
           {[['name','Client Name','text'],['email','Email','email'],['phone','Phone','text'],['city','City','text']].map(([k,l,t]) => (
             <div key={k}><label className="text-xs text-gray-500">{l}</label>
-              <input type={t} className="w-full border rounded px-3 py-2 mt-1 text-sm" value={(form as Record<string,string>)[k]} onChange={e => set(k, e.target.value)} /></div>
+              <input type={t} className="w-full border rounded px-3 py-2 mt-1 text-sm" value={(form as unknown as Record<string,string>)[k]} onChange={e => set(k, e.target.value)} /></div>
           ))}
           <div><label className="text-xs text-gray-500">Province</label>
             <select className="w-full border rounded px-3 py-2 mt-1 text-sm" value={form.province} onChange={e => set('province', e.target.value)}>

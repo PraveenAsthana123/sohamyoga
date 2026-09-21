@@ -15,8 +15,8 @@ const PROGRESS_OPTIONS = ['improved','same','worse','resolved'];
 
 interface Patient { id:number; first_name:string; last_name:string; phone:string; email:string; city:string; referral_source:string; primary_complaint:string; pain_level:number; chiropractor:string; status:string; mva_claim_number:string; wca_claim_number:string; extended_health_provider:string; coverage_per_visit:number; visit_count:number; created_at:string; }
 interface Visit { id:number; patient_id:number; first_name:string; last_name:string; chiropractor:string; visit_date:string; visit_time:string; visit_type:string; status:string; primary_complaint:string; mva_claim_number:string; wca_claim_number:string; extended_health_provider:string; fee:number; pain_level_today:number; }
-interface TreatmentPlan { id:number; patient_id:number; first_name:string; last_name:string; chiropractor:string; diagnosis:string; proposed_visits:number; completed_visits:number; duration_weeks:number; status:string; mva_pre_authorized:boolean; wca_pre_authorized:boolean; auth_visits:number; }
-interface Xray { id:number; patient_id:number; first_name:string; last_name:string; xray_date:string; views_taken:string[]; findings:string; subluxations:string[]; recommendations:string; }
+interface TreatmentPlan { id:number; patient_id:number; first_name:string; last_name:string; chiropractor:string; diagnosis:string; proposed_visits:number; completed_visits:number; duration_weeks:number; status:string; mva_pre_authorized:boolean; wca_pre_authorized:boolean; auth_visits:number; treatment_frequency?:string; }
+interface Xray { id:number; patient_id:number; first_name:string; last_name:string; xray_date:string; views_taken:string[]; findings:string; subluxations:string[]; recommendations:string; chiropractor?:string; }
 interface DashboardData { patients_active:number; visits_today:number; mva_wca_patients:number; coverage_claims_pending:number; revenue_mtd:number; today_schedule:Visit[]; }
 
 function fmtCad(n:number) { return `$${Number(n??0).toLocaleString('en-CA',{minimumFractionDigits:0})}` }
@@ -449,7 +449,7 @@ export default function ChiropracticClinicPage() {
         {/* Billing */}
         {tab==='billing'&&<div className="space-y-4">
           <div className="grid grid-cols-4 gap-4">
-            {stats?.payer_breakdown&&(() => {
+            {!!stats?.payer_breakdown&&(() => {
               const pb = stats.payer_breakdown as Record<string,number>;
               return <>
                 <KpiCard label="Cash/Patient" value={fmtCad(pb.cash_total||0)} color="green" />
@@ -459,7 +459,7 @@ export default function ChiropracticClinicPage() {
               </>;
             })()}
           </div>
-          {stats?.visit_trend&&<div className="bg-white rounded-xl border p-4">
+          {!!stats?.visit_trend&&<div className="bg-white rounded-xl border p-4">
             <h2 className="font-semibold text-slate-700 mb-3">Monthly Revenue Trend</h2>
             <div className="space-y-2">{(stats.visit_trend as Array<{month:string;visits:number;revenue:number}>).map(row=>(
               <div key={row.month} className="flex items-center gap-3">
@@ -470,7 +470,7 @@ export default function ChiropracticClinicPage() {
               </div>
             ))}</div>
           </div>}
-          {stats?.diagnosis_breakdown&&<div className="bg-white rounded-xl border p-4">
+          {!!stats?.diagnosis_breakdown&&<div className="bg-white rounded-xl border p-4">
             <h2 className="font-semibold text-slate-700 mb-3">Top Diagnoses / Complaints</h2>
             <div className="space-y-1.5">{(stats.diagnosis_breakdown as Array<{primary_complaint:string;count:number}>).map(row=>(
               <div key={row.primary_complaint} className="flex items-center gap-3">
