@@ -1481,6 +1481,71 @@ const navItems = [
   { href: '/admin/jewellery-store', label: 'Jewellery Store 💎', icon: <span aria-hidden="true">💎</span>, requiredRoles: ['Admin'] },
   // Entertainment & Media
   { href: '/admin/recording-studio', label: 'Recording Studio 🎙️', icon: <span aria-hidden="true">🎙️</span>, requiredRoles: ['Admin'] },
+  // ── Six Sigma & Quality ──────────────────────────────────────────────────────
+  { href: '/admin/six-sigma', label: 'Six Sigma DMAIC ⚙️', icon: <span aria-hidden="true">⚙️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/spc', label: 'Statistical Process Control 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/lean-management', label: 'Lean Management 🔄', icon: <span aria-hidden="true">🔄</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/quality-audit', label: 'Quality Audit Hub ✅', icon: <span aria-hidden="true">✅</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/rca-tool', label: 'Root Cause Analysis 🔍', icon: <span aria-hidden="true">🔍</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/control-charts', label: 'Control Chart Dashboard 📈', icon: <span aria-hidden="true">📈</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/fmea', label: 'FMEA ⚠️', icon: <span aria-hidden="true">⚠️</span>, requiredRoles: ['Admin'] },
+  // ── Process Management ───────────────────────────────────────────────────────
+  { href: '/admin/process-mining', label: 'Process Mining ⛏️', icon: <span aria-hidden="true">⛏️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/bpmn-studio', label: 'BPMN Modeling Studio 🗂️', icon: <span aria-hidden="true">🗂️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/value-stream-mapping', label: 'Value Stream Mapping 🗺️', icon: <span aria-hidden="true">🗺️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/process-repository', label: 'Process Repository 📚', icon: <span aria-hidden="true">📚</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/decision-management', label: 'Decision Management 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
+  // ── Customer Acquisition ─────────────────────────────────────────────────────
+  { href: '/admin/demand-generation', label: 'Demand Generation Hub 📣', icon: <span aria-hidden="true">📣</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/abm', label: 'Account-Based Marketing 🏢', icon: <span aria-hidden="true">🏢</span>, requiredRoles: ['Admin'] },
+  // ── Social Media ─────────────────────────────────────────────────────────────
+  { href: '/admin/influencer-management', label: 'Influencer Management ⭐', icon: <span aria-hidden="true">⭐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/community-management', label: 'Community Management 👥', icon: <span aria-hidden="true">👥</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/social-commerce', label: 'Social Commerce 🛒', icon: <span aria-hidden="true">🛒</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/creator-economy', label: 'Creator Economy Hub 🎨', icon: <span aria-hidden="true">🎨</span>, requiredRoles: ['Admin'] },
+  // ── Video ─────────────────────────────────────────────────────────────────────
+  { href: '/admin/drone-video', label: 'Drone Video Management 🚁', icon: <span aria-hidden="true">🚁</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/video-distribution', label: 'Video Distribution Hub 📺', icon: <span aria-hidden="true">📺</span>, requiredRoles: ['Admin'] },
+  // ── Affiliate ────────────────────────────────────────────────────────────────
+  { href: '/admin/affiliate-networks', label: 'Affiliate Network Integration 🔗', icon: <span aria-hidden="true">🔗</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/sub-affiliate', label: 'Sub-Affiliate & MLM 🌲', icon: <span aria-hidden="true">🌲</span>, requiredRoles: ['Admin'] },
+  // ── Compliance & Audit ───────────────────────────────────────────────────────
+  { href: '/admin/third-party-risk', label: 'Third-Party Risk 🛡️', icon: <span aria-hidden="true">🛡️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/privacy-risk', label: 'Privacy Risk Assessment 🔐', icon: <span aria-hidden="true">🔐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/business-continuity', label: 'Business Continuity 🔁', icon: <span aria-hidden="true">🔁</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/grc-platform', label: 'GRC Platform 📋', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/isms', label: 'ISMS / ISO 27001 🔒', icon: <span aria-hidden="true">🔒</span>, requiredRoles: ['Admin'] },
+  // ── Review Management ────────────────────────────────────────────────────────
+  { href: '/admin/multi-location-reviews', label: 'Multi-Location Reviews ⭐', icon: <span aria-hidden="true">⭐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/review-templates', label: 'Review Response Templates 📝', icon: <span aria-hidden="true">📝</span>, requiredRoles: ['Admin'] },
+  // ── Event Management ─────────────────────────────────────────────────────────
+  { href: '/admin/event-ticketing', label: 'Event Ticketing 🎟️', icon: <span aria-hidden="true">🎟️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/event-sponsorship', label: 'Event Sponsorship 🤝', icon: <span aria-hidden="true">🤝</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/virtual-events', label: 'Virtual & Hybrid Events 💻', icon: <span aria-hidden="true">💻</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/event-vendors', label: 'Event Vendor Management 🏪', icon: <span aria-hidden="true">🏪</span>, requiredRoles: ['Admin'] },
+  // ── AI Strategy Consulting ───────────────────────────────────────────────────
+  { href: '/admin/ai-readiness', label: 'AI Readiness Assessment 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-maturity', label: 'AI Maturity Assessment 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-usecase-prioritization', label: 'AI Use-Case Prioritization 🎯', icon: <span aria-hidden="true">🎯</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-coe', label: 'AI Center of Excellence 🏛️', icon: <span aria-hidden="true">🏛️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ai-operating-model', label: 'AI Operating Model ⚙️', icon: <span aria-hidden="true">⚙️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/genai-strategy', label: 'GenAI / LLM Strategy 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agentic-strategy', label: 'Agentic AI Strategy 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  // ── AI Automation ────────────────────────────────────────────────────────────
+  { href: '/admin/automation-discovery', label: 'Automation Discovery & ROI 🔎', icon: <span aria-hidden="true">🔎</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/rpa-management', label: 'RPA Management 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/idp-management', label: 'Intelligent Document Processing 📄', icon: <span aria-hidden="true">📄</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/nocode-automation', label: 'No-Code / Low-Code Automation 🔧', icon: <span aria-hidden="true">🔧</span>, requiredRoles: ['Admin'] },
+  // ── Market Research ──────────────────────────────────────────────────────────
+  { href: '/admin/focus-groups', label: 'Focus Group Management 💬', icon: <span aria-hidden="true">💬</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/mystery-shopping', label: 'Mystery Shopping Program 🕵️', icon: <span aria-hidden="true">🕵️</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/ethnographic-research', label: 'Ethnographic Research 🔭', icon: <span aria-hidden="true">🔭</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/syndicated-research', label: 'Syndicated Research 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  // ── Business Development ─────────────────────────────────────────────────────
+  { href: '/admin/partner-channel', label: 'Partner & Channel Management 🤝', icon: <span aria-hidden="true">🤝</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/strategic-alliance', label: 'Strategic Alliance Management 🌐', icon: <span aria-hidden="true">🌐</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/bd-crm', label: 'Business Development CRM 💼', icon: <span aria-hidden="true">💼</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/account-planning', label: 'Account Planning Hub 📋', icon: <span aria-hidden="true">📋</span>, requiredRoles: ['Admin'] },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
