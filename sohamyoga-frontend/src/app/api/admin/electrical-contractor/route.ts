@@ -10,22 +10,19 @@ async function ensureTables(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(`
-      CREATE TABLE IF NOT EXISTS pest_control_job (
-        id SERIAL PRIMARY KEY, job_number TEXT,
-        customer_name TEXT NOT NULL, customer_email TEXT, customer_phone TEXT,
+      CREATE TABLE IF NOT EXISTS electrical_job (
+        id SERIAL PRIMARY KEY,
+        job_number TEXT DEFAULT ('EJ-' || EXTRACT(YEAR FROM NOW()) || '-' || LPAD(CAST(nextval('electrical_job_seq') AS TEXT), 4, '0')),
+        client_name TEXT NOT NULL, client_email TEXT, client_phone TEXT,
         address TEXT, city TEXT DEFAULT 'Calgary', province TEXT DEFAULT 'AB',
-        pest_type TEXT DEFAULT 'rodents',
-        service_type TEXT DEFAULT 'inspection',
-        property_type TEXT DEFAULT 'residential',
-        technician TEXT,
-        chemicals_used TEXT[],
-        scheduled_date DATE, completed_date DATE,
-        follow_up_date DATE,
-        amount NUMERIC(10,2), paid BOOLEAN DEFAULT false,
-        notes TEXT,
+        job_type TEXT DEFAULT 'residential', description TEXT,
+        electrician TEXT, estimated_hours NUMERIC(6,2), hourly_rate NUMERIC(8,2),
+        amount NUMERIC(10,2), scheduled_date DATE,
+        permit_required BOOLEAN DEFAULT false, permit_number TEXT,
         status TEXT DEFAULT 'scheduled',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      CREATE SEQUENCE IF NOT EXISTS electrical_job_seq;
     `);
   } finally { client.release(); }
 }
@@ -38,7 +35,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const pool = getPool();
   const client = await pool.connect();
   try {
-    const r = await client.query('SELECT * FROM pest_control_job ORDER BY scheduled_date DESC LIMIT 200');
+    const r = await client.query('SELECT * FROM electrical_job ORDER BY created_at DESC LIMIT 200');
     return Response.json({ jobs: r.rows });
   } finally { client.release(); }
 }
@@ -52,10 +49,10 @@ export async function POST(req: NextRequest): Promise<Response> {
   const pool = getPool();
   const client = await pool.connect();
   try {
-    const jobNum = `PC-${new Date().getFullYear()}-${String(Math.floor(Math.random()*9000)+1000)}`;
+    const jobNum = `EJ-${new Date().getFullYear()}-${String(Math.floor(Math.random()*9000)+1000)}`;
     const r = await client.query(
-      'INSERT INTO pest_control_job (job_number, customer_name, address, pest_type, service_type, technician, scheduled_date, amount) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-      [jobNum, body.customer_name ?? '', body.address ?? '', body.pest_type ?? 'rodents', body.service_type ?? 'treatment', body.technician ?? '', body.scheduled_date ?? null, body.amount ?? 0]
+      'INSERT INTO electrical_job (job_number, client_name, address, job_type, electrician, amount, scheduled_date) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
+      [jobNum, body.client_name ?? '', body.address ?? '', body.job_type ?? 'residential', body.electrician ?? '', body.amount ?? 0, body.scheduled_date ?? null]
     );
     return Response.json(r.rows[0]);
   } finally { client.release(); }

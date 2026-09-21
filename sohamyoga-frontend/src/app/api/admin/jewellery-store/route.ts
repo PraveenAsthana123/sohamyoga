@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
-import { getPool } from '@/lib/postgres';
+import { getPool, databaseConfigured } from '@/lib/postgres';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,128 +10,60 @@ async function ensureTables(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(`
-      CREATE TABLE IF NOT EXISTS jw_inventory (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        sku TEXT,
-        name TEXT NOT NULL,
-        category TEXT,
-        metal_type TEXT,
-        metal_purity TEXT,
-        gemstone_type TEXT,
-        gemstone_cert_lab TEXT,
-        cost_price NUMERIC,
-        retail_price NUMERIC,
-        appraisal_value NUMERIC,
-        appraisal_date DATE,
-        status TEXT DEFAULT 'in_stock',
-        notes TEXT,
+      CREATE TABLE IF NOT EXISTS jewellery_product (
+        id SERIAL PRIMARY KEY, sku TEXT UNIQUE,
+        name TEXT NOT NULL, category TEXT DEFAULT 'rings',
+        material TEXT DEFAULT 'gold', gemstone TEXT,
+        karat TEXT, weight_g NUMERIC(8,3),
+        price NUMERIC(10,2) NOT NULL, cost NUMERIC(10,2),
+        stock INT DEFAULT 1, images TEXT[],
+        description TEXT, status TEXT DEFAULT 'active',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE TABLE IF NOT EXISTS jw_sales (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        inventory_id uuid,
-        customer_name TEXT,
-        customer_phone TEXT,
-        salesperson TEXT,
-        sale_date DATE,
-        retail_price NUMERIC,
-        discount_amount NUMERIC DEFAULT 0,
-        final_price NUMERIC,
-        gst_amount NUMERIC,
-        total_amount NUMERIC,
-        payment_method TEXT,
-        fintrac_reported BOOLEAN DEFAULT false,
-        notes TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW()
-      );
-      CREATE TABLE IF NOT EXISTS jw_repairs (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        customer_name TEXT NOT NULL,
-        customer_phone TEXT,
-        item_description TEXT,
-        issue_reported TEXT,
-        estimated_cost NUMERIC,
-        actual_cost NUMERIC,
-        promised_date DATE,
-        completed_date DATE,
-        status TEXT DEFAULT 'received',
-        notes TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW()
-      );
-      CREATE TABLE IF NOT EXISTS jw_custom_orders (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        customer_name TEXT NOT NULL,
-        customer_phone TEXT,
-        customer_email TEXT,
-        design_description TEXT,
-        metal_type TEXT,
-        budget_range NUMERIC,
-        deposit_amount NUMERIC,
-        deposit_received BOOLEAN DEFAULT false,
-        due_date DATE,
-        status TEXT DEFAULT 'inquiry',
-        total_quoted NUMERIC,
-        notes TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW()
-      );
-      CREATE TABLE IF NOT EXISTS jw_consignments (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        seller_name TEXT NOT NULL,
-        seller_phone TEXT,
-        item_description TEXT,
-        asking_price NUMERIC,
-        commission_pct NUMERIC DEFAULT 30,
-        received_date DATE,
-        expiry_date DATE,
-        sold_price NUMERIC,
-        status TEXT DEFAULT 'on_floor',
-        notes TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW()
-      );
-      CREATE TABLE IF NOT EXISTS jw_fintrac_reports (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        transaction_date DATE,
-        customer_name TEXT,
-        id_type TEXT,
-        amount NUMERIC,
-        transaction_type TEXT,
-        submitted_date DATE,
-        reference_number TEXT,
-        notes TEXT,
+      CREATE TABLE IF NOT EXISTS jewellery_order (
+        id SERIAL PRIMARY KEY, order_number TEXT,
+        customer_name TEXT, customer_email TEXT, customer_phone TEXT,
+        product_id INT REFERENCES jewellery_product(id),
+        product_name TEXT, quantity INT DEFAULT 1,
+        unit_price NUMERIC(10,2), total NUMERIC(10,2),
+        custom_engraving TEXT, ring_size TEXT,
+        payment_method TEXT, status TEXT DEFAULT 'pending',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
-  } finally {
-    client.release();
-  }
+  } finally { client.release(); }
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
   const denied = await requireAdmin(req);
   if (denied) return denied;
+  if (!databaseConfigured()) return Response.json({ products: [], orders: [] });
   await ensureTables();
   const pool = getPool();
   const client = await pool.connect();
   try {
-    const today = new Date().toISOString().slice(0, 10);
-    const firstOfMonth = today.slice(0, 7) + '-01';
-    const [invValue, salesToday, repairs, customOrders, consignments, fintrac] = await Promise.all([
-      client.query(`SELECT COALESCE(SUM(retail_price),0) AS total FROM jw_inventory WHERE status = 'in_stock'`),
-      client.query(`SELECT COALESCE(SUM(total_amount),0) AS total FROM jw_sales WHERE sale_date = $1`, [today]),
-      client.query(`SELECT COUNT(*) AS n FROM jw_repairs WHERE status NOT IN ('completed','returned')`),
-      client.query(`SELECT COUNT(*) AS n FROM jw_custom_orders WHERE status NOT IN ('completed','cancelled')`),
-      client.query(`SELECT COUNT(*) AS n FROM jw_consignments WHERE status = 'on_floor'`),
-      client.query(`SELECT COUNT(*) AS n FROM jw_fintrac_reports WHERE transaction_date >= $1`, [firstOfMonth]),
+    const [products, orders] = await Promise.all([
+      client.query('SELECT * FROM jewellery_product ORDER BY created_at DESC LIMIT 200'),
+      client.query('SELECT * FROM jewellery_order ORDER BY created_at DESC LIMIT 100'),
     ]);
-    return Response.json({
-      total_inventory_value: parseFloat(invValue.rows[0].total),
-      sales_today: parseFloat(salesToday.rows[0].total),
-      repairs_in_progress: parseInt(repairs.rows[0].n, 10),
-      custom_orders_active: parseInt(customOrders.rows[0].n, 10),
-      consignments_on_floor: parseInt(consignments.rows[0].n, 10),
-      fintrac_reports_this_month: parseInt(fintrac.rows[0].n, 10),
-    });
-  } finally {
-    client.release();
-  }
+    return Response.json({ products: products.rows, orders: orders.rows });
+  } finally { client.release(); }
+}
+
+export async function POST(req: NextRequest): Promise<Response> {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  if (!databaseConfigured()) return Response.json({ error: 'DB not configured' }, { status: 503 });
+  await ensureTables();
+  const body = await req.json() as Record<string, unknown>;
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    const sku = `JW-${Date.now().toString(36).toUpperCase()}`;
+    const r = await client.query(
+      'INSERT INTO jewellery_product (sku, name, category, material, price, stock) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+      [sku, body.name ?? '', body.category ?? 'rings', body.material ?? 'gold', body.price ?? 0, body.stock ?? 1]
+    );
+    return Response.json(r.rows[0]);
+  } finally { client.release(); }
 }
