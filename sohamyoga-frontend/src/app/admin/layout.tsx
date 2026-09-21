@@ -1335,6 +1335,12 @@ const navItems = [
   // RAG & AI Infrastructure
   { href: '/admin/rag-knowledge-base', label: 'RAG Knowledge Base 🧠', icon: <span aria-hidden="true">🧠</span>, requiredRoles: ['Admin'] },
   // Control Towers
+  // ── Agentic Operations ──────────────────────────────────────────────────────
+  { href: 'divider', label: 'Agentic Operations', icon: null, requiredRoles: [] as string[] },
+  { href: '/admin/supervisor-agent', label: 'Supervisor Agent 🤖', icon: <span aria-hidden="true">🤖</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agentops', label: 'AgentOps 📊', icon: <span aria-hidden="true">📊</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/agent-engineering', label: 'Agent Engineering 🔧', icon: <span aria-hidden="true">🔧</span>, requiredRoles: ['Admin'] },
+  { href: '/admin/self-healing', label: 'Self-Healing System 🛠️', icon: <span aria-hidden="true">🛠️</span>, requiredRoles: ['Admin'] },
   // ── AI Operations ───────────────────────────────────────────────────────────
   { href: 'divider', label: 'AI Operations', icon: null, requiredRoles: [] as string[] },
   { href: '/admin/error-control-tower', label: 'Error Control Tower 🚨', icon: <span aria-hidden="true">🚨</span>, requiredRoles: ['Admin'] },
