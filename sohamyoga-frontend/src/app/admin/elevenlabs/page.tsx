@@ -182,7 +182,7 @@ export default function ElevenLabsPage() {
     navigator.clipboard.writeText(text).catch(console.error);
   }
 
-  function useTemplate(script: string) {
+  function applyTemplate(script: string) {
     setInputText(script);
     setActiveTab('Generate');
   }
@@ -414,7 +414,7 @@ export default function ElevenLabsPage() {
                   </div>
                   <p className="text-sm text-gray-600 italic leading-relaxed mb-3">"{t.script}"</p>
                   <button
-                    onClick={() => useTemplate(t.script)}
+                    onClick={() => applyTemplate(t.script)}
                     className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors"
                   >
                     Use Template

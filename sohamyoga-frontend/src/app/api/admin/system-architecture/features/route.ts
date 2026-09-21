@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
   const { searchParams } = new URL(req.url);
-  const module = searchParams.get('module');
+  const moduleName = searchParams.get('module');
   const type = searchParams.get('type');
   const status = searchParams.get('status');
   const adminOnly = searchParams.get('admin_only');
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const params: (string | boolean)[] = [];
   let idx = 1;
 
-  if (module) { conditions.push(`module_name ILIKE $${idx++}`); params.push(`%${module}%`); }
+  if (moduleName) { conditions.push(`module_name ILIKE $${idx++}`); params.push(`%${moduleName}%`); }
   if (type) { conditions.push(`feature_type = $${idx++}`); params.push(type); }
   if (status) { conditions.push(`status = $${idx++}`); params.push(status); }
   if (adminOnly !== null) { conditions.push(`admin_only = $${idx++}`); params.push(adminOnly === 'true'); }

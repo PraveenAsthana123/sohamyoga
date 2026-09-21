@@ -247,7 +247,7 @@ export default function VideoStudioPage() {
     setScriptLoading(false);
   }
 
-  async function useTemplate(t: VideoTemplate) {
+  async function applyTemplate(t: VideoTemplate) {
     await fetch('/api/admin/video-editor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -663,7 +663,7 @@ export default function VideoStudioPage() {
                     <p className="text-xs text-gray-500 mb-3">{t.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400">Used {t.use_count}×</span>
-                      <button onClick={() => useTemplate(t)}
+                      <button onClick={() => applyTemplate(t)}
                         className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700">
                         Use Template
                       </button>

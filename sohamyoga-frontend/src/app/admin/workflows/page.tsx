@@ -138,7 +138,7 @@ export default function WorkflowsPage() {
                       <div key={w.id} className="flex items-center justify-between text-sm border-b border-gray-50 pb-2 last:border-0">
                         <div>
                           <span className="font-medium">{w.name}</span>
-                          <Badge color={triggerColor(w.trigger_type)} children={w.trigger_type} />
+                          <Badge color={triggerColor(w.trigger_type)}>{w.trigger_type}</Badge>
                         </div>
                         <div className="text-xs text-gray-400">
                           {w.run_count_actual} runs · {w.step_count} steps

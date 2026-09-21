@@ -182,7 +182,7 @@ function AddChildModal({ onClose, onSaved }: { onClose: () => void; onSaved: () 
 }
 
 // ─── New Incident Modal ─────────────────────────────────────────────────────
-function NewIncidentModal({ children, onClose, onSaved }: { children: Child[]; onClose: () => void; onSaved: () => void }) {
+function NewIncidentModal({ childList, onClose, onSaved }: { childList: Child[]; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState({ child_id: '', incident_date: new Date().toISOString().split('T')[0], incident_time: new Date().toTimeString().slice(0,5), type: 'injury', description: '', action_taken: '', reported_by: '', witness: '', requires_licensing_report: 'false' });
   const [saving, setSaving] = useState(false);
   const f = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
@@ -199,7 +199,7 @@ function NewIncidentModal({ children, onClose, onSaved }: { children: Child[]; o
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 overflow-y-auto max-h-[90vh]">
         <h2 className="text-lg font-bold mb-4 text-slate-800">Record Incident</h2>
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2"><label className="text-xs text-gray-500">Child *</label><select className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" value={form.child_id} onChange={e => f('child_id', e.target.value)}><option value="">Select child</option>{children.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div className="col-span-2"><label className="text-xs text-gray-500">Child *</label><select className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" value={form.child_id} onChange={e => f('child_id', e.target.value)}><option value="">Select child</option>{childList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
           <div><label className="text-xs text-gray-500">Date</label><input type="date" className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" value={form.incident_date} onChange={e => f('incident_date', e.target.value)} /></div>
           <div><label className="text-xs text-gray-500">Time</label><input type="time" className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" value={form.incident_time} onChange={e => f('incident_time', e.target.value)} /></div>
           <div><label className="text-xs text-gray-500">Type</label><select className="w-full border rounded px-2 py-1.5 text-sm mt-0.5" value={form.type} onChange={e => f('type', e.target.value)}>{INCIDENT_TYPES.map(t => <option key={t}>{t.replace(/_/g, ' ')}</option>)}</select></div>
@@ -608,7 +608,7 @@ export default function ChildcareEducationPage() {
                 </tbody>
               </table>
             </div>
-            {showNewIncident && <NewIncidentModal children={children} onClose={() => setShowNewIncident(false)} onSaved={() => { setShowNewIncident(false); loadIncidents(); }} />}
+            {showNewIncident && <NewIncidentModal childList={children} onClose={() => setShowNewIncident(false)} onSaved={() => { setShowNewIncident(false); loadIncidents(); }} />}
           </div>
         )}
 

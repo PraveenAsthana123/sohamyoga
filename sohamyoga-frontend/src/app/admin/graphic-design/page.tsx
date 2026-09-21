@@ -997,7 +997,7 @@ function TemplatesTab({ templates, onRefresh }: { templates: DesignTemplate[]; o
   const categories = ['all', 'social', 'ads', 'email', 'print', 'presentation', 'web'];
   const filtered = catFilter === 'all' ? templates : templates.filter(t => t.category === catFilter);
 
-  const useTemplate = async (t: DesignTemplate) => {
+  const applyTemplate = async (t: DesignTemplate) => {
     await fetch('/api/admin/graphic-design/templates', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'increment_use', id: t.id, name: t.name }),
     });
@@ -1065,7 +1065,7 @@ function TemplatesTab({ templates, onRefresh }: { templates: DesignTemplate[]; o
                   <div style={{ display: 'flex', gap: 4 }}>
                     {t.canva_url && <span style={{ fontSize: 9, fontWeight: 700, background: '#DBEAFE', color: '#1D4ED8', padding: '2px 6px', borderRadius: 4 }}>Canva</span>}
                     {t.figma_url && <span style={{ fontSize: 9, fontWeight: 700, background: '#EDE9FE', color: '#6D28D9', padding: '2px 6px', borderRadius: 4 }}>Figma</span>}
-                    <button onClick={() => useTemplate(t)} style={{ background: catColor, color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                    <button onClick={() => applyTemplate(t)} style={{ background: catColor, color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
                       Use Template
                     </button>
                   </div>

@@ -222,7 +222,7 @@ export default function AiAutomationPage() {
     }
   }
 
-  function useDiscoverAsBuilder(r: DiscoveryResult) {
+  function applyDiscoverAsBuilder(r: DiscoveryResult) {
     setBuilderForm({ name: `Auto: ${r.whatToAutomate.substring(0, 40)}`, description: r.description, category: 'api', tool: r.bestTool.toLowerCase().replace(/[^a-z0-9_]/g, '_'), trigger_type: 'manual', trigger_cron: '', trigger_webhook: '', trigger_event: '' });
     setBuilderStep(1);
     setActiveTab('Builder');
@@ -754,7 +754,7 @@ export default function AiAutomationPage() {
                     <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{discoverResult.rawAnalysis}</p>
                   </div>
                 )}
-                <button onClick={() => useDiscoverAsBuilder(discoverResult)} className="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
+                <button onClick={() => applyDiscoverAsBuilder(discoverResult)} className="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
                   Create Automation from Discovery →
                 </button>
               </div>
