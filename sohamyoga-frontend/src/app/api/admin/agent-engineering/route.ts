@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getPool } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
+import { dispatchToOllama } from '@/lib/ollama-dispatcher';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -144,9 +145,72 @@ export async function POST(req: NextRequest) {
     name?: string; description?: string; agent_type?: string; base_model?: string;
     tools?: string[]; max_iterations?: number; system_prompt?: string;
     blueprint_id?: string; environment?: string;
+    agent_id?: string; test_prompt?: string;
   } | null;
 
   if (!body?.action) return Response.json({ error: 'action required' }, { status: 400 });
+
+  // run_evaluation: dispatch agent's system_prompt + test_prompt to Ollama, save result
+  if (body.action === 'run_evaluation') {
+    const { agent_id, test_prompt } = body;
+    if (!agent_id || !test_prompt) {
+      return Response.json({ error: 'agent_id and test_prompt are required' }, { status: 400 });
+    }
+
+    const evalPool = getPool();
+    const evalClient = await evalPool.connect();
+    let agent: { system_prompt?: string; name?: string } | null = null;
+    try {
+      const agentRow = await evalClient.query(
+        'SELECT agent_id, name, system_prompt FROM ae_agents WHERE agent_id = $1',
+        [agent_id]
+      );
+      if (agentRow.rowCount === 0) {
+        return Response.json({ error: 'Agent not found' }, { status: 404 });
+      }
+      agent = agentRow.rows[0] as { system_prompt?: string; name?: string };
+    } finally {
+      evalClient.release();
+    }
+
+    const result = await dispatchToOllama('reasoning', test_prompt, {
+      systemPrompt: agent.system_prompt ?? undefined,
+    });
+
+    // Quality heuristic: score based on output length, non-empty, and completed status
+    const outputLen = result.output.length;
+    const baseScore =
+      result.status === 'completed'
+        ? Math.min(100, Math.round(40 + Math.min(50, outputLen / 20) + (result.latency_ms < 10000 ? 10 : 0)))
+        : 0;
+
+    const saveClient = await evalPool.connect();
+    let evalId: number;
+    try {
+      const ev = await saveClient.query(
+        `INSERT INTO ae_evaluations
+           (agent_id, eval_dataset, metric, score, test_cases_run, passed)
+         VALUES ($1, 'live_ollama', 'reasoning_quality', $2, 1, $3)
+         RETURNING id`,
+        [agent_id, baseScore, result.status === 'completed' ? 1 : 0]
+      );
+      evalId = ev.rows[0].id as number;
+    } finally {
+      saveClient.release();
+    }
+
+    return Response.json({
+      eval_id: evalId,
+      agent_id,
+      model_used: result.model_used,
+      latency_ms: result.latency_ms,
+      tokens_estimated: result.tokens_estimated,
+      score: baseScore,
+      status: result.status,
+      output: result.output,
+      error: result.error,
+    });
+  }
 
   const pool = getPool();
   const client = await pool.connect();

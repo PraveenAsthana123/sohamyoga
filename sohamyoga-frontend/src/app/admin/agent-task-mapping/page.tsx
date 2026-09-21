@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface TaskMapping {
   id: number;
@@ -54,6 +54,33 @@ interface ApiResponse {
   generated_at: string;
 }
 
+interface LiveTaskModelInfo {
+  task_type: string;
+  preferred_models: string[];
+  selected_model: string | null;
+  available: boolean;
+}
+
+interface LiveMappingResponse {
+  live_mapping: LiveTaskModelInfo[];
+  generated_at: string;
+}
+
+interface DispatchResult {
+  task_type: string;
+  model_used: string;
+  output: string;
+  latency_ms: number;
+  tokens_estimated: number;
+  status: 'completed' | 'fallback_used' | 'ollama_offline' | 'failed';
+  error?: string;
+}
+
+interface TestRunState {
+  loading: boolean;
+  result: DispatchResult | null;
+}
+
 const MODEL_TYPE_COLORS: Record<string, string> = {
   'Transformer/LLM': 'bg-purple-100 text-purple-800',
   'ML/Deep Learning': 'bg-blue-100 text-blue-800',
@@ -97,11 +124,39 @@ const INPUT_TYPES = [
   'Product Recommendation',
 ];
 
+// Default test prompts per task type
+const DEFAULT_TEST_PROMPTS: Record<string, string> = {
+  text_generation:    'Write a short welcome message for a yoga studio website.',
+  code_generation:    'Write a TypeScript function that formats a date as YYYY-MM-DD.',
+  code_review:        'Review this code: function add(a,b){return a+b}',
+  summarization:      'Summarize: Yoga improves flexibility, strength, and mental clarity through mindful movement and breathing.',
+  classification:     'Classify this review: "The morning class was amazing, felt so refreshed!"',
+  entity_extraction:  'Extract names and places from: Sarah joined the Calgary yoga retreat with instructor Priya.',
+  sentiment_analysis: 'Is this positive or negative: "I love the weekend workshops!"',
+  translation:        'Translate to French: Welcome to our wellness center.',
+  reasoning:          'A yoga class has 12 students. 3 leave early. How many remain? Explain step by step.',
+  planning:           'Create a 3-step plan to launch a yoga studio Instagram account.',
+  tool_use:           'What tools would you use to find the best yoga class times for a user in Calgary?',
+  content_safety:     'Is this content safe: "Our yoga studio is open for all ages and abilities."',
+  embedding:          'yoga wellness mindfulness health',
+  qa:                 'What are the main benefits of daily yoga practice?',
+  marketing_copy:     'Write a one-sentence ad for a beginner yoga class starting Monday.',
+  email_draft:        'Draft a welcome email for a new yoga studio member named Alex.',
+  seo_analysis:       'Suggest 3 SEO keywords for a yoga studio in Calgary.',
+  data_analysis:      'A campaign had 200 clicks, 20 conversions, and cost $100. What is the CPA and CVR?',
+};
+
 export default function AgentTaskMappingPage() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'taskmap' | 'live' | 'models' | 'agents' | 'config'>('taskmap');
+  const [activeTab, setActiveTab] = useState<'taskmap' | 'live' | 'models' | 'agents' | 'config' | 'dispatch'>('taskmap');
   const [selectedInput, setSelectedInput] = useState<string>(INPUT_TYPES[0]);
+
+  // Live Dispatch tab state
+  const [liveMapping, setLiveMapping] = useState<LiveTaskModelInfo[] | null>(null);
+  const [liveMappingLoading, setLiveMappingLoading] = useState(false);
+  const [testRuns, setTestRuns] = useState<Record<string, TestRunState>>({});
+  const testPromptsRef = useRef<Record<string, string>>({ ...DEFAULT_TEST_PROMPTS });
 
   const fetchData = useCallback(async () => {
     try {
@@ -117,9 +172,79 @@ export default function AgentTaskMappingPage() {
     }
   }, []);
 
+  const fetchLiveMapping = useCallback(async () => {
+    setLiveMappingLoading(true);
+    try {
+      const res = await fetch('/api/admin/agent-task-mapping?action=live_mapping');
+      if (res.ok) {
+        const json: LiveMappingResponse = await res.json();
+        setLiveMapping(json.live_mapping);
+      }
+    } catch {
+      // network error
+    } finally {
+      setLiveMappingLoading(false);
+    }
+  }, []);
+
+  const runTest = useCallback(async (taskType: string) => {
+    const prompt = testPromptsRef.current[taskType] ?? `Test prompt for ${taskType}`;
+    setTestRuns(prev => ({ ...prev, [taskType]: { loading: true, result: null } }));
+    try {
+      const res = await fetch('/api/admin/agent-task-mapping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'execute', task_type: taskType, prompt }),
+      });
+      if (res.ok) {
+        const json = await res.json() as { dispatch_result: DispatchResult };
+        setTestRuns(prev => ({ ...prev, [taskType]: { loading: false, result: json.dispatch_result } }));
+      } else {
+        const err = await res.json() as { error?: string };
+        setTestRuns(prev => ({
+          ...prev,
+          [taskType]: {
+            loading: false,
+            result: {
+              task_type: taskType,
+              model_used: 'none',
+              output: err.error ?? 'Request failed',
+              latency_ms: 0,
+              tokens_estimated: 0,
+              status: 'failed',
+            },
+          },
+        }));
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setTestRuns(prev => ({
+        ...prev,
+        [taskType]: {
+          loading: false,
+          result: {
+            task_type: taskType,
+            model_used: 'none',
+            output: msg,
+            latency_ms: 0,
+            tokens_estimated: 0,
+            status: 'failed',
+          },
+        },
+      }));
+    }
+  }, []);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Auto-load live mapping when tab is opened
+  useEffect(() => {
+    if (activeTab === 'dispatch' && liveMapping === null) {
+      fetchLiveMapping();
+    }
+  }, [activeTab, liveMapping, fetchLiveMapping]);
 
   const filteredMappings = (data?.mappings ?? []).filter((m) => m.input_type === selectedInput);
 
@@ -190,6 +315,7 @@ export default function AgentTaskMappingPage() {
               { key: 'models', label: 'Model Registry' },
               { key: 'agents', label: 'Agent Registry' },
               { key: 'config', label: 'Config' },
+              { key: 'dispatch', label: 'Live Dispatch' },
             ] as const
           ).map(({ key, label }) => (
             <button
@@ -475,6 +601,135 @@ export default function AgentTaskMappingPage() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Live Dispatch Tab */}
+      {activeTab === 'dispatch' && (
+        <div className="space-y-4">
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Live Dispatch</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Real Ollama model assignments based on what is running right now
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {liveMapping && (
+                <span className="text-sm text-gray-500">
+                  {liveMapping.filter(m => m.available).length} / {liveMapping.length} task types available
+                </span>
+              )}
+              <button
+                onClick={fetchLiveMapping}
+                disabled={liveMappingLoading}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+              >
+                {liveMappingLoading ? 'Refreshing...' : 'Refresh Models'}
+              </button>
+            </div>
+          </div>
+
+          {liveMappingLoading && !liveMapping && (
+            <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-500">
+              Fetching live Ollama model list...
+            </div>
+          )}
+
+          {liveMapping && (
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide w-40">
+                        Task Type
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide w-44">
+                        Selected Model
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide w-24">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        Test Prompt
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide w-28">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {liveMapping.map((item) => {
+                      const run = testRuns[item.task_type];
+                      return (
+                        <tr key={item.task_type} className="hover:bg-gray-50 align-top">
+                          <td className="px-4 py-3">
+                            <span className="font-mono text-xs text-gray-700">{item.task_type}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="font-mono text-xs text-gray-600">
+                              {item.selected_model ?? 'none'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                item.available
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-red-100 text-red-700'
+                              }`}
+                            >
+                              {item.available ? 'Available' : 'Unavailable'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              defaultValue={DEFAULT_TEST_PROMPTS[item.task_type] ?? ''}
+                              onChange={(e) => {
+                                testPromptsRef.current[item.task_type] = e.target.value;
+                              }}
+                              className="w-full border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 bg-white"
+                              placeholder="Enter test prompt..."
+                            />
+                            {run?.result && (
+                              <div
+                                className={`mt-2 p-2 rounded text-xs ${
+                                  run.result.status === 'completed'
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 mb-1 font-medium">
+                                  <span>{run.result.model_used}</span>
+                                  <span className="text-gray-500">{run.result.latency_ms}ms</span>
+                                  <span className="text-gray-500">~{run.result.tokens_estimated} tokens</span>
+                                </div>
+                                <p className="whitespace-pre-wrap break-words max-h-32 overflow-y-auto">
+                                  {run.result.output}
+                                </p>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => runTest(item.task_type)}
+                              disabled={!item.available || run?.loading}
+                              className="px-3 py-1.5 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                              {run?.loading ? 'Running...' : 'Run Test'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

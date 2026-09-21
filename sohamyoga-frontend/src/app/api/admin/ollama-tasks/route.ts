@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { getPool } from '@/lib/postgres';
+import { dispatchToOllama, type OllamaTaskType } from '@/lib/ollama-dispatcher';
 
 async function ensureTables() {
   const pool = getPool();
@@ -102,16 +103,6 @@ async function ensureTables() {
   }
 }
 
-async function getOllamaBaseUrl(): Promise<string> {
-  const pool = getPool();
-  const client = await pool.connect();
-  try {
-    const r = await client.query(`SELECT value FROM ot_config WHERE key='base_url'`);
-    return r.rows[0]?.value || 'http://localhost:11434';
-  } finally {
-    client.release();
-  }
-}
 
 export async function GET(req: NextRequest) {
   const authErr = await requireAdmin(req);
@@ -178,81 +169,61 @@ export async function POST(req: NextRequest) {
   const authErr = await requireAdmin(req);
   if (authErr) return authErr;
   await ensureTables();
-  const body = await req.json();
+  const body = await req.json() as {
+    task_type?: string;
+    model_name?: string;
+    prompt?: string;
+    temperature?: number;
+    max_tokens?: number;
+  };
   const pool = getPool();
-  const client = await pool.connect();
 
   const taskId = `task-${Date.now()}`;
   const { task_type, model_name, prompt, temperature = 0.7, max_tokens = 512 } = body;
 
-  // Insert task as queued first
-  await client.query(
-    `INSERT INTO ot_tasks (task_id,task_type,model_name,prompt,temperature,max_tokens,status)
-     VALUES ($1,$2,$3,$4,$5,$6,'running')`,
-    [taskId, task_type, model_name, prompt, temperature, max_tokens]
-  );
-  client.release();
+  if (!task_type || !prompt) {
+    return NextResponse.json({ error: 'task_type and prompt are required' }, { status: 400 });
+  }
 
-  const baseUrl = await getOllamaBaseUrl();
-  const start = Date.now();
-
+  // Insert task as running first
+  const insertClient = await pool.connect();
   try {
-    const resp = await fetch(`${baseUrl}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: model_name,
-        prompt,
-        stream: false,
-        options: { temperature, num_predict: max_tokens },
-      }),
-      signal: AbortSignal.timeout(30000),
-    });
+    await insertClient.query(
+      `INSERT INTO ot_tasks (task_id,task_type,model_name,prompt,temperature,max_tokens,status)
+       VALUES ($1,$2,$3,$4,$5,$6,'running')`,
+      [taskId, task_type, model_name ?? 'auto', prompt, temperature, max_tokens]
+    );
+  } finally {
+    insertClient.release();
+  }
 
-    const latency = Date.now() - start;
+  // Dispatch via the shared dispatcher (uses task_type → model mapping)
+  const dispatchResult = await dispatchToOllama(
+    task_type as OllamaTaskType,
+    prompt,
+    { temperature }
+  );
 
-    if (!resp.ok) {
-      const errText = await resp.text();
-      const c2 = await pool.connect();
-      try {
-        await c2.query(
-          `UPDATE ot_tasks SET status='error', output=$1, latency_ms=$2, completed_at=NOW() WHERE task_id=$3`,
-          [errText, latency, taskId]
-        );
-        const r = await c2.query('SELECT * FROM ot_tasks WHERE task_id=$1', [taskId]);
-        return NextResponse.json(r.rows[0]);
-      } finally {
-        c2.release();
-      }
-    }
+  const finalStatus =
+    dispatchResult.status === 'completed' ? 'completed' :
+    dispatchResult.status === 'ollama_offline' ? 'ollama_offline' : 'error';
 
-    const data = await resp.json() as { response?: string };
-    const output = data.response || '';
-    const c2 = await pool.connect();
-    try {
-      await c2.query(
-        `UPDATE ot_tasks SET status='completed', output=$1, latency_ms=$2, completed_at=NOW() WHERE task_id=$3`,
-        [output, latency, taskId]
-      );
-      await c2.query(`UPDATE ot_models SET last_used=NOW() WHERE model_name=$1`, [model_name]);
-      const r = await c2.query('SELECT * FROM ot_tasks WHERE task_id=$1', [taskId]);
-      return NextResponse.json(r.rows[0]);
-    } finally {
-      c2.release();
-    }
-  } catch {
-    const latency = Date.now() - start;
-    const c2 = await pool.connect();
-    try {
-      await c2.query(
-        `UPDATE ot_tasks SET status='ollama_offline', output=$1, latency_ms=$2, completed_at=NOW() WHERE task_id=$3`,
-        ['Ollama service is offline or not reachable at ' + baseUrl, latency, taskId]
-      );
-      const r = await c2.query('SELECT * FROM ot_tasks WHERE task_id=$1', [taskId]);
-      return NextResponse.json(r.rows[0]);
-    } finally {
-      c2.release();
-    }
+  const updateClient = await pool.connect();
+  try {
+    await updateClient.query(
+      `UPDATE ot_tasks
+         SET status=$1, output=$2, latency_ms=$3, model_name=$4, completed_at=NOW()
+       WHERE task_id=$5`,
+      [finalStatus, dispatchResult.output, dispatchResult.latency_ms, dispatchResult.model_used, taskId]
+    );
+    await updateClient.query(
+      `UPDATE ot_models SET last_used=NOW() WHERE model_name=$1`,
+      [dispatchResult.model_used]
+    );
+    const r = await updateClient.query('SELECT * FROM ot_tasks WHERE task_id=$1', [taskId]);
+    return NextResponse.json(r.rows[0]);
+  } finally {
+    updateClient.release();
   }
 }
 

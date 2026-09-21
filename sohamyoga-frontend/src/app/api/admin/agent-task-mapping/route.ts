@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getPool } from '@/lib/postgres';
 import { requireAdmin } from '@/lib/admin-auth';
+import { dispatchToOllama, getTaskModelMapping, type OllamaTaskType } from '@/lib/ollama-dispatcher';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -214,6 +215,13 @@ export async function GET(req: NextRequest) {
 
   await ensureTables();
 
+  // ?action=live_mapping — return real model assignments from live Ollama
+  const { searchParams } = new URL(req.url);
+  if (searchParams.get('action') === 'live_mapping') {
+    const mapping = await getTaskModelMapping();
+    return Response.json({ live_mapping: mapping, generated_at: new Date().toISOString() });
+  }
+
   const pool = getPool();
   const client = await pool.connect();
   try {
@@ -246,8 +254,56 @@ export async function POST(req: NextRequest) {
 
   await ensureTables();
 
-  const body = await req.json().catch(() => null);
-  if (!body || !body.input_type) {
+  const body = await req.json().catch(() => null) as {
+    action?: string;
+    input_type?: string;
+    input_data?: string;
+    task_type?: string;
+    prompt?: string;
+  } | null;
+
+  if (!body) {
+    return Response.json({ error: 'Request body required' }, { status: 400 });
+  }
+
+  // action=execute: dispatch real Ollama task and record result
+  if (body.action === 'execute') {
+    const { task_type, prompt } = body;
+    if (!task_type || !prompt) {
+      return Response.json({ error: 'task_type and prompt are required for execute' }, { status: 400 });
+    }
+
+    const result = await dispatchToOllama(task_type as OllamaTaskType, prompt);
+
+    // Record execution in atm_executions
+    const execution_id = `exec-ollama-${Date.now()}`;
+    const pool = getPool();
+    const client = await pool.connect();
+    try {
+      await client.query(
+        `INSERT INTO atm_executions
+           (execution_id, input_type, input_data, status, subtask_count, total_latency_ms, completed_at)
+         VALUES ($1, $2, $3, $4, 1, $5, NOW())`,
+        [
+          execution_id,
+          task_type,
+          prompt,
+          result.status === 'completed' ? 'completed' : 'failed',
+          result.latency_ms,
+        ],
+      );
+    } finally {
+      client.release();
+    }
+
+    return Response.json({
+      execution_id,
+      dispatch_result: result,
+    }, { status: 201 });
+  }
+
+  // Default: create a simulated execution record
+  if (!body.input_type) {
     return Response.json({ error: 'input_type is required' }, { status: 400 });
   }
 
